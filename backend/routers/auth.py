@@ -4,7 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
 from schemas.auth import LoginRequest, RefreshRequest, RegisterRequest, TokenResponse
-from services.auth_service import authenticate_user, create_access_token, create_refresh_token, register_user
+from services.auth_service import (
+    authenticate_user,
+    create_access_token,
+    create_refresh_token,
+    register_user,
+)
 
 router = APIRouter()
 
@@ -50,11 +55,7 @@ async def register(body: RegisterRequest, response: Response, db: AsyncSession =
 async def refresh(
     body: RefreshRequest,
     response: Response,
-    db: AsyncSession = Depends(get_db),
 ):
-    from fastapi import Request
-
-    # Try body first, then cookie
     token = body.refresh_token
     if token is None:
         raise HTTPException(
