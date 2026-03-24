@@ -1,0 +1,42 @@
+// frontend/src/components/layout/Breadcrumbs.tsx
+import { Link, useLocation } from 'react-router-dom';
+
+export function Breadcrumbs() {
+  const { pathname } = useLocation();
+  const segments = pathname.split('/').filter(Boolean);
+
+  if (segments.length === 0) {
+    return (
+      <div className="bg-primary/20 px-6 py-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-primary-dark">
+          Home
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-primary/20 px-6 py-2">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
+        <Link to="/" className="text-primary-dark hover:underline">
+          Home
+        </Link>
+        {segments.map((segment, i) => (
+          <span key={i} className="flex items-center gap-2">
+            <span className="text-gray-400">&gt;</span>
+            {i < segments.length - 1 ? (
+              <Link
+                to={`/${segments.slice(0, i + 1).join('/')}`}
+                className="text-primary-dark hover:underline"
+              >
+                {decodeURIComponent(segment)}
+              </Link>
+            ) : (
+              <span className="text-gray-700">{decodeURIComponent(segment)}</span>
+            )}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}

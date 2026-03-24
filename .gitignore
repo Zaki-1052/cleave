@@ -1,0 +1,63 @@
+# cleave/.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Environment
+.env
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+dist/
+.eslintcache
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker / Postgres
+pgdata/
+
+# Local dev data
+dev-data/
+
+# Genomic data (never commit)
+*.bam
+*.bam.bai
+*.bai
+*.bw
+*.bigwig
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.bed
+*.bedgraph
+*.bdg
+*.sam
+*.vcf
+*.gtf
+*.gff
+
+# Large reference indices
+*.bt2
+*.bt2l

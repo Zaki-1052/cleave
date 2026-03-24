@@ -1,0 +1,43 @@
+# cleave/docker-compose.yml
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: cleave
+      POSTGRES_USER: cleave
+      POSTGRES_PASSWORD: dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: ./backend
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./dev-data:/data/cleave
+    environment:
+      DATABASE_URL: postgresql+asyncpg://cleave:dev@db:5432/cleave
+      PIPELINE_MODE: mock
+      CORS_ORIGINS: http://localhost:5173
+      SECRET_KEY: dev-secret-key
+      REFRESH_SECRET_KEY: dev-refresh-secret-key
+      STORAGE_ROOT: /data/cleave
+    depends_on:
+      - db
+
+  frontend:
+    image: node:20-slim
+    working_dir: /app
+    command: npm run dev -- --host 0.0.0.0
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  pgdata:

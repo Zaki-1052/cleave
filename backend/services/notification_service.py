@@ -1,0 +1,46 @@
+# backend/services/notification_service.py
+from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from models.notification import Notification
+
+
+async def create_notification(
+    db: AsyncSession,
+    user_id: int,
+    type: str,
+    title: str,
+    message: str,
+    link_target: str | None = None,
+) -> Notification:
+    notification = Notification(
+        user_id=user_id,
+        type=type,
+        title=title,
+        message=message,
+        link_target=link_target,
+    )
+    db.add(notification)
+    await db.commit()
+    await db.refresh(notification)
+    return notification
+
+
+async def list_notifications(
+    db: AsyncSession, user_id: int, unread_only: bool = False
+) -> list[Notification]:
+    query = select(Notification).where(Notification.user_id == user_id)
+    if unread_only:
+        query = query.where(Notification.is_read.is_(False))
+    query = query.order_by(Notification.created_at.desc())
+    result = await db.execute(query)
+    return list(result.scalars().all())
+
+
+async def mark_read(db: AsyncSession, notification_id: int, user_id: int) -> None:
+    await db.execute(
+        update(Notification)
+        .where(Notification.id == notification_id, Notification.user_id == user_id)
+        .values(is_read=True)
+    )
+    await db.commit()

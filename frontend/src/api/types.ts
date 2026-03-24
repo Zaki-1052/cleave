@@ -1,0 +1,106 @@
+// frontend/src/api/types.ts
+
+export interface User {
+  id: number;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  emailNotifications: string;
+  createdAt: string;
+}
+
+export interface Project {
+  id: number;
+  name: string;
+  description: string | null;
+  createdBy: number | null;
+  storageBytes: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Experiment {
+  id: number;
+  projectId: number;
+  name: string;
+  assayType: string;
+  description: string | null;
+  status: string;
+  createdBy: number | null;
+  storageBytes: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Reaction {
+  id: number;
+  experimentId: number;
+  fastqPrefix: string;
+  shortName: string;
+  organism: string;
+  assayType: string;
+  cutanaSpikeIn: string;
+  cutanaSpikeInTarget: string | null;
+  ecoliSpikeIn: boolean;
+}
+
+export interface FastqFile {
+  id: number;
+  experimentId: number;
+  filename: string;
+  prefix: string;
+  readDirection: string;
+  fileSizeBytes: number | null;
+  totalReads: number | null;
+  filePath: string;
+  isTrimmed: boolean;
+  uploadSource: string | null;
+  uploadedAt: string;
+}
+
+export interface AnalysisJob {
+  id: number;
+  experimentId: number;
+  jobType: string;
+  name: string;
+  notes: string | null;
+  status: string;
+  params: Record<string, unknown>;
+  parentJobId: number | null;
+  launchedBy: number | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  durationSeconds: number | null;
+  errorMessage: string | null;
+  methodsText: string | null;
+  createdAt: string;
+}
+
+export interface Notification {
+  id: number;
+  userId: number;
+  type: string;
+  title: string;
+  message: string;
+  linkTarget: string | null;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  perPage: number;
+}
+
+export interface TokenResponse {
+  accessToken: string;
+  tokenType: string;
+}
+
+export interface ApiError {
+  error: string;
+  detail: string | null;
+  fieldErrors: Record<string, string> | null;
+}
