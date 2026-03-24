@@ -20,7 +20,8 @@ These are infrastructure patterns to bake into the scaffold. Not things you need
 - [x] Axios client with interceptors (`api/client.ts`)
 - [x] Python `logging` + `structlog` for structured JSON logging (`logging_config.py`)
 - [ ] QC report Pydantic schemas — deferred to Phase 3 per scaffold-prompt.md
-- [x] No password reset flow -- by design
+- [ ] Rate limiting setup — add `slowapi` to backend deps, apply to `/api/v1/auth/login` (5/min) and `/api/v1/auth/register` (3/min)
+- [x] No password reset flow in Phase 1 -- fastapi-users includes `get_reset_password_router()` but it requires SES email transport. **Deferred to Phase 3**, not permanently skipped. Enable when SES is configured.
 
 ---
 

@@ -39,7 +39,7 @@ Build a self-hosted clone of EpiCypher's CUTANA™ Cloud platform that:
 | **Job Execution** | Custom Python worker process | Polls a `jobs` table, executes pipeline stages via `subprocess`, updates status. Single-process with configurable concurrency limit. |
 | **Real-time Updates** | Server-Sent Events (SSE) | Unidirectional server→client push for job status. Simpler than WebSockets; sufficient for this use case. |
 | **File Uploads** | tus protocol (chunked/resumable) | Multi-GB FASTQ files require resumable uploads over potentially unreliable connections. Python server (`tusd` or `tus-py`), JS client (`tus-js-client`). |
-| **Auth** | JWT (access + refresh tokens) + bcrypt | Minimal, sufficient for small user base. FastAPI-native patterns. |
+| **Auth** | fastapi-users (JWT access + refresh tokens), Argon2 | Community-audited auth library on a public-facing URL. Eliminates ~500-800 lines of security-critical glue code. Argon2 default via `pwdlib`. |
 | **Reverse Proxy** | NGINX | TLS termination, static asset serving, proxying to Uvicorn. |
 | **DNS/CDN** | Cloudflare | DNS pointing to EC2 instance. Optional: Cloudflare proxy for DDoS protection and caching of static assets. |
 | **Process Management** | systemd | Native on Ubuntu. Units for: NGINX, PostgreSQL, Uvicorn (FastAPI), Worker process. Auto-restart, logging, dependency ordering. |
@@ -613,11 +613,16 @@ Replicate CUTANA Cloud's visual language:
 
 ### Auth Flow
 
-1. User registers with email + password. Password hashed with bcrypt (cost factor 12).
-2. Login returns JWT access token (short-lived, 15 min) + refresh token (long-lived, 7 days, stored in httpOnly cookie).
-3. All API requests include `Authorization: Bearer <access_token>`.
-4. FastAPI dependency (`get_current_user`) validates JWT on every protected endpoint.
-5. Refresh endpoint issues new access token using refresh cookie.
+Auth is implemented via `fastapi-users`, a community-audited library that handles registration, login, JWT creation/validation, and password hashing.
+
+1. User registers with email + password. Password hashed with Argon2 via `pwdlib` (fastapi-users default as of v13+). Automatic upgrade of any existing bcrypt hashes on login.
+2. Login returns JWT access token (short-lived, 15 min, delivered via Bearer header) + refresh token (long-lived, 7 days, stored in httpOnly cookie via fastapi-users `CookieTransport`).
+3. Cookie configuration: `cookie_httponly=True`, `cookie_samesite="lax"`, `cookie_secure=True` in production, `cookie_max_age=604800` (7 days).
+4. All API requests include `Authorization: Bearer <access_token>`.
+5. fastapi-users `current_active_user` dependency validates JWT on every protected endpoint (replaces hand-written `get_current_user`).
+6. Refresh endpoint issues new access token using refresh cookie.
+7. Password reset is **deferred to Phase 3** (requires SES for email transport). fastapi-users includes `get_reset_password_router()` — enable it once SES is configured. Not permanently disabled.
+8. **Rate limiting**: `slowapi` middleware on `/api/v1/auth/login` (5 attempts/min per IP) and `/api/v1/auth/register` (3/min per IP). fastapi-users does not include rate limiting.
 
 ### Authorization Model
 

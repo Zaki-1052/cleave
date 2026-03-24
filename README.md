@@ -34,7 +34,7 @@ Built for ~8-10 lab members. Runs on a single AWS EC2 instance.
 | Frontend | React 18 (Vite), TypeScript, Tailwind CSS, TanStack Table, TanStack Query |
 | Backend | FastAPI (Python 3.11+), Uvicorn, SQLAlchemy 2.0 (async), Alembic, Pydantic v2 |
 | Database | PostgreSQL 15+ |
-| Auth | JWT (15-min access token + 7-day httpOnly refresh cookie), bcrypt |
+| Auth | fastapi-users (JWT access + httpOnly refresh cookie), Argon2 |
 | Pipeline | Python worker process calling bioinformatics tools via subprocess |
 | Real-time | SSE (server-sent events) for job status updates |
 | Dev | Docker Compose (Postgres + FastAPI + Vite) |
@@ -128,7 +128,7 @@ cleave/
 
 9 tables managed via Alembic migrations:
 
-- **users** — accounts with bcrypt password hashes
+- **users** — accounts extending fastapi-users base model (Argon2 password hashes)
 - **projects** — top-level organizational containers
 - **project_members** — role-based access (admin / contributor / viewer)
 - **experiments** — CUT&RUN or CUT&Tag analysis units within a project

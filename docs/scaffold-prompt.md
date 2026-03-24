@@ -20,7 +20,7 @@ Read the project documentation thoroughly before planning:
 Cleave is a self-hosted CUT&RUN/CUT&Tag bioinformatics web platform (cloning EpiCypher's CUTANA Cloud + lab extensions). It serves ~8-10 users in a single research lab. The stack is:
 
 - **Frontend**: React 18+ (Vite, TypeScript), Tailwind CSS, TanStack Table, TanStack Query, React Router v6, Axios, IGV.js (later), Recharts (later), tus-js-client (later)
-- **Backend**: FastAPI (Python 3.11+), Uvicorn, SQLAlchemy 2.0 (async), Alembic, Pydantic v2, python-jose (JWT), passlib[bcrypt], python-multipart
+- **Backend**: FastAPI (Python 3.11+), Uvicorn, SQLAlchemy 2.0 (async), Alembic, Pydantic v2, fastapi-users[sqlalchemy], slowapi, python-multipart
 - **Database**: PostgreSQL 15+
 - **Dev environment**: Docker Compose (Postgres + FastAPI + Vite dev server)
 - **Pipeline**: Python worker process calling bioinformatics tools via subprocess — NOT scaffolded in Phase 1, but the `pipelines/` directory structure is created with a base class stub
@@ -60,7 +60,7 @@ cleave/
 │   │
 │   ├── schemas/                          Pydantic v2 request/response schemas
 │   │   ├── __init__.py                   (empty)
-│   │   ├── auth.py                       (skeleton) LoginRequest, TokenResponse, RegisterRequest
+│   │   ├── auth.py                       (skeleton) UserRead, UserCreate, UserUpdate (extend fastapi-users base schemas)
 │   │   ├── user.py                       (skeleton) UserRead, UserUpdate
 │   │   ├── project.py                    (skeleton) ProjectCreate, ProjectRead, ProjectUpdate, ProjectListResponse
 │   │   ├── experiment.py                 (skeleton) ExperimentCreate, ExperimentRead, ExperimentUpdate
@@ -72,7 +72,7 @@ cleave/
 │   │
 │   ├── routers/                          FastAPI APIRouter modules (one per resource)
 │   │   ├── __init__.py                   (empty)
-│   │   ├── auth.py                       (skeleton) /api/v1/auth/* — login, register, refresh
+│   │   ├── auth.py                       (skeleton) /api/v1/auth/* — fastapi-users generated routers (login, register, refresh)
 │   │   ├── users.py                      (skeleton) /api/v1/users/me — profile CRUD
 │   │   ├── projects.py                   (skeleton) /api/v1/projects/* — project CRUD + members
 │   │   ├── experiments.py                (skeleton) /api/v1/experiments/* — experiment CRUD
@@ -84,12 +84,12 @@ cleave/
 │   │
 │   ├── services/                         Business logic layer (routers call these, not DB directly)
 │   │   ├── __init__.py                   (empty)
-│   │   ├── auth_service.py               (skeleton) Password hashing, JWT creation/validation, refresh logic
+│   │   ├── auth_service.py               (skeleton) UserManager subclass with custom hooks (on_after_register, etc.)
 │   │   ├── project_service.py            (skeleton) Project CRUD, member management, permission checks
 │   │   ├── experiment_service.py         (skeleton) Experiment CRUD, status management
 │   │   └── notification_service.py       (skeleton) Create notifications, mark read
 │   │
-│   ├── dependencies.py                   (skeleton) FastAPI Depends: get_db, get_current_user, require_project_role
+│   ├── dependencies.py                   (skeleton) FastAPI Depends: get_db, current_active_user (via fastapi-users), require_project_role
 │   │
 │   ├── migrations/                       Alembic migrations directory
 │   │   ├── env.py                        (skeleton) Alembic env — imports all models, uses async engine
@@ -256,7 +256,7 @@ GENOME_INDEX_DIR=/data/cleave/genomes
 ### 2.2 Backend Config Files
 
 **`backend/pyproject.toml`** — project name `cleave-backend`, Python >=3.11. Dependencies:
-- Runtime: `fastapi>=0.109`, `uvicorn[standard]`, `sqlalchemy[asyncio]>=2.0`, `asyncpg`, `alembic`, `pydantic>=2.0`, `pydantic-settings`, `python-jose[cryptography]`, `passlib[bcrypt]`, `python-multipart`, `httpx` (for testing)
+- Runtime: `fastapi>=0.109`, `uvicorn[standard]`, `sqlalchemy[asyncio]>=2.0`, `asyncpg`, `alembic`, `pydantic>=2.0`, `pydantic-settings`, `fastapi-users[sqlalchemy]`, `slowapi`, `python-multipart`, `httpx` (for testing)
 - Dev: `pytest`, `pytest-asyncio`, `ruff`, `httpx`
 
 Ruff config section: line-length 100, select `["E", "F", "I", "W"]`, target Python 3.11.
@@ -273,15 +273,16 @@ Ruff config section: line-length 100, select `["E", "F", "I", "W"]`, target Pyth
 
 **`backend/main.py`** — Create `FastAPI(title="Cleave", version="0.1.0")` app. Add CORS middleware with `settings.CORS_ORIGINS`. Include all routers with `/api/v1` prefix. Add a `/api/v1/health` endpoint returning `{"status": "ok"}`.
 
-**`backend/dependencies.py`** — Three key dependencies:
+**`backend/dependencies.py`** — Key dependencies:
 - `get_db`: yields async DB session (from database.py)
-- `get_current_user`: decodes JWT from `Authorization: Bearer` header, queries User, raises 401 if invalid
-- `require_project_role(project_id, roles)`: checks `project_members` table for current user's role, raises 403 if insufficient
+- `current_active_user`: provided by fastapi-users — decodes JWT from `Authorization: Bearer` header, loads User from DB, raises 401 if invalid. Replaces hand-written `get_current_user`.
+- `require_project_role(project_id, roles)`: checks `project_members` table for current user's role, raises 403 if insufficient. This is still custom code, not part of fastapi-users.
 
 ### 2.4 Backend Models
 
 All models use SQLAlchemy 2.0 mapped_column syntax. Follow the schema EXACTLY as defined in `cutana-architecture-plan.md` §4, with these additions:
 
+- The `User` model should extend fastapi-users' `SQLAlchemyBaseUserTable` mixin while keeping our custom fields (`first_name`, `last_name`, `email_notifications`). The mixin provides `id`, `email`, `hashed_password`, `is_active`, `is_superuser`, `is_verified` — do not redefine these.
 - All `TIMESTAMPTZ` columns use `DateTime(timezone=True)` with `server_default=func.now()`
 - Add `__tablename__` to every model
 - The `analysis_jobs.params` JSONB column uses `Column(JSON)` in SQLAlchemy
@@ -292,7 +293,8 @@ All models use SQLAlchemy 2.0 mapped_column syntax. Follow the schema EXACTLY as
 ### 2.5 Backend Schemas
 
 Pydantic v2 models. Key patterns:
-- Every entity has `Create`, `Read`, and (where applicable) `Update` schemas
+- Auth-related schemas (`UserRead`, `UserCreate`, `UserUpdate`) are provided by fastapi-users base schemas. Extend them to include custom fields (`first_name`, `last_name`, `email_notifications`) if needed on registration. The `LoginRequest`, `TokenResponse`, and `RegisterRequest` schemas from the original plan are no longer hand-written — fastapi-users handles these internally.
+- Every non-auth entity has `Create`, `Read`, and (where applicable) `Update` schemas
 - `Read` schemas include `id` and timestamps; `Create` schemas don't
 - Use `model_config = ConfigDict(from_attributes=True)` on all Read schemas for ORM compatibility
 - `common.py` defines: `PaginatedResponse[T]` (generic with `items: list[T]`, `total: int`, `page: int`, `per_page: int`), `ErrorResponse` (`error: str`, `detail: str | None`, `field_errors: dict | None`), and string enums for `ExperimentStatus`, `JobStatus`, `ProjectRole`, `AssayType`, `Organism`
@@ -301,13 +303,13 @@ Pydantic v2 models. Key patterns:
 
 Each router is a FastAPI `APIRouter` with appropriate prefix and tags. Phase 1 implements CRUD for auth, users, projects (with members), and experiments. Other routers (reactions, fastqs, jobs, files, notifications) are created as empty skeletons with a single placeholder endpoint that returns 501 Not Implemented.
 
-The auth router does NOT use a prefix (it's mounted at `/api/v1/auth`). It has three endpoints: `POST /login` (returns access + refresh tokens), `POST /register` (creates user, returns tokens), `POST /refresh` (reads refresh token from cookie or body, returns new access token).
+The auth router is generated by fastapi-users via `fastapi_users.get_auth_router()` and `get_register_router()`, mounted at `/api/v1/auth`. The generated routers provide the same three endpoints: `POST /login` (returns access + refresh tokens), `POST /register` (creates user, returns tokens), `POST /refresh` (reads refresh token from cookie or body, returns new access token). We may add a thin wrapper for any custom behavior (like creating a notification on registration via the `UserManager.on_after_register` hook).
 
 ### 2.7 Backend Services
 
 Thin service layer between routers and the database. Each service receives a DB session and performs queries. This keeps routers focused on HTTP concerns (parsing requests, returning responses) and services focused on business logic (permission checks, validation, data access).
 
-`auth_service.py` handles: `hash_password()`, `verify_password()`, `create_access_token()`, `create_refresh_token()`, `decode_token()`, `authenticate_user()`, `register_user()`.
+`auth_service.py` is now primarily a `UserManager` subclass with custom hooks rather than hand-rolled auth logic. Most functions (`hash_password`, `verify_password`, `create_access_token`, etc.) are internal to fastapi-users. This file provides: `on_after_register` (create a welcome notification), `on_after_forgot_password` (deferred to Phase 3 when SES is configured), and any custom validation logic. Rate limiting via `slowapi` should also be configured here or in `main.py` — apply to `/api/v1/auth/login` (5/min per IP) and `/api/v1/auth/register` (3/min per IP).
 
 `project_service.py` handles: `create_project()` (also adds creator as admin member), `list_projects_for_user()`, `get_project()`, `update_project()`, `delete_project()`, `add_member()`, `remove_member()`, `update_member_role()`, `check_permission()`.
 

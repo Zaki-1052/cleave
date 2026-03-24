@@ -24,12 +24,16 @@
 
 ### 1.1 Auth Backend — End-to-End
 
-Wire the auth endpoints to actually work with the database.
+Integrate `fastapi-users` to provide auth endpoints wired to the database. This replaces hand-rolled JWT/bcrypt code with library configuration.
 
-- **Register**: hash password, create user, return tokens, set refresh cookie
-- **Login**: verify password, return tokens, set refresh cookie
-- **Refresh**: decode refresh cookie/body, issue new access token
-- **`get_current_user` dependency**: decode JWT, load user from DB, raise 401 on failure
+- **Install**: `fastapi-users[sqlalchemy]` as the auth dependency. Remove `python-jose[cryptography]` and `passlib[bcrypt]` from `pyproject.toml`.
+- **User model**: Extend `SQLAlchemyBaseUserTable` mixin while keeping custom fields (`first_name`, `last_name`, `email_notifications`).
+- **Auth backend**: Configure `AuthenticationBackend` with `BearerTransport` (access token, 15-min expiry) and `CookieTransport` (refresh token, 7-day expiry, `httponly=True`, `samesite="lax"`, `secure=True` in prod).
+- **Routers**: Include fastapi-users generated routers via `fastapi_users.get_auth_router()` and `get_register_router()`. Mount at `/api/v1/auth`.
+- **`current_active_user` dependency**: Provided by fastapi-users — replaces hand-written `get_current_user`. Decodes JWT, loads user from DB, raises 401 on failure.
+- **`UserManager` subclass**: Custom hooks (e.g., `on_after_register` to create a welcome notification). Lives in `auth_service.py`.
+- **Password hashing**: Argon2 via `pwdlib` (fastapi-users default). Automatic upgrade of any existing bcrypt hashes on login.
+- **Rate limiting**: Add `slowapi` middleware on `/api/v1/auth/login` (5/min per IP) and `/api/v1/auth/register` (3/min per IP). fastapi-users does not include rate limiting.
 
 **Verify**: `curl -X POST /api/v1/auth/register` creates a user in the DB. `curl -X POST /api/v1/auth/login` returns tokens. `curl -H "Authorization: Bearer <token>" /api/v1/users/me` returns the user.
 
@@ -97,7 +101,7 @@ Wire the account settings page.
 
 ### 1.8 Phase 1 Tests
 
-Implement the test stubs in `tests/`. Use httpx `AsyncClient` with the FastAPI test transport.
+Implement the test stubs in `tests/`. Use httpx `AsyncClient` with the FastAPI test transport. The implementation under test is fastapi-users, not custom code, but the test assertions are the same — they verify the API contract, not the internals.
 
 - `test_auth.py`: Register, login, refresh, protected route access
 - `test_projects.py`: CRUD, creator is admin, member-only visibility, admin-only operations
@@ -647,7 +651,7 @@ These apply throughout all phases, not to any single step.
 
 - Router → Service → Database. Routers handle HTTP, services handle business logic, models handle persistence.
 - All service functions are `async def`, receive a DB session, return domain objects.
-- `get_current_user` dependency on every protected endpoint. `require_project_role` for permission checks.
+- fastapi-users `current_active_user` dependency on every protected endpoint. `require_project_role` (custom) for permission checks.
 - Pipeline modules follow the `PipelineStage` base class interface: `validate()`, `run()`, `mock_run()`, `generate_methods_text()`.
 - `PIPELINE_MODE=mock` for all local development. Real pipelines only run on EC2 with bioinformatics tools installed.
 

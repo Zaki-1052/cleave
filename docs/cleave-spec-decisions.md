@@ -565,16 +565,17 @@ Decisions on the web app scaffolding layer, resolved 2026-03-23 (second round).
 | 2 | **API error format** | Standardize all error responses to `{"error": str, "detail": str \| null, "field_errors": dict \| null}`. Validation errors populate `field_errors`. Auth/permission/not-found populate `error` + `detail`. FastAPI exception handlers normalize everything to this shape. |
 | 3 | **Pagination contract** | All list endpoints return `{"items": [...], "total": int, "page": int, "per_page": int}`. Query params: `?page=1&per_page=25`. Matches CUTANA Cloud's "Records per page" UI pattern. |
 | 4 | **CORS** | FastAPI `CORSMiddleware` allowing `http://localhost:5173` in dev. In production, NGINX proxies everything through one origin so CORS isn't needed — but local dev breaks without it. |
-| 5 | **Refresh token / CSRF** | Refresh token stored in httpOnly cookie with `SameSite=Lax`. Prevents CSRF for cross-origin POST. Access token in response body, stored in memory by Axios. Cookie survives page refreshes. |
-| 6 | **Password reset** | Skip entirely. For 8-10 lab members, admins reset passwords manually (future: admin CLI command or DB update). No email-based forgot-password flow. |
+| 5 | **Refresh token / CSRF** | Now handled by fastapi-users `CookieTransport` configuration: `cookie_httponly=True`, `cookie_samesite="lax"`, `cookie_secure=True` (prod), `cookie_max_age=604800` (7 days). Access token via `BearerTransport` (15-min expiry), stored in memory by Axios. Same security properties as the original hand-rolled plan, but trivially auditable as named parameters. |
+| 6 | **Password reset** | **Deferred to Phase 3**, not permanently skipped. fastapi-users includes a complete, secure password reset flow (`get_reset_password_router()`) out of the box, but it requires email transport (SES) to send the reset link. Enable in Phase 3 when SES is configured for job completion emails — this is a config flag flip, not a feature build. Add `/auth/forgot-password` to the rate limiting list when enabled. |
 | 7 | **Frontend API client** | Axios with interceptors. Auth header injection (`Authorization: Bearer <token>`), 401 → automatic refresh flow, error response normalization to match backend schema. Request cancellation and progress events useful for FASTQ uploads. |
 | 8 | **Application logging** | Python `logging` + `structlog` for structured JSON logging. Set up in scaffold so all modules use a consistent logger from day one. Covers API requests, auth events, errors. Pipeline execution logs are separate (stdout/stderr captured to files). |
+| 9 | **Rate limiting** | Add `slowapi` as a backend dependency. Apply rate limits to auth endpoints: `/api/v1/auth/login` (5 attempts/min per IP), `/api/v1/auth/register` (3/min per IP). ~20 lines of middleware configuration. fastapi-users does not include rate limiting — this must be added separately. |
 
 ### Phase 3+ — Implement Later
 
 | # | Item | Decision |
 |---|------|----------|
-| 9 | **Email notifications** | Amazon SES from Phase 3. Already on AWS, pennies per email. In-app notifications + SSE only for Phases 1-2. Env vars: `AWS_SES_REGION`, `AWS_SES_FROM_EMAIL`. |
-| 10 | **QC report schemas** | Define `AlignmentQCReport` and `PeakCallingQCReport` Pydantic models based on exported CSVs in `cutana/H3K4me3/`. Both the mock pipeline and real pipeline must produce data conforming to these schemas. |
-| 11 | **hg38 blacklist supplement** | Ship both the lab's ENCODE/DAC v1 file (38 entries) AND Boyle Lab v2 (~910 entries). Default to Boyle Lab v2 in the UI. Let users pick in Advanced Settings. |
-| 12 | **Gene annotation BEDs** | Download RefSeq BEDs from UCSC Table Browser (mm10, hg38) for TSS/gene body heatmaps. Needed for Phase 3 alignment heatmaps. Not blocking Phase 1. |
+| 10 | **Email notifications** | Amazon SES from Phase 3. Already on AWS, pennies per email. In-app notifications + SSE only for Phases 1-2. Env vars: `AWS_SES_REGION`, `AWS_SES_FROM_EMAIL`. |
+| 11 | **QC report schemas** | Define `AlignmentQCReport` and `PeakCallingQCReport` Pydantic models based on exported CSVs in `cutana/H3K4me3/`. Both the mock pipeline and real pipeline must produce data conforming to these schemas. |
+| 12 | **hg38 blacklist supplement** | Ship both the lab's ENCODE/DAC v1 file (38 entries) AND Boyle Lab v2 (~910 entries). Default to Boyle Lab v2 in the UI. Let users pick in Advanced Settings. |
+| 13 | **Gene annotation BEDs** | Download RefSeq BEDs from UCSC Table Browser (mm10, hg38) for TSS/gene body heatmaps. Needed for Phase 3 alignment heatmaps. Not blocking Phase 1. |

@@ -5,6 +5,7 @@
 
 ## Project Documentation
 
+@README.md
 @docs/cutana-cloud-ui.md
 @docs/cutana-architecture-plan.md
 @docs/cutana-cloud-info.md
@@ -20,11 +21,11 @@ docs/todos.md
 - **Backend**: FastAPI (Python 3.11+), Uvicorn, PostgreSQL 15+, SSE for real-time updates
 - **Pipeline**: Python worker process → subprocess calls to Bowtie2, SAMtools, BEDTools, Picard, deepTools, MACS2, SICER2, SEACR, HOMER, Trimmomatic, DiffBind (R)
 - **Infra**: NGINX reverse proxy, systemd, Docker Compose (local dev), single EC2 instance (prod)
-- **Auth**: JWT (access 15min + refresh 7d httpOnly cookie), bcrypt
+- **Auth**: fastapi-users (JWT access 15min + refresh 7d httpOnly cookie), Argon2
 
 ## Architecture Decisions
 
-- All API routes under `/api/v1/`. JWT required except `/api/v1/auth/*`.
+- All API routes under `/api/v1/`. JWT required except `/api/v1/auth/*`. Auth implemented via fastapi-users (JWT strategy + CookieTransport for refresh tokens).
 - Job queue is a `analysis_jobs` PostgreSQL table polled by a standalone worker process. One job at a time (alignment is CPU/memory-heavy). Concurrency is a config var for future scaling.
 - `analysis_jobs.params` is JSONB — all job-specific config goes here. No per-job-type tables.
 - `parent_job_id` encodes dependency chains (peak calling → alignment → trimming).
