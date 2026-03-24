@@ -12,17 +12,15 @@ Nothing blocking from you. Phase 1 is pure web app (React + FastAPI + Postgres +
 
 These are infrastructure patterns to bake into the scaffold. Not things you need to do manually.
 
-- [ ] Create `.env.example` with full env var inventory:
-  - Phase 1: `DATABASE_URL`, `SECRET_KEY`, `REFRESH_SECRET_KEY`, `ACCESS_TOKEN_EXPIRE_MINUTES=15`, `REFRESH_TOKEN_EXPIRE_DAYS=7`, `CORS_ORIGINS=http://localhost:5173`, `UPLOAD_DIR`, `MAX_UPLOAD_SIZE_MB=5000`, `PIPELINE_MODE=mock`, `STORAGE_ROOT=/data/cleave`
-  - Phase 3+: `GENOME_INDEX_DIR`, `AWS_SES_REGION`, `AWS_SES_FROM_EMAIL`, `WORKER_POLL_INTERVAL=2`
-- [ ] Standardized API error response: `{"error": str, "detail": str | null, "field_errors": dict | null}`
-- [ ] Pagination response envelope: `{"items": [...], "total": int, "page": int, "per_page": int}`
-- [ ] CORS middleware in FastAPI (allow `:5173` in dev; not needed in prod behind NGINX)
-- [ ] Refresh token as httpOnly cookie with `SameSite=Lax`
-- [ ] Axios client with interceptors (auth header injection, 401 refresh flow, error normalization)
-- [ ] Python `logging` + `structlog` for structured JSON logging from day one
-- [ ] QC report Pydantic schemas (`AlignmentQCReport`, `PeakCallingQCReport`) based on CSVs in `cutana/H3K4me3/`
-- [ ] No password reset flow -- admins reset manually
+- [x] Create `.env.example` with full env var inventory
+- [x] Standardized API error response: `ErrorResponse` in `schemas/common.py`
+- [x] Pagination response envelope: `PaginatedResponse[T]` in `schemas/common.py`
+- [x] CORS middleware in FastAPI (`main.py`)
+- [x] Refresh token as httpOnly cookie with `SameSite=Lax` (`routers/auth.py`)
+- [x] Axios client with interceptors (`api/client.ts`)
+- [x] Python `logging` + `structlog` for structured JSON logging (`logging_config.py`)
+- [ ] QC report Pydantic schemas — deferred to Phase 3 per scaffold-prompt.md
+- [x] No password reset flow -- by design
 
 ---
 

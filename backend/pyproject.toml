@@ -20,6 +20,7 @@ dependencies = [
     "passlib[bcrypt]",
     "python-multipart",
     "httpx",
+    "structlog",
 ]
 
 [project.optional-dependencies]
@@ -31,7 +32,7 @@ dev = [
 ]
 
 [tool.setuptools]
-py-modules = ["main", "config", "database", "dependencies", "worker"]
+py-modules = ["main", "config", "database", "dependencies", "logging_config", "worker"]
 
 [tool.setuptools.packages.find]
 where = ["."]

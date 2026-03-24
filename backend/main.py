@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
+from logging_config import setup_logging
 from routers import (
     auth,
     experiments,
@@ -14,6 +15,8 @@ from routers import (
     reactions,
     users,
 )
+
+setup_logging()
 
 app = FastAPI(title="Cleave", version="0.1.0")
 
