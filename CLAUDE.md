@@ -73,6 +73,7 @@ End responses with:
 - Early returns to reduce nesting. Flat code is readable code.
 - Prefer explicit over implicit: clear function names over clever abstractions.
 - Small, focused functions. Modularity and reusability over monoliths.
+- **Prefer dependencies over hand-rolled code.** Never optimize for zero dependencies. Well-maintained libraries are battle-tested and handle edge cases you won't think of. Rolling your own is slower, buggier, and harder to maintain. Use the ecosystem.
 
 ### Error Handling & Debugging
 - **3-Try Rule**: If we fail 3 times, stop and ask what information you need from me.
