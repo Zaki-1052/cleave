@@ -1,0 +1,2693 @@
+old_dir: /media/rs_256/normalization/ap_adme_bw
+new_dir: /media/rs_256/normalization/ap_adme_new_2rep_bw
+r:       /media/rs_256/normalization/master_files/ap_cli_normalization.r
+=== brainH3K4me3 ===
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+workdir:  /media/rs_256/normalization/ap_adme_bw, /media/rs_256/normalization/ap_adme_new_2rep_bw 
+pattern:  brainH3K4me3 
+Loaded BigWig files:
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4
+
+organizing chromosome information for each sample
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 chrX 3420627 
+calculating number of bins
+number of bins in each sample:  52675542 
+creating matrix for all samples
+removing zero-coverage regions
+48.54 % loci have zero coverage across all sample combined - ignoring these
+reading in bed file of regions to mask
+determine bins to mask
+10937  bins will  be masked
+finding 99th percentile
+64.8 64.49 68.61 67.88 42.5154 58.8248 53.3721 47.2344finding normalization factor
+1 0.995216 1.058796 1.047531 0.6561018 0.9077901 0.8236435 0.7289259normalizing coverage matrix
+generating normalized bigwigs for IGV visualization
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY1 
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K4me3EARLY2 
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE1 
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K4me3LATE2 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3EARLY4 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K4me3LATE4 
+[1] "Done generating normalized bigwigs for IGV visualization"
+=== brainH3K9ac ===
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+workdir:  /media/rs_256/normalization/ap_adme_bw, /media/rs_256/normalization/ap_adme_new_2rep_bw 
+pattern:  brainH3K9ac 
+Loaded BigWig files:
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4
+
+organizing chromosome information for each sample
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 chrX 3420627 
+calculating number of bins
+number of bins in each sample:  52675542 
+creating matrix for all samples
+removing zero-coverage regions
+44.93 % loci have zero coverage across all sample combined - ignoring these
+reading in bed file of regions to mask
+determine bins to mask
+11036  bins will  be masked
+finding 99th percentile
+17.13 17.23 17.86 17.92 19.5134 16.8935 21.4527 21.2213finding normalization factor
+1 1.005838 1.042615 1.046118 1.139136 0.9861938 1.252347 1.238838normalizing coverage matrix
+generating normalized bigwigs for IGV visualization
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY1 
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K9acEARLY2 
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE1 
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K9acLATE2 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acEARLY4 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K9acLATE4 
+[1] "Done generating normalized bigwigs for IGV visualization"
+=== brainH3K27ac ===
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+workdir:  /media/rs_256/normalization/ap_adme_bw, /media/rs_256/normalization/ap_adme_new_2rep_bw 
+pattern:  brainH3K27ac 
+Loaded BigWig files:
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4
+
+organizing chromosome information for each sample
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 chrX 3420627 
+calculating number of bins
+number of bins in each sample:  52675542 
+creating matrix for all samples
+removing zero-coverage regions
+44.2 % loci have zero coverage across all sample combined - ignoring these
+reading in bed file of regions to mask
+determine bins to mask
+11080  bins will  be masked
+finding 99th percentile
+15.34 16.37 15.59 15.46 20.0906 16.0565 23.9124 25.2944finding normalization factor
+1 1.067145 1.016297 1.007823 1.309687 1.046708 1.558827 1.648918normalizing coverage matrix
+generating normalized bigwigs for IGV visualization
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY1 
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K27acEARLY2 
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE1 
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K27acLATE2 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acEARLY4 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27acLATE4 
+[1] "Done generating normalized bigwigs for IGV visualization"
+=== brainH3K27me3 ===
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+workdir:  /media/rs_256/normalization/ap_adme_bw, /media/rs_256/normalization/ap_adme_new_2rep_bw 
+pattern:  brainH3K27me3 
+Loaded BigWig files:
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4
+
+organizing chromosome information for each sample
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 chrX 3420627 
+calculating number of bins
+number of bins in each sample:  52675542 
+creating matrix for all samples
+removing zero-coverage regions
+45.43 % loci have zero coverage across all sample combined - ignoring these
+reading in bed file of regions to mask
+determine bins to mask
+11439  bins will  be masked
+finding 99th percentile
+31.42 31.92 34.91 33.66 24.6114 24.8791 19.8546 20.3462finding normalization factor
+1 1.015913 1.111076 1.071292 0.7833036 0.7918237 0.6319096 0.6475557normalizing coverage matrix
+generating normalized bigwigs for IGV visualization
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY1 
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K27me3EARLY2 
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE1 
+filename /media/rs_256/normalization/ap_adme_bw/brainH3K27me3LATE2 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3EARLY4 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/brainH3K27me3LATE4 
+[1] "Done generating normalized bigwigs for IGV visualization"
+=== kidneyH3K4me3 ===
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+workdir:  /media/rs_256/normalization/ap_adme_bw, /media/rs_256/normalization/ap_adme_new_2rep_bw 
+pattern:  kidneyH3K4me3 
+Loaded BigWig files:
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4
+
+organizing chromosome information for each sample
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 chrX 3420627 
+calculating number of bins
+number of bins in each sample:  52675542 
+creating matrix for all samples
+removing zero-coverage regions
+54.04 % loci have zero coverage across all sample combined - ignoring these
+reading in bed file of regions to mask
+determine bins to mask
+10624  bins will  be masked
+finding 99th percentile
+59.7 59.53 59.65 60.13 69.1539 67.4672 58.9174 58.7398finding normalization factor
+1 0.9971524 0.9991625 1.007203 1.158357 1.130104 0.9868911 0.9839162normalizing coverage matrix
+generating normalized bigwigs for IGV visualization
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY1 
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3EARLY2 
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE1 
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K4me3LATE2 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3EARLY4 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K4me3LATE4 
+[1] "Done generating normalized bigwigs for IGV visualization"
+=== kidneyH3K9ac ===
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+workdir:  /media/rs_256/normalization/ap_adme_bw, /media/rs_256/normalization/ap_adme_new_2rep_bw 
+pattern:  kidneyH3K9ac 
+Loaded BigWig files:
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4
+
+organizing chromosome information for each sample
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 chrX 3420627 
+calculating number of bins
+number of bins in each sample:  52675542 
+creating matrix for all samples
+removing zero-coverage regions
+43.99 % loci have zero coverage across all sample combined - ignoring these
+reading in bed file of regions to mask
+determine bins to mask
+11097  bins will  be masked
+finding 99th percentile
+9.77 9.77 9.38 9.38 13.5475 14.8825 20.0007 21.9368finding normalization factor
+1 1 0.9600819 0.9600819 1.386643 1.523285 2.047154 2.245322normalizing coverage matrix
+generating normalized bigwigs for IGV visualization
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY1 
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K9acEARLY2 
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE1 
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K9acLATE2 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acEARLY4 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K9acLATE4 
+[1] "Done generating normalized bigwigs for IGV visualization"
+=== kidneyH3K27ac ===
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+workdir:  /media/rs_256/normalization/ap_adme_bw, /media/rs_256/normalization/ap_adme_new_2rep_bw 
+pattern:  kidneyH3K27ac 
+Loaded BigWig files:
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4
+
+organizing chromosome information for each sample
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 chrX 3420627 
+calculating number of bins
+number of bins in each sample:  52675542 
+creating matrix for all samples
+removing zero-coverage regions
+45.7 % loci have zero coverage across all sample combined - ignoring these
+reading in bed file of regions to mask
+determine bins to mask
+10910  bins will  be masked
+finding 99th percentile
+15.41 16.44 15.55 15.34 15.5717 14.5594 31.3674 29.8197finding normalization factor
+1 1.06684 1.009085 0.9954575 1.010493 0.9448021 2.035522 1.935088normalizing coverage matrix
+generating normalized bigwigs for IGV visualization
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY1 
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K27acEARLY2 
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE1 
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K27acLATE2 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acEARLY4 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27acLATE4 
+[1] "Done generating normalized bigwigs for IGV visualization"
+=== kidneyH3K27me3 ===
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+workdir:  /media/rs_256/normalization/ap_adme_bw, /media/rs_256/normalization/ap_adme_new_2rep_bw 
+pattern:  kidneyH3K27me3 
+Loaded BigWig files:
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4
+
+organizing chromosome information for each sample
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 chrX 3420627 
+calculating number of bins
+number of bins in each sample:  52675542 
+creating matrix for all samples
+removing zero-coverage regions
+46.09 % loci have zero coverage across all sample combined - ignoring these
+reading in bed file of regions to mask
+determine bins to mask
+11352  bins will  be masked
+finding 99th percentile
+19.72 19.04 19.26 20.54 27.6823 28.819 13.9895 14.3085finding normalization factor
+1 0.9655173 0.9766735 1.041582 1.403768 1.46141 0.7094067 0.7255832normalizing coverage matrix
+generating normalized bigwigs for IGV visualization
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY1 
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3EARLY2 
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE1 
+filename /media/rs_256/normalization/ap_adme_bw/kidneyH3K27me3LATE2 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3EARLY4 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/kidneyH3K27me3LATE4 
+[1] "Done generating normalized bigwigs for IGV visualization"
+=== liverH3K4me3 ===
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+workdir:  /media/rs_256/normalization/ap_adme_bw, /media/rs_256/normalization/ap_adme_new_2rep_bw 
+pattern:  liverH3K4me3 
+Loaded BigWig files:
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4
+
+organizing chromosome information for each sample
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 chrX 3420627 
+calculating number of bins
+number of bins in each sample:  52675542 
+creating matrix for all samples
+removing zero-coverage regions
+52.57 % loci have zero coverage across all sample combined - ignoring these
+reading in bed file of regions to mask
+determine bins to mask
+10702  bins will  be masked
+finding 99th percentile
+48.96 54.68 55.19 54.67 32.024 32.6998 50.5719 55.2414finding normalization factor
+1 1.11683 1.127247 1.116626 0.6540849 0.6678881 1.032923 1.128297normalizing coverage matrix
+generating normalized bigwigs for IGV visualization
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY1 
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K4me3EARLY2 
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE1 
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K4me3LATE2 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3EARLY4 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K4me3LATE4 
+[1] "Done generating normalized bigwigs for IGV visualization"
+=== liverH3K9ac ===
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+workdir:  /media/rs_256/normalization/ap_adme_bw, /media/rs_256/normalization/ap_adme_new_2rep_bw 
+pattern:  liverH3K9ac 
+Loaded BigWig files:
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4
+
+organizing chromosome information for each sample
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 chrX 3420627 
+calculating number of bins
+number of bins in each sample:  52675542 
+creating matrix for all samples
+removing zero-coverage regions
+44.26 % loci have zero coverage across all sample combined - ignoring these
+reading in bed file of regions to mask
+determine bins to mask
+11116  bins will  be masked
+finding 99th percentile
+14.6 15.32 15.32 15.3 13.8606 17.0123 22.1837 21.3557finding normalization factor
+1 1.049315 1.049315 1.047945 0.9493562 1.165226 1.519432 1.462719normalizing coverage matrix
+generating normalized bigwigs for IGV visualization
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY1 
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K9acEARLY2 
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE1 
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K9acLATE2 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acEARLY4 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K9acLATE4 
+[1] "Done generating normalized bigwigs for IGV visualization"
+=== liverH3K27ac ===
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+workdir:  /media/rs_256/normalization/ap_adme_bw, /media/rs_256/normalization/ap_adme_new_2rep_bw 
+pattern:  liverH3K27ac 
+Loaded BigWig files:
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4
+
+organizing chromosome information for each sample
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 chrX 3420627 
+calculating number of bins
+number of bins in each sample:  52675542 
+creating matrix for all samples
+removing zero-coverage regions
+45.19 % loci have zero coverage across all sample combined - ignoring these
+reading in bed file of regions to mask
+determine bins to mask
+10977  bins will  be masked
+finding 99th percentile
+29.13 28.98 30.79 29.12 20.5808 19.0613 32.0238 33.0965finding normalization factor
+1 0.9948507 1.056986 0.9996568 0.7065156 0.6543529 1.099341 1.136166normalizing coverage matrix
+generating normalized bigwigs for IGV visualization
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY1 
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K27acEARLY2 
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE1 
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K27acLATE2 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acEARLY4 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27acLATE4 
+[1] "Done generating normalized bigwigs for IGV visualization"
+=== liverH3K27me3 ===
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+workdir:  /media/rs_256/normalization/ap_adme_bw, /media/rs_256/normalization/ap_adme_new_2rep_bw 
+pattern:  liverH3K27me3 
+Loaded BigWig files:
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4
+
+organizing chromosome information for each sample
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 chrX 3420627 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr1 3909440 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr2 3642265 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr3 3200795 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr4 3130163 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr5 3036695 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr6 2994732 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr7 2908830 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr8 2588025 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr9 2491903 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr10 2613901 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr11 2441652 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr12 2402581 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr13 2408434 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr14 2498046 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr15 2080875 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr16 1964156 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr17 1899746 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr18 1814054 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chr19 1228632 
+/media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 chrX 3420627 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr1 3909440 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr2 3642265 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr3 3200795 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr4 3130163 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr5 3036695 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr6 2994732 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr7 2908830 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr8 2588025 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr9 2491903 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr10 2613901 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr11 2441652 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr12 2402581 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr13 2408434 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr14 2498046 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr15 2080875 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr16 1964156 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr17 1899746 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr18 1814054 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chr19 1228632 
+/media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 chrX 3420627 
+calculating number of bins
+number of bins in each sample:  52675542 
+creating matrix for all samples
+removing zero-coverage regions
+44.8 % loci have zero coverage across all sample combined - ignoring these
+reading in bed file of regions to mask
+determine bins to mask
+11459  bins will  be masked
+finding 99th percentile
+27.92 28.2 31.02 29.3 21.913 22.8417 16.9723 16.7627finding normalization factor
+1 1.010029 1.111032 1.049427 0.7848496 0.8181124 0.6078904 0.6003832normalizing coverage matrix
+generating normalized bigwigs for IGV visualization
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY1 
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K27me3EARLY2 
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE1 
+filename /media/rs_256/normalization/ap_adme_bw/liverH3K27me3LATE2 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3EARLY4 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE3 
+filename /media/rs_256/normalization/ap_adme_new_2rep_bw/liverH3K27me3LATE4 
+[1] "Done generating normalized bigwigs for IGV visualization"
+10026.11user 966.45system 3:02:55elapsed 100%CPU (0avgtext+0avgdata 51445596maxresident)k
+1549600inputs+14672816outputs (53major+565449891minor)pagefaults 0swaps

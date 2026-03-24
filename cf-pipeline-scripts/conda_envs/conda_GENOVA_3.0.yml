@@ -1,0 +1,6 @@
+name: GENOVA_3.0
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+prefix: /home/ubuntu/miniconda3/envs/GENOVA_3.0

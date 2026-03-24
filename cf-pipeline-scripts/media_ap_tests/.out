@@ -1,0 +1,3 @@
+Not enough arguments supplied
+
+Proper Usage - bash ap_generate_bw.sh <full FASTQ file name>

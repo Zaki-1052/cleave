@@ -1,0 +1,15 @@
+ap_TODO.txt file exists on server.
+250716_Index_40_ctrl_2_brain_H3K27me3_S40_L007_R1_001.fastq.gz
+conda activated
+Processing file pair: 250716_Index_40_ctrl_2_brain_H3K27me3_S40_L007_R1_001.fastq.gz and 
+--------------
+BAM1 = sorted_250716_Index_40_ctrl_2_brain_H3K27me3_S40_L007_aligned_reads.bam
+BAM2 = _aligned_reads.bam
+BAM 1 found, processing BAM 2
+Running stage one of the pipeline: debug @ /media/rs_256/ap_tests/.out
+Started stage one at Fri Aug 29 21:14:37 UTC 2025
+
+real	0m0.004s
+user	0m0.002s
+sys	0m0.000s
+Error: BAM2 (_aligned_reads.bam) creation failed.

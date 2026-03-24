@@ -1,0 +1,227 @@
+## 0.17.1 (2024-12-13)
+- fixed a bug caused by usage of deprecated cython data types that arose after the update to numpy>=2
+- fixed a bug with SubMerge when input region files had more columns than expected
+- SubMerge received a new paramter to adjust the order or contig for sorting
+
+## 0.17.0 (2023-07-15)
+- Fixed bug when reading motifs in "long" format. An error is now written if the pfm/jaspar motif does not follow 4-row format.
+- Added transfac as possible input through biopython parser.
+- Fixed bug caused by updated parameter name bug stemming from the adjustText library
+- Fixed bug caused by an updated parameter name stemming from pandas
+- added new tool "SubMerge" for subsetting and merging results of BINDetect analysis
+
+## 0.16.1 (2023-12-11)
+- Fixed error with 'matplotlib.cbook.mplDeprecation', which is found at 'matplotlib.MatplotlibDeprecationWarning' in matplotlib>=3.8. TOBIAS now checks for the matplotlib version when filtering warnings.
+- Improved error messages when reading corrupt bigwig file in BINDetect
+
+## 0.16.0 (2023-08-17)
+- Pinned adjustText<0.8 due to Attribute error (#116 and #182)
+- Solved std::bad_alloc error in BINDetect due to 0-counts in motifs (#192)
+- Solved deprecation error for pypdf2: PdfFileMerger -> PdfMerger and set lower limit for pypdf version
+- Fixed BINDetect error causing "Falling back to 'constant' normalization" arising from "ValueError: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions." due to upgrade of numpy.
+
+## 0.15.1 (2023-01-16)
+- Fixed deprecation errors for writer.save() and DataFrameGroupBy.mean
+- Improved error when .bed.gz is input to regions.from_bed (#180)
+- Fix error in plotting BINDetect volcano for many motifs (#181)
+
+## 0.15.0 (2022-12-04)
+- Fixed True/False highlighted column from 0.14.0 to include bindetect excel output as well.
+- Added '--bias-pkl' option to ATACorrect (#174)
+
+## 0.14.0 (2022-10-03)
+- Added '--cmap' option in PlotHeatmap (#130)
+- Added 'drop-chrom' in ATACorrect to gain more control over which chromosomes should be excluded (#142)
+- Added a True/False "<cond1>_<cond2>_highlighted" column in bindetect_results.txt/.xlsx files. These columns mark the highlighted TFs for each volcano plot.
+- Added check for empty '--TFBS' files in CreateNetwork
+
+## 0.13.3 (2022-03-24)
+- Fix of bug in utilities:match_lists leading to false list-to-list assignment in PlotChanges (#110)
+- Fixed bug in creating gimmemotifs object
+- Integrated checks related to gimmemotifs, pandas and python versions in ClusterMotifs
+- Added check for fonts and 'gs' in PlotTracks
+- Fixed bug for --track-off in TOBIAS ATACorrect
+
+## 0.13.2 (2021-12-21)
+- Fix for bug introduced in 0.13.1 - faulty reading of motifs from .meme files
+
+## 0.13.1 (2021-12-06)
+- Fix for #103 regarding BINDetect bound/unbound threshold
+- Fix for #107 for MEME motifs with nsites=1 leading to bad_alloc
+
+## 0.13.0 (2021-11-26)
+- Added option '--norm-off' to BINDetect. Can be used in cases where the conditions are already normalized, or in case of issues in normalization.
+- Fixed bug in BINDetect leading to errors when motif prefixes are the same, but in a different case (e.g. Jun/JUN). Fixed by making unique regardless of case.
+- More checks in ATACorrect and BINDetect.
+
+## 0.12.12 (2021-10-04)
+- Fix for reading .meme files with float 'nsites' and consecutive motifs in file
+- Better error message for missing 'gimmemotifs' import within ClusterMotifs
+- Performance improvement of remove_duplicates and resolve_overlaps within regions utils
+- Fix of bugs in ATACorrect (#94) related to setting bias threshold
+
+## 0.12.11 (2021-06-21)
+- Set cap on figure size in BINDetect for large number of motifs
+- Fix for reading 1-bp .bed-files without "not proper bed format"-error in RegionList.from_bed
+- Fix for reading .meme-files without trailing empty line
+
+## 0.12.10 (2021-03-08)
+- Within motifs utils: Added ylim parameter for visualization of motifs with low bitscores (from hschult) 
+- Fixed bug in PlotHeatmap leading to error for out-of-bounds regions (#64)
+
+## 0.12.9 (2021-02-16)
+- Fixed bug in ATACorrect causing "uncorrected == corrected" for 1bp read .bam-files
+- Fixed column matching in CreateNetwork so that target != source in the same file
+- Minor change in regions utility to allow .bed-files ending in empty-string
+
+## 0.12.8 (2021-02-02)
+- Fix for similarity score error introduced in 0.12.7 (wrongly applied max instead of min)
+
+## 0.12.7 (2021-02-01)
+- Fixed error reading in meme.txt files (due to "----"-lines)
+- Internal additions of motif-specific functions (e.g. GC-content, motifs from fasta)
+- Capped motif similarities at 1 (influence rare cases where correlation < 0) 
+- Added error for input '--peak'-files with varying number of columns in BINDetect
+
+## 0.12.6 (2020-11-25)
+- Fix for bug leading to keyerror when --peak-header did not contain "peak_chr"
+
+## 0.12.5 (2020-11-25)
+- Fix for error reading .meme-motifs with scientific notation (e.g. 1e-05)
+
+## 0.12.4 (2020-11-02)
+- Fix for color keyerror in BINDetect (volcano plotting)
+- Fixed bug in BINDetect normalization leading to NA's in normalized values (and exit due to error). Fix now applies a robust sigmoid detection of norm factors per condition. NOTE: This introduces small changes in normalized values in comparison to versions 0.12+
+
+## 0.12.3 (2020-10-23)
+- Fix of windows /r line-end in "cluster_sites_by_overlap.py"
+
+## 0.12.2 (2020-10-23)
+- Fix to BINDetect bug occurring in case of duplicates in --motif input. Motifs are now given unique names if duplicated. 
+- Change of "Transcription factor similarities" to "Transcription factor distance" in BINDetect.
+- Added utility script "cluster_sites_by_overlap.py" to create a BINDetect-style dendrogram for overlapping .bed-file regions
+
+## 0.12.1 (2020-09-28)
+- Fixed bug in quantile normalization (from 0.12.0) leading to spurious normalization factors at high footprint values
+
+## 0.12.0 (2020-09-09)
+- Improvement of internal OneMotif/MotifList class structure for reading/writing/scanning
+- Added '--output-peaks' to BINDetect to enable output of a subset of '--peak' regions
+- Added '--output-txt' and calculation of agg-differences to PlotAggregate 
+- Improved robustness of quantile normalization between conditions in BINDetect
+- Fixed Nonetype error for peaks in ATACorrect
+- Improved debug with added name of bigwig to bigwig reading error in BINDetect, ScoreBed and PlotAggregate
+- Bugfixes to CreateNetwork for mismatches between --TFBS/--origin
+
+## 0.11.7 (2020-09-07)
+- Fix for BINDetect error when running with one input motif 
+- Introduced dynamic fontsizes for PlotAggregate to deal with long TFBS/bigwig label names
+- Bumped svist4get version to 1.2.24 due to missing font
+
+## 0.11.6 (2020-07-23)
+- Mess up of merge in 0.11.5. Same changes.
+
+## 0.11.5 (2020-07-23)
+- Fixed "out of bounds" bugs within BINDetect and PlotAggregate
+
+## 0.11.4 (2020-07-20)
+- Added noninteractive backend to all plot modules to fix tkinter error 
+
+## 0.11.3 (2020-06-02)
+- Fixed bug of undefined exit statement
+
+## 0.11.2 (2020-05-11)
+- Fixed bug when running BINDetect with very few peaks (no TFBS for many TF) and added warnings for this case
+- Enabled running ATACorrect with bedToBam input - thanks to Surag Nair for 'read.infer_query_length()' fix!
+
+## 0.11.1 (2020-05-04)
+- Fixed error in parsing "patterns" for DownloadData
+- Fixed errors for reading/writing bigwigs when pybigwig.numpy == 0
+- Improved exceptions for bigwig/bam reading/writing
+
+## 0.11.0 (2020-03-25)
+- Removed 'gimmemotifs' from requirements and included check in MotifClust (only tool needing gimmemotifs) instead. This is a temporary hack solving various install/conda issues.
+- Fixed smaller bug in bigwig writer for one-region output
+- Added check for samtools in SubsampleBam
+- Added @PG-line to FilterFragments output bam
+- Added interactive html plots with motifs to BINDetect
+- Adding --smooth function to PlotAggregate
+- Fixed bug with overlapping figure labels in PlotAggregate
+- Added .pickle output of ATACorrect bias object to use in other applications
+- Fixed bugs in PlotTracks due to svist4get update; pinned =1.2.22 to setup.py
+- Split internal structure of package into tools/utils/scripts
+- Fixed bug in BINDetect cutting off last column of _bound/_unbound files.
+- Added --naming to BINDetect
+- Added DownloadData tool to enable download of test_data/ directory from s3
+- Changed default --outdir's to be <toolname>_output
+- Fixed one-off error in MaxPos
+- Updated README with links to wiki
+- Additional bugfixes
+
+## 0.10.1 (2020-01-16)
+- Fixed error reading parser and fonts for PlotTracks
+- Restructure of motifclust-functions to be included in OneMotif and MotifList classes
+- Smaller bugfixes
+
+## 0.10.0 (2019-12-27)
+- Added ClusterMotifs and FilterFragments to tools
+- Restructured backend organization of parsers to speed up commandline 'TOBIAS'
+
+## 0.9.0 (2019-11-21)
+- Added PlotTracks to tools
+- Fixed smaller bug with flank estimation in footprint calculation
+- Fixed rescale to original sum in ATACorrect
+- Added option to exclude outliers from aggregate plots
+
+## 0.8.0 (2019-09-04)
+- Added CreateNetwork to tools
+- Smaller bugfixes
+
+## 0.7.0 (2019-08-13)
+- Updated the way p-values are calculated in BINDetect. Included 100-fold subsampling of background to estimate confidence interval.
+
+## 0.6.4 (2019-08-07)
+- Bug fix for error with regions very close to chromosome borders for ATACorrect and ScoreBigwig. 
+
+## 0.6.3 (2019-07-16)
+- Increased size of texts in BINDetect volcano plot and moved label into plot
+
+## 0.6.2 (2019-06-19)
+- Added --skip-excel option to skip excel overview per factor in BINDetect (can slow the run considerably for large output)
+- Internal changes to BINDetect for better debug overview
+- Fixed normalization for plotAggregate
+
+## 0.6.1 (2019-06-05)
+- Fixed motif cluster names to prefix C_
+- Added --filter function to format_motifs to filter output motifs using names/ids
+
+## 0.6.0 (2019-05-29)
+- Added option to flip axes in PlotAggregate via "--signal-on-x"
+- Changed all command-line arguments containing "_" to "-" (e.g. --regions_in to --regions-in) (but retaining both options internally)
+
+## 0.5.3 (2019-05-28)
+- Improved error messaging from file writers in bindetect
+
+## 0.5.2 (2019-05-16)
+- Bugfix for reading meme format files in MotifList().from_file()
+
+## 0.5.1 (2019-05-15)
+- Internal changes to OneMotif and MotifList classes
+- Bindetect now takes directories/file(s) as input for --motifs
+
+## 0.5.0 (2019-05-02)
+- Added sum/mean/none scoring to ScoreBigwig as well as the option to get --absolute of input signal
+
+## 0.4.1 (2019-04-29)
+- Fixed weird "can't pickle SwigPyObject objects"-error in bindetect
+
+## 0.4.0 (2019-04-29)
+- Added --add_region_columns to TFBScan
+- Renamed FootprintScores to ScoreBigwig
+- Added normalization of input score distributions in BINDetect
+- Added general warning for --cores > max number of processors when running multiprocessing
+- Updated PlotChanges to also plot mean_score and percent_bound as well as overview per motif cluster
+- Added MOODS-python as dependency through pip
+
+## 0.3.1 (2019-04-10)
+- Split motif ids between name/motif_id/output_prefix

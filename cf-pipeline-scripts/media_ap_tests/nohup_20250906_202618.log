@@ -1,0 +1,89 @@
+ap_TODO.txt file exists on server.
+15_embryo_1_kidney_H3K4me3_S17_R1_001.fastq.gz 16_embryo_2_kidney_H3K4me3_S18_R1_001.fastq.gz adult_rep1_kidney_H3K4me3_S49_L001_R1.fastq.gz adult_rep2_kidney_H3K4me3_S51_L001_R1.fastq.gz 17_embryo_1_liver_H3K4me3_S19_R1_001.fastq.gz 18_embryo_2_liver_H3K4me3_S20_R1_001.fastq.gz adult_rep1_liver_H3K4me3_S50_L001_R1.fastq.gz adult_rep2_liver_H3K4me3_S52_L001_R1.fastq.gz
+conda activated
+Processing file pair: 15_embryo_1_kidney_H3K4me3_S17_R1_001.fastq.gz and 16_embryo_2_kidney_H3K4me3_S18_R1_001.fastq.gz
+--------------
+BAM1 = 15_embryo_1_kidney_H3K4me3_S17_aligned_reads.bam
+BAM2 = 16_embryo_2_kidney_H3K4me3_S18_aligned_reads.bam
+none of the BAM files found
+processing both BAM files
+Running stage one of the pipeline: debug @ /media/rs_256/ap_tests/15_embryo_1_kidney_H3K4me3_S17_R1_001.fastq.gz.out /media/rs_256/ap_tests/16_embryo_2_kidney_H3K4me3_S18_R1_001.fastq.gz.out
+Started stage one at Sat Sep  6 20:26:18 UTC 2025
+
+real	26m7.823s
+user	105m26.220s
+sys	1m1.876s
+
+real	28m20.291s
+user	115m55.049s
+sys	1m5.786s
+Both BigWig files exist so no need to process
+BigWig1 exists: sorted_15_embryo_1_kidney_H3K4me3_S17_aligned_reads.bam_norm.bw .
+BigWig2 exists: (sorted_16_embryo_2_kidney_H3K4me3_S18_aligned_reads.bam_norm.bw) .
+Finished processing file pair: 15_embryo_1_kidney_H3K4me3_S17_R1_001.fastq.gz and 16_embryo_2_kidney_H3K4me3_S18_R1_001.fastq.gz
+15_embryo_1_kidney_H3K4me3_S17_aligned_reads.bam
+15_embryo_1_kidney_H3K4me3_S17
+rm: cannot remove '../trimmed/15_embryo_1_kidney_H3K4me3_S17*': No such file or directory
+16_embryo_2_kidney_H3K4me3_S18_aligned_reads.bam
+16_embryo_2_kidney_H3K4me3_S18
+rm: cannot remove '../trimmed/16_embryo_2_kidney_H3K4me3_S18*': No such file or directory
+Processing file pair: adult_rep1_kidney_H3K4me3_S49_L001_R1.fastq.gz and adult_rep2_kidney_H3K4me3_S51_L001_R1.fastq.gz
+--------------
+BAM1 = adult_rep1_kidney_H3K4me3_S49_L001_aligned_reads.bam
+BAM2 = adult_rep2_kidney_H3K4me3_S51_L001_aligned_reads.bam
+none of the BAM files found
+processing both BAM files
+Running stage one of the pipeline: debug @ /media/rs_256/ap_tests/adult_rep1_kidney_H3K4me3_S49_L001_R1.fastq.gz.out /media/rs_256/ap_tests/adult_rep2_kidney_H3K4me3_S51_L001_R1.fastq.gz.out
+Started stage one at Sat Sep  6 20:54:39 UTC 2025
+
+real	0m0.004s
+user	0m0.002s
+sys	0m0.002s
+
+real	0m0.004s
+user	0m0.002s
+sys	0m0.002s
+Error: BAM1 (adult_rep1_kidney_H3K4me3_S49_L001_aligned_reads.bam) creation failed.
+Processing file pair: 17_embryo_1_liver_H3K4me3_S19_R1_001.fastq.gz and 18_embryo_2_liver_H3K4me3_S20_R1_001.fastq.gz
+--------------
+BAM1 = 17_embryo_1_liver_H3K4me3_S19_aligned_reads.bam
+BAM2 = 18_embryo_2_liver_H3K4me3_S20_aligned_reads.bam
+none of the BAM files found
+processing both BAM files
+Running stage one of the pipeline: debug @ /media/rs_256/ap_tests/17_embryo_1_liver_H3K4me3_S19_R1_001.fastq.gz.out /media/rs_256/ap_tests/18_embryo_2_liver_H3K4me3_S20_R1_001.fastq.gz.out
+Started stage one at Sat Sep  6 20:54:39 UTC 2025
+
+real	12m55.197s
+user	46m24.010s
+sys	0m29.015s
+
+real	25m2.707s
+user	90m46.604s
+sys	0m52.517s
+Both BigWig files exist so no need to process
+BigWig1 exists: sorted_17_embryo_1_liver_H3K4me3_S19_aligned_reads.bam_norm.bw .
+BigWig2 exists: (sorted_18_embryo_2_liver_H3K4me3_S20_aligned_reads.bam_norm.bw) .
+Finished processing file pair: 17_embryo_1_liver_H3K4me3_S19_R1_001.fastq.gz and 18_embryo_2_liver_H3K4me3_S20_R1_001.fastq.gz
+17_embryo_1_liver_H3K4me3_S19_aligned_reads.bam
+17_embryo_1_liver_H3K4me3_S19
+rm: cannot remove '../trimmed/17_embryo_1_liver_H3K4me3_S19*': No such file or directory
+18_embryo_2_liver_H3K4me3_S20_aligned_reads.bam
+18_embryo_2_liver_H3K4me3_S20
+rm: cannot remove '../trimmed/18_embryo_2_liver_H3K4me3_S20*': No such file or directory
+Processing file pair: adult_rep1_liver_H3K4me3_S50_L001_R1.fastq.gz and adult_rep2_liver_H3K4me3_S52_L001_R1.fastq.gz
+--------------
+BAM1 = adult_rep1_liver_H3K4me3_S50_L001_aligned_reads.bam
+BAM2 = adult_rep2_liver_H3K4me3_S52_L001_aligned_reads.bam
+none of the BAM files found
+processing both BAM files
+Running stage one of the pipeline: debug @ /media/rs_256/ap_tests/adult_rep1_liver_H3K4me3_S50_L001_R1.fastq.gz.out /media/rs_256/ap_tests/adult_rep2_liver_H3K4me3_S52_L001_R1.fastq.gz.out
+Started stage one at Sat Sep  6 21:19:42 UTC 2025
+
+real	0m0.004s
+user	0m0.004s
+sys	0m0.000s
+
+real	0m0.004s
+user	0m0.004s
+sys	0m0.000s
+Error: BAM1 (adult_rep1_liver_H3K4me3_S50_L001_aligned_reads.bam) creation failed.

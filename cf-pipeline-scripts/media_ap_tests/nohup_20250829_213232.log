@@ -1,0 +1,38 @@
+ap_TODO.txt file exists on server.
+250716_Index_40_ctrl_2_brain_H3K27me3_S40_L007_R1_001.fastq.gz 250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_R1_001.fastq.gz
+conda activated
+Processing file pair: 250716_Index_40_ctrl_2_brain_H3K27me3_S40_L007_R1_001.fastq.gz and 250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_R1_001.fastq.gz
+--------------
+BAM1 = sorted_250716_Index_40_ctrl_2_brain_H3K27me3_S40_L007_aligned_reads.bam
+BAM2 = sorted_250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_aligned_reads.bam
+Both BAM files exist so no need to process stage 1
+none of the BigWig files found
+processing both BigWig files
+Running stage two of the pipeline: debug @ /media/rs_256/ap_tests/sorted_sorted_250716_Index_40_ctrl_2_brain_H3K27me3_S40_L007_aligned_reads.bam_norm.bw.out /media/rs_256/ap_tests/sorted_sorted_250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_aligned_reads.bam_norm.bw.out
+Started stage two at Fri Aug 29 21:32:32 UTC 2025
+
+real	12m20.662s
+user	12m6.554s
+sys	0m10.391s
+
+real	16m56.073s
+user	16m38.998s
+sys	0m12.337s
+BigWig1 exists: sorted_sorted_250716_Index_40_ctrl_2_brain_H3K27me3_S40_L007_aligned_reads.bam_norm.bw .
+BigWig2 exists: (sorted_sorted_250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_aligned_reads.bam_norm.bw) .
+BED 1 = sorted_250716_Index_40_ctrl_2_brain_H3K27me3_S40_L007_aligned_reads_treat.stringent.sort.bed
+BED 2 = sorted_250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_aligned_reads_treat.stringent.sort.bed
+None of the BED files found. Processing both BED files.
+Running stage two of the pipeline: debug @ /media/rs_256/ap_tests/250716_Index_40_ctrl_2_brain_H3K27me3_S40_L007_R1_001.fastq.gz.out /media/rs_256/ap_tests/250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_R1_001.fastq.gz.out
+Started stage two at Fri Aug 29 21:49:28 UTC 2025
+
+real	20m25.670s
+user	23m56.772s
+sys	1m5.263s
+
+real	29m31.579s
+user	34m50.101s
+sys	1m33.141s
+Finished stage two at Fri Aug 29 22:19:00 UTC 2025
+Done creating both BED files sorted_250716_Index_40_ctrl_2_brain_H3K27me3_S40_L007_aligned_reads_treat.stringent.sort.bed and sorted_250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_aligned_reads_treat.stringent.sort.bed
+Finished processing file pair: 250716_Index_40_ctrl_2_brain_H3K27me3_S40_L007_R1_001.fastq.gz and 250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_R1_001.fastq.gz

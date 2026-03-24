@@ -1,0 +1,60 @@
+{
+    "Rscriptbin": "/home/ubuntu/miniconda3/bin",
+    "pythonbin": "/home/ubuntu/miniconda3/bin",
+    "perlbin": "/home/ubuntu/miniconda3/bin",
+    "javabin": "/home/ubuntu/miniconda3/bin",
+    "trimmomaticbin": "/home/ubuntu/miniconda3/bin",
+    "trimmomaticjarfile": "trimmomatic.jar",
+    "bowtie2bin": "/home/ubuntu/miniconda3/bin",
+    "samtoolsbin": "/home/ubuntu/miniconda3/bin",
+    "adapterpath": "/home/ubuntu/cutruntools/adapters", 
+    "picardbin": "/home/ubuntu/miniconda3/bin",
+    "picardjarfile": "picard.jar",
+    "macs2bin": "/home/ubuntu/miniconda3/bin",
+    "macs2pythonlib": "/home/ubuntu/miniconda3/lib/python3.8/site-packages/",
+    "kseqbin": "/home/ubuntu/cutruntools", 
+    "memebin": "/home/ubuntu/miniconda3/bin", 
+    "bedopsbin": "/home/ubuntu/miniconda3/bin", 
+    "bedtoolsbin": "/home/ubuntu/miniconda3/bin",
+    "makecutmatrixbin": "/home/ubuntu/git/atactk/scripts/",
+    "bt2idx": "/home/ubuntu/cutruntools/assemblies/chrom.mm10",
+    "genome_sequence": "/home/ubuntu/cutruntools/assemblies/chrom.mm10/mm10.fa",
+    "extratoolsbin": "/home/ubuntu/cutruntools", 
+    "extrasettings": "/home/ubuntu/cutruntools", 
+    "input/output": {
+        "fastq_directory": "/data/rs_256/fastq/fastQC_h2az_early",
+        "workdir": "/data/rs_256/workdir",
+        "fastq_sequence_length": 42,
+        "organism_build": "mm10"
+    },
+    "motif_finding": {
+        "num_bp_from_summit": 150,
+        "num_peaks": 5000,
+        "total_peaks": 15000,
+        "motif_scanning_pval": 0.0005,
+        "num_motifs": 20
+    },
+    "cluster": {
+        "email": "rsasik@ucsd.edu",
+        "step_alignment": {
+            "queue": "short",
+            "memory": 32000,
+            "time_limit": "0-12:00"
+        },
+        "step_process_bam": {
+            "queue": "short",
+            "memory": 32000,
+            "time_limit": "0-12:00"
+        },
+        "step_motif_find": {
+            "queue": "short",
+            "memory": 32000,
+            "time_limit": "0-12:00"
+        },
+        "step_footprinting": {
+            "queue": "short",
+            "memory": 32000,
+            "time_limit": "0-12:00"
+        }
+    }
+}

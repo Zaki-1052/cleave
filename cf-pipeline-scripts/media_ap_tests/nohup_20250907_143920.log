@@ -1,0 +1,165 @@
+ap_TODO.txt file exists on server.
+brain_embryo_H3K27me3_rep1_R1_001.fastq.gz brain_embryo_H3K27me3_rep2_R1_001.fastq.gz brain_adult_H3K27me3_rep1_R1_001.fastq.gz brain_adult_H3K27me3_rep2_R1_001.fastq.gz adult_rep1_kidney_H3K27me3_S61_L001_R1_001.fastq.gz adult_rep2_kidney_H3K27me3_S63_L001_R1_001.fastq.gz adult_rep1_liver_H3K27me3_S62_L001_R1_001.fastq.gz adult_rep2_liver_H3K27me3_S64_L001_R1_001.fastq.gz 27_embryo_1_kidney_H3K27me3_S29_R1_001.fastq.gz 28_embryo_2_kidney_H3K27me3_S30_R1_001.fastq.gz 29_embryo_1_liver_H3K27me3_S31_R1_001.fastq.gz 31_embryo_2_liver_H3K27me3_S32_R1_001.fastq.gz
+conda activated
+Processing file pair: brain_embryo_H3K27me3_rep1_R1_001.fastq.gz and brain_embryo_H3K27me3_rep2_R1_001.fastq.gz
+--------------
+BAM1 = brain_embryo_H3K27me3_rep1_aligned_reads.bam
+BAM2 = brain_embryo_H3K27me3_rep2_aligned_reads.bam
+none of the BAM files found
+processing both BAM files
+Running stage one of the pipeline: debug @ /media/rs_256/ap_tests/brain_embryo_H3K27me3_rep1_R1_001.fastq.gz.out /media/rs_256/ap_tests/brain_embryo_H3K27me3_rep2_R1_001.fastq.gz.out
+Started stage one at Sun Sep  7 14:39:20 UTC 2025
+
+real	59m20.934s
+user	249m5.485s
+sys	1m54.654s
+
+real	91m31.576s
+user	370m38.919s
+sys	2m55.955s
+Both BigWig files exist so no need to process
+BigWig1 exists: sorted_brain_embryo_H3K27me3_rep1_aligned_reads.bam_norm.bw .
+BigWig2 exists: (sorted_brain_embryo_H3K27me3_rep2_aligned_reads.bam_norm.bw) .
+Finished processing file pair: brain_embryo_H3K27me3_rep1_R1_001.fastq.gz and brain_embryo_H3K27me3_rep2_R1_001.fastq.gz
+brain_embryo_H3K27me3_rep1_aligned_reads.bam
+brain_embryo_H3K27me3_rep1
+rm: cannot remove '../trimmed/brain_embryo_H3K27me3_rep1*': No such file or directory
+brain_embryo_H3K27me3_rep2_aligned_reads.bam
+brain_embryo_H3K27me3_rep2
+rm: cannot remove '../trimmed/brain_embryo_H3K27me3_rep2*': No such file or directory
+rm: cannot remove '/data/rs_256/workdir/trimmed/*': No such file or directory
+Processing file pair: brain_adult_H3K27me3_rep1_R1_001.fastq.gz and brain_adult_H3K27me3_rep2_R1_001.fastq.gz
+--------------
+BAM1 = brain_adult_H3K27me3_rep1_aligned_reads.bam
+BAM2 = brain_adult_H3K27me3_rep2_aligned_reads.bam
+none of the BAM files found
+processing both BAM files
+Running stage one of the pipeline: debug @ /media/rs_256/ap_tests/brain_adult_H3K27me3_rep1_R1_001.fastq.gz.out /media/rs_256/ap_tests/brain_adult_H3K27me3_rep2_R1_001.fastq.gz.out
+Started stage one at Sun Sep  7 16:10:53 UTC 2025
+
+real	42m17.072s
+user	191m58.403s
+sys	1m29.433s
+
+real	47m41.522s
+user	210m31.836s
+sys	1m46.264s
+Both BigWig files exist so no need to process
+BigWig1 exists: sorted_brain_adult_H3K27me3_rep1_aligned_reads.bam_norm.bw .
+BigWig2 exists: (sorted_brain_adult_H3K27me3_rep2_aligned_reads.bam_norm.bw) .
+Finished processing file pair: brain_adult_H3K27me3_rep1_R1_001.fastq.gz and brain_adult_H3K27me3_rep2_R1_001.fastq.gz
+brain_adult_H3K27me3_rep1_aligned_reads.bam
+brain_adult_H3K27me3_rep1
+rm: cannot remove '../trimmed/brain_adult_H3K27me3_rep1*': No such file or directory
+brain_adult_H3K27me3_rep2_aligned_reads.bam
+brain_adult_H3K27me3_rep2
+rm: cannot remove '../trimmed/brain_adult_H3K27me3_rep2*': No such file or directory
+rm: cannot remove '/data/rs_256/workdir/trimmed/*': No such file or directory
+Processing file pair: adult_rep1_kidney_H3K27me3_S61_L001_R1_001.fastq.gz and adult_rep2_kidney_H3K27me3_S63_L001_R1_001.fastq.gz
+--------------
+BAM1 = adult_rep1_kidney_H3K27me3_S61_L001_aligned_reads.bam
+BAM2 = adult_rep2_kidney_H3K27me3_S63_L001_aligned_reads.bam
+none of the BAM files found
+processing both BAM files
+Running stage one of the pipeline: debug @ /media/rs_256/ap_tests/adult_rep1_kidney_H3K27me3_S61_L001_R1_001.fastq.gz.out /media/rs_256/ap_tests/adult_rep2_kidney_H3K27me3_S63_L001_R1_001.fastq.gz.out
+Started stage one at Sun Sep  7 16:58:36 UTC 2025
+
+real	40m14.531s
+user	155m42.332s
+sys	1m22.050s
+
+real	46m6.623s
+user	182m54.108s
+sys	1m30.152s
+Both BigWig files exist so no need to process
+BigWig1 exists: sorted_adult_rep1_kidney_H3K27me3_S61_L001_aligned_reads.bam_norm.bw .
+BigWig2 exists: (sorted_adult_rep2_kidney_H3K27me3_S63_L001_aligned_reads.bam_norm.bw) .
+Finished processing file pair: adult_rep1_kidney_H3K27me3_S61_L001_R1_001.fastq.gz and adult_rep2_kidney_H3K27me3_S63_L001_R1_001.fastq.gz
+adult_rep1_kidney_H3K27me3_S61_L001_aligned_reads.bam
+adult_rep1_kidney_H3K27me3_S61_L001
+rm: cannot remove '../trimmed/adult_rep1_kidney_H3K27me3_S61_L001*': No such file or directory
+adult_rep2_kidney_H3K27me3_S63_L001_aligned_reads.bam
+adult_rep2_kidney_H3K27me3_S63_L001
+rm: cannot remove '../trimmed/adult_rep2_kidney_H3K27me3_S63_L001*': No such file or directory
+rm: cannot remove '/data/rs_256/workdir/trimmed/*': No such file or directory
+Processing file pair: adult_rep1_liver_H3K27me3_S62_L001_R1_001.fastq.gz and adult_rep2_liver_H3K27me3_S64_L001_R1_001.fastq.gz
+--------------
+BAM1 = adult_rep1_liver_H3K27me3_S62_L001_aligned_reads.bam
+BAM2 = adult_rep2_liver_H3K27me3_S64_L001_aligned_reads.bam
+none of the BAM files found
+processing both BAM files
+Running stage one of the pipeline: debug @ /media/rs_256/ap_tests/adult_rep1_liver_H3K27me3_S62_L001_R1_001.fastq.gz.out /media/rs_256/ap_tests/adult_rep2_liver_H3K27me3_S64_L001_R1_001.fastq.gz.out
+Started stage one at Sun Sep  7 17:44:44 UTC 2025
+
+real	44m46.031s
+user	201m51.094s
+sys	1m37.696s
+
+real	47m25.924s
+user	212m1.234s
+sys	1m43.326s
+Both BigWig files exist so no need to process
+BigWig1 exists: sorted_adult_rep1_liver_H3K27me3_S62_L001_aligned_reads.bam_norm.bw .
+BigWig2 exists: (sorted_adult_rep2_liver_H3K27me3_S64_L001_aligned_reads.bam_norm.bw) .
+Finished processing file pair: adult_rep1_liver_H3K27me3_S62_L001_R1_001.fastq.gz and adult_rep2_liver_H3K27me3_S64_L001_R1_001.fastq.gz
+adult_rep1_liver_H3K27me3_S62_L001_aligned_reads.bam
+adult_rep1_liver_H3K27me3_S62_L001
+rm: cannot remove '../trimmed/adult_rep1_liver_H3K27me3_S62_L001*': No such file or directory
+adult_rep2_liver_H3K27me3_S64_L001_aligned_reads.bam
+adult_rep2_liver_H3K27me3_S64_L001
+rm: cannot remove '../trimmed/adult_rep2_liver_H3K27me3_S64_L001*': No such file or directory
+rm: cannot remove '/data/rs_256/workdir/trimmed/*': No such file or directory
+Processing file pair: 27_embryo_1_kidney_H3K27me3_S29_R1_001.fastq.gz and 28_embryo_2_kidney_H3K27me3_S30_R1_001.fastq.gz
+--------------
+BAM1 = 27_embryo_1_kidney_H3K27me3_S29_aligned_reads.bam
+BAM2 = 28_embryo_2_kidney_H3K27me3_S30_aligned_reads.bam
+none of the BAM files found
+processing both BAM files
+Running stage one of the pipeline: debug @ /media/rs_256/ap_tests/27_embryo_1_kidney_H3K27me3_S29_R1_001.fastq.gz.out /media/rs_256/ap_tests/28_embryo_2_kidney_H3K27me3_S30_R1_001.fastq.gz.out
+Started stage one at Sun Sep  7 18:32:11 UTC 2025
+
+real	43m0.976s
+user	161m6.259s
+sys	1m25.692s
+
+real	50m45.260s
+user	194m4.669s
+sys	1m46.616s
+Both BigWig files exist so no need to process
+BigWig1 exists: sorted_27_embryo_1_kidney_H3K27me3_S29_aligned_reads.bam_norm.bw .
+BigWig2 exists: (sorted_28_embryo_2_kidney_H3K27me3_S30_aligned_reads.bam_norm.bw) .
+Finished processing file pair: 27_embryo_1_kidney_H3K27me3_S29_R1_001.fastq.gz and 28_embryo_2_kidney_H3K27me3_S30_R1_001.fastq.gz
+27_embryo_1_kidney_H3K27me3_S29_aligned_reads.bam
+27_embryo_1_kidney_H3K27me3_S29
+rm: cannot remove '../trimmed/27_embryo_1_kidney_H3K27me3_S29*': No such file or directory
+28_embryo_2_kidney_H3K27me3_S30_aligned_reads.bam
+28_embryo_2_kidney_H3K27me3_S30
+rm: cannot remove '../trimmed/28_embryo_2_kidney_H3K27me3_S30*': No such file or directory
+rm: cannot remove '/data/rs_256/workdir/trimmed/*': No such file or directory
+Processing file pair: 29_embryo_1_liver_H3K27me3_S31_R1_001.fastq.gz and 31_embryo_2_liver_H3K27me3_S32_R1_001.fastq.gz
+--------------
+BAM1 = 29_embryo_1_liver_H3K27me3_S31_aligned_reads.bam
+BAM2 = 31_embryo_2_liver_H3K27me3_S32_aligned_reads.bam
+none of the BAM files found
+processing both BAM files
+Running stage one of the pipeline: debug @ /media/rs_256/ap_tests/29_embryo_1_liver_H3K27me3_S31_R1_001.fastq.gz.out /media/rs_256/ap_tests/31_embryo_2_liver_H3K27me3_S32_R1_001.fastq.gz.out
+Started stage one at Sun Sep  7 19:22:57 UTC 2025
+
+real	51m11.330s
+user	197m37.329s
+sys	1m50.102s
+
+real	59m20.322s
+user	234m18.679s
+sys	2m6.847s
+Both BigWig files exist so no need to process
+BigWig1 exists: sorted_29_embryo_1_liver_H3K27me3_S31_aligned_reads.bam_norm.bw .
+BigWig2 exists: (sorted_31_embryo_2_liver_H3K27me3_S32_aligned_reads.bam_norm.bw) .
+Finished processing file pair: 29_embryo_1_liver_H3K27me3_S31_R1_001.fastq.gz and 31_embryo_2_liver_H3K27me3_S32_R1_001.fastq.gz
+29_embryo_1_liver_H3K27me3_S31_aligned_reads.bam
+29_embryo_1_liver_H3K27me3_S31
+rm: cannot remove '../trimmed/29_embryo_1_liver_H3K27me3_S31*': No such file or directory
+31_embryo_2_liver_H3K27me3_S32_aligned_reads.bam
+31_embryo_2_liver_H3K27me3_S32
+rm: cannot remove '../trimmed/31_embryo_2_liver_H3K27me3_S32*': No such file or directory
+rm: cannot remove '/data/rs_256/workdir/trimmed/*': No such file or directory

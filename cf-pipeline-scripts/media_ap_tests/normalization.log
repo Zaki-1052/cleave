@@ -1,0 +1,91 @@
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+workdir:  /data/rs_256/workdir/aligned.aug10/ 
+Number of BigWigs:  2 
+BigWig samples:
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm
+
+organizing chromosome information for each sample
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr1 3909440 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr2 3642265 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr3 3200795 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr4 3130163 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr5 3036695 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr6 2994732 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr7 2908830 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr8 2588025 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr9 2491903 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr10 2613901 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr11 2441652 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr12 2402581 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr13 2408434 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr14 2498046 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr15 2080875 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr16 1964156 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr17 1899746 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr18 1814054 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chr19 1228632 
+sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm chrX 3420627 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr1 3909440 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr2 3642265 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr3 3200795 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr4 3130163 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr5 3036695 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr6 2994732 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr7 2908830 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr8 2588025 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr9 2491903 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr10 2613901 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr11 2441652 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr12 2402581 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr13 2408434 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr14 2498046 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr15 2080875 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr16 1964156 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr17 1899746 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr18 1814054 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chr19 1228632 
+sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm chrX 3420627 
+calculating number of bins
+number of bins in each sample:  52675542 
+creating matrix for all samples
+removing zero-coverage regions
+61.22 % loci have zero coverage across all sample combined - ignoring these
+reading in bed file of regions to mask
+determine bins to mask
+9457  bins will  be masked
+finding 99th percentile
+27.1135 24.7276finding normalization factor
+1 0.9120032normalizing coverage matrix
+generating normalized bigwigs for IGV visualization
+filename sorted_250618_Index_35_ctrl_1_liver_H3K9ac_S27_L007_aligned_reads.bam_norm 
+filename sorted_250618_Index_36_ctrl_2_liver_H3K9ac_S28_L007_aligned_reads.bam_norm 
+[1] "Done generating normalized bigwigs for IGV visualization"

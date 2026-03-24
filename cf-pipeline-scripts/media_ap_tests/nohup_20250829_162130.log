@@ -1,0 +1,32 @@
+ap_TODO.txt file exists on server.
+250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_R1_001.fastq.gz 250716_Index_36_ctrl_2_brain_H3K9ac_S36_L007_R1_001.fastq.gz 250716_Index_40_ctrl_2_brain_H3K27me3_S40_L007_R1_001.fastq.gz
+conda activated
+Processing file pair: 250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_R1_001.fastq.gz and 250716_Index_36_ctrl_2_brain_H3K9ac_S36_L007_R1_001.fastq.gz
+--------------
+BAM1 = 250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_aligned_reads.bam
+BAM2 = 250716_Index_36_ctrl_2_brain_H3K9ac_S36_L007_aligned_reads.bam
+none of the BAM files found
+processing both BAM files
+Running stage one of the pipeline: debug @ /media/rs_256/ap_tests/250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_R1_001.fastq.gz.out /media/rs_256/ap_tests/250716_Index_36_ctrl_2_brain_H3K9ac_S36_L007_R1_001.fastq.gz.out
+Started stage one at Fri Aug 29 16:21:35 UTC 2025
+
+real	0m0.143s
+user	0m0.034s
+sys	0m0.014s
+
+real	0m0.156s
+user	0m0.033s
+sys	0m0.016s
+Error: BAM1 (250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_aligned_reads.bam) creation failed.
+Processing file pair: 250716_Index_40_ctrl_2_brain_H3K27me3_S40_L007_R1_001.fastq.gz and 
+--------------
+BAM1 = sorted_250716_Index_40_ctrl_2_brain_H3K27me3_S40_L007_aligned_reads.bam
+BAM2 = _aligned_reads.bam
+BAM 1 found, processing BAM 2
+Running stage one of the pipeline: debug @ /media/rs_256/ap_tests/.out
+Started stage one at Fri Aug 29 16:21:35 UTC 2025
+
+real	0m0.013s
+user	0m0.000s
+sys	0m0.004s
+Error: BAM2 (_aligned_reads.bam) creation failed.

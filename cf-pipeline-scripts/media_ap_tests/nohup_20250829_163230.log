@@ -1,0 +1,38 @@
+ap_TODO.txt file exists on server.
+250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_R1_001.fastq.gz 250716_Index_36_ctrl_2_brain_H3K9ac_S36_L007_R1_001.fastq.gz
+conda activated
+Processing file pair: 250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_R1_001.fastq.gz and 250716_Index_36_ctrl_2_brain_H3K9ac_S36_L007_R1_001.fastq.gz
+--------------
+BAM1 = 250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_aligned_reads.bam
+BAM2 = 250716_Index_36_ctrl_2_brain_H3K9ac_S36_L007_aligned_reads.bam
+none of the BAM files found
+processing both BAM files
+Running stage one of the pipeline: debug @ /media/rs_256/ap_tests/250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_R1_001.fastq.gz.out /media/rs_256/ap_tests/250716_Index_36_ctrl_2_brain_H3K9ac_S36_L007_R1_001.fastq.gz.out
+Started stage one at Fri Aug 29 16:32:37 UTC 2025
+
+real	205m10.468s
+user	523m14.119s
+sys	120m58.409s
+
+real	206m50.633s
+user	530m2.639s
+sys	120m46.853s
+Both BigWig files exist so no need to process
+BigWig1 exists: sorted_250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_aligned_reads.bam_norm.bw .
+BigWig2 exists: (sorted_250716_Index_36_ctrl_2_brain_H3K9ac_S36_L007_aligned_reads.bam_norm.bw) .
+BED 1 = 250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_aligned_reads_treat.stringent.sort.bed
+BED 2 = 250716_Index_36_ctrl_2_brain_H3K9ac_S36_L007_aligned_reads_treat.stringent.sort.bed
+None of the BED files found. Processing both BED files.
+Running stage two of the pipeline: debug @ /media/rs_256/ap_tests/250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_R1_001.fastq.gz.out /media/rs_256/ap_tests/250716_Index_36_ctrl_2_brain_H3K9ac_S36_L007_R1_001.fastq.gz.out
+Started stage two at Fri Aug 29 19:59:28 UTC 2025
+
+real	64m10.919s
+user	51m45.143s
+sys	1m55.582s
+
+real	64m21.965s
+user	52m57.706s
+sys	1m57.518s
+Finished stage two at Fri Aug 29 21:03:50 UTC 2025
+Done creating both BED files 250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_aligned_reads_treat.stringent.sort.bed and 250716_Index_36_ctrl_2_brain_H3K9ac_S36_L007_aligned_reads_treat.stringent.sort.bed
+Finished processing file pair: 250716_Index_35_ctrl_1_brain_H3K9ac_S35_L007_R1_001.fastq.gz and 250716_Index_36_ctrl_2_brain_H3K9ac_S36_L007_R1_001.fastq.gz

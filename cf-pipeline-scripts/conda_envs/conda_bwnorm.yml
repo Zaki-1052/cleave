@@ -1,0 +1,22 @@
+name: bwnorm
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - _libgcc_mutex=0.1=conda_forge
+  - _openmp_mutex=4.5=2_gnu
+  - ca-certificates=2025.1.31=hbcca054_0
+  - libgcc=14.2.0=h767d61c_2
+  - libgcc-ng=14.2.0=h69a702a_2
+  - libgomp=14.2.0=h767d61c_2
+  - libpng=1.6.43=h2797004_0
+  - libstdcxx=14.2.0=h8f9b012_2
+  - libstdcxx-ng=14.2.0=h4852527_2
+  - libuuid=2.38.1=h0b41bf4_0
+  - libzlib=1.2.13=h4ab18f5_6
+  - mysql-connector-c=6.1.6=2
+  - openssl=3.4.1=h7b32b05_0
+  - ucsc-bigwigsummary=448=h2a80c09_0
+  - ucsc-bigwigtobedgraph=448=h2a80c09_0
+prefix: /home/ubuntu/miniconda3/envs/bwnorm
