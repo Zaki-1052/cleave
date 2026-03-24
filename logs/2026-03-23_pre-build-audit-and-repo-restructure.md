@@ -24,10 +24,19 @@
 - IgG: run peak calling on it, flag as control
 - User will export CUTANA Cloud QC CSVs (now in `cutana/H3K4me3/`)
 
+## Infrastructure decisions (second round)
+- Password reset: skip entirely, admins reset manually
+- Email notifications: Amazon SES from Phase 3, in-app only for Phase 1-2
+- Frontend API client: Axios with interceptors
+- Refresh token CSRF: httpOnly cookie + SameSite=Lax
+- Also specified: env var inventory, API error format, pagination contract, CORS, structured logging
+- All 12 items documented in `docs/cleave-spec-decisions.md` Section 12
+- Scaffolding checklist added to `todos.md`
+
 ## Open items
-- User needs to export alignment stats CSV from CUTANA Cloud (peak calling CSVs already present)
 - Gene annotation BEDs (RefSeq) still need downloading for TSS/gene body heatmaps
 - Bowtie2 indices need scp from lab instance (for EC2, not local dev)
+- hg38 blacklist supplement (Boyle Lab v2) to download
 - Phase 1 scaffolding not yet started
 
 ## Key file paths

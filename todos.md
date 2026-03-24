@@ -6,18 +6,29 @@ Things that need to be done by **you** (Zakir) before or during development. Gro
 
 ## Before Phase 1 (do now)
 
-Nothing blocking. Phase 1 is pure web app (React + FastAPI + Postgres + auth + CRUD). No bioinformatics dependencies.
+Nothing blocking from you. Phase 1 is pure web app (React + FastAPI + Postgres + auth + CRUD). No bioinformatics dependencies.
+
+### Phase 1 scaffolding checklist (for Claude to handle)
+
+These are infrastructure patterns to bake into the scaffold. Not things you need to do manually.
+
+- [ ] Create `.env.example` with full env var inventory:
+  - Phase 1: `DATABASE_URL`, `SECRET_KEY`, `REFRESH_SECRET_KEY`, `ACCESS_TOKEN_EXPIRE_MINUTES=15`, `REFRESH_TOKEN_EXPIRE_DAYS=7`, `CORS_ORIGINS=http://localhost:5173`, `UPLOAD_DIR`, `MAX_UPLOAD_SIZE_MB=5000`, `PIPELINE_MODE=mock`, `STORAGE_ROOT=/data/cleave`
+  - Phase 3+: `GENOME_INDEX_DIR`, `AWS_SES_REGION`, `AWS_SES_FROM_EMAIL`, `WORKER_POLL_INTERVAL=2`
+- [ ] Standardized API error response: `{"error": str, "detail": str | null, "field_errors": dict | null}`
+- [ ] Pagination response envelope: `{"items": [...], "total": int, "page": int, "per_page": int}`
+- [ ] CORS middleware in FastAPI (allow `:5173` in dev; not needed in prod behind NGINX)
+- [ ] Refresh token as httpOnly cookie with `SameSite=Lax`
+- [ ] Axios client with interceptors (auth header injection, 401 refresh flow, error normalization)
+- [ ] Python `logging` + `structlog` for structured JSON logging from day one
+- [ ] QC report Pydantic schemas (`AlignmentQCReport`, `PeakCallingQCReport`) based on CSVs in `cutana/H3K4me3/`
+- [ ] No password reset flow -- admins reset manually
 
 ---
 
 ## Before Phase 2 (data management)
 
-- [ ] **Create test FASTQs** -- Downsample a real FASTQ pair to ~100K reads for local upload/trimming testing. Requires `seqtk`:
-  ```bash
-  brew install seqtk
-  seqtk sample -s42 <real_R1.fastq.gz> 100000 | gzip > test_data/test_R1.fastq.gz
-  seqtk sample -s42 <real_R2.fastq.gz> 100000 | gzip > test_data/test_R2.fastq.gz
-  ```
+- [x] ~~Create test FASTQs~~ -- Done. `test_data/test_R1.fastq.gz` + `test_R2.fastq.gz` (100K reads from K4me3_ctrl1, ~5MB each)
 - [x] ~~Compile kseq_test for Mac~~ -- Done. `references/cutruntools/kseq_test_mac` (arm64)
 
 ---
@@ -46,6 +57,11 @@ Nothing blocking. Phase 1 is pure web app (React + FastAPI + Postgres + auth + C
   perl configureHomer.pl -install mm10
   perl configureHomer.pl -install hg38
   ```
+
+### Phase 3 implementation tasks (for Claude)
+
+- [ ] Set up Amazon SES for job completion email notifications
+- [ ] Define QC report Pydantic schemas from exported CUTANA Cloud CSVs
 
 ### Consider supplementing
 

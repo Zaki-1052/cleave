@@ -550,3 +550,31 @@ Input: aligned_reads.bam (from integrated.sh)
 ```
 
 Each caller runs in both `dup.marked.120bp` (with duplicates) and `dedup.120bp` (without duplicates) modes, producing 12 output directories total. The clone should expose the key dimensions (peak caller, dedup strategy, fragment filter) as user choices.
+
+---
+
+## 12. Web App Infrastructure Decisions
+
+Decisions on the web app scaffolding layer, resolved 2026-03-23 (second round).
+
+### Phase 1 — Bake Into Scaffold
+
+| # | Item | Decision |
+|---|------|----------|
+| 1 | **Env var inventory** | Create `.env.example` from day one. Phase 1 vars: `DATABASE_URL`, `SECRET_KEY`, `REFRESH_SECRET_KEY`, `ACCESS_TOKEN_EXPIRE_MINUTES=15`, `REFRESH_TOKEN_EXPIRE_DAYS=7`, `CORS_ORIGINS=http://localhost:5173`, `UPLOAD_DIR`, `MAX_UPLOAD_SIZE_MB=5000`, `PIPELINE_MODE=mock`, `STORAGE_ROOT=/data/cleave`. Phase 3+ adds: `GENOME_INDEX_DIR`, `AWS_SES_REGION`, `AWS_SES_FROM_EMAIL`, `WORKER_POLL_INTERVAL=2`. |
+| 2 | **API error format** | Standardize all error responses to `{"error": str, "detail": str \| null, "field_errors": dict \| null}`. Validation errors populate `field_errors`. Auth/permission/not-found populate `error` + `detail`. FastAPI exception handlers normalize everything to this shape. |
+| 3 | **Pagination contract** | All list endpoints return `{"items": [...], "total": int, "page": int, "per_page": int}`. Query params: `?page=1&per_page=25`. Matches CUTANA Cloud's "Records per page" UI pattern. |
+| 4 | **CORS** | FastAPI `CORSMiddleware` allowing `http://localhost:5173` in dev. In production, NGINX proxies everything through one origin so CORS isn't needed — but local dev breaks without it. |
+| 5 | **Refresh token / CSRF** | Refresh token stored in httpOnly cookie with `SameSite=Lax`. Prevents CSRF for cross-origin POST. Access token in response body, stored in memory by Axios. Cookie survives page refreshes. |
+| 6 | **Password reset** | Skip entirely. For 8-10 lab members, admins reset passwords manually (future: admin CLI command or DB update). No email-based forgot-password flow. |
+| 7 | **Frontend API client** | Axios with interceptors. Auth header injection (`Authorization: Bearer <token>`), 401 → automatic refresh flow, error response normalization to match backend schema. Request cancellation and progress events useful for FASTQ uploads. |
+| 8 | **Application logging** | Python `logging` + `structlog` for structured JSON logging. Set up in scaffold so all modules use a consistent logger from day one. Covers API requests, auth events, errors. Pipeline execution logs are separate (stdout/stderr captured to files). |
+
+### Phase 3+ — Implement Later
+
+| # | Item | Decision |
+|---|------|----------|
+| 9 | **Email notifications** | Amazon SES from Phase 3. Already on AWS, pennies per email. In-app notifications + SSE only for Phases 1-2. Env vars: `AWS_SES_REGION`, `AWS_SES_FROM_EMAIL`. |
+| 10 | **QC report schemas** | Define `AlignmentQCReport` and `PeakCallingQCReport` Pydantic models based on exported CSVs in `cutana/H3K4me3/`. Both the mock pipeline and real pipeline must produce data conforming to these schemas. |
+| 11 | **hg38 blacklist supplement** | Ship both the lab's ENCODE/DAC v1 file (38 entries) AND Boyle Lab v2 (~910 entries). Default to Boyle Lab v2 in the UI. Let users pick in Advanced Settings. |
+| 12 | **Gene annotation BEDs** | Download RefSeq BEDs from UCSC Table Browser (mm10, hg38) for TSS/gene body heatmaps. Needed for Phase 3 alignment heatmaps. Not blocking Phase 1. |
