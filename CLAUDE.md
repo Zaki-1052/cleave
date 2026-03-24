@@ -89,7 +89,7 @@ End responses with:
 - **SEACR preprocessing chain**: MACS2 generates bedgraph → `change.bdg.py` converts float→integer → SEACR runs on integer bedgraph. SEACR uses numeric threshold `0.01` by default (not IgG control bedgraph).
 - Methods text is auto-generated per job — must include exact tool versions and parameters for manuscript copy-paste.
 - All QC metrics (FRiP, alignment rates, spike-in recovery, duplication rate) have documented acceptable ranges in the CUTANA docs.
-- SNAP-CUTANA K-MetStat spike-in QC implemented in Phase 3. All 32 barcode sequences available in `cf-pipeline-scripts/media_misc/k_metstat_script.sh`.
+- SNAP-CUTANA K-MetStat spike-in QC implemented in Phase 3. All 32 barcode sequences available in `references/media_misc/k_metstat_script.sh`.
 
 ### Frontend Patterns
 - Replicate CUTANA Cloud's visual language: gradient background (sky blue → seafoam → lime → gold), white card containers, primary blue `#4AAED9`, pill-shaped buttons.
@@ -142,16 +142,16 @@ Current phase tracking (update as we progress):
 ## Gotchas
 
 - IgG control has intentionally low alignment rates (~29%) — this is expected, not an error.
-- `kseq_test` binary must be compiled from CUTRUNTools source (`gcc -O2 kseq_test.c -lz -o kseq_test`) or copied from lab instance. Source + pre-compiled binary in `cf-pipeline-scripts/cutruntools/`.
+- `kseq_test` binary must be compiled from CUTRUNTools source (`gcc -O2 kseq_test.c -lz -o kseq_test`) or copied from lab instance. Source + pre-compiled binary in `references/cutruntools/`.
 - Trimmomatic requires Java (OpenJDK 17+).
-- DiffBind R scripts (`cf-pipeline-scripts/DPA/diffbind.R`, `diffbind_peaklist.R`) have syntax bugs: missing `)` on `write.csv()` (line 88), malformed `cat()`/`print()` (line 91-92), missing `dev.off()` between PNG/SVG device opens. Fix when porting to clone.
+- DiffBind R scripts (`references/DPA/diffbind.R`, `diffbind_peaklist.R`) have syntax bugs: missing `)` on `write.csv()` (line 88), malformed `cat()`/`print()` (line 91-92), missing `dev.off()` between PNG/SVG device opens. Fix when porting to clone.
 - DiffBind output column names (`Conc_X`, `Conc_Y`) are dynamic — they come from `dba.report()` based on the `Condition` column in the sample sheet CSV. Do NOT hard-code "Conc_mut"/"Conc_ctrl".
 - FASTQ processing is server-side only. Never load FASTQ data into browser memory.
 - The lab's `integrated.sh` requests 32GB RAM via Slurm — `t3.xlarge` (16GB) may be tight for alignment. Validate during benchmarking.
 - Adapter file `Truseq3.PE.fa` ships with the clone at `backend/pipelines/adapters/`.
 - Lab's `create_bams.sh` uses mm10's `effectiveGenomeSize` (2467481108) even for human samples — this is a bug. Clone must use correct per-genome values (see `docs/cleave-spec-decisions.md` §7).
 - SEACR v1.1 uses numeric threshold `0.01` by default, NOT IgG control bedgraph. Both modes are supported but the lab's default is numeric.
-- K-MetStat spike-in barcode sequences (all 32) are available in `cf-pipeline-scripts/media_misc/k_metstat_script.sh` — NOT proprietary as previously assumed.
+- K-MetStat spike-in barcode sequences (all 32) are available in `references/media_misc/k_metstat_script.sh` — NOT proprietary as previously assumed.
 
 ## Session Logging
 

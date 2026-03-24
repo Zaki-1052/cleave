@@ -3,7 +3,7 @@
 > **Status**: Living Document
 > **Date**: 2026-03-23
 > **Author**: Zakir Alibhai + Claude (automated audit)
-> **Source**: TODO.md outstanding questions, resolved by reading every script in `cf-pipeline-scripts/`
+> **Source**: TODO.md outstanding questions, resolved by reading every script in `references/`
 
 This document records all resolved questions from TODO.md, corrections to existing documentation based on reading the actual lab pipeline scripts, and remaining architectural decisions. It is the single source of truth for "what the pipeline actually does" vs. "what the docs say it does."
 
@@ -29,13 +29,13 @@ These decisions were made during the pre-build planning session on 2026-03-23.
 
 ## 2. Critical Corrections to Existing Documentation
 
-These errors were found by reading the actual scripts in `cf-pipeline-scripts/` and comparing against what the documentation says.
+These errors were found by reading the actual scripts in `references/` and comparing against what the documentation says.
 
 ### 2.1 MACS2 q-value Discrepancy
 
 - **What docs say**: CUTANA Cloud uses q-value `0.05` (cutana-cloud-docs.md, cutana-cloud-info.md)
 - **What lab scripts say**: `-q 0.01` consistently across ALL variants
-- **Evidence**: `cf-pipeline-scripts/data_workdir/aligned.aug10/integrated.step2.sh` line 115:
+- **Evidence**: `references/data_workdir/aligned.aug10/integrated.step2.sh` line 115:
   ```
   macs2 callpeak -t ... -g mm -f BAMPE -n ... --outdir ... -q 0.01 -B --SPMR --keep-dup all
   ```
@@ -67,7 +67,7 @@ These errors were found by reading the actual scripts in `cf-pipeline-scripts/` 
 
 - **What docs say**: TODO.md speculates "1.3"; cf-lab-pipeline-spec.md says version unknown
 - **What repo contains**: `SEACR_1.1.sh` and `SEACR_1.1.R`
-- **Evidence**: `cf-pipeline-scripts/cutruntools/SEACR_1.1.sh` filename and internal docs
+- **Evidence**: `references/cutruntools/SEACR_1.1.sh` filename and internal docs
 - **Resolution**: Lab uses SEACR 1.1. Pin this version in the clone.
 
 ### 2.5 SEACR Uses Numeric Threshold, Not IgG Control
@@ -97,22 +97,22 @@ These errors were found by reading the actual scripts in `cf-pipeline-scripts/` 
 
 - **What docs say**: Not documented
 - **What lab scripts do**: ALL `create_bams.sh` scripts (including human) use `--effectiveGenomeSize 2467481108` — this is the mm10 value
-- **Evidence**: `cf-pipeline-scripts/human_workdir/aligned.aug10/create_bams.sh` uses mm10's effective genome size for hg38 bigWig generation
+- **Evidence**: `references/human_workdir/aligned.aug10/create_bams.sh` uses mm10's effective genome size for hg38 bigWig generation
 - **Correct values**: See Section 8 below
 - **Resolution**: Clone uses correct per-genome effective genome sizes. This is a genuine bug in the lab's pipeline.
 
 ### 2.8 Thread Count — Script Variants Differ
 
 - **What docs say**: cf-lab-pipeline-spec.md says `-p 16`
-- **Harvard original**: `cf-pipeline-scripts/cutruntools/integrated.sh` line 64 uses `-p 2`
-- **Lab instance**: `cf-pipeline-scripts/data_workdir/integrated.sh` uses `-p 16`
+- **Harvard original**: `references/cutruntools/integrated.sh` line 64 uses `-p 2`
+- **Lab instance**: `references/data_workdir/integrated.sh` uses `-p 16`
 - **Resolution**: The Harvard original is from a shared cluster (conservative thread count). The lab instance script uses the full CPU. Clone parameterizes threads via `nproc` or config setting. Docs are correct about the lab's actual usage.
 
 ### 2.9 DiffBind Output Columns Are Dynamic
 
 - **What docs ask**: "Are Conc_mut and Conc_ctrl always those exact strings?"
 - **Answer**: NO. They come from DiffBind's `dba.report()` function, which uses condition names from the sample sheet CSV's `Condition` column.
-- **Evidence**: `cf-pipeline-scripts/DPA/diffbind.R` line 36-41:
+- **Evidence**: `references/DPA/diffbind.R` line 36-41:
   ```r
   dbObj <- dba.contrast(dbObj, categories = DBA_CONDITION, minMembers = 2)
   dbAnalyze <- dba.analyze(dbObj)
@@ -144,7 +144,7 @@ These errors were found by reading the actual scripts in `cf-pipeline-scripts/` 
 
 ### Q5: What gene annotation BED file does the lab use for heatmaps?
 **Status**: RESOLVED — The lab does NOT use gene annotation BEDs for heatmaps.
-- **Evidence**: `cf-pipeline-scripts/genomewide_plots/heatmaps.sh` line 74:
+- **Evidence**: `references/genomewide_plots/heatmaps.sh` line 74:
   ```
   computeMatrix reference-point --referencePoint center -R "${bedFile}" -S"${matrix_string}" -a 1500 -b 1500
   ```
@@ -155,7 +155,7 @@ These errors were found by reading the actual scripts in `cf-pipeline-scripts/` 
 
 ### Q6: What ENCODE blacklist version does the lab use?
 **Status**: RESOLVED — ENCODE/DAC v1 (NOT Boyle Lab v2).
-- **Evidence**: `cf-pipeline-scripts/cutruntools/blacklist.readme`:
+- **Evidence**: `references/cutruntools/blacklist.readme`:
   ```
   hg19 blacklists is merge of two files:
   Duke_Hg19SignalRepeatArtifactRegions.bed wgEncodeDacMapabilityConsensusExcludable.bed
@@ -167,38 +167,38 @@ These errors were found by reading the actual scripts in `cf-pipeline-scripts/` 
 ### Q7: Is the kseq_test fixed-length trim step actually necessary?
 **Status**: RESOLVED — YES, 42bp default, user-configurable.
 - **Evidence**: Config files confirm `fastq_sequence_length: 42` across all organisms.
-- kseq_test source (`kseq_test.c`), header (`kseq.h`), build script (`make_kseq_test.sh`), and pre-compiled binary are all in `cf-pipeline-scripts/cutruntools/`.
+- kseq_test source (`kseq_test.c`), header (`kseq.h`), build script (`make_kseq_test.sh`), and pre-compiled binary are all in `references/cutruntools/`.
 - Build command: `gcc -O2 kseq_test.c -lz -o kseq_test`
 
 ### Q8: Is SNAP-CUTANA spike-in QC a priority?
 **Status**: RESOLVED — YES, implement in Phase 3.
-- **Key finding**: ALL 32 barcode sequences (16 PTMs × 2 barcodes A+B) are published in `cf-pipeline-scripts/media_misc/k_metstat_script.sh`, written by Dr. Bryan Venters of EpiCypher.
+- **Key finding**: ALL 32 barcode sequences (16 PTMs × 2 barcodes A+B) are published in `references/media_misc/k_metstat_script.sh`, written by Dr. Bryan Venters of EpiCypher.
 - Implementation is straightforward: `grep -c $barcode` on unzipped FASTQs for each of 32 barcodes, then normalize and generate heatmap.
 - This was previously considered blocked by "proprietary data" — the data is freely available.
 
 ### Q9: Get copies of lab scripts (diffbind.R, normalization.r, etc.)
-**Status**: RESOLVED — ALL scripts are already in the repo under `cf-pipeline-scripts/`.
+**Status**: RESOLVED — ALL scripts are already in the repo under `references/`.
 
 Complete inventory of scripts that TODO.md said needed to be collected:
 
 | Script | Location in Repo | Status |
 |--------|-----------------|--------|
-| `diffbind.R` | `cf-pipeline-scripts/DPA/diffbind.R` | In repo (has bugs — see Section 4) |
-| `diffbind_peaklist.R` | `cf-pipeline-scripts/DPA/diffbind_peaklist.R` | In repo (has bugs — see Section 4) |
-| `diffbind_peaklist_edgeR.R` | `cf-pipeline-scripts/DPA/diffbind_peaklist_edgeR.R` | In repo (has bugs) |
-| `normalization.r` | `cf-pipeline-scripts/media_normalization/normalization.r` | In repo |
-| `input_normalization.r` | `cf-pipeline-scripts/media_normalization/input_normalization.r` | In repo |
-| `peak_extractor.r` | `cf-pipeline-scripts/media_pearson_corr/peak_extractor.r` | In repo |
-| `pearson.py` | `cf-pipeline-scripts/media_pearson_corr/pearson.py` | In repo |
-| `heatmapjai.sh` / `heatmaps.sh` | `cf-pipeline-scripts/genomewide_plots/heatmaps.sh` | In repo |
-| `subtract_blacklist.sh` | `cf-pipeline-scripts/data_workdir/blklist_subtract/subtract_blacklist.sh` | In repo |
-| `integrated.sh` (all variants) | `cf-pipeline-scripts/{cutruntools,data_workdir,human_workdir}/integrated.sh` | In repo |
-| `integrated.step2.sh` | `cf-pipeline-scripts/data_workdir/aligned.aug10/integrated.step2.sh` | In repo |
-| `create_bams.sh` | `cf-pipeline-scripts/data_workdir/aligned.aug10/create_bams.sh` | In repo |
-| `SEACR_1.1.sh` + `SEACR_1.1.R` | `cf-pipeline-scripts/cutruntools/SEACR_1.1.{sh,R}` | In repo |
-| `k_metstat_script.sh` | `cf-pipeline-scripts/media_misc/k_metstat_script.sh` | In repo |
-| All AP test scripts | `cf-pipeline-scripts/media_ap_tests/` | In repo |
-| Conda env YAMLs (27 files) | `cf-pipeline-scripts/conda_envs/` | In repo |
+| `diffbind.R` | `references/DPA/diffbind.R` | In repo (has bugs — see Section 4) |
+| `diffbind_peaklist.R` | `references/DPA/diffbind_peaklist.R` | In repo (has bugs — see Section 4) |
+| `diffbind_peaklist_edgeR.R` | `references/DPA/diffbind_peaklist_edgeR.R` | In repo (has bugs) |
+| `normalization.r` | `references/media_normalization/normalization.r` | In repo |
+| `input_normalization.r` | `references/media_normalization/input_normalization.r` | In repo |
+| `peak_extractor.r` | `references/media_pearson_corr/peak_extractor.r` | In repo |
+| `pearson.py` | `references/media_pearson_corr/pearson.py` | In repo |
+| `heatmapjai.sh` / `heatmaps.sh` | `references/genomewide_plots/heatmaps.sh` | In repo |
+| `subtract_blacklist.sh` | `references/data_workdir/blklist_subtract/subtract_blacklist.sh` | In repo |
+| `integrated.sh` (all variants) | `references/{cutruntools,data_workdir,human_workdir}/integrated.sh` | In repo |
+| `integrated.step2.sh` | `references/data_workdir/aligned.aug10/integrated.step2.sh` | In repo |
+| `create_bams.sh` | `references/data_workdir/aligned.aug10/create_bams.sh` | In repo |
+| `SEACR_1.1.sh` + `SEACR_1.1.R` | `references/cutruntools/SEACR_1.1.{sh,R}` | In repo |
+| `k_metstat_script.sh` | `references/media_misc/k_metstat_script.sh` | In repo |
+| All AP test scripts | `references/media_ap_tests/` | In repo |
+| Conda env YAMLs (27 files) | `references/conda_envs/` | In repo |
 
 ### Q10: DiffBind output columns — are "Conc_mut" and "Conc_ctrl" always those exact strings?
 **Status**: RESOLVED — NO, they are dynamic. See Section 2.9 above.
@@ -216,7 +216,7 @@ Complete inventory of scripts that TODO.md said needed to be collected:
 
 ## 4. DiffBind Script Bugs
 
-Three bugs found in the DiffBind R scripts at `cf-pipeline-scripts/DPA/`. These must be fixed when implementing the clone's DiffBind pipeline module.
+Three bugs found in the DiffBind R scripts at `references/DPA/`. These must be fixed when implementing the clone's DiffBind pipeline module.
 
 ### Bug 1: Missing closing parenthesis on `write.csv()`
 
@@ -269,7 +269,7 @@ dev.off()                                  # Close SVG device
 
 ## 5. Roman Normalization Algorithm
 
-Exact algorithm from reading `cf-pipeline-scripts/media_normalization/normalization.r`:
+Exact algorithm from reading `references/media_normalization/normalization.r`:
 
 1. **Load bigWig files** using `rtracklayer::import.bw()` at 50bp resolution
 2. **Extract mouse chromosomes only**: chr1-19, chrX (no chrY, no random/Un contigs)
@@ -334,7 +334,7 @@ Correct values for `bamCoverage --effectiveGenomeSize`:
 
 ## 8. SNAP-CUTANA K-MetStat Panel Barcode Sequences
 
-All 32 barcode sequences (16 PTMs × 2 barcodes each) are in `cf-pipeline-scripts/media_misc/k_metstat_script.sh`, written by Dr. Bryan Venters of EpiCypher (updated 29 OCT 2021).
+All 32 barcode sequences (16 PTMs × 2 barcodes each) are in `references/media_misc/k_metstat_script.sh`, written by Dr. Bryan Venters of EpiCypher (updated 29 OCT 2021).
 
 | PTM | Barcode A | Barcode B |
 |-----|-----------|-----------|
@@ -363,80 +363,80 @@ Implementation: `grep -c $barcode` on unzipped R1 and R2 FASTQs, sum A+B counts 
 
 ### 9.1 Adapter FASTAs
 Copy to `backend/pipelines/adapters/`:
-- `cf-pipeline-scripts/cutruntools/adapters/Truseq3.PE.fa` (260 B, primary)
-- `cf-pipeline-scripts/cutruntools/adapters/Truseq3.SE.fa` (120 B)
-- `cf-pipeline-scripts/cutruntools/adapters/NexteraPE-PE.fa` (240 B)
-- `cf-pipeline-scripts/cutruntools/adapters/TruSeqAdapters.fa` (8.9 KB)
+- `references/cutruntools/adapters/Truseq3.PE.fa` (260 B, primary)
+- `references/cutruntools/adapters/Truseq3.SE.fa` (120 B)
+- `references/cutruntools/adapters/NexteraPE-PE.fa` (240 B)
+- `references/cutruntools/adapters/TruSeqAdapters.fa` (8.9 KB)
 
 ### 9.2 Blacklist BED Files
 Copy to `backend/pipelines/reference/blacklists/`:
-- `cf-pipeline-scripts/cutruntools/mm10.blacklist.bed` (164 entries)
-- `cf-pipeline-scripts/cutruntools/hg38.blacklist.bed` (38 entries — unusually small)
-- `cf-pipeline-scripts/cutruntools/hg19.blacklist.bed` (2060 entries)
-- `cf-pipeline-scripts/cutruntools/mm9.blacklist.bed` (3038 entries)
-- `cf-pipeline-scripts/data_workdir/blklist_subtract/250123blacklist.bed` (254 entries, custom mm10)
+- `references/cutruntools/mm10.blacklist.bed` (164 entries)
+- `references/cutruntools/hg38.blacklist.bed` (38 entries — unusually small)
+- `references/cutruntools/hg19.blacklist.bed` (2060 entries)
+- `references/cutruntools/mm9.blacklist.bed` (3038 entries)
+- `references/data_workdir/blklist_subtract/250123blacklist.bed` (254 entries, custom mm10)
 
 ### 9.3 Chromosome Sizes
 Copy to `backend/pipelines/reference/chrom_sizes/`:
-- `cf-pipeline-scripts/cutruntools/assemblies/chrom.mm10/mm10.chrom.sizes`
-- `cf-pipeline-scripts/cutruntools/assemblies/chrom.hg38/hg38.chrom.sizes`
-- `cf-pipeline-scripts/cutruntools/assemblies/chrom.hg19/hg19.chrom.sizes`
-- `cf-pipeline-scripts/cutruntools/assemblies/chrom.mm9/mm9.chrom.sizes`
-- `cf-pipeline-scripts/cutruntools/assemblies/chrom.ecoli/ecoli.chrom.sizes`
+- `references/cutruntools/assemblies/chrom.mm10/mm10.chrom.sizes`
+- `references/cutruntools/assemblies/chrom.hg38/hg38.chrom.sizes`
+- `references/cutruntools/assemblies/chrom.hg19/hg19.chrom.sizes`
+- `references/cutruntools/assemblies/chrom.mm9/mm9.chrom.sizes`
+- `references/cutruntools/assemblies/chrom.ecoli/ecoli.chrom.sizes`
 
 ### 9.4 Pipeline Helper Tools
 Copy to `backend/pipelines/tools/`:
-- `cf-pipeline-scripts/cutruntools/SEACR_1.1.sh` — SEACR peak caller (bash)
-- `cf-pipeline-scripts/cutruntools/SEACR_1.1.R` — SEACR R component
-- `cf-pipeline-scripts/cutruntools/filter_below.awk` — Fragment size filter (<120bp)
-- `cf-pipeline-scripts/cutruntools/change.bdg.py` — Float→integer bedgraph conversion (SEACR prereq)
-- `cf-pipeline-scripts/cutruntools/get_summits_seacr.py` — Extract summits from SEACR peaks
-- `cf-pipeline-scripts/cutruntools/get_summits_broadPeak.py` — Extract summits from MACS2 broad peaks
+- `references/cutruntools/SEACR_1.1.sh` — SEACR peak caller (bash)
+- `references/cutruntools/SEACR_1.1.R` — SEACR R component
+- `references/cutruntools/filter_below.awk` — Fragment size filter (<120bp)
+- `references/cutruntools/change.bdg.py` — Float→integer bedgraph conversion (SEACR prereq)
+- `references/cutruntools/get_summits_seacr.py` — Extract summits from SEACR peaks
+- `references/cutruntools/get_summits_broadPeak.py` — Extract summits from MACS2 broad peaks
 
 ### 9.5 kseq_test Source
 Copy to `backend/pipelines/tools/`:
-- `cf-pipeline-scripts/cutruntools/kseq_test.c` (C source)
-- `cf-pipeline-scripts/cutruntools/kseq.h` (header)
-- `cf-pipeline-scripts/cutruntools/make_kseq_test.sh` (`gcc -O2 kseq_test.c -lz -o kseq_test`)
-- `cf-pipeline-scripts/cutruntools/kseq_test` (pre-compiled x86_64 binary from lab instance)
+- `references/cutruntools/kseq_test.c` (C source)
+- `references/cutruntools/kseq.h` (header)
+- `references/cutruntools/make_kseq_test.sh` (`gcc -O2 kseq_test.c -lz -o kseq_test`)
+- `references/cutruntools/kseq_test` (pre-compiled x86_64 binary from lab instance)
 
 ### 9.6 Spike-in Barcode Sequences
-- `cf-pipeline-scripts/media_misc/k_metstat_script.sh` — All 32 sequences (see Section 8)
+- `references/media_misc/k_metstat_script.sh` — All 32 sequences (see Section 8)
 
 ### 9.7 Masking BEDs
 Copy to `backend/pipelines/reference/masks/`:
-- `cf-pipeline-scripts/media_normalization/manual.mask.ultimate.bed` (158 entries, mouse mm10)
+- `references/media_normalization/manual.mask.ultimate.bed` (158 entries, mouse mm10)
 
 ### 9.8 Lab Analysis Scripts (Reference Implementation)
 These are the actual scripts to port into Cleave's pipeline modules:
-- `cf-pipeline-scripts/DPA/diffbind.R` — DiffBind standard analysis
-- `cf-pipeline-scripts/DPA/diffbind_peaklist.R` — DiffBind with consensus peakset
-- `cf-pipeline-scripts/DPA/diffbind_peaklist_edgeR.R` — DiffBind with edgeR backend
-- `cf-pipeline-scripts/media_normalization/normalization.r` — Roman normalization
-- `cf-pipeline-scripts/media_pearson_corr/peak_extractor.r` — Pearson correlation (R: bigWig→matrix)
-- `cf-pipeline-scripts/media_pearson_corr/pearson.py` — Pearson correlation (Python: matrix→heatmap)
-- `cf-pipeline-scripts/genomewide_plots/heatmaps.sh` — Custom reference-point heatmaps
+- `references/DPA/diffbind.R` — DiffBind standard analysis
+- `references/DPA/diffbind_peaklist.R` — DiffBind with consensus peakset
+- `references/DPA/diffbind_peaklist_edgeR.R` — DiffBind with edgeR backend
+- `references/media_normalization/normalization.r` — Roman normalization
+- `references/media_pearson_corr/peak_extractor.r` — Pearson correlation (R: bigWig→matrix)
+- `references/media_pearson_corr/pearson.py` — Pearson correlation (Python: matrix→heatmap)
+- `references/genomewide_plots/heatmaps.sh` — Custom reference-point heatmaps
 
 ### 9.9 Core Pipeline Scripts (Reference Implementation)
-- `cf-pipeline-scripts/cutruntools/integrated.sh` — Harvard original alignment
-- `cf-pipeline-scripts/data_workdir/integrated.sh` — Lab mm10 alignment (16 threads)
-- `cf-pipeline-scripts/human_workdir/integrated.sh` — Lab hg38 alignment
-- `cf-pipeline-scripts/data_workdir/aligned.aug10/integrated.step2.sh` — Peak calling (all 3 callers)
-- `cf-pipeline-scripts/data_workdir/aligned.aug10/create_bams.sh` — BigWig generation
+- `references/cutruntools/integrated.sh` — Harvard original alignment
+- `references/data_workdir/integrated.sh` — Lab mm10 alignment (16 threads)
+- `references/human_workdir/integrated.sh` — Lab hg38 alignment
+- `references/data_workdir/aligned.aug10/integrated.step2.sh` — Peak calling (all 3 callers)
+- `references/data_workdir/aligned.aug10/create_bams.sh` — BigWig generation
 
 ### 9.10 Config Files
-- `cf-pipeline-scripts/cutruntools/config2.json` — mm10 config (paths, params)
-- `cf-pipeline-scripts/cutruntools/config_human.json` — hg38 config
-- `cf-pipeline-scripts/cutruntools/ecoli_config.json` — E. coli spike-in config
-- `cf-pipeline-scripts/cutruntools/config_atac.json` — ATAC-seq config
+- `references/cutruntools/config2.json` — mm10 config (paths, params)
+- `references/cutruntools/config_human.json` — hg38 config
+- `references/cutruntools/ecoli_config.json` — E. coli spike-in config
+- `references/cutruntools/config_atac.json` — ATAC-seq config
 
 ### 9.11 Conda Environment Specs
-- `cf-pipeline-scripts/conda_envs/conda_cutrunseq.yml` — Main CUT&RUN tools
-- `cf-pipeline-scripts/conda_envs/conda_diffbind.yml` — DiffBind + dependencies
-- `cf-pipeline-scripts/conda_envs/conda_bwnorm.yml` — Roman normalization (R + rtracklayer)
-- `cf-pipeline-scripts/conda_envs/conda_deeptools_env.yml` — deepTools for heatmaps
-- `cf-pipeline-scripts/conda_envs/conda_homer.yml` — HOMER annotation
-- `cf-pipeline-scripts/conda_envs/conda_picard_env.yml` — Picard tools
+- `references/conda_envs/conda_cutrunseq.yml` — Main CUT&RUN tools
+- `references/conda_envs/conda_diffbind.yml` — DiffBind + dependencies
+- `references/conda_envs/conda_bwnorm.yml` — Roman normalization (R + rtracklayer)
+- `references/conda_envs/conda_deeptools_env.yml` — deepTools for heatmaps
+- `references/conda_envs/conda_homer.yml` — HOMER annotation
+- `references/conda_envs/conda_picard_env.yml` — Picard tools
 
 ---
 
@@ -451,24 +451,24 @@ cd /Users/zakiralibhai/Documents/VS_Code/cleave
 mkdir -p backend/pipelines/{adapters,reference/{blacklists,chrom_sizes,masks},tools}
 
 # Adapters
-cp cf-pipeline-scripts/cutruntools/adapters/*.fa backend/pipelines/adapters/
+cp references/cutruntools/adapters/*.fa backend/pipelines/adapters/
 
 # Blacklists
-cp cf-pipeline-scripts/cutruntools/{mm10,hg38,hg19}.blacklist.bed backend/pipelines/reference/blacklists/
+cp references/cutruntools/{mm10,hg38,hg19}.blacklist.bed backend/pipelines/reference/blacklists/
 
 # Chromosome sizes
-cp cf-pipeline-scripts/cutruntools/assemblies/chrom.mm10/mm10.chrom.sizes backend/pipelines/reference/chrom_sizes/
-cp cf-pipeline-scripts/cutruntools/assemblies/chrom.hg38/hg38.chrom.sizes backend/pipelines/reference/chrom_sizes/
-cp cf-pipeline-scripts/cutruntools/assemblies/chrom.hg19/hg19.chrom.sizes backend/pipelines/reference/chrom_sizes/
-cp cf-pipeline-scripts/cutruntools/assemblies/chrom.ecoli/ecoli.chrom.sizes backend/pipelines/reference/chrom_sizes/
+cp references/cutruntools/assemblies/chrom.mm10/mm10.chrom.sizes backend/pipelines/reference/chrom_sizes/
+cp references/cutruntools/assemblies/chrom.hg38/hg38.chrom.sizes backend/pipelines/reference/chrom_sizes/
+cp references/cutruntools/assemblies/chrom.hg19/hg19.chrom.sizes backend/pipelines/reference/chrom_sizes/
+cp references/cutruntools/assemblies/chrom.ecoli/ecoli.chrom.sizes backend/pipelines/reference/chrom_sizes/
 
 # Pipeline tools
-cp cf-pipeline-scripts/cutruntools/{SEACR_1.1.sh,SEACR_1.1.R,filter_below.awk,change.bdg.py} backend/pipelines/tools/
-cp cf-pipeline-scripts/cutruntools/{get_summits_seacr.py,get_summits_broadPeak.py} backend/pipelines/tools/
-cp cf-pipeline-scripts/cutruntools/{kseq_test.c,kseq.h,make_kseq_test.sh} backend/pipelines/tools/
+cp references/cutruntools/{SEACR_1.1.sh,SEACR_1.1.R,filter_below.awk,change.bdg.py} backend/pipelines/tools/
+cp references/cutruntools/{get_summits_seacr.py,get_summits_broadPeak.py} backend/pipelines/tools/
+cp references/cutruntools/{kseq_test.c,kseq.h,make_kseq_test.sh} backend/pipelines/tools/
 
 # Masks
-cp cf-pipeline-scripts/media_normalization/manual.mask.ultimate.bed backend/pipelines/reference/masks/
+cp references/media_normalization/manual.mask.ultimate.bed backend/pipelines/reference/masks/
 ```
 
 ### 10.2 Large Files — EC2 Instance Setup (Do Later)

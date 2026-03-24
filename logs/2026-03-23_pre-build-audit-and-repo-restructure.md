@@ -10,7 +10,7 @@
 - `CLAUDE.md` — Updated `@` references to `docs/` paths. Added fragment filter, SEACR preprocessing, MACS2 q-value to Pipeline-Specific Rules. Added 5 new gotchas. Added Session Logging instruction. Added spike-in QC to Phase 3.
 
 ### Repo restructure
-- `cut-run/` moved into `cf-pipeline-scripts/cut-run/`
+- `cut-run/` moved into `references/cut-run/`
 - All doc MDs moved from root to `docs/`
 - `TODO.md` renamed to `docs/questions.md`
 - Created `logs/` directory with `.gitkeep`
@@ -35,4 +35,4 @@
 - `docs/cutana-architecture-plan.md` — architecture plan (updated)
 - `CLAUDE.md` — project instructions (updated)
 - `cutana/H3K4me3/` — QC data CSVs from CUTANA Cloud test run
-- `cf-pipeline-scripts/` — all lab pipeline scripts + cut-run scripts
+- `references/` — all lab pipeline scripts + cut-run scripts
