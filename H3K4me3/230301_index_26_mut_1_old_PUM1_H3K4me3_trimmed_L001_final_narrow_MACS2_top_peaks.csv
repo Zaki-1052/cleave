@@ -1,0 +1,2 @@
+Short Name	Control Short Name	Reference Genome	Peak Caller	Peak Size	Significance Threshold	Top Peak	2' Peak	3' Peak	4' Peak	5' Peak	6' Peak	7' Peak	8' Peak	9' Peak	10' Peak
+K4me3_mut1	IgG	Mouse mm10	MACS2	narrow	0.05	chrUn_JH584304:57485-60921	chr13:113610668-113618613	chr4:62514793-62520729	chr10:36506081-36509138	chr1:5017865-5021298	chr15:32920243-32925147	chr6:57533104-57536546	chr5:81019195-81025340	chr4:62500819-62502892	chr1:22800045-22807562

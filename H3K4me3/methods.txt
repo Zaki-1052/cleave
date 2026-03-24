@@ -1,0 +1,4 @@
+Peaks were called on the EpiCypher CUTANA™ Cloud Platform with the CUTANA CUT&RUN/Tag Peak Calling App version 1.0.5.
+BED files were produced by MACS2 (version 2.2.9.1) with an automatically determined bin size based on each input file and a significance threshold (q-value) of 0.05.
+FRiP scores were calculated by dividing the number of reads in peaks (determined by BEDTools; version 2.30.0) by the total number of reads (determined by SAMtools, version 1.13).
+Peak annotation was performed by HOMER (version 4.11.1).

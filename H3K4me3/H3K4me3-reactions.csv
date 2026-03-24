@@ -1,0 +1,6 @@
+FASTQ_Prefix,Short_Name,Organism,E.coli_Spike_in,Cell_Type,Cell_Number,Sample_Prep,Experimental_Condition,Antibody_Vendor,Antibody_Cat_No,Antibody_Lot_No,Assay_Type,Reference_Genome,CUTANA_Spike_in,CUTANA_Spike_in_Target
+230301_IgG_old_PUM1_trimmed_L001,IgG,Mouse,Yes,,,,,,,,CUT&RUN,Mouse mm10,None,
+230301_index_25_ctrl_1_old_PUM1_H3K4me3_trimmed_L001,K4me3_ctrl1,Mouse,Yes,,,,,,,,CUT&RUN,Mouse mm10,None,
+230301_index_26_mut_1_old_PUM1_H3K4me3_trimmed_L001,K4me3_mut1,Mouse,Yes,,,,,,,,CUT&RUN,Mouse mm10,None,
+230301_index_27_ctrl_2_old_PUM1_H3K4me3_trimmed_L001,K4me3_ctrl2,Mouse,Yes,,,,,,,,CUT&RUN,Mouse mm10,None,
+230301_index_28_mut_2_old_PUM1_H3K4me3_trimmed_L001,K4me3_mut2,Mouse,Yes,,,,,,,,CUT&RUN,Mouse mm10,None,

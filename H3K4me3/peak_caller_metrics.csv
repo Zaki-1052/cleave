@@ -1,0 +1,6 @@
+Short Name	Control Short Name	Reference Genome	Peak Caller	Peak Size	Significance Threshold	Uniquely Aligned Read Pairs	Called Peaks	Reads in Peaks	FRiP
+IgG	IgG	Mouse mm10	MACS2	narrow	0.05	13715357	22	43991	.0032
+K4me3_ctrl1	IgG	Mouse mm10	MACS2	narrow	0.05	15265015	22236	11912997	.7804
+K4me3_mut1	IgG	Mouse mm10	MACS2	narrow	0.05	10649810	20764	7525911	.7066
+K4me3_ctrl2	IgG	Mouse mm10	MACS2	narrow	0.05	12129232	19738	8655661	.7136
+K4me3_mut2	IgG	Mouse mm10	MACS2	narrow	0.05	12561813	22148	10908054	.8683
