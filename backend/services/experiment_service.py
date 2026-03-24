@@ -40,16 +40,12 @@ async def list_experiments(
     count_result = await db.execute(select(func.count()).select_from(base.subquery()))
     total = count_result.scalar_one()
     result = await db.execute(
-        base.order_by(Experiment.updated_at.desc())
-        .offset((page - 1) * per_page)
-        .limit(per_page)
+        base.order_by(Experiment.updated_at.desc()).offset((page - 1) * per_page).limit(per_page)
     )
     return list(result.scalars().all()), total
 
 
-async def get_experiment(
-    db: AsyncSession, experiment_id: int, user_id: int
-) -> Experiment | None:
+async def get_experiment(db: AsyncSession, experiment_id: int, user_id: int) -> Experiment | None:
     result = await db.execute(
         select(Experiment)
         .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)

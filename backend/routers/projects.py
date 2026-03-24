@@ -2,8 +2,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth import current_active_user
 from database import get_db
-from dependencies import get_current_user, require_project_role
+from dependencies import require_project_role
 from models.user import User
 from schemas.common import PaginatedResponse
 from schemas.project import (
@@ -33,7 +34,7 @@ router = APIRouter()
 async def list_projects(
     page: int = Query(1, ge=1),
     per_page: int = Query(25, ge=1, le=100),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
     items, total = await list_projects_for_user(db, current_user.id, page, per_page)
@@ -43,7 +44,7 @@ async def list_projects(
 @router.post("", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
 async def create_project_endpoint(
     body: ProjectCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
     return await create_project(db, body, current_user.id)
@@ -52,7 +53,7 @@ async def create_project_endpoint(
 @router.get("/{project_id}", response_model=ProjectRead)
 async def get_project_endpoint(
     project_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
     project = await get_project(db, project_id, current_user.id)
@@ -89,7 +90,7 @@ async def delete_project_endpoint(
 @router.get("/{project_id}/members", response_model=list[MemberRead])
 async def list_members_endpoint(
     project_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
     return await list_members(db, project_id)

@@ -1,23 +1,13 @@
 # backend/schemas/auth.py
-from schemas.common import CamelModel
+from fastapi_users import schemas as fu_schemas
 
 
-class LoginRequest(CamelModel):
-    email: str
-    password: str
-
-
-class RegisterRequest(CamelModel):
-    email: str
-    password: str
+class UserCreate(fu_schemas.BaseUserCreate):
     first_name: str | None = None
     last_name: str | None = None
 
 
-class TokenResponse(CamelModel):
-    access_token: str
-    token_type: str = "bearer"
-
-
-class RefreshRequest(CamelModel):
-    refresh_token: str | None = None
+class UserUpdate(fu_schemas.BaseUserUpdate):
+    first_name: str | None = None
+    last_name: str | None = None
+    email_notifications: str | None = None

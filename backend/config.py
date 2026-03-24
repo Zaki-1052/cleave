@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     REFRESH_SECRET_KEY: str = "change-me-too"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    COOKIE_SECURE: bool = False
 
     # App
     CORS_ORIGINS: str = "http://localhost:5173"

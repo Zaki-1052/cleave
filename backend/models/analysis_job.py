@@ -26,9 +26,7 @@ class AnalysisJob(Base):
     duration_seconds: Mapped[int | None] = mapped_column(Integer)
     error_message: Mapped[str | None] = mapped_column(String)
     methods_text: Mapped[str | None] = mapped_column(String)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     experiment: Mapped["Experiment"] = relationship(  # noqa: F821
         back_populates="analysis_jobs"

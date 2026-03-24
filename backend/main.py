@@ -1,9 +1,12 @@
 # backend/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from config import settings
 from logging_config import setup_logging
+from rate_limit import limiter
 from routers import (
     auth,
     experiments,
@@ -19,6 +22,8 @@ from routers import (
 setup_logging()
 
 app = FastAPI(title="Cleave", version="0.1.0")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,

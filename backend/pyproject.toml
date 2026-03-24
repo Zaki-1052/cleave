@@ -16,8 +16,8 @@ dependencies = [
     "alembic",
     "pydantic>=2.0",
     "pydantic-settings",
-    "python-jose[cryptography]",
-    "passlib[bcrypt]",
+    "fastapi-users[sqlalchemy]",
+    "slowapi",
     "python-multipart",
     "httpx",
     "structlog",
@@ -32,7 +32,7 @@ dev = [
 ]
 
 [tool.setuptools]
-py-modules = ["main", "config", "database", "dependencies", "logging_config", "worker"]
+py-modules = ["main", "config", "database", "dependencies", "logging_config", "worker", "auth", "rate_limit"]
 
 [tool.setuptools.packages.find]
 where = ["."]

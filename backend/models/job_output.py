@@ -20,9 +20,7 @@ class JobOutput(Base):
     file_path: Mapped[str] = mapped_column(String, nullable=False)
     file_type: Mapped[str | None] = mapped_column(String)
     file_size_bytes: Mapped[int | None] = mapped_column(BigInteger)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     job: Mapped["AnalysisJob"] = relationship(back_populates="outputs")  # noqa: F821
     reaction: Mapped["Reaction | None"] = relationship(  # noqa: F821

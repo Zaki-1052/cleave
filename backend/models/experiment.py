@@ -20,9 +20,7 @@ class Experiment(Base):
     status: Mapped[str] = mapped_column(String, default="new")
     created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     storage_bytes: Mapped[int] = mapped_column(BigInteger, default=0)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )

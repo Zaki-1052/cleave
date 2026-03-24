@@ -7,9 +7,7 @@ from models.user import User
 from schemas.project import ProjectCreate, ProjectUpdate
 
 
-async def create_project(
-    db: AsyncSession, data: ProjectCreate, creator_id: int
-) -> Project:
+async def create_project(db: AsyncSession, data: ProjectCreate, creator_id: int) -> Project:
     project = Project(name=data.name, description=data.description, created_by=creator_id)
     db.add(project)
     await db.flush()
@@ -33,16 +31,12 @@ async def list_projects_for_user(
     count_result = await db.execute(select(func.count()).select_from(base.subquery()))
     total = count_result.scalar_one()
     result = await db.execute(
-        base.order_by(Project.updated_at.desc())
-        .offset((page - 1) * per_page)
-        .limit(per_page)
+        base.order_by(Project.updated_at.desc()).offset((page - 1) * per_page).limit(per_page)
     )
     return list(result.scalars().all()), total
 
 
-async def get_project(
-    db: AsyncSession, project_id: int, user_id: int
-) -> Project | None:
+async def get_project(db: AsyncSession, project_id: int, user_id: int) -> Project | None:
     result = await db.execute(
         select(Project)
         .join(ProjectMember, ProjectMember.project_id == Project.id)
@@ -51,9 +45,7 @@ async def get_project(
     return result.scalar_one_or_none()
 
 
-async def update_project(
-    db: AsyncSession, project_id: int, data: ProjectUpdate
-) -> Project | None:
+async def update_project(db: AsyncSession, project_id: int, data: ProjectUpdate) -> Project | None:
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if project is None:
@@ -75,9 +67,7 @@ async def delete_project(db: AsyncSession, project_id: int) -> None:
 
 
 async def list_members(db: AsyncSession, project_id: int) -> list[ProjectMember]:
-    result = await db.execute(
-        select(ProjectMember).where(ProjectMember.project_id == project_id)
-    )
+    result = await db.execute(select(ProjectMember).where(ProjectMember.project_id == project_id))
     return list(result.scalars().all())
 
 

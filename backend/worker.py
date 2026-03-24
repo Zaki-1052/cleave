@@ -1,5 +1,6 @@
 # backend/worker.py
 """Standalone worker process — polls analysis_jobs table and runs pipelines."""
+
 import asyncio
 import logging
 import time
@@ -31,9 +32,7 @@ async def poll_and_run() -> None:
 
         logger.info("Starting job %d (%s)", job.id, job.job_type)
         await db.execute(
-            update(AnalysisJob)
-            .where(AnalysisJob.id == job.id)
-            .values(status="running")
+            update(AnalysisJob).where(AnalysisJob.id == job.id).values(status="running")
         )
         await db.commit()
 
