@@ -1,15 +1,20 @@
 # backend/migrations/env.py
 import asyncio
+import sys
 from logging.config import fileConfig
+from pathlib import Path
+
+# Ensure the backend root is on sys.path so Alembic can import app modules
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 # Import all models so Alembic discovers them
-import models  # noqa: F401
-from config import settings
-from database import Base
+import models  # noqa: F401, E402
+from config import settings  # noqa: E402
+from database import Base  # noqa: E402
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
