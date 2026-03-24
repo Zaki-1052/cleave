@@ -1,11 +1,12 @@
 # backend/routers/auth.py
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi_users.exceptions import InvalidPasswordException, UserAlreadyExists
-from pydantic import BaseModel, EmailStr
+from pydantic import EmailStr
 
 from auth import UserManager, get_access_jwt_strategy, get_refresh_jwt_strategy, get_user_manager
 from config import settings
 from rate_limit import limiter
+from schemas.common import CamelModel
 
 router = APIRouter()
 
@@ -18,19 +19,19 @@ class _Credentials:
         self.password = password
 
 
-class LoginRequest(BaseModel):
+class LoginRequest(CamelModel):
     email: EmailStr
     password: str
 
 
-class RegisterRequest(BaseModel):
+class RegisterRequest(CamelModel):
     email: EmailStr
     password: str
     first_name: str | None = None
     last_name: str | None = None
 
 
-class TokenResponse(BaseModel):
+class TokenResponse(CamelModel):
     access_token: str
     token_type: str = "bearer"
 

@@ -31,3 +31,7 @@ export async function getMe(): Promise<User> {
   const { data } = await client.get<User>('/users/me');
   return data;
 }
+
+export async function logout(): Promise<void> {
+  await client.post('/auth/logout');
+}

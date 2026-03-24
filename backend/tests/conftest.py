@@ -54,7 +54,7 @@ async def registered_user(client: AsyncClient) -> dict:
     return {
         "email": email,
         "password": password,
-        "access_token": data["access_token"],
+        "access_token": data["accessToken"],
         "refresh_cookie": refresh_cookie,
     }
 

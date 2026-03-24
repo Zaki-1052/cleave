@@ -1,5 +1,7 @@
 # Cleave — Phase 1 Scaffolding Plan
 
+> **Status**: EXECUTED 2026-03-23. Scaffold complete — this document is now a reference for the original design intent.
+
 > **Goal**: Create the complete directory structure, dependency files, configuration, Docker Compose setup, database schema (as SQLAlchemy models + Alembic), FastAPI app skeleton, and React app skeleton for a project called **Cleave**. This is PLANNING ONLY — describe what each file should contain and why, but do NOT write implementation code yet. The output should be a step-by-step plan that, when executed, produces a fully wired scaffold where `docker compose up` starts Postgres + FastAPI + Vite dev server, the frontend can call the backend, and the database schema is applied via Alembic migrations.
 
 > **Environment**: macOS local development. Production target is a single AWS EC2 Ubuntu instance, but we are NOT setting up production infra yet — only local dev via Docker Compose.

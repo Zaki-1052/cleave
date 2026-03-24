@@ -9,8 +9,8 @@ async def test_register_creates_user(client: AsyncClient):
     )
     assert resp.status_code == 201
     data = resp.json()
-    assert "access_token" in data
-    assert data["token_type"] == "bearer"
+    assert "accessToken" in data
+    assert data["tokenType"] == "bearer"
 
 
 async def test_register_with_name(client: AsyncClient):
@@ -24,7 +24,7 @@ async def test_register_with_name(client: AsyncClient):
         },
     )
     assert resp.status_code == 201
-    token = resp.json()["access_token"]
+    token = resp.json()["accessToken"]
     me = await client.get("/api/v1/users/me", headers={"Authorization": f"Bearer {token}"})
     assert me.status_code == 200
     assert me.json()["firstName"] == "Jane"
@@ -46,8 +46,8 @@ async def test_login_returns_tokens(client: AsyncClient, registered_user: dict):
     )
     assert resp.status_code == 200
     data = resp.json()
-    assert "access_token" in data
-    assert data["token_type"] == "bearer"
+    assert "accessToken" in data
+    assert data["tokenType"] == "bearer"
     assert "fapiusers_refresh" in resp.cookies
 
 
@@ -74,13 +74,13 @@ async def test_refresh_returns_valid_access_token(client: AsyncClient, registere
     )
     assert resp.status_code == 200
     data = resp.json()
-    assert "access_token" in data
-    assert data["token_type"] == "bearer"
+    assert "accessToken" in data
+    assert data["tokenType"] == "bearer"
 
     # Verify the refreshed token actually works on a protected endpoint
     me = await client.get(
         "/api/v1/users/me",
-        headers={"Authorization": f"Bearer {data['access_token']}"},
+        headers={"Authorization": f"Bearer {data['accessToken']}"},
     )
     assert me.status_code == 200
     assert me.json()["email"] == registered_user["email"]

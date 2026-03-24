@@ -20,8 +20,77 @@ These are infrastructure patterns to bake into the scaffold. Not things you need
 - [x] Axios client with interceptors (`api/client.ts`)
 - [x] Python `logging` + `structlog` for structured JSON logging (`logging_config.py`)
 - [ ] QC report Pydantic schemas — deferred to Phase 3 per scaffold-prompt.md
-- [ ] Rate limiting setup — add `slowapi` to backend deps, apply to `/api/v1/auth/login` (5/min) and `/api/v1/auth/register` (3/min)
+- [x] Rate limiting setup — `slowapi` on `/api/v1/auth/login` (5/min) and `/api/v1/auth/register` (3/min). Done in Phase 1.1.
 - [x] No password reset flow in Phase 1 -- fastapi-users includes `get_reset_password_router()` but it requires SES email transport. **Deferred to Phase 3**, not permanently skipped. Enable when SES is configured.
+
+### Phase 1.1 auth — completed 2026-03-24
+
+- [x] Install `fastapi-users[sqlalchemy]`, `slowapi`; remove `python-jose`, `passlib`
+- [x] User model extends `SQLAlchemyBaseUserTable[int]` with custom fields preserved
+- [x] Alembic migration: rename `password_hash` → `hashed_password`, add `is_active`/`is_superuser`/`is_verified`
+- [x] `backend/auth.py` — UserManager, JWT strategies, auth backend, `current_active_user`
+- [x] Custom login/register/refresh/logout endpoints (dual transport: bearer body + httpOnly cookie)
+- [x] All routers updated to use `current_active_user`
+- [x] `require_project_role()` preserved, uses new dependency
+- [x] Rate limiting on login (5/min) and register (3/min)
+- [x] Auth test suite (13 tests, all passing)
+
+### Phase 1.2 auth frontend — completed 2026-03-24
+
+- [x] Fixed critical casing mismatch: auth `TokenResponse`, `LoginRequest`, `RegisterRequest` now extend `CamelModel` (consistent with all other schemas)
+- [x] Added `logout()` to `api/auth.ts`; `AuthContext.logout()` now calls backend to delete refresh cookie
+- [x] Added request queue to Axios 401 refresh interceptor (`isRefreshing` flag + `failedQueue`)
+- [x] Cleaned up refresh interceptor: removed unnecessary `{ refreshToken: null }` body, added `_retry` flag to prevent infinite loops
+- [x] Marked `cc-scaffold-prompt.md` as executed
+- [x] Closed non-issues: CORS `withCredentials` (not needed due to proxy), frontend auth contract (already correct)
+
+---
+
+## Known issues to address during implementation
+
+Items from code review that will cause bugs or security problems if not addressed in the relevant phase. Grouped by severity.
+
+### Will cause bugs
+
+- [ ] **Test database must be Postgres, not SQLite.** Current `tests/conftest.py` uses SQLite for speed, but `analysis_jobs.params` is JSONB which SQLite doesn't support. When Phase 1.3+ tests touch jobs, they will fail or silently change column behavior. Fix: use a second database (`cleave_test`) in the same Docker Compose Postgres container. The auth-only tests work on SQLite for now, but switch before Phase 1.3.
+
+- [x] **Frontend auth contract: no `refresh_token` in body.** Confirmed correct. `TokenResponse` has no `refreshToken` field; refresh uses cookie only. Fixed casing mismatch (auth schemas now extend `CamelModel` like all other schemas) in Phase 1.2.
+
+- [x] **Axios refresh interceptor needs a request queue.** Fixed in Phase 1.2: queued refresh pattern with `isRefreshing` flag and `failedQueue` array in `api/client.ts`.
+
+- [ ] **Mock mode must create stub files on disk, not just DB records.** Phase 2.9 (file browser), 2.10 (download), and Phase 5 (IGV) depend on files at real paths. If mock mode only returns mock API data without creating small placeholder files at `{STORAGE_ROOT}/projects/{pid}/{eid}/...`, half the frontend features won't work locally. Specify in each pipeline module's `mock_run()`: create actual stub files at the expected paths.
+
+- [ ] **Worker DB session management.** The worker is a standalone process, not a FastAPI request — can't use `Depends(get_db)`. Must create a new session per job poll cycle via `async_sessionmaker` from `database.py`. Don't use a single long-lived session (stale reads) and don't forget to commit. Address when implementing Phase 3.1.
+
+### Security (public-facing URL)
+
+- [ ] **File browser path traversal.** Phase 2.9 file browser "scans the experiment directory." Any endpoint that constructs paths from user input must validate paths are within `{STORAGE_ROOT}/projects/{project_id}/{experiment_id}/` and reject `..` or absolute paths. Add explicit validation in Phase 2.9.
+
+- [x] **CORS `withCredentials` for local dev.** Non-issue: Vite dev proxy (`/api` → `:8000`) and production NGINX proxy both make cookies same-origin. `withCredentials` is not needed in either environment. No action required.
+
+### Consistency
+
+- [ ] **`storage_bytes` update atomicity.** Both uploads and job completion update `storage_bytes` on projects and experiments. Use `UPDATE ... SET storage_bytes = storage_bytes + :delta` (atomic SQL) instead of read-modify-write to avoid race conditions if two uploads finish near-simultaneously.
+
+### Domain validation rules (not in docs yet)
+
+These are implicit domain constraints that an LLM won't infer:
+
+- [ ] R1 and R2 FASTQs must always be uploaded as a pair — reject orphaned single-end uploads
+- [ ] An experiment with zero reactions cannot launch alignment — validate before job creation
+- [ ] IgG should not be the only reaction in an alignment (needs targets to be useful) — warn or block
+- [ ] Paired-end FASTQ filenames must share a common prefix differing only in R1/R2 designation
+
+### Documentation maintenance
+
+- [x] **Mark `scaffold-prompt.md` as executed.** Added status line to `docs/cc-scaffold-prompt.md` in Phase 1.2.
+
+- [ ] **Consider splitting `CLAUDE.md` pipeline rules.** Pipeline-specific rules (MACS2 q-value, SEACR preprocessing chain, effectiveGenomeSize per genome) are in CLAUDE.md but only matter in Phases 3-6. LLM attention to late instructions degrades over long system prompts. Consider moving pipeline rules to a `PIPELINE.md` referenced only during pipeline phases, keeping CLAUDE.md focused on universal standards.
+
+### Dev tooling gaps
+
+- [ ] **Ruff not in Docker image.** `ruff` is not installed in the API container — `docker compose exec api ruff check .` fails. Add `ruff` to dev dependencies in `pyproject.toml` or install it in the Dockerfile so linting works inside the container.
+- [ ] **ESLint config missing.** ESLint 9 requires `eslint.config.js` (flat config format). The frontend has no config file, so `npm run lint` fails. Create `frontend/eslint.config.js` with TypeScript + React rules.
 
 ---
 
@@ -60,7 +129,9 @@ These are infrastructure patterns to bake into the scaffold. Not things you need
 ### Phase 3 implementation tasks (for Claude)
 
 - [ ] Set up Amazon SES for job completion email notifications
+- [ ] Enable fastapi-users password reset flow (`get_reset_password_router()`) once SES is configured — config flag flip, not a feature build. Add `/auth/forgot-password` to slowapi rate limiting list.
 - [ ] Define QC report Pydantic schemas from exported CUTANA Cloud CSVs
+- [ ] Switch test database from SQLite to Postgres (see "Known issues" above)
 
 ### Consider supplementing
 

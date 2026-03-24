@@ -589,6 +589,7 @@ Mouse-only sample-to-sample normalization.
 - Env vars: `AWS_SES_REGION`, `AWS_SES_FROM_EMAIL`
 - Respect user's `email_notifications` preference (always / on_error / never)
 - Email contains: job name, experiment name, project name, status, duration, link to results
+- Enable fastapi-users password reset flow (`get_reset_password_router()`) — config flag flip, not a feature build. Add `/auth/forgot-password` to slowapi rate limiting list.
 
 ### 7.6 EC2 Deployment
 
