@@ -52,7 +52,7 @@ Items from code review that will cause bugs or security problems if not addresse
 
 ### Will cause bugs
 
-- [ ] **Test database must be Postgres, not SQLite.** Current `tests/conftest.py` uses SQLite for speed, but `analysis_jobs.params` is JSONB which SQLite doesn't support. When Phase 1.3+ tests touch jobs, they will fail or silently change column behavior. Fix: use a second database (`cleave_test`) in the same Docker Compose Postgres container. The auth-only tests work on SQLite for now, but switch before Phase 1.3.
+- [x] **Test database must be Postgres, not SQLite.** Fixed: `conftest.py` now uses `TEST_DATABASE_URL` pointing to `cleave_test` Postgres DB. Init script at `docker/init-test-db.sql` creates the DB on first container start.
 
 - [x] **Frontend auth contract: no `refresh_token` in body.** Confirmed correct. `TokenResponse` has no `refreshToken` field; refresh uses cookie only. Fixed casing mismatch (auth schemas now extend `CamelModel` like all other schemas) in Phase 1.2.
 
@@ -85,12 +85,10 @@ These are implicit domain constraints that an LLM won't infer:
 
 - [x] **Mark `scaffold-prompt.md` as executed.** Added status line to `docs/cc-scaffold-prompt.md` in Phase 1.2.
 
-- [ ] **Consider splitting `CLAUDE.md` pipeline rules.** Pipeline-specific rules (MACS2 q-value, SEACR preprocessing chain, effectiveGenomeSize per genome) are in CLAUDE.md but only matter in Phases 3-6. LLM attention to late instructions degrades over long system prompts. Consider moving pipeline rules to a `PIPELINE.md` referenced only during pipeline phases, keeping CLAUDE.md focused on universal standards.
-
 ### Dev tooling gaps
 
-- [ ] **Ruff not in Docker image.** `ruff` is not installed in the API container — `docker compose exec api ruff check .` fails. Add `ruff` to dev dependencies in `pyproject.toml` or install it in the Dockerfile so linting works inside the container.
-- [ ] **ESLint config missing.** ESLint 9 requires `eslint.config.js` (flat config format). The frontend has no config file, so `npm run lint` fails. Create `frontend/eslint.config.js` with TypeScript + React rules.
+- [x] **Ruff not in Docker image.** Fixed: Dockerfile now installs `".[dev]"` which includes ruff.
+- [x] **ESLint config missing.** Fixed: Created `frontend/eslint.config.js` with ESLint 9 flat config (TypeScript + React Hooks + React Refresh).
 
 ---
 

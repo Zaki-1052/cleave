@@ -29,7 +29,6 @@ dev = [
     "pytest-asyncio",
     "ruff",
     "httpx",
-    "aiosqlite",
 ]
 
 [tool.setuptools]

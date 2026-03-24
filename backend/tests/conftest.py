@@ -1,15 +1,22 @@
 # backend/tests/conftest.py
+import os
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
 
+import models  # noqa: F401 — register all tables with Base.metadata
 from database import Base, get_db
 from main import app
 from rate_limit import limiter
 
-TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
+TEST_DATABASE_URL = os.environ.get(
+    "TEST_DATABASE_URL",
+    "postgresql+asyncpg://cleave:dev@localhost:5432/cleave_test",
+)
 
-test_engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+test_engine = create_async_engine(TEST_DATABASE_URL, echo=False, poolclass=NullPool)
 test_session_factory = async_sessionmaker(test_engine, expire_on_commit=False)
 
 
