@@ -11,6 +11,8 @@
 @docs/cf-lab-pipeline-spec.md
 @docs/cutana-cloud-docs.md
 @docs/cleave-spec-decisions.md
+@docs/PLAN.md
+docs/todos.md
 
 ## Tech Stack
 
