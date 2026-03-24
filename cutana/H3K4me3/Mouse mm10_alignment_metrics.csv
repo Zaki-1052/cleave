@@ -1,0 +1,6 @@
+Short_Name,Total_Read_Pairs,Aligned_Read_Pairs,Uniquely_Aligned_Read_Pairs,Unique_Alignment_Rate(%),Duplication_Rate(%),chrM_Bandwidth(%),Ecoli_Read_Pairs,Ecoli_Alignment_Rate(%)
+IgG,23538581,9906793,6856185,29.13,21.36,0.12,12842807,54.56
+K4me3_ctrl1,9519486,9120700,7630846,80.16,12.45,0.0,1020,0.01
+K4me3_mut1,6507915,6184644,5324032,81.81,9.21,0.0,493,0.01
+K4me3_ctrl2,7698717,7247507,6063454,78.76,11.77,0.01,965,0.01
+K4me3_mut2,7480471,7276517,6279247,83.94,10.74,0.0,532,0.01

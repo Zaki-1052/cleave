@@ -12,7 +12,7 @@
 ### Repo restructure
 - `cut-run/` moved into `references/cut-run/`
 - All doc MDs moved from root to `docs/`
-- `TODO.md` renamed to `docs/questions.md`
+- `TODO.md` renamed to `docs/cleave-questions.md`
 - Created `logs/` directory with `.gitkeep`
 
 ## Decisions made

@@ -127,7 +127,7 @@ These errors were found by reading the actual scripts in `references/` and compa
 ## 3. Resolved TODO.md Questions
 
 ### Q1: Can you export QC data (CSVs) from your CUTANA Cloud test run?
-**Status**: RESOLVED — User will export alignment stats CSV and peak calling stats CSV from the CUTANA Cloud H3K4me3 test run.
+**Status**: RESOLVED — Both CSVs exported and in repo at `cutana/H3K4me3/Mouse mm10_alignment_metrics.csv` (alignment QC) and `cutana/H3K4me3/peak_caller_metrics.csv` (peak calling QC).
 
 ### Q2: Tusd vs. Python-native tus vs. plain multipart upload?
 **Status**: RESOLVED — Start with plain multipart upload with generous NGINX `client_max_body_size`. Add tus protocol later if needed. For 8-10 lab users on decent internet, this is sufficient for Phase 1.
