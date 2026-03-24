@@ -5,11 +5,12 @@
 
 ## Project Documentation
 
-@cutana-cloud-ui.md
-@cutana-architecture-plan.md
-@cutana-cloud-info.md
-@cf-lab-pipeline-spec.md
-@cutana-cloud-docs.md
+@docs/cutana-cloud-ui.md
+@docs/cutana-architecture-plan.md
+@docs/cutana-cloud-info.md
+@docs/cf-lab-pipeline-spec.md
+@docs/cutana-cloud-docs.md
+@docs/cleave-spec-decisions.md
 
 ## Tech Stack
 
@@ -82,9 +83,13 @@ End responses with:
 - Each pipeline stage is a Python module under `backend/pipelines/` with a standard interface: `validate()`, `run()`, `generate_methods_text()`.
 - Pipeline modules call tools via `subprocess.run()`, capture stdout/stderr to log files, raise `PipelineError` on non-zero exit.
 - Trimming is two-stage: Trimmomatic (adapter + quality) → kseq_test (fixed-length to 42bp). See lab pipeline spec §2 Stage 2.
-- Three peak callers supported: MACS2 (narrow + broad), SICER2 (broad), SEACR (stringent + relaxed).
+- Three peak callers supported: MACS2 (narrow + broad), SICER2 (broad), SEACR v1.1 (stringent + relaxed).
+- **MACS2 default q-value is `0.01`** (lab standard), not 0.05 (CUTANA Cloud). Both available in Advanced Settings.
+- **Fragment size filter (<120bp)** is default ON before peak calling. Uses `filter_below.awk` to keep only sub-nucleosomal fragments.
+- **SEACR preprocessing chain**: MACS2 generates bedgraph → `change.bdg.py` converts float→integer → SEACR runs on integer bedgraph. SEACR uses numeric threshold `0.01` by default (not IgG control bedgraph).
 - Methods text is auto-generated per job — must include exact tool versions and parameters for manuscript copy-paste.
 - All QC metrics (FRiP, alignment rates, spike-in recovery, duplication rate) have documented acceptable ranges in the CUTANA docs.
+- SNAP-CUTANA K-MetStat spike-in QC implemented in Phase 3. All 32 barcode sequences available in `cf-pipeline-scripts/media_misc/k_metstat_script.sh`.
 
 ### Frontend Patterns
 - Replicate CUTANA Cloud's visual language: gradient background (sky blue → seafoam → lime → gold), white card containers, primary blue `#4AAED9`, pill-shaped buttons.
@@ -128,8 +133,8 @@ pytest backend/tests/test_specific.py -k "test_name"  # Single test
 Current phase tracking (update as we progress):
 1. ⭕ Foundation (auth, project/experiment CRUD, UI shell)
 2. 🔴 Data Management (FASTQ upload, FastQC, reactions, trimming)
-3. 🔴 Core Pipeline (worker, SSE, alignment, QC reports)
-4. 🔴 Peak Calling (MACS2/SICER2/SEACR, HOMER, FRiP)
+3. 🔴 Core Pipeline (worker, SSE polling, alignment, QC reports, spike-in QC)
+4. 🔴 Peak Calling (MACS2/SICER2/SEACR, HOMER, FRiP, fragment filter)
 5. 🔴 Visualization (IGV.js integration)
 6. 🔴 Lab Extensions (DiffBind, custom heatmaps, Pearson correlation, Roman normalization)
 7. 🔴 Polish & QA
@@ -137,9 +142,25 @@ Current phase tracking (update as we progress):
 ## Gotchas
 
 - IgG control has intentionally low alignment rates (~29%) — this is expected, not an error.
-- `kseq_test` binary must be compiled from CUTRUNTools source or copied from lab instance.
+- `kseq_test` binary must be compiled from CUTRUNTools source (`gcc -O2 kseq_test.c -lz -o kseq_test`) or copied from lab instance. Source + pre-compiled binary in `cf-pipeline-scripts/cutruntools/`.
 - Trimmomatic requires Java (OpenJDK 17+).
-- DiffBind has a known bug: top row of output missing column names. Our pipeline must add the header row programmatically.
+- DiffBind R scripts (`cf-pipeline-scripts/DPA/diffbind.R`, `diffbind_peaklist.R`) have syntax bugs: missing `)` on `write.csv()` (line 88), malformed `cat()`/`print()` (line 91-92), missing `dev.off()` between PNG/SVG device opens. Fix when porting to clone.
+- DiffBind output column names (`Conc_X`, `Conc_Y`) are dynamic — they come from `dba.report()` based on the `Condition` column in the sample sheet CSV. Do NOT hard-code "Conc_mut"/"Conc_ctrl".
 - FASTQ processing is server-side only. Never load FASTQ data into browser memory.
 - The lab's `integrated.sh` requests 32GB RAM via Slurm — `t3.xlarge` (16GB) may be tight for alignment. Validate during benchmarking.
 - Adapter file `Truseq3.PE.fa` ships with the clone at `backend/pipelines/adapters/`.
+- Lab's `create_bams.sh` uses mm10's `effectiveGenomeSize` (2467481108) even for human samples — this is a bug. Clone must use correct per-genome values (see `docs/cleave-spec-decisions.md` §7).
+- SEACR v1.1 uses numeric threshold `0.01` by default, NOT IgG control bedgraph. Both modes are supported but the lab's default is numeric.
+- K-MetStat spike-in barcode sequences (all 32) are available in `cf-pipeline-scripts/media_misc/k_metstat_script.sh` — NOT proprietary as previously assumed.
+
+## Session Logging
+
+After completing a plan or significant block of work, write a summary log to `logs/` as a markdown file named `YYYY-MM-DD_<short-description>.md`. The log should include:
+
+- **Date** and brief title
+- **What was done**: concise list of changes made, files created/modified
+- **Decisions made**: any architectural or implementation decisions during the session
+- **Open items**: anything deferred or left incomplete
+- **Key file paths**: files created or significantly modified
+
+This provides a persistent, reviewable trail of progress across sessions. Keep logs concise — aim for 20-40 lines max.

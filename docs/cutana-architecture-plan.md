@@ -437,8 +437,17 @@ The clone supports three peak callers (vs. CUTANA Cloud's two):
 
 | Peak Caller | Mode | Targets | Threshold | Source |
 |---|---|---|---|---|
-| **MACS2** | Narrow | H3K4me3, H3K4me1, CTCF, TFs | q-value 0.05 | CUTANA Cloud + Lab |
-| **MACS2** | Broad | Me-CUT&RUN (methylation marks) | q-value 0.05 (broad) | Lab only |
+| **MACS2** | Narrow | H3K4me3, H3K4me1, CTCF, TFs | q-value 0.01 (lab default; CUTANA Cloud uses 0.05) | CUTANA Cloud + Lab |
+| **MACS2** | Broad | Me-CUT&RUN (methylation marks) | `--broad-cutoff 0.1` | Lab only |
+| **SICER2** | Broad | H3K27me3, other diffuse marks | FDR 0.01 | CUTANA Cloud |
+| **SEACR** (v1.1) | Stringent | General CUT&RUN (lab default) | Numeric threshold 0.01 (top 1% AUC) | Lab only |
+| **SEACR** (v1.1) | Relaxed | Exploratory / low-signal | Numeric threshold 0.01 (relaxed knee) | Lab only |
+
+The Peak Calling Settings UI should expose all five options in a single dropdown (or two dropdowns: caller + mode).
+
+**SEACR preprocessing chain**: SEACR requires integer bedgraph input. The pipeline must: (1) run MACS2 to generate `_treat_pileup.bdg`, (2) convert float→integer via `change.bdg.py`, (3) run SEACR on the integer bedgraph. See `cleave-spec-decisions.md` §2.6.
+
+**Fragment size filter**: Before peak calling, BAMs are filtered to fragments <120bp (sub-nucleosomal, representing protein footprints). This uses `filter_below.awk` and is default ON in Cleave. See `cleave-spec-decisions.md` §2.3.
 
 ### Alignment Parameters (from `integrated.sh`)
 
@@ -450,17 +459,12 @@ bowtie2 -p 16 --dovetail --phred33 -x <genome_index> -1 <R1_trimmed> -2 <R2_trim
 
 Key flags:
 - **`--dovetail`**: Allows mates to extend past each other. Critical for CUT&RUN/CUT&Tag where enzymatic cleavage can produce very short fragments where R1 and R2 overlap significantly.
-- **`-p 16`**: 16 threads. Parameterize in the clone based on instance vCPU count.
+- **`-p 16`**: 16 threads. Parameterize in the clone based on instance vCPU count (`nproc`).
 - **`--phred33`**: Standard Illumina quality encoding.
 
 Post-alignment (from the script): SAM → BAM conversion via `samtools view -bS -@ 16`, then SAM file is deleted to save space. The remaining filtering steps (multi-mapper removal, DAC exclusion list, duplicate removal) are handled in subsequent pipeline stages, consistent with CUTANA Cloud's approach.
 
 **Resource note from Slurm headers**: The script requests `--mem=32000` (32 GB RAM) and 12 hours max runtime on a single node. This confirms the `t3.xlarge` (16 GB) may be tight for alignment — a `t3.2xlarge` (32 GB, 8 vCPU) might be more appropriate. To be validated during benchmarking on the existing lab instance.
-| **SICER2** | Broad | H3K27me3, other diffuse marks | FDR 0.01 | CUTANA Cloud |
-| **SEACR** | Stringent | General CUT&RUN (lab default) | Empirical threshold | Lab only |
-| **SEACR** | Relaxed | Exploratory / low-signal | Empirical threshold | Lab only |
-
-The Peak Calling Settings UI should expose all five options in a single dropdown (or two dropdowns: caller + mode).
 
 ---
 
@@ -771,10 +775,12 @@ Phased approach — each phase produces a usable increment:
 
 ### Phase 3: Core Pipeline
 - [ ] Worker process + job queue infrastructure.
-- [ ] SSE for real-time job status updates.
+- [ ] SSE for real-time job status updates (2-second polling initially).
 - [ ] Alignment pipeline: Bowtie2 + SAMtools + BEDTools + Picard + deepTools.
 - [ ] Alignment wizard UI (3 steps).
-- [ ] Alignment QC report (stats table, spike-in heatmap, TSS/gene body heatmaps).
+- [ ] Alignment QC report (stats table, TSS/gene body heatmaps).
+- [ ] SNAP-CUTANA K-MetStat spike-in QC (barcode grep counts → heatmap). Barcode sequences in `k_metstat_script.sh`.
+- [ ] E. coli spike-in alignment and normalization factor calculation.
 - [ ] Alignment file browser (BAMs, bigWigs, heatmaps, FastQC).
 - [ ] Auto-generated methods text.
 - [ ] Analysis Queue page.
@@ -822,6 +828,12 @@ Phased approach — each phase produces a usable increment:
 | 5   | Exact EC2 instance type?                                          | Need to benchmark alignment memory/CPU usage to right-size. `t3.xlarge` (4 vCPU, 16 GB) is the starting hypothesis. Script requests 32 GB via Slurm — may need a larger instance or memory-aware job scheduling. | **TBD** — will test on existing larger lab instance first, then migrate to a right-sized dedicated instance.                                                                                                                                                      |
 | 6   | Domain name?                                                      | Needed for Cloudflare DNS + TLS setup.                                                                                                                                                                           | **Resolved: `coleferguson.com`** — low priority, end-of-project task.                                                                                                                                                                                             |
 | 7   | Multi-user concurrency model?                                     | How many lab members will use this simultaneously? Affects worker concurrency and instance sizing.                                                                                                               | **Resolved: ~8–10 lab members.** Single-job worker is fine; unlikely to have more than 1–2 concurrent analysis requests.                                                                                                                                          |
-| 8   | DiffBind output bug workaround                                    | Lab notes a known bug where the top row of output is missing column names. Build the fix into the pipeline module, or wait for an upstream DiffBind fix?                                                         | **Build it in** — add header row programmatically post-execution.                                                                                                                                                                                                 |
-| 9   | `kseq_test` second-stage trim — what length?                      | `integrated.sh` reads from a `length` file in the working directory.                                                                                                                                             | **Resolved: 42 bp.** The `length` file contains `42`. This is shorter than the expected 50 bp for 2×50 sequencing — likely accounts for adapter/quality trimming losses. The clone should default to 42 but allow user override.                                  |
-| 10  | Trimmomatic adapter file                                          | Need a copy of `Truseq3.PE.fa` from the lab instance for the clone's trimming module.                                                                                                                            | **Resolved.** Adapter files copied from `/home/ubuntu/cutruntools/adapters/`. All four files secured: `Truseq3.PE.fa` (260 B, primary), `Truseq3.SE.fa`, `NexteraPE-PE.fa`, `TruSeqAdapters.fa`. Ship all four with the clone to support different library preps. |
+| 8   | DiffBind output bug workaround                                    | Lab notes a known bug where the top row of output is missing column names. Build the fix into the pipeline module, or wait for an upstream DiffBind fix?                                                         | **Resolved (clarified).** The current `diffbind.R` in repo uses `write.table(... row.names=F)` which DOES include headers. The "missing header" bug may be from an older version. The real issues are: (1) syntax bugs in R scripts (see `cleave-spec-decisions.md` §4), (2) output column names `Conc_X`/`Conc_Y` are dynamic based on sample sheet condition names, not hard-coded. |
+| 9   | `kseq_test` second-stage trim — what length?                      | `integrated.sh` reads from a `length` file in the working directory.                                                                                                                                             | **Resolved: 42 bp.** Confirmed from config files (`fastq_sequence_length: 42`). Source code, header, build script, and pre-compiled binary all in repo at `cf-pipeline-scripts/cutruntools/`. |
+| 10  | Trimmomatic adapter file                                          | Need a copy of `Truseq3.PE.fa` from the lab instance for the clone's trimming module.                                                                                                                            | **Resolved.** All four adapter files in repo at `cf-pipeline-scripts/cutruntools/adapters/`. Ship with the clone. |
+| 11  | MACS2 q-value: lab uses 0.01, CUTANA Cloud uses 0.05              | Lab's `integrated.step2.sh` uses `-q 0.01` (more stringent). CUTANA Cloud docs say 0.05.                                                                                                                        | **Resolved: Default 0.01** (lab standard). 0.05 available in Advanced Settings. See `cleave-spec-decisions.md` §2.1. |
+| 12  | Fragment size filter (<120bp) before peak calling                  | Lab's `integrated.step2.sh` filters BAMs to <120bp fragments using `filter_below.awk`. Not in CUTANA Cloud. Not documented anywhere until script audit.                                                          | **Resolved: Default ON.** Exposed as checkbox in Peak Calling Advanced Settings. See `cleave-spec-decisions.md` §2.3. |
+| 13  | SEACR version and invocation mode                                  | Lab uses SEACR with numeric threshold, not IgG control bedgraph. Version was unknown.                                                                                                                            | **Resolved: SEACR 1.1** with `0.01 non stringent/relaxed`. Requires MACS2 bedgraph preprocessing via `change.bdg.py`. See `cleave-spec-decisions.md` §2.4-2.6. |
+| 14  | Lab scripts collection status                                      | TODO.md listed scripts to collect from lab instance (diffbind.R, normalization.r, etc.)                                                                                                                          | **Resolved: ALL scripts already in repo** under `cf-pipeline-scripts/`. Complete inventory in `cleave-spec-decisions.md` §3 Q9. |
+| 15  | SNAP-CUTANA spike-in barcode sequences                             | Previously considered proprietary/unavailable.                                                                                                                                                                    | **Resolved: All 32 barcode sequences in repo** at `cf-pipeline-scripts/media_misc/k_metstat_script.sh`. Implement spike-in QC in Phase 3. See `cleave-spec-decisions.md` §8. |
+| 16  | effectiveGenomeSize bug in human bigWig generation                 | Lab's `create_bams.sh` uses mm10's effective genome size (2467481108) even for human samples.                                                                                                                     | **Resolved: Clone uses correct per-genome values.** mm10=2467481108, hg38=2913022398, hg19=2864785220, dm6=142573017, sacCer3=12157105. See `cleave-spec-decisions.md` §7. |
