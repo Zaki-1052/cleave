@@ -46,6 +46,17 @@ async def client():
     app.dependency_overrides.clear()
 
 
+@pytest.fixture(autouse=True)
+def override_storage_root(tmp_path):
+    """Point STORAGE_ROOT to a temporary directory for test isolation."""
+    from config import settings
+
+    original = settings.STORAGE_ROOT
+    settings.STORAGE_ROOT = str(tmp_path / "cleave_test_storage")
+    yield
+    settings.STORAGE_ROOT = original
+
+
 @pytest.fixture
 async def registered_user(client: AsyncClient) -> dict:
     """Register a test user and return {email, password, access_token, refresh_cookie}."""

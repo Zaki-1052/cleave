@@ -20,3 +20,9 @@ class FastqFileRead(CamelModel):
     is_trimmed: bool = False
     upload_source: str | None = None
     uploaded_at: datetime
+
+
+class FastqFileUploadResponse(CamelModel):
+    uploaded: list[FastqFileRead]
+    total_bytes: int
+    file_count: int
