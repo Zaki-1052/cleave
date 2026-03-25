@@ -38,3 +38,34 @@ export async function getMembers(projectId: number): Promise<Member[]> {
   const { data } = await client.get<Member[]>(`/projects/${projectId}/members`);
   return data;
 }
+
+export async function addMember(
+  projectId: number,
+  email: string,
+  role: string,
+): Promise<Member> {
+  const { data } = await client.post<Member>(`/projects/${projectId}/members`, {
+    email,
+    role,
+  });
+  return data;
+}
+
+export async function updateMemberRole(
+  projectId: number,
+  userId: number,
+  role: string,
+): Promise<Member> {
+  const { data } = await client.patch<Member>(
+    `/projects/${projectId}/members/${userId}`,
+    { role },
+  );
+  return data;
+}
+
+export async function removeMember(
+  projectId: number,
+  userId: number,
+): Promise<void> {
+  await client.delete(`/projects/${projectId}/members/${userId}`);
+}

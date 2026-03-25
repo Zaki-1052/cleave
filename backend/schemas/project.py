@@ -1,9 +1,12 @@
 # backend/schemas/project.py
 from datetime import datetime
+from typing import Literal
 
 from pydantic import ConfigDict
 
 from schemas.common import CamelModel
+
+RoleType = Literal["admin", "contributor", "viewer"]
 
 
 class ProjectCreate(CamelModel):
@@ -30,7 +33,7 @@ class ProjectUpdate(CamelModel):
 
 class MemberCreate(CamelModel):
     email: str
-    role: str = "contributor"
+    role: RoleType = "contributor"
 
 
 class UserBrief(CamelModel):
@@ -55,4 +58,4 @@ class MemberRead(CamelModel):
 
 
 class MemberUpdate(CamelModel):
-    role: str
+    role: RoleType

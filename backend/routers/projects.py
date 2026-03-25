@@ -1,10 +1,12 @@
 # backend/routers/projects.py
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import current_active_user
 from database import get_db
 from dependencies import require_project_role
+from models.project import ProjectMember
 from models.user import User
 from schemas.common import PaginatedResponse
 from schemas.project import (
@@ -16,6 +18,7 @@ from schemas.project import (
     ProjectUpdate,
 )
 from services.project_service import (
+    AlreadyMemberError,
     add_member,
     create_project,
     delete_project,
@@ -90,7 +93,7 @@ async def delete_project_endpoint(
 @router.get("/{project_id}/members", response_model=list[MemberRead])
 async def list_members_endpoint(
     project_id: int,
-    current_user: User = Depends(current_active_user),
+    _: User = Depends(require_project_role(["admin", "contributor", "viewer"])),
     db: AsyncSession = Depends(get_db),
 ):
     return await list_members(db, project_id)
@@ -105,7 +108,13 @@ async def add_member_endpoint(
     current_user: User = Depends(require_project_role(["admin"])),
     db: AsyncSession = Depends(get_db),
 ):
-    member = await add_member(db, project_id, body.email, body.role, current_user.id)
+    try:
+        member = await add_member(db, project_id, body.email, body.role, current_user)
+    except AlreadyMemberError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="User is already a member of this project",
+        )
     if member is None:
         raise HTTPException(status_code=404, detail="User not found")
     return member
@@ -116,9 +125,31 @@ async def update_member_endpoint(
     project_id: int,
     user_id: int,
     body: MemberUpdate,
-    _: User = Depends(require_project_role(["admin"])),
+    current_user: User = Depends(require_project_role(["admin"])),
     db: AsyncSession = Depends(get_db),
 ):
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot change your own role")
+
+    if body.role != "admin":
+        admin_count = await db.execute(
+            select(ProjectMember).where(
+                ProjectMember.project_id == project_id,
+                ProjectMember.user_id == user_id,
+                ProjectMember.role == "admin",
+            )
+        )
+        target_is_admin = admin_count.scalar_one_or_none() is not None
+        if target_is_admin:
+            all_admins = await db.execute(
+                select(ProjectMember).where(
+                    ProjectMember.project_id == project_id,
+                    ProjectMember.role == "admin",
+                )
+            )
+            if len(list(all_admins.scalars().all())) <= 1:
+                raise HTTPException(status_code=400, detail="Cannot demote the last admin")
+
     member = await update_member_role(db, project_id, user_id, body.role)
     if member is None:
         raise HTTPException(status_code=404, detail="Member not found")
@@ -129,7 +160,30 @@ async def update_member_endpoint(
 async def remove_member_endpoint(
     project_id: int,
     user_id: int,
-    _: User = Depends(require_project_role(["admin"])),
+    current_user: User = Depends(require_project_role(["admin"])),
     db: AsyncSession = Depends(get_db),
 ):
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot remove yourself")
+
+    target = await db.execute(
+        select(ProjectMember).where(
+            ProjectMember.project_id == project_id,
+            ProjectMember.user_id == user_id,
+        )
+    )
+    target_member = target.scalar_one_or_none()
+    if target_member is None:
+        raise HTTPException(status_code=404, detail="Member not found")
+
+    if target_member.role == "admin":
+        all_admins = await db.execute(
+            select(ProjectMember).where(
+                ProjectMember.project_id == project_id,
+                ProjectMember.role == "admin",
+            )
+        )
+        if len(list(all_admins.scalars().all())) <= 1:
+            raise HTTPException(status_code=400, detail="Cannot remove the last admin")
+
     await remove_member(db, project_id, user_id)

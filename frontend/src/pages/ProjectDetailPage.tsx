@@ -1,9 +1,12 @@
 // frontend/src/pages/ProjectDetailPage.tsx
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { ManageMembersModal } from '@/components/projects/ManageMembersModal';
+import { useAuth } from '@/hooks/useAuth';
 import { useProject, useMembers } from '@/hooks/useProjects';
 import { useExperiments } from '@/hooks/useExperiments';
 import { formatBytes, formatDate } from '@/lib/utils';
@@ -54,9 +57,14 @@ const experimentColumns: ColumnDef<Experiment, unknown>[] = [
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const projectId = Number(id);
+  const { user: currentUser } = useAuth();
   const { data: project, isLoading } = useProject(projectId);
   const { data: members } = useMembers(projectId);
   const { data: experimentsData } = useExperiments(projectId);
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
+
+  const currentMember = members?.find((m) => m.userId === currentUser?.id);
+  const isAdmin = currentMember?.role === 'admin';
 
   if (isLoading) {
     return (
@@ -103,8 +111,20 @@ export default function ProjectDetailPage() {
             ))}
           </div>
 
-          <button className="mt-4 text-sm text-primary hover:underline">+ Manage Members</button>
+          {isAdmin && (
+            <button
+              className="mt-4 text-sm text-primary hover:underline"
+              onClick={() => setIsMembersModalOpen(true)}
+            >
+              + Manage Members
+            </button>
+          )}
         </Card>
+        <ManageMembersModal
+          isOpen={isMembersModalOpen}
+          onClose={() => setIsMembersModalOpen(false)}
+          projectId={projectId}
+        />
       </aside>
 
       <div className="flex-1">

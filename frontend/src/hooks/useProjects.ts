@@ -45,3 +45,61 @@ export function useMembers(projectId: number) {
     enabled: !!projectId,
   });
 }
+
+export function useAddMember() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      email,
+      role,
+    }: {
+      projectId: number;
+      email: string;
+      role: string;
+    }) => projectsApi.addMember(projectId, email, role),
+    onSuccess: (_, { projectId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: ['projects', projectId, 'members'],
+      });
+    },
+  });
+}
+
+export function useUpdateMemberRole() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      userId,
+      role,
+    }: {
+      projectId: number;
+      userId: number;
+      role: string;
+    }) => projectsApi.updateMemberRole(projectId, userId, role),
+    onSuccess: (_, { projectId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: ['projects', projectId, 'members'],
+      });
+    },
+  });
+}
+
+export function useRemoveMember() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      userId,
+    }: {
+      projectId: number;
+      userId: number;
+    }) => projectsApi.removeMember(projectId, userId),
+    onSuccess: (_, { projectId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: ['projects', projectId, 'members'],
+      });
+    },
+  });
+}

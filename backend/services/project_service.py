@@ -6,6 +6,11 @@ from sqlalchemy.orm import selectinload
 from models.project import Project, ProjectMember
 from models.user import User
 from schemas.project import ProjectCreate, ProjectUpdate
+from services import notification_service
+
+
+class AlreadyMemberError(Exception):
+    pass
 
 
 async def create_project(db: AsyncSession, data: ProjectCreate, creator_id: int) -> Project:
@@ -81,20 +86,48 @@ async def add_member(
     project_id: int,
     email: str,
     role: str,
-    invited_by_id: int,
+    inviter: User,
 ) -> ProjectMember | None:
     user_result = await db.execute(select(User).where(User.email == email))
     user = user_result.scalar_one_or_none()
     if user is None:
         return None
+
+    existing = await db.execute(
+        select(ProjectMember).where(
+            ProjectMember.project_id == project_id,
+            ProjectMember.user_id == user.id,
+        )
+    )
+    if existing.scalar_one_or_none() is not None:
+        raise AlreadyMemberError()
+
     member = ProjectMember(
         project_id=project_id,
         user_id=user.id,
         role=role,
-        invited_by=invited_by_id,
+        invited_by=inviter.id,
     )
     db.add(member)
-    await db.commit()
+    await db.flush()
+
+    project_result = await db.execute(select(Project.name).where(Project.id == project_id))
+    project_name = project_result.scalar_one()
+
+    inviter_name = (
+        f"{inviter.first_name} {inviter.last_name}"
+        if inviter.first_name and inviter.last_name
+        else inviter.email
+    )
+    await notification_service.create_notification(
+        db=db,
+        user_id=user.id,
+        type="project_invitation",
+        title="Project Invitation",
+        message=f'{inviter_name} has made you a {role.title()} in project "{project_name}".',
+        link_target=f"/projects/{project_id}",
+    )
+
     result = await db.execute(
         select(ProjectMember)
         .where(ProjectMember.project_id == project_id, ProjectMember.user_id == user.id)
