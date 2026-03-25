@@ -54,6 +54,7 @@ export interface FastqFile {
   fileSizeBytes: number | null;
   totalReads: number | null;
   filePath: string;
+  fastqcReportPath: string | null;
   isTrimmed: boolean;
   uploadSource: string | null;
   uploadedAt: string;

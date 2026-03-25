@@ -7,6 +7,14 @@ export function useFastqs(experimentId: number, page = 1, perPage = 25) {
     queryKey: ['fastqs', experimentId, { page, perPage }],
     queryFn: () => fastqsApi.getFastqs(experimentId, page, perPage),
     enabled: !!experimentId,
+    // Poll every 5s while any file is still pending FastQC
+    refetchInterval: (query) => {
+      const items = query.state.data?.items;
+      if (items?.some((f) => f.totalReads === null)) {
+        return 5000;
+      }
+      return false;
+    },
   });
 }
 

@@ -8,6 +8,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { Modal } from '@/components/ui/Modal';
 import { FileUploadZone } from '@/components/fastqs/FileUploadZone';
 import { useFastqs, useDeleteFastq } from '@/hooks/useFastqs';
+import { getFastqcReportUrl } from '@/api/fastqs';
 import { formatBytes, formatDate } from '@/lib/utils';
 import type { Experiment, FastqFile } from '@/api/types';
 
@@ -36,11 +37,41 @@ const columns: ColumnDef<FastqFile, unknown>[] = [
   {
     id: 'fastqc',
     header: 'FASTQC',
-    cell: () => (
-      <span className="text-gray-300" title="Available after FastQC runs">
-        {'\u2014'}
-      </span>
-    ),
+    cell: (info) => {
+      const row = info.row.original;
+      if (!row.fastqcReportPath) {
+        return row.totalReads == null ? (
+          <span className="text-gray-400 animate-pulse" title="FastQC running...">
+            ...
+          </span>
+        ) : (
+          <span className="text-gray-300">{'\u2014'}</span>
+        );
+      }
+      const url = getFastqcReportUrl(row.experimentId, row.id);
+      return (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:text-primary/80"
+          title="View FastQC Report"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </a>
+      );
+    },
   },
   {
     accessorKey: 'totalReads',

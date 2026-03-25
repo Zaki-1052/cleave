@@ -17,6 +17,7 @@ class FastqFileRead(CamelModel):
     file_size_bytes: int | None = None
     total_reads: int | None = None
     file_path: str
+    fastqc_report_path: str | None = None
     is_trimmed: bool = False
     upload_source: str | None = None
     uploaded_at: datetime

@@ -44,6 +44,10 @@ export async function uploadFastqs(
   return data;
 }
 
+export function getFastqcReportUrl(experimentId: number, fastqId: number): string {
+  return `/api/v1/experiments/${experimentId}/fastqs/${fastqId}/fastqc`;
+}
+
 export async function deleteFastq(
   experimentId: number,
   fastqId: number,

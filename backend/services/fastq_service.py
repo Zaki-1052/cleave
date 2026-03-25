@@ -279,12 +279,19 @@ async def delete_fastq(
     if fastq is None:
         return False
 
-    # Delete file from disk
+    # Delete FASTQ file from disk
     abs_path = Path(settings.STORAGE_ROOT) / fastq.file_path
     if abs_path.exists():
         abs_path.unlink()
 
     file_size = fastq.file_size_bytes or 0
+
+    # Delete associated FastQC report from disk
+    if fastq.fastqc_report_path:
+        fastqc_abs = Path(settings.STORAGE_ROOT) / fastq.fastqc_report_path
+        if fastqc_abs.exists():
+            file_size += fastqc_abs.stat().st_size
+            fastqc_abs.unlink()
 
     await db.delete(fastq)
     if file_size > 0:

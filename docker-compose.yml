@@ -20,6 +20,7 @@ services:
     volumes:
       - ./backend:/app
       - ./dev-data:/data/cleave
+      - ./cutana:/cutana:ro
     environment:
       DATABASE_URL: postgresql+asyncpg://cleave:dev@db:5432/cleave
       PIPELINE_MODE: mock

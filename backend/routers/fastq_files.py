@@ -1,9 +1,26 @@
 # backend/routers/fastq_files.py
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from pathlib import Path
+
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
+    status,
+)
+from fastapi.responses import FileResponse
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import current_active_user
+from config import settings
 from database import get_db
+from models.experiment import Experiment
+from models.fastq_file import FastqFile
+from models.project import ProjectMember
 from models.user import User
 from schemas.common import PaginatedResponse
 from schemas.fastq_file import FastqFileRead, FastqFileUploadResponse
@@ -12,8 +29,24 @@ from services.fastq_service import (
     list_fastqs,
     upload_fastqs,
 )
+from services.fastqc_service import run_fastqc_for_files
 
 router = APIRouter()
+
+
+async def _check_experiment_membership(
+    db: AsyncSession, experiment_id: int, user_id: int
+) -> Experiment | None:
+    """Fetch experiment if user is a member of its project (any role)."""
+    result = await db.execute(
+        select(Experiment)
+        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
+        .where(
+            Experiment.id == experiment_id,
+            ProjectMember.user_id == user_id,
+        )
+    )
+    return result.scalar_one_or_none()
 
 
 @router.post(
@@ -23,6 +56,7 @@ router = APIRouter()
 )
 async def upload_fastq_endpoint(
     experiment_id: int,
+    background_tasks: BackgroundTasks,
     files: list[UploadFile] = File(...),
     current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_db),
@@ -39,6 +73,19 @@ async def upload_fastq_endpoint(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not a member of this project or insufficient permissions",
+        )
+
+    # Extract scalar values before session closes for background task
+    experiment = await db.get(Experiment, experiment_id)
+    if experiment is not None:
+        fastqc_inputs = [
+            {"fastq_id": r.id, "file_path": r.file_path, "filename": r.filename} for r in result
+        ]
+        background_tasks.add_task(
+            run_fastqc_for_files,
+            fastqc_inputs=fastqc_inputs,
+            project_id=experiment.project_id,
+            experiment_id=experiment_id,
         )
 
     total_bytes = sum(r.file_size_bytes or 0 for r in result)
@@ -65,6 +112,47 @@ async def list_fastqs_endpoint(
         raise HTTPException(status_code=404, detail="Experiment not found")
     items, total = result
     return PaginatedResponse(items=items, total=total, page=page, per_page=per_page)
+
+
+@router.get("/experiments/{experiment_id}/fastqs/{fastq_id}/fastqc")
+async def get_fastqc_report(
+    experiment_id: int,
+    fastq_id: int,
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Serve the FastQC HTML report for a FASTQ file."""
+    experiment = await _check_experiment_membership(db, experiment_id, current_user.id)
+    if experiment is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Experiment not found or not authorized",
+        )
+
+    result = await db.execute(
+        select(FastqFile).where(
+            FastqFile.id == fastq_id,
+            FastqFile.experiment_id == experiment_id,
+        )
+    )
+    fastq = result.scalar_one_or_none()
+    if fastq is None:
+        raise HTTPException(status_code=404, detail="FASTQ file not found")
+
+    if not fastq.fastqc_report_path:
+        raise HTTPException(status_code=404, detail="FastQC report not yet available")
+
+    abs_path = (Path(settings.STORAGE_ROOT) / fastq.fastqc_report_path).resolve()
+
+    # Path traversal guard
+    storage_root = Path(settings.STORAGE_ROOT).resolve()
+    if not str(abs_path).startswith(str(storage_root)):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    if not abs_path.exists():
+        raise HTTPException(status_code=404, detail="FastQC report file not found on disk")
+
+    return FileResponse(abs_path, media_type="text/html", filename=abs_path.name)
 
 
 @router.delete(

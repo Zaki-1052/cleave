@@ -21,6 +21,7 @@ class FastqFile(Base):
     total_reads: Mapped[int | None] = mapped_column(BigInteger)
     file_path: Mapped[str] = mapped_column(String, nullable=False)
     is_trimmed: Mapped[bool] = mapped_column(Boolean, default=False)
+    fastqc_report_path: Mapped[str | None] = mapped_column(String)
     upload_source: Mapped[str | None] = mapped_column(String)
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
