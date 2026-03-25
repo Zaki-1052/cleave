@@ -111,14 +111,14 @@ Implement the test stubs in `tests/`. Use httpx `AsyncClient` with the FastAPI t
 
 ### Phase 1 Done Criteria
 
-- [ ] Can register, login, logout, and refresh sessions
-- [ ] Can create/list/edit/delete projects
-- [ ] Can invite/remove project members with role management
-- [ ] Can create/list/edit/delete experiments within projects
-- [ ] Notification bell shows project invitation alerts
-- [ ] Settings page updates user profile
-- [ ] All test stubs have real implementations and pass
-- [ ] UI matches CUTANA Cloud visual language (gradient, cards, pill buttons, status badges)
+- [x] Can register, login, logout, and refresh sessions
+- [x] Can create/list/edit/delete projects
+- [x] Can invite/remove project members with role management
+- [x] Can create/list/edit/delete experiments within projects
+- [x] Notification bell shows project invitation alerts
+- [x] Settings page updates user profile
+- [x] All test stubs have real implementations and pass
+- [x] UI matches CUTANA Cloud visual language (gradient, cards, pill buttons, status badges)
 
 ---
 

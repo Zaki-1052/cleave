@@ -71,10 +71,11 @@ export function CreateExperimentModal({
         </div>
 
         <div>
-          <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="assay-type" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
             Assay Type <span className="text-red-500">*</span>
           </label>
           <select
+            id="assay-type"
             required
             value={assayType}
             onChange={(e) => setAssayType(e.target.value)}
