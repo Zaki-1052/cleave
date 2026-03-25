@@ -37,3 +37,11 @@ export function useDeleteProject() {
     },
   });
 }
+
+export function useMembers(projectId: number) {
+  return useQuery({
+    queryKey: ['projects', projectId, 'members'],
+    queryFn: () => projectsApi.getMembers(projectId),
+    enabled: !!projectId,
+  });
+}

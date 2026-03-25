@@ -33,6 +33,15 @@ class MemberCreate(CamelModel):
     role: str = "contributor"
 
 
+class UserBrief(CamelModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: str
+    first_name: str | None = None
+    last_name: str | None = None
+
+
 class MemberRead(CamelModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -42,6 +51,7 @@ class MemberRead(CamelModel):
     can_download: bool = True
     can_delete: bool = False
     created_at: datetime
+    user: UserBrief
 
 
 class MemberUpdate(CamelModel):

@@ -1,13 +1,15 @@
 // frontend/src/pages/HomePage.tsx
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/layout/Card';
-import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
+import { CreateProjectModal } from '@/components/projects/CreateProjectModal';
 import { useProjects } from '@/hooks/useProjects';
-import { formatDate } from '@/lib/utils';
+import { formatBytes, formatDate } from '@/lib/utils';
 
 export default function HomePage() {
   const { data, isLoading } = useProjects();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   return (
     <div className="flex gap-6">
@@ -23,7 +25,7 @@ export default function HomePage() {
       <div className="flex-1">
         <div className="mb-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-800">Projects</h1>
-          <Button>+ Create Project</Button>
+          <Button onClick={() => setIsCreateModalOpen(true)}>+ Create Project</Button>
         </div>
 
         {isLoading ? (
@@ -40,22 +42,25 @@ export default function HomePage() {
               <Link key={project.id} to={`/projects/${project.id}`}>
                 <Card className="cursor-pointer border border-transparent transition-colors hover:border-accent-gold">
                   <h3 className="text-lg font-semibold text-gray-800">{project.name}</h3>
-                  <p className="mt-1 text-xs text-gray-500">
-                    Modified {formatDate(project.updatedAt)}
-                  </p>
+                  <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
+                    <span>Modified {formatDate(project.updatedAt)}</span>
+                    <span>{formatBytes(project.storageBytes)}</span>
+                  </div>
                   {project.description && (
                     <p className="mt-2 line-clamp-2 text-sm text-gray-600">
                       {project.description}
                     </p>
                   )}
-                  <div className="mt-3">
-                    <StatusBadge status="new" />
-                  </div>
                 </Card>
               </Link>
             ))}
           </div>
         )}
+
+        <CreateProjectModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+        />
       </div>
     </div>
   );

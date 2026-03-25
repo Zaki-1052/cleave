@@ -1,6 +1,7 @@
 # backend/services/project_service.py
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from models.project import Project, ProjectMember
 from models.user import User
@@ -67,7 +68,11 @@ async def delete_project(db: AsyncSession, project_id: int) -> None:
 
 
 async def list_members(db: AsyncSession, project_id: int) -> list[ProjectMember]:
-    result = await db.execute(select(ProjectMember).where(ProjectMember.project_id == project_id))
+    result = await db.execute(
+        select(ProjectMember)
+        .where(ProjectMember.project_id == project_id)
+        .options(selectinload(ProjectMember.user))
+    )
     return list(result.scalars().all())
 
 
@@ -90,8 +95,12 @@ async def add_member(
     )
     db.add(member)
     await db.commit()
-    await db.refresh(member)
-    return member
+    result = await db.execute(
+        select(ProjectMember)
+        .where(ProjectMember.project_id == project_id, ProjectMember.user_id == user.id)
+        .options(selectinload(ProjectMember.user))
+    )
+    return result.scalar_one_or_none()
 
 
 async def update_member_role(
@@ -108,8 +117,12 @@ async def update_member_role(
         return None
     member.role = role
     await db.commit()
-    await db.refresh(member)
-    return member
+    result = await db.execute(
+        select(ProjectMember)
+        .where(ProjectMember.project_id == project_id, ProjectMember.user_id == user_id)
+        .options(selectinload(ProjectMember.user))
+    )
+    return result.scalar_one_or_none()
 
 
 async def remove_member(db: AsyncSession, project_id: int, user_id: int) -> None:

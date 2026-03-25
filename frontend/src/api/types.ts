@@ -87,6 +87,23 @@ export interface Notification {
   createdAt: string;
 }
 
+export interface MemberUser {
+  id: number;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+}
+
+export interface Member {
+  userId: number;
+  projectId: number;
+  role: string;
+  canDownload: boolean;
+  canDelete: boolean;
+  createdAt: string;
+  user: MemberUser;
+}
+
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;

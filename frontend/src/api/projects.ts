@@ -1,6 +1,6 @@
 // frontend/src/api/projects.ts
 import client from './client';
-import type { PaginatedResponse, Project } from './types';
+import type { Member, PaginatedResponse, Project } from './types';
 
 export async function getProjects(
   page = 1,
@@ -32,4 +32,9 @@ export async function updateProject(
 
 export async function deleteProject(id: number): Promise<void> {
   await client.delete(`/projects/${id}`);
+}
+
+export async function getMembers(projectId: number): Promise<Member[]> {
+  const { data } = await client.get<Member[]>(`/projects/${projectId}/members`);
+  return data;
 }
