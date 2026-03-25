@@ -20,9 +20,9 @@ router = APIRouter()
 
 @router.get("", response_model=PaginatedResponse[ExperimentRead])
 async def list_experiments_endpoint(
-    project_id: int | None = Query(None),
+    project_id: int | None = Query(None, alias="projectId"),
     page: int = Query(1, ge=1),
-    per_page: int = Query(25, ge=1, le=100),
+    per_page: int = Query(25, ge=1, le=100, alias="perPage"),
     current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -33,11 +33,17 @@ async def list_experiments_endpoint(
 @router.post("", response_model=ExperimentRead, status_code=status.HTTP_201_CREATED)
 async def create_experiment_endpoint(
     body: ExperimentCreate,
-    project_id: int = Query(...),
+    project_id: int = Query(..., alias="projectId"),
     current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
-    return await create_experiment(db, project_id, body, current_user.id)
+    experiment = await create_experiment(db, project_id, body, current_user.id)
+    if experiment is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not a member of this project or insufficient permissions",
+        )
+    return experiment
 
 
 @router.get("/{experiment_id}", response_model=ExperimentRead)
@@ -59,7 +65,7 @@ async def update_experiment_endpoint(
     current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
-    experiment = await update_experiment(db, experiment_id, body)
+    experiment = await update_experiment(db, experiment_id, body, current_user.id)
     if experiment is None:
         raise HTTPException(status_code=404, detail="Experiment not found")
     return experiment
@@ -71,4 +77,6 @@ async def delete_experiment_endpoint(
     current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
-    await delete_experiment(db, experiment_id)
+    deleted = await delete_experiment(db, experiment_id, current_user.id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Experiment not found")

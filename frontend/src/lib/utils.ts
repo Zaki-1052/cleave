@@ -16,6 +16,28 @@ export function formatDate(iso: string): string {
   });
 }
 
+export function getDisplayName(user: {
+  firstName: string | null;
+  lastName: string | null;
+  email: string;
+}): string {
+  if (user.firstName && user.lastName) {
+    return `${user.firstName} ${user.lastName}`;
+  }
+  return user.email;
+}
+
+export function getInitials(user: {
+  firstName: string | null;
+  lastName: string | null;
+  email: string;
+}): string {
+  if (user.firstName && user.lastName) {
+    return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+  }
+  return user.email.substring(0, 2).toUpperCase();
+}
+
 export function formatDuration(seconds: number): string {
   if (seconds < 60) return `${seconds}s`;
   const m = Math.floor(seconds / 60);

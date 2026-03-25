@@ -2,6 +2,8 @@
 import { Link, Outlet, useParams, useLocation } from 'react-router-dom';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { useExperiment } from '@/hooks/useExperiments';
 
 const TABS = [
   { label: 'Description', path: 'description' },
@@ -16,12 +18,34 @@ const TABS = [
 export default function ExperimentView() {
   const { id } = useParams<{ id: string }>();
   const { pathname } = useLocation();
+  const { data: experiment, isLoading } = useExperiment(Number(id));
+
+  if (isLoading) {
+    return (
+      <div className="flex h-40 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!experiment) {
+    return (
+      <Card>
+        <p className="text-gray-500">Experiment not found</p>
+      </Card>
+    );
+  }
 
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-gray-800">Experiment {id}</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-bold text-gray-800">{experiment.name}</h1>
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <span>Last Job:</span>
+            <span className="text-gray-400">None</span>
+          </div>
+          <StatusBadge status={experiment.status} />
         </div>
         <Button>New Analysis ▼</Button>
       </div>
@@ -50,7 +74,7 @@ export default function ExperimentView() {
         </aside>
 
         <div className="flex-1">
-          <Outlet />
+          <Outlet context={{ experiment }} />
         </div>
       </div>
     </div>

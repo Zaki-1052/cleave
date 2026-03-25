@@ -27,6 +27,7 @@ export interface Experiment {
   description: string | null;
   status: string;
   createdBy: number | null;
+  creator: MemberUser | null;
   storageBytes: number;
   createdAt: string;
   updatedAt: string;

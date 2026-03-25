@@ -1,32 +1,19 @@
 // frontend/src/pages/ProjectDetailPage.tsx
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { ManageMembersModal } from '@/components/projects/ManageMembersModal';
+import { CreateExperimentModal } from '@/components/experiments/CreateExperimentModal';
 import { useAuth } from '@/hooks/useAuth';
 import { useProject, useMembers } from '@/hooks/useProjects';
 import { useExperiments } from '@/hooks/useExperiments';
-import { formatBytes, formatDate } from '@/lib/utils';
+import { formatBytes, formatDate, getDisplayName, getInitials } from '@/lib/utils';
 import { ROLE_LABELS } from '@/lib/constants';
 import type { ColumnDef } from '@tanstack/react-table';
-import type { Experiment, MemberUser } from '@/api/types';
-
-function getInitials(user: MemberUser): string {
-  if (user.firstName && user.lastName) {
-    return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
-  }
-  return user.email.substring(0, 2).toUpperCase();
-}
-
-function getDisplayName(user: MemberUser): string {
-  if (user.firstName && user.lastName) {
-    return `${user.firstName} ${user.lastName}`;
-  }
-  return user.email;
-}
+import type { Experiment } from '@/api/types';
 
 const experimentColumns: ColumnDef<Experiment, unknown>[] = [
   {
@@ -48,6 +35,11 @@ const experimentColumns: ColumnDef<Experiment, unknown>[] = [
   },
   { accessorKey: 'assayType', header: 'Assay' },
   {
+    id: 'lastJob',
+    header: 'Last Job',
+    cell: () => <span className="text-gray-400">None</span>,
+  },
+  {
     accessorKey: 'status',
     header: 'Status',
     cell: ({ getValue }) => <StatusBadge status={getValue() as string} />,
@@ -62,6 +54,8 @@ export default function ProjectDetailPage() {
   const { data: members } = useMembers(projectId);
   const { data: experimentsData } = useExperiments(projectId);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const currentMember = members?.find((m) => m.userId === currentUser?.id);
   const isAdmin = currentMember?.role === 'admin';
@@ -125,13 +119,22 @@ export default function ProjectDetailPage() {
           onClose={() => setIsMembersModalOpen(false)}
           projectId={projectId}
         />
+        <CreateExperimentModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          projectId={projectId}
+          onCreated={(experiment) => {
+            setIsCreateModalOpen(false);
+            navigate(`/experiments/${experiment.id}`);
+          }}
+        />
       </aside>
 
       <div className="flex-1">
         <Card>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-primary">Experiments</h2>
-            <Button>+ Create Experiment</Button>
+            <Button onClick={() => setIsCreateModalOpen(true)}>+ Create Experiment</Button>
           </div>
           {!experimentsData?.items.length ? (
             <p className="py-8 text-center text-sm text-gray-400">
