@@ -37,6 +37,14 @@ export function useUploadFastqs() {
   });
 }
 
+export function useFastqcSummary(experimentId: number, fastqId: number | null) {
+  return useQuery({
+    queryKey: ['fastqc-summary', experimentId, fastqId],
+    queryFn: () => fastqsApi.getFastqcSummary(experimentId, fastqId!),
+    enabled: fastqId !== null,
+  });
+}
+
 export function useDeleteFastq() {
   const queryClient = useQueryClient();
   return useMutation({

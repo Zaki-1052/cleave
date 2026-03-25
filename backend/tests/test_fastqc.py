@@ -12,6 +12,7 @@ from httpx import AsyncClient
 
 from pipelines.fastqc import (
     _strip_fastq_extension,
+    find_fastqc_data_txt,
     mock_run_for_file,
     parse_fastqc_data,
 )
@@ -238,3 +239,118 @@ async def test_fastqc_report_404_before_ready(client: AsyncClient):
         headers=headers,
     )
     assert report_resp.status_code == 404
+
+
+# --- Unit Tests: find_fastqc_data_txt ---
+
+
+def test_find_fastqc_data_txt_real_mode(tmp_path: Path):
+    """find_fastqc_data_txt resolves the real mode TXT location (extracted subdir)."""
+    html = tmp_path / "sample_R1_001_fastqc.html"
+    subdir = tmp_path / "sample_R1_001_fastqc"
+    subdir.mkdir()
+    txt = subdir / "fastqc_data.txt"
+    html.write_text("<html></html>")
+    txt.write_text(">>Basic Statistics\tpass\n>>END_MODULE\n")
+
+    result = find_fastqc_data_txt(html)
+    assert result == txt
+
+
+def test_find_fastqc_data_txt_mock_mode(tmp_path: Path):
+    """find_fastqc_data_txt resolves the mock mode TXT location (flat file)."""
+    html = tmp_path / "sample_R1_001_fastqc.html"
+    txt = tmp_path / "sample_R1_001_fastqc_data.txt"
+    html.write_text("<html></html>")
+    txt.write_text(">>Basic Statistics\tpass\n>>END_MODULE\n")
+
+    result = find_fastqc_data_txt(html)
+    assert result == txt
+
+
+def test_find_fastqc_data_txt_not_found(tmp_path: Path):
+    """find_fastqc_data_txt returns None when no TXT exists."""
+    html = tmp_path / "sample_R1_001_fastqc.html"
+    html.write_text("<html></html>")
+
+    result = find_fastqc_data_txt(html)
+    assert result is None
+
+
+@pytest.mark.skipif(not SAMPLE_DIR.exists(), reason="cutana/fastqc/ not available")
+def test_mock_run_copies_txt_alongside_html(tmp_path: Path):
+    """Mock FastQC run copies both HTML and TXT files."""
+    fake_fastq = tmp_path / "input" / "sample_R1_001.fastq.gz"
+    fake_fastq.parent.mkdir(parents=True)
+    fake_fastq.write_bytes(b"fake")
+
+    output_dir = tmp_path / "fastqc"
+    result = mock_run_for_file(fake_fastq, output_dir)
+
+    html_path = Path(result.report_html_path)
+    assert html_path.exists()
+    # TXT should be resolvable from the HTML path
+    txt_path = find_fastqc_data_txt(html_path)
+    assert txt_path is not None
+    assert txt_path.exists()
+
+
+# --- Integration Tests: FastQC Summary Endpoint ---
+
+
+@pytest.mark.skipif(not SAMPLE_DIR.exists(), reason="cutana/fastqc/ not available")
+async def test_fastqc_summary_endpoint(client: AsyncClient):
+    """After FastQC completes, the summary endpoint returns module statuses."""
+    from tests.conftest import test_session_factory
+
+    with patch("services.fastqc_service.async_session_factory", test_session_factory):
+        headers = await _register_and_get_headers(client, "user@example.com")
+        project_id = await _create_project(client, headers)
+        exp_id = await _create_experiment(client, headers, project_id)
+
+        resp = await client.post(
+            f"/api/v1/experiments/{exp_id}/fastqs/upload",
+            files=[
+                ("files", ("sample_R1_001.fastq.gz", _make_fastq_gz(), "application/octet-stream")),
+            ],
+            headers=headers,
+        )
+        fastq_id = resp.json()["uploaded"][0]["id"]
+
+        await _wait_for_fastqc(client, exp_id, headers)
+
+        summary_resp = await client.get(
+            f"/api/v1/experiments/{exp_id}/fastqs/{fastq_id}/fastqc-summary",
+            headers=headers,
+        )
+        assert summary_resp.status_code == 200
+        data = summary_resp.json()
+        assert "moduleSummaries" in data
+        assert len(data["moduleSummaries"]) > 0
+        mod = data["moduleSummaries"][0]
+        assert "name" in mod
+        assert "status" in mod
+        assert mod["status"] in ("pass", "warn", "fail")
+        assert data["filename"] == "sample_R1_001.fastq.gz"
+
+
+async def test_fastqc_summary_404_before_ready(client: AsyncClient):
+    """Before FastQC completes, the summary endpoint returns 404."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/fastqs/upload",
+        files=[
+            ("files", ("sample_R1_001.fastq.gz", _make_fastq_gz(), "application/octet-stream")),
+        ],
+        headers=headers,
+    )
+    fastq_id = resp.json()["uploaded"][0]["id"]
+
+    summary_resp = await client.get(
+        f"/api/v1/experiments/{exp_id}/fastqs/{fastq_id}/fastqc-summary",
+        headers=headers,
+    )
+    assert summary_resp.status_code == 404

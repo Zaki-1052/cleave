@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { Modal } from '@/components/ui/Modal';
 import { FileUploadZone } from '@/components/fastqs/FileUploadZone';
+import { FastqcReportModal } from '@/components/fastqs/FastqcReportModal';
 import { useFastqs, useDeleteFastq } from '@/hooks/useFastqs';
-import { getFastqcReportUrl } from '@/api/fastqs';
 import { formatBytes, formatDate } from '@/lib/utils';
 import type { Experiment, FastqFile } from '@/api/types';
 
@@ -16,7 +16,7 @@ interface ExperimentContext {
   experiment: Experiment;
 }
 
-const columns: ColumnDef<FastqFile, unknown>[] = [
+const staticColumns: ColumnDef<FastqFile, unknown>[] = [
   {
     accessorKey: 'filename',
     header: 'Name',
@@ -34,53 +34,6 @@ const columns: ColumnDef<FastqFile, unknown>[] = [
     header: 'Uploaded',
     cell: (info) => formatDate(info.getValue<string>()),
   },
-  {
-    id: 'fastqc',
-    header: 'FASTQC',
-    cell: (info) => {
-      const row = info.row.original;
-      if (!row.fastqcReportPath) {
-        return row.totalReads == null ? (
-          <span className="text-gray-400 animate-pulse" title="FastQC running...">
-            ...
-          </span>
-        ) : (
-          <span className="text-gray-300">{'\u2014'}</span>
-        );
-      }
-      const url = getFastqcReportUrl(row.experimentId, row.id);
-      return (
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary hover:text-primary/80"
-          title="View FastQC Report"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </a>
-      );
-    },
-  },
-  {
-    accessorKey: 'totalReads',
-    header: 'Total Reads',
-    cell: (info) => {
-      const v = info.getValue<number | null>();
-      return v != null ? v.toLocaleString() : '\u2014';
-    },
-  },
 ];
 
 export default function FastqsTab() {
@@ -90,11 +43,57 @@ export default function FastqsTab() {
   const [showUpload, setShowUpload] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<FastqFile | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [fastqcTarget, setFastqcTarget] = useState<FastqFile | null>(null);
 
   const fastqs = data?.items ?? [];
 
   const columnsWithActions: ColumnDef<FastqFile, unknown>[] = [
-    ...columns,
+    ...staticColumns,
+    {
+      id: 'fastqc',
+      header: 'FASTQC',
+      cell: (info) => {
+        const row = info.row.original;
+        if (!row.fastqcReportPath) {
+          return row.totalReads == null ? (
+            <span className="text-gray-400 animate-pulse" title="FastQC running...">
+              ...
+            </span>
+          ) : (
+            <span className="text-gray-300">{'\u2014'}</span>
+          );
+        }
+        return (
+          <button
+            type="button"
+            onClick={() => setFastqcTarget(row)}
+            className="text-primary hover:text-primary/80"
+            title="View FastQC Report"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        );
+      },
+    },
+    {
+      accessorKey: 'totalReads',
+      header: 'Total Reads',
+      cell: (info) => {
+        const v = info.getValue<number | null>();
+        return v != null ? v.toLocaleString() : '\u2014';
+      },
+    },
     {
       id: 'actions',
       header: '',
@@ -204,6 +203,14 @@ export default function FastqsTab() {
           </Button>
         </div>
       </Modal>
+
+      <FastqcReportModal
+        isOpen={fastqcTarget !== null}
+        onClose={() => setFastqcTarget(null)}
+        experimentId={experiment.id}
+        fastqId={fastqcTarget?.id ?? null}
+        filename={fastqcTarget?.filename ?? ''}
+      />
     </>
   );
 }

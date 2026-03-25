@@ -27,3 +27,14 @@ class FastqFileUploadResponse(CamelModel):
     uploaded: list[FastqFileRead]
     total_bytes: int
     file_count: int
+
+
+class FastqcModuleSummary(CamelModel):
+    name: str
+    status: str
+
+
+class FastqcSummaryResponse(CamelModel):
+    filename: str
+    total_reads: int | None = None
+    module_summaries: list[FastqcModuleSummary]

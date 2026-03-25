@@ -48,6 +48,27 @@ export function getFastqcReportUrl(experimentId: number, fastqId: number): strin
   return `/api/v1/experiments/${experimentId}/fastqs/${fastqId}/fastqc`;
 }
 
+export interface FastqcModuleSummary {
+  name: string;
+  status: string;
+}
+
+export interface FastqcSummaryResponse {
+  filename: string;
+  totalReads: number | null;
+  moduleSummaries: FastqcModuleSummary[];
+}
+
+export async function getFastqcSummary(
+  experimentId: number,
+  fastqId: number,
+): Promise<FastqcSummaryResponse> {
+  const { data } = await client.get<FastqcSummaryResponse>(
+    `/experiments/${experimentId}/fastqs/${fastqId}/fastqc-summary`,
+  );
+  return data;
+}
+
 export async function deleteFastq(
   experimentId: number,
   fastqId: number,

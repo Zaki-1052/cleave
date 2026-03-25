@@ -84,6 +84,30 @@ def parse_fastqc_data(txt_path: Path) -> FastqcResult:
     )
 
 
+def find_fastqc_data_txt(html_abs_path: Path) -> Path | None:
+    """Locate the FastQC data TXT file corresponding to an HTML report.
+
+    Real mode: {stem}_fastqc/fastqc_data.txt (extracted zip contents)
+    Mock mode: {stem}_fastqc_data.txt (copied alongside HTML)
+    """
+    stem = html_abs_path.stem  # e.g. "sample_R1_001_fastqc"
+    parent = html_abs_path.parent
+
+    # Real mode: extracted subdirectory shares the HTML stem name
+    real_txt = parent / stem / "fastqc_data.txt"
+    if real_txt.exists():
+        return real_txt
+
+    # Mock mode: flat file next to HTML
+    if stem.endswith("_fastqc"):
+        basename = stem[: -len("_fastqc")]
+        mock_txt = parent / f"{basename}_fastqc_data.txt"
+        if mock_txt.exists():
+            return mock_txt
+
+    return None
+
+
 def _find_sample_files() -> tuple[Path, Path] | None:
     """Find a sample HTML + TXT pair from cutana/fastqc/ for mock mode."""
     if not _SAMPLE_DIR.exists():
@@ -109,6 +133,10 @@ def mock_run_for_file(fastq_path: Path, output_dir: Path) -> FastqcResult:
     sample_html, sample_txt = sample
     dest_html = output_dir / f"{stem}_fastqc.html"
     shutil.copy2(sample_html, dest_html)
+
+    # Copy TXT alongside HTML so the summary endpoint can parse it
+    dest_txt = output_dir / f"{stem}_fastqc_data.txt"
+    shutil.copy2(sample_txt, dest_txt)
 
     result = parse_fastqc_data(sample_txt)
     result.report_html_path = str(dest_html)
