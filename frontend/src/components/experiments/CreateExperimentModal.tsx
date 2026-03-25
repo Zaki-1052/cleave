@@ -1,7 +1,6 @@
 // frontend/src/components/experiments/CreateExperimentModal.tsx
 import { type FormEvent, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useCreateExperiment } from '@/hooks/useExperiments';
 import { ASSAY_TYPES } from '@/lib/constants';

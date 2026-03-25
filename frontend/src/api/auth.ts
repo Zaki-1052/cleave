@@ -35,3 +35,12 @@ export async function getMe(): Promise<User> {
 export async function logout(): Promise<void> {
   await client.post('/auth/logout');
 }
+
+export async function updateMe(updates: {
+  firstName?: string;
+  lastName?: string;
+  emailNotifications?: string;
+}): Promise<User> {
+  const { data } = await client.patch<User>('/users/me', updates);
+  return data;
+}

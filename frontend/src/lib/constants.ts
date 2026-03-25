@@ -26,6 +26,12 @@ export const ROLE_LABELS: Record<string, string> = {
   viewer: 'Viewer',
 };
 
+export const EMAIL_NOTIFICATION_OPTIONS = [
+  { value: 'always', label: 'Always' },
+  { value: 'on_error', label: 'On Error' },
+  { value: 'never', label: 'Never' },
+] as const;
+
 export const ASSAY_TYPES = ['CUT&RUN', 'CUT&Tag'] as const;
 
 export const ORGANISMS = ['Human', 'Mouse', 'Drosophila', 'Yeast'] as const;
