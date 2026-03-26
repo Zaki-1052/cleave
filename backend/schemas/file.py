@@ -1,0 +1,25 @@
+# backend/schemas/file.py
+from __future__ import annotations
+
+from schemas.common import CamelModel
+
+
+class FileNode(CamelModel):
+    """A single file or folder in the experiment directory tree."""
+
+    name: str
+    path: str
+    type: str
+    size: int | None = None
+    children: list[FileNode] | None = None
+
+
+FileNode.model_rebuild()
+
+
+class FileTreeResponse(CamelModel):
+    """Root response for the experiment file tree endpoint."""
+
+    root: FileNode
+    total_files: int
+    total_size: int

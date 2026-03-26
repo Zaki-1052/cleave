@@ -183,3 +183,17 @@ export interface ApiError {
   detail: string | null;
   fieldErrors: Record<string, string> | null;
 }
+
+export interface FileNode {
+  name: string;
+  path: string;
+  type: string;
+  size: number | null;
+  children: FileNode[] | null;
+}
+
+export interface FileTreeResponse {
+  root: FileNode;
+  totalFiles: number;
+  totalSize: number;
+}
