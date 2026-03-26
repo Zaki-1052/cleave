@@ -105,24 +105,49 @@ These are implicit domain constraints that an LLM won't infer:
 
 - [x] ~~Alignment stats CSV~~ -- Done. `cutana/H3K4me3/Mouse mm10_alignment_metrics.csv`
 
-### You need to download (for EC2 deployment, not local dev)
+### EC2 instance data (lab instance = Cleave instance)
 
-- [ ] **Bowtie2 indices** -- scp from lab instance (saves hours vs rebuilding):
-  ```bash
-  scp -i 210323.pem ubuntu@<ec2>:/home/ubuntu/cutruntools/assemblies/chrom.mm10/mm10*.bt2 /data/cleave/genomes/mm10/
-  scp -i 210323.pem ubuntu@<ec2>:/home/ubuntu/cutruntools/assemblies/chrom.hg38/hg38*.bt2 /data/cleave/genomes/hg38/
-  scp -i 210323.pem ubuntu@<ec2>:/home/ubuntu/cutruntools/assemblies/chrom.ecoli/ecoli*.bt2 /data/cleave/genomes/ecoli/
-  ```
+The lab EC2 instance (`ec2-35-163-20-84.us-west-2.compute.amazonaws.com`) will also run Cleave, so no scp needed — files are already in place.
 
-- [ ] **Gene annotation BEDs** for TSS/gene body heatmaps (mm10 + hg38). Two options:
-  - UCSC Table Browser: assembly > track "NCBI RefSeq" > table "refGene" > output BED
-  - GENCODE GTFs: gencodegenes.org (mm10 Release M25, hg38 Release 44)
+- [x] ~~**Bowtie2 indices**~~ -- Already on instance. Verified 2026-03-26.
+  - mm10 (4.7 GB): `/home/ubuntu/cutruntools/assemblies/chrom.mm10/`
+  - hg38 (5.2 GB): `/home/ubuntu/cutruntools/assemblies/chrom.hg38/`
+  - ecoli (21 MB): `/home/ubuntu/cutruntools/assemblies/chrom.ecoli/`
 
-- [ ] **HOMER genome data** (on EC2 instance):
-  ```bash
-  perl configureHomer.pl -install mm10
-  perl configureHomer.pl -install hg38
-  ```
+- [x] ~~**Gene annotation BEDs**~~ -- Downloaded from UCSC refGene via MySQL. 2026-03-26.
+  - mm10 (1.6 MB, 47K genes): `~/genomes/annotations/mm10_refGene.bed`
+  - hg38 (3.1 MB, 89K genes): `~/genomes/annotations/hg38_refGene.bed`
+  - Format: `chrom  txStart  txEnd  name2  score  strand`
+
+- [x] ~~**HOMER genome data**~~ -- Installed via configureHomer.pl in conda `homer` env. 2026-03-26.
+  - mm10 (5.0 GB): `/home/ubuntu/miniconda3/envs/homer/share/homer/data/genomes/mm10/`
+  - hg38 (5.7 GB): `/home/ubuntu/miniconda3/envs/homer/share/homer/data/genomes/hg38/`
+  - `annotatePeaks.pl` available when `homer` conda env is active
+
+### Local dev setup (Zakir's MacBook Air, arm64) — completed 2026-03-26
+
+**Conda env** `cleave-pipeline` with all pipeline tools:
+
+| Tool | Version |
+|------|---------|
+| Bowtie2 | 2.5.5 |
+| SAMtools | 1.23.1 |
+| MACS2 | 2.2.9.1 |
+| BEDTools | 2.31.1 |
+| deepTools | 3.5.6 |
+| FastQC | 0.12.1 |
+| Picard | 3.4.0 |
+| Trimmomatic | 0.40 |
+
+Activate: `conda activate cleave-pipeline`
+
+**Local data:**
+
+- [x] ~~mm10 Bowtie2 indices~~ (4.7 GB): `/Users/zakiralibhai/Documents/BIO_LAB/genomes/mm10/`
+- [x] ~~mm10 gene annotation BED~~ (1.6 MB): `backend/pipelines/reference/annotations/mm10_refGene.bed`
+- [x] ~~Test FASTQs~~ (5 MB each): `test_data/test_R1.fastq.gz`, `test_data/test_R2.fastq.gz`
+
+**Docker Compose** mounts `~/Documents/BIO_LAB/genomes` → `/data/cleave/genomes` (read-only) with `GENOME_INDEX_DIR=/data/cleave/genomes`.
 
 ### Phase 3 implementation tasks (for Claude)
 
