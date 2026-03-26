@@ -36,7 +36,7 @@ router = APIRouter()
 @router.get("", response_model=PaginatedResponse[ProjectRead])
 async def list_projects(
     page: int = Query(1, ge=1),
-    per_page: int = Query(25, ge=1, le=100),
+    per_page: int = Query(25, ge=1, le=100, alias="perPage"),
     current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_db),
 ):

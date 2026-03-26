@@ -26,25 +26,11 @@ from services.file_service import (
     is_compressed_file,
     validate_experiment_path,
 )
+from services.permission_helpers import check_experiment_membership
 
 router = APIRouter()
 
 ZIP_CHUNK_SIZE = 64 * 1024  # 64 KB
-
-
-async def _check_experiment_membership(
-    db: AsyncSession, experiment_id: int, user_id: int
-) -> Experiment | None:
-    """Fetch experiment if user is a member of its project (any role)."""
-    result = await db.execute(
-        select(Experiment)
-        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
-        .where(
-            Experiment.id == experiment_id,
-            ProjectMember.user_id == user_id,
-        )
-    )
-    return result.scalar_one_or_none()
 
 
 def _file_download_response(abs_path: Path) -> FileResponse | Response:
@@ -105,7 +91,7 @@ async def list_experiment_files(
     db: AsyncSession = Depends(get_db),
 ):
     """Return the full file tree for an experiment by scanning disk."""
-    experiment = await _check_experiment_membership(db, experiment_id, current_user.id)
+    experiment = await check_experiment_membership(db, experiment_id, current_user.id)
     if experiment is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -126,7 +112,7 @@ async def download_experiment_file(
     db: AsyncSession = Depends(get_db),
 ):
     """Download a single file from an experiment directory."""
-    experiment = await _check_experiment_membership(db, experiment_id, current_user.id)
+    experiment = await check_experiment_membership(db, experiment_id, current_user.id)
     if experiment is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -154,7 +140,7 @@ async def batch_download_files(
     db: AsyncSession = Depends(get_db),
 ):
     """Create a zip archive of selected files and stream it back."""
-    experiment = await _check_experiment_membership(db, experiment_id, current_user.id)
+    experiment = await check_experiment_membership(db, experiment_id, current_user.id)
     if experiment is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

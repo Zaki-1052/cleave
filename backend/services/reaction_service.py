@@ -6,28 +6,10 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.experiment import Experiment
 from models.fastq_file import FastqFile
-from models.project import ProjectMember
 from models.reaction import Reaction
 from schemas.reaction import ReactionCreate, ReactionUpdate
-
-
-# TODO: extract to shared module (duplicated from fastq_service.py)
-async def _get_experiment_with_permission(
-    db: AsyncSession, experiment_id: int, user_id: int, roles: list[str]
-) -> Experiment | None:
-    """Fetch experiment if user is a project member with one of the given roles."""
-    result = await db.execute(
-        select(Experiment)
-        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
-        .where(
-            Experiment.id == experiment_id,
-            ProjectMember.user_id == user_id,
-            ProjectMember.role.in_(roles),
-        )
-    )
-    return result.scalar_one_or_none()
+from services.permission_helpers import get_experiment_with_permission
 
 
 async def list_reactions(
@@ -38,7 +20,7 @@ async def list_reactions(
     per_page: int,
 ) -> tuple[list[Reaction], int] | None:
     """List reactions for an experiment. Returns None if not authorized."""
-    experiment = await _get_experiment_with_permission(
+    experiment = await get_experiment_with_permission(
         db, experiment_id, user_id, ["admin", "contributor", "viewer"]
     )
     if experiment is None:
@@ -65,7 +47,7 @@ async def create_reaction(
 
     Raises ValueError on unique constraint violation.
     """
-    experiment = await _get_experiment_with_permission(
+    experiment = await get_experiment_with_permission(
         db, experiment_id, user_id, ["admin", "contributor"]
     )
     if experiment is None:
@@ -101,7 +83,7 @@ async def bulk_create_reactions(
     Validates no duplicates within batch or against existing DB rows.
     Raises ValueError on validation failure. All-or-nothing.
     """
-    experiment = await _get_experiment_with_permission(
+    experiment = await get_experiment_with_permission(
         db, experiment_id, user_id, ["admin", "contributor"]
     )
     if experiment is None:
@@ -163,7 +145,7 @@ async def update_reaction(
 
     Raises ValueError on unique constraint violation.
     """
-    experiment = await _get_experiment_with_permission(
+    experiment = await get_experiment_with_permission(
         db, experiment_id, user_id, ["admin", "contributor"]
     )
     if experiment is None:
@@ -202,7 +184,7 @@ async def delete_reaction(
     user_id: int,
 ) -> bool:
     """Delete a reaction. Returns False if not found or not authorized."""
-    experiment = await _get_experiment_with_permission(
+    experiment = await get_experiment_with_permission(
         db, experiment_id, user_id, ["admin", "contributor"]
     )
     if experiment is None:
@@ -397,7 +379,7 @@ async def get_fastq_prefixes(
 
     Returns None if not authorized.
     """
-    experiment = await _get_experiment_with_permission(
+    experiment = await get_experiment_with_permission(
         db, experiment_id, user_id, ["admin", "contributor", "viewer"]
     )
     if experiment is None:

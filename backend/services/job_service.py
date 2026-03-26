@@ -9,22 +9,7 @@ from models.analysis_job import AnalysisJob
 from models.experiment import Experiment
 from models.project import ProjectMember
 from schemas.job import JobCreate
-
-
-async def _get_experiment_with_permission(
-    db: AsyncSession, experiment_id: int, user_id: int, roles: list[str]
-) -> Experiment | None:
-    """Fetch experiment if user is a project member with one of the given roles."""
-    result = await db.execute(
-        select(Experiment)
-        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
-        .where(
-            Experiment.id == experiment_id,
-            ProjectMember.user_id == user_id,
-            ProjectMember.role.in_(roles),
-        )
-    )
-    return result.scalar_one_or_none()
+from services.permission_helpers import get_experiment_with_permission
 
 
 async def create_job(
@@ -34,7 +19,7 @@ async def create_job(
     job_create: JobCreate,
 ) -> AnalysisJob | None:
     """Create a queued analysis job. Returns None if unauthorized."""
-    experiment = await _get_experiment_with_permission(
+    experiment = await get_experiment_with_permission(
         db, experiment_id, user_id, ["admin", "contributor"]
     )
     if experiment is None:
@@ -82,7 +67,7 @@ async def list_jobs_for_experiment(
     per_page: int,
 ) -> tuple[list[AnalysisJob], int] | None:
     """List jobs for an experiment. Returns None if unauthorized."""
-    experiment = await _get_experiment_with_permission(
+    experiment = await get_experiment_with_permission(
         db, experiment_id, user_id, ["admin", "contributor", "viewer"]
     )
     if experiment is None:

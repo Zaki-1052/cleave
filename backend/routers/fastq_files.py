@@ -20,7 +20,6 @@ from config import settings
 from database import get_db
 from models.experiment import Experiment
 from models.fastq_file import FastqFile
-from models.project import ProjectMember
 from models.user import User
 from pipelines.fastqc import find_fastqc_data_txt, parse_fastqc_data
 from schemas.common import PaginatedResponse
@@ -36,23 +35,9 @@ from services.fastq_service import (
     upload_fastqs,
 )
 from services.fastqc_service import run_fastqc_for_files
+from services.permission_helpers import check_experiment_membership
 
 router = APIRouter()
-
-
-async def _check_experiment_membership(
-    db: AsyncSession, experiment_id: int, user_id: int
-) -> Experiment | None:
-    """Fetch experiment if user is a member of its project (any role)."""
-    result = await db.execute(
-        select(Experiment)
-        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
-        .where(
-            Experiment.id == experiment_id,
-            ProjectMember.user_id == user_id,
-        )
-    )
-    return result.scalar_one_or_none()
 
 
 @router.post(
@@ -128,7 +113,7 @@ async def get_fastqc_report(
     db: AsyncSession = Depends(get_db),
 ):
     """Serve the FastQC HTML report for a FASTQ file."""
-    experiment = await _check_experiment_membership(db, experiment_id, current_user.id)
+    experiment = await check_experiment_membership(db, experiment_id, current_user.id)
     if experiment is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -172,7 +157,7 @@ async def get_fastqc_summary(
     db: AsyncSession = Depends(get_db),
 ):
     """Return structured FastQC module summary data (pass/warn/fail per module)."""
-    experiment = await _check_experiment_membership(db, experiment_id, current_user.id)
+    experiment = await check_experiment_membership(db, experiment_id, current_user.id)
     if experiment is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

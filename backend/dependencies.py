@@ -22,7 +22,12 @@ def require_project_role(roles: list[str]):
             )
         )
         member = result.scalar_one_or_none()
-        if member is None or member.role not in roles:
+        if member is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Project not found",
+            )
+        if member.role not in roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Insufficient project permissions",

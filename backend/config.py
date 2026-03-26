@@ -9,8 +9,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://cleave:dev@localhost:5432/cleave"
 
     # Auth
-    SECRET_KEY: str = "change-me-in-production"
-    REFRESH_SECRET_KEY: str = "change-me-too"
+    SECRET_KEY: str = "change-me-in-production-min-32chars!!"
+    REFRESH_SECRET_KEY: str = "change-me-too-in-production-min-32ch!!"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     COOKIE_SECURE: bool = False

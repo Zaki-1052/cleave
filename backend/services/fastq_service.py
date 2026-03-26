@@ -10,7 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from config import settings
 from models.experiment import Experiment
 from models.fastq_file import FastqFile
-from models.project import Project, ProjectMember
+from models.project import Project
+from services.permission_helpers import get_experiment_with_permission
 
 CHUNK_SIZE = 1024 * 1024  # 1 MB
 VALID_EXTENSIONS = (".fastq.gz", ".fastq", ".fq.gz", ".fq")
@@ -113,22 +114,6 @@ async def _update_storage_bytes_atomic(
     )
 
 
-async def _get_experiment_with_permission(
-    db: AsyncSession, experiment_id: int, user_id: int, roles: list[str]
-) -> Experiment | None:
-    """Fetch experiment if user is a project member with one of the given roles."""
-    result = await db.execute(
-        select(Experiment)
-        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
-        .where(
-            Experiment.id == experiment_id,
-            ProjectMember.user_id == user_id,
-            ProjectMember.role.in_(roles),
-        )
-    )
-    return result.scalar_one_or_none()
-
-
 async def upload_fastqs(
     db: AsyncSession,
     experiment_id: int,
@@ -140,7 +125,7 @@ async def upload_fastqs(
     Returns None if experiment not found or user lacks permission.
     Raises ValueError on validation failure.
     """
-    experiment = await _get_experiment_with_permission(
+    experiment = await get_experiment_with_permission(
         db, experiment_id, user_id, ["admin", "contributor"]
     )
     if experiment is None:
@@ -239,7 +224,7 @@ async def list_fastqs(
 ) -> tuple[list[FastqFile], int] | None:
     """List FASTQ files for an experiment. Returns None if not authorized."""
     # Verify membership (any role)
-    experiment = await _get_experiment_with_permission(
+    experiment = await get_experiment_with_permission(
         db, experiment_id, user_id, ["admin", "contributor", "viewer"]
     )
     if experiment is None:
@@ -263,7 +248,7 @@ async def delete_fastq(
     user_id: int,
 ) -> bool:
     """Delete a FASTQ file (DB record + disk file). Returns False if not found."""
-    experiment = await _get_experiment_with_permission(
+    experiment = await get_experiment_with_permission(
         db, experiment_id, user_id, ["admin", "contributor"]
     )
     if experiment is None:
