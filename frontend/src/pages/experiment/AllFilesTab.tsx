@@ -6,7 +6,7 @@ import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { useExperimentFiles } from '@/hooks/useFiles';
-import { downloadFile } from '@/api/files';
+import { downloadFile, batchDownloadFiles } from '@/api/files';
 import { formatBytes } from '@/lib/utils';
 import type { Experiment, FileNode } from '@/api/types';
 
@@ -131,14 +131,19 @@ export default function AllFilesTab() {
     if (selectedFiles.size === 0) return;
     setDownloading(true);
     try {
-      for (const filePath of selectedFiles) {
+      if (selectedFiles.size === 1) {
+        const filePath = [...selectedFiles][0];
         const filename = filePath.split('/').pop() ?? 'file';
         await downloadFile(experiment.id, filePath, filename);
+      } else {
+        const paths = [...selectedFiles];
+        const zipName = `${experiment.name}_files.zip`;
+        await batchDownloadFiles(experiment.id, paths, zipName);
       }
     } finally {
       setDownloading(false);
     }
-  }, [selectedFiles, experiment.id]);
+  }, [selectedFiles, experiment.id, experiment.name]);
 
   if (isLoading) {
     return (

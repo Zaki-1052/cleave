@@ -95,6 +95,25 @@ def _scan_directory(dir_path: Path, relative_base: str) -> tuple[FileNode, int, 
     return node, total_files, total_size
 
 
+COMPRESSED_EXTENSIONS = frozenset({".gz", ".bam", ".bw", ".bigwig", ".zip", ".bz2", ".xz", ".zst"})
+
+
+def is_compressed_file(filename: str) -> bool:
+    """Check if a file extension indicates it is already compressed."""
+    lower = filename.lower()
+    return any(lower.endswith(ext) for ext in COMPRESSED_EXTENSIONS)
+
+
+def get_xaccel_path(abs_path: Path, storage_root: str, internal_prefix: str) -> str:
+    """Convert an absolute file path to an NGINX X-Accel-Redirect internal URI.
+
+    The NGINX config maps internal_prefix to {storage_root}/projects/.
+    """
+    projects_dir = (Path(storage_root) / "projects").resolve()
+    relative = abs_path.relative_to(projects_dir)
+    return f"{internal_prefix.rstrip('/')}/{relative}"
+
+
 def build_experiment_file_tree(
     storage_root: str,
     project_id: int,

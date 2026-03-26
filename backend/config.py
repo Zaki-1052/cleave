@@ -21,6 +21,14 @@ class Settings(BaseSettings):
     UPLOAD_MAX_SIZE_MB: int = 5000
     PIPELINE_MODE: str = "mock"
 
+    # File serving (Phase 7 NGINX)
+    NGINX_FILE_SERVING: bool = False
+    NGINX_INTERNAL_PREFIX: str = "/internal-files/"
+
+    # Batch download limits
+    BATCH_DOWNLOAD_MAX_FILES: int = 100
+    BATCH_DOWNLOAD_MAX_BYTES: int = 10 * 1024 * 1024 * 1024  # 10 GB
+
     # Worker
     WORKER_POLL_INTERVAL_SECONDS: int = 2
 

@@ -23,3 +23,9 @@ class FileTreeResponse(CamelModel):
     root: FileNode
     total_files: int
     total_size: int
+
+
+class BatchDownloadRequest(CamelModel):
+    """Request body for batch file download."""
+
+    paths: list[str]

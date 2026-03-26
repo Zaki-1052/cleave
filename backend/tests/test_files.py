@@ -1,6 +1,7 @@
 # backend/tests/test_files.py
 import gzip
 import io
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -10,6 +11,8 @@ from config import settings
 from services.file_service import (
     _get_file_type,
     build_experiment_file_tree,
+    get_xaccel_path,
+    is_compressed_file,
     validate_experiment_path,
 )
 
@@ -149,7 +152,7 @@ async def test_list_files_hidden_files_skipped(client: AsyncClient):
     assert ".DS_Store" not in names
 
 
-# --- Download Endpoint Tests ---
+# --- Single Download Endpoint Tests ---
 
 
 @pytest.mark.anyio
@@ -226,6 +229,150 @@ async def test_download_nonmember(client: AsyncClient):
     assert resp.status_code == 404
 
 
+# --- X-Accel-Redirect Tests ---
+
+
+@pytest.mark.anyio
+async def test_download_xaccel_redirect(client: AsyncClient):
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    experiment_id = await _create_experiment(client, headers, project_id)
+    await _upload_fastqs(client, headers, experiment_id)
+
+    original_value = settings.NGINX_FILE_SERVING
+    try:
+        settings.NGINX_FILE_SERVING = True
+        resp = await client.get(
+            f"/api/v1/experiments/{experiment_id}/files/download",
+            params={"path": "fastqs/raw/sample_L001_R1_001.fastq.gz"},
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert "X-Accel-Redirect" in resp.headers
+        xaccel = resp.headers["X-Accel-Redirect"]
+        assert xaccel.startswith("/internal-files/")
+        assert "sample_L001_R1_001.fastq.gz" in xaccel
+        # Body should be empty when NGINX serves the file
+        assert resp.content == b""
+    finally:
+        settings.NGINX_FILE_SERVING = original_value
+
+
+# --- Batch Download Endpoint Tests ---
+
+
+@pytest.mark.anyio
+async def test_batch_download_success(client: AsyncClient):
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    experiment_id = await _create_experiment(client, headers, project_id)
+    await _upload_fastqs(client, headers, experiment_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{experiment_id}/files/batch-download",
+        json={
+            "paths": [
+                "fastqs/raw/sample_L001_R1_001.fastq.gz",
+                "fastqs/raw/sample_L001_R2_001.fastq.gz",
+            ]
+        },
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/zip"
+    assert "Content-Disposition" in resp.headers
+    assert "H3K4me3_files.zip" in resp.headers["Content-Disposition"]
+
+    zf = zipfile.ZipFile(io.BytesIO(resp.content))
+    names = zf.namelist()
+    assert len(names) == 2
+    assert "fastqs/raw/sample_L001_R1_001.fastq.gz" in names
+    assert "fastqs/raw/sample_L001_R2_001.fastq.gz" in names
+
+
+@pytest.mark.anyio
+async def test_batch_download_empty_paths(client: AsyncClient):
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    experiment_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{experiment_id}/files/batch-download",
+        json={"paths": []},
+        headers=headers,
+    )
+    assert resp.status_code == 400
+
+
+@pytest.mark.anyio
+async def test_batch_download_path_traversal(client: AsyncClient):
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    experiment_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{experiment_id}/files/batch-download",
+        json={"paths": ["../../etc/passwd"]},
+        headers=headers,
+    )
+    assert resp.status_code == 403
+
+
+@pytest.mark.anyio
+async def test_batch_download_nonexistent_skipped(client: AsyncClient):
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    experiment_id = await _create_experiment(client, headers, project_id)
+    await _upload_fastqs(client, headers, experiment_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{experiment_id}/files/batch-download",
+        json={
+            "paths": [
+                "fastqs/raw/sample_L001_R1_001.fastq.gz",
+                "fastqs/raw/does_not_exist.fastq.gz",
+            ]
+        },
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    assert "X-Batch-Skipped" in resp.headers
+    assert "does_not_exist" in resp.headers["X-Batch-Skipped"]
+
+    zf = zipfile.ZipFile(io.BytesIO(resp.content))
+    assert len(zf.namelist()) == 1
+
+
+@pytest.mark.anyio
+async def test_batch_download_all_missing(client: AsyncClient):
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    experiment_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{experiment_id}/files/batch-download",
+        json={"paths": ["no_such_file.txt", "also_missing.txt"]},
+        headers=headers,
+    )
+    assert resp.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_batch_download_nonmember(client: AsyncClient):
+    headers_a = await _register_and_get_headers(client, "a@example.com")
+    headers_b = await _register_and_get_headers(client, "b@example.com")
+    project_id = await _create_project(client, headers_a)
+    experiment_id = await _create_experiment(client, headers_a, project_id)
+    await _upload_fastqs(client, headers_a, experiment_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{experiment_id}/files/batch-download",
+        json={"paths": ["fastqs/raw/sample_L001_R1_001.fastq.gz"]},
+        headers=headers_b,
+    )
+    assert resp.status_code == 404
+
+
 # --- Service Unit Tests ---
 
 
@@ -278,3 +425,37 @@ def test_validate_path_accepts_valid(tmp_path):
 
     result = validate_experiment_path(str(tmp_path), 1, 1, "fastqs/raw/sample.fastq.gz")
     assert result == test_file.resolve()
+
+
+def test_is_compressed_file():
+    assert is_compressed_file("sample.fastq.gz") is True
+    assert is_compressed_file("reads.bam") is True
+    assert is_compressed_file("signal.bw") is True
+    assert is_compressed_file("archive.zip") is True
+    assert is_compressed_file("data.bz2") is True
+    assert is_compressed_file("report.html") is False
+    assert is_compressed_file("peaks.bed") is False
+    assert is_compressed_file("data.csv") is False
+
+
+def test_get_xaccel_path(tmp_path):
+    storage_root = str(tmp_path)
+    projects_dir = tmp_path / "projects" / "5" / "10" / "fastqs" / "raw"
+    projects_dir.mkdir(parents=True)
+    test_file = projects_dir / "sample.fastq.gz"
+    test_file.write_bytes(b"test")
+
+    result = get_xaccel_path(test_file.resolve(), storage_root, "/internal-files/")
+    assert result == "/internal-files/5/10/fastqs/raw/sample.fastq.gz"
+
+
+def test_get_xaccel_path_strips_trailing_slash(tmp_path):
+    storage_root = str(tmp_path)
+    projects_dir = tmp_path / "projects" / "1" / "2"
+    projects_dir.mkdir(parents=True)
+    test_file = projects_dir / "file.txt"
+    test_file.write_bytes(b"test")
+
+    result = get_xaccel_path(test_file.resolve(), storage_root, "/internal-files/")
+    assert result.startswith("/internal-files/")
+    assert "//" not in result

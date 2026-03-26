@@ -249,14 +249,14 @@ Build the All Files tab per `cutana-cloud-ui.md` §6h.
 
 ### Phase 2 Done Criteria
 
-- [ ] Can upload paired-end FASTQs via drag-and-drop
-- [ ] FastQC runs automatically, reports viewable in modal
-- [ ] Reactions defined manually or via CSV upload
-- [ ] Full experiment creation wizard (3 steps) works end-to-end
-- [ ] Adapter detection flags contaminated FASTQs
-- [ ] Trimming runs in mock mode, produces "trimmed" files
-- [ ] All Files tab shows experiment directory tree
-- [ ] Individual and batch file download works
+- [x] Can upload paired-end FASTQs via drag-and-drop
+- [x] FastQC runs automatically, reports viewable in modal
+- [x] Reactions defined manually or via CSV upload
+- [x] Full experiment creation wizard (3 steps) works end-to-end
+- [x] Adapter detection flags contaminated FASTQs
+- [x] Trimming runs in mock mode, produces "trimmed" files
+- [x] All Files tab shows experiment directory tree
+- [x] Individual and batch file download works
 
 ---
 
