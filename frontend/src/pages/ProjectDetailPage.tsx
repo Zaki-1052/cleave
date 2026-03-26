@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { ManageMembersModal } from '@/components/projects/ManageMembersModal';
-import { CreateExperimentModal } from '@/components/experiments/CreateExperimentModal';
+import { CreateExperimentWizard } from '@/components/experiments/CreateExperimentWizard';
 import { useAuth } from '@/hooks/useAuth';
 import { useProject, useMembers } from '@/hooks/useProjects';
 import { useExperiments } from '@/hooks/useExperiments';
@@ -119,7 +119,7 @@ export default function ProjectDetailPage() {
           onClose={() => setIsMembersModalOpen(false)}
           projectId={projectId}
         />
-        <CreateExperimentModal
+        <CreateExperimentWizard
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
           projectId={projectId}

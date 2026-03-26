@@ -7,6 +7,15 @@ interface WizardStep {
   content: ReactNode;
 }
 
+interface FooterRenderArgs {
+  currentStep: number;
+  isLastStep: boolean;
+  onClose: () => void;
+  onBack: () => void;
+  onNext: () => void;
+  onSubmit: () => void;
+}
+
 interface WizardModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,6 +26,8 @@ interface WizardModalProps {
   onBack: () => void;
   onSubmit: () => void;
   submitLabel?: string;
+  maxWidth?: string;
+  renderFooter?: (args: FooterRenderArgs) => ReactNode;
 }
 
 export function WizardModal({
@@ -29,6 +40,8 @@ export function WizardModal({
   onBack,
   onSubmit,
   submitLabel = 'Submit',
+  maxWidth = 'max-w-4xl',
+  renderFooter,
 }: WizardModalProps) {
   if (!isOpen) return null;
 
@@ -37,7 +50,7 @@ export function WizardModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative z-10 flex h-[80vh] w-full max-w-4xl flex-col rounded-lg bg-white shadow-xl">
+      <div className={`relative z-10 flex h-[80vh] w-full ${maxWidth} flex-col rounded-lg bg-white shadow-xl`}>
         <div className="flex items-center justify-between border-b bg-primary px-6 py-4">
           <h2 className="text-lg font-semibold text-white">{title}</h2>
           <button onClick={onClose} className="text-white hover:text-gray-200">
@@ -69,23 +82,27 @@ export function WizardModal({
 
         <div className="flex-1 overflow-y-auto p-6">{steps[currentStep]?.content}</div>
 
-        <div className="flex items-center justify-between border-t px-6 py-4">
-          <button onClick={onClose} className="text-sm text-gray-500 hover:text-gray-700">
-            Cancel
-          </button>
-          <div className="flex gap-3">
-            {currentStep > 0 && (
-              <Button variant="outlined" onClick={onBack}>
-                Back
-              </Button>
-            )}
-            {isLastStep ? (
-              <Button onClick={onSubmit}>{submitLabel}</Button>
-            ) : (
-              <Button onClick={onNext}>Next</Button>
-            )}
+        {renderFooter ? (
+          renderFooter({ currentStep, isLastStep, onClose, onBack, onNext, onSubmit })
+        ) : (
+          <div className="flex items-center justify-between border-t px-6 py-4">
+            <button onClick={onClose} className="text-sm text-gray-500 hover:text-gray-700">
+              Cancel
+            </button>
+            <div className="flex gap-3">
+              {currentStep > 0 && (
+                <Button variant="outlined" onClick={onBack}>
+                  Back
+                </Button>
+              )}
+              {isLastStep ? (
+                <Button onClick={onSubmit}>{submitLabel}</Button>
+              ) : (
+                <Button onClick={onNext}>Next</Button>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

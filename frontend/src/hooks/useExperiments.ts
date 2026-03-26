@@ -38,6 +38,23 @@ export function useCreateExperiment() {
   });
 }
 
+export function useUpdateExperiment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      updates,
+    }: {
+      id: number;
+      updates: { name?: string; description?: string; assayType?: string };
+    }) => experimentsApi.updateExperiment(id, updates),
+    onSuccess: (data) => {
+      void queryClient.invalidateQueries({ queryKey: ['experiments'] });
+      void queryClient.invalidateQueries({ queryKey: ['experiments', data.id] });
+    },
+  });
+}
+
 export function useDeleteExperiment() {
   const queryClient = useQueryClient();
   return useMutation({
