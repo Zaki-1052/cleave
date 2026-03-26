@@ -83,7 +83,10 @@ End responses with:
 - **Systematic debugging**: (1) one logical fix attempt, (2) add logs to validate assumptions, (3) if stuck, reflect on 5-7 possible sources, distill to 1-2 most likely, add logs before fixing.
 - Never take the "easy" path or skip to an alternative the moment you hit a bug. Dig at the root.
 
-### Pipeline-Specific Rules
+### Pipeline-Specific Rules — MANDATORY Reference Compliance
+- **Before implementing ANY pipeline module or code with bioinformatics logic, you MUST first read the corresponding reference script(s) in `references/`.** This is non-negotiable. If a reference exists, read it first.
+- **The actual bioinformatics logic, tool invocations, flags, parameter values, and processing order MUST match the lab's reference scripts exactly.** You may (and should) modularize, remove hardcoded paths, parameterize thread counts, add error handling, fix known bugs (documented in `cleave-spec-decisions.md`), and restructure for the web app — but the core algorithm, tool chain, and scientific logic must remain identical to how the lab does it.
+- **Do NOT invent or substitute bioinformatics tool flags, thresholds, filtering steps, or processing pipelines** that differ from the reference scripts. If you think the reference is wrong or suboptimal, flag it — do not silently change it.
 - Each pipeline stage is a Python module under `backend/pipelines/` with a standard interface: `validate()`, `run()`, `generate_methods_text()`.
 - Pipeline modules call tools via `subprocess.run()`, capture stdout/stderr to log files, raise `PipelineError` on non-zero exit.
 - Trimming is two-stage: Trimmomatic (adapter + quality) → kseq_test (fixed-length to 42bp). See lab pipeline spec §2 Stage 2.
@@ -117,8 +120,8 @@ cd frontend && npm run dev     # Frontend only (hot reload)
 cd backend && uvicorn main:app --reload --host 0.0.0.0 --port 8000  # API only
 
 # Database
-alembic upgrade head           # Run migrations
-alembic revision --autogenerate -m "description"  # New migration
+docker compose exec api alembic upgrade head           # Run migrations
+docker compose exec api alembic revision --autogenerate -m "description"  # New migration
 
 # Frontend
 npm run build                  # Production build → dist/
@@ -128,8 +131,14 @@ npm run typecheck              # TypeScript check
 # Backend
 ruff check backend/            # Python linting
 ruff format backend/           # Python formatting
-pytest backend/tests/          # Run tests
-pytest backend/tests/test_specific.py -k "test_name"  # Single test
+
+# ⚠️  TESTS MUST RUN INSIDE DOCKER — they need the Postgres `db` service.
+# Do NOT run pytest locally on the host machine. Always use docker compose exec:
+docker compose exec api pytest tests/                            # Run all tests
+docker compose exec api pytest tests/test_specific.py            # Single file
+docker compose exec api pytest tests/test_specific.py -k "name"  # Single test
+docker compose exec api ruff check .                             # Lint in container
+docker compose exec api ruff format --check .                    # Format check in container
 ```
 
 ## Implementation Phases
