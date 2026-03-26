@@ -29,3 +29,17 @@ class BatchDownloadRequest(CamelModel):
     """Request body for batch file download."""
 
     paths: list[str]
+
+
+class DownloadTokenRequest(CamelModel):
+    """Request body for generating a signed download token."""
+
+    experiment_id: int
+    path: str | None = None
+    paths: list[str] | None = None
+
+
+class DownloadTokenResponse(CamelModel):
+    """Response containing the signed download URL."""
+
+    url: str

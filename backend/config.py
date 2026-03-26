@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     NGINX_FILE_SERVING: bool = False
     NGINX_INTERNAL_PREFIX: str = "/internal-files/"
 
+    # Download tokens
+    DOWNLOAD_TOKEN_EXPIRY_SECONDS: int = 300  # 5 minutes
+
     # Batch download limits
     BATCH_DOWNLOAD_MAX_FILES: int = 100
     BATCH_DOWNLOAD_MAX_BYTES: int = 10 * 1024 * 1024 * 1024  # 10 GB

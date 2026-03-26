@@ -1,14 +1,23 @@
 // frontend/src/components/fastqs/FileUploadZone.tsx
-import { useRef, useState, type DragEvent } from 'react';
+import { useCallback, useRef, useState, type DragEvent } from 'react';
+import * as tus from 'tus-js-client';
 import { Button } from '@/components/ui/Button';
-import { useUploadFastqs } from '@/hooks/useFastqs';
+import { getAccessToken } from '@/api/client';
 import { formatBytes } from '@/lib/utils';
-import type { ApiError } from '@/api/types';
 
 const VALID_EXTENSIONS = ['.fastq.gz', '.fastq', '.fq.gz', '.fq'];
+const TUS_CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB chunks
 
 function hasValidExtension(name: string): boolean {
   return VALID_EXTENSIONS.some((ext) => name.toLowerCase().endsWith(ext));
+}
+
+interface FileUploadState {
+  file: File;
+  status: 'staged' | 'uploading' | 'complete' | 'error';
+  progress: number;
+  error?: string;
+  tusUpload?: tus.Upload;
 }
 
 interface FileUploadZoneProps {
@@ -17,13 +26,12 @@ interface FileUploadZoneProps {
 }
 
 export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZoneProps) {
-  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
+  const [fileStates, setFileStates] = useState<FileUploadState[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [uploadPercent, setUploadPercent] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const uploadMutation = useUploadFastqs();
+
+  const isUploading = fileStates.some((f) => f.status === 'uploading');
 
   function addFiles(incoming: FileList | File[]) {
     const valid: File[] = [];
@@ -46,7 +54,12 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
     }
 
     if (valid.length > 0) {
-      setStagedFiles((prev) => [...prev, ...valid]);
+      const newStates: FileUploadState[] = valid.map((file) => ({
+        file,
+        status: 'staged',
+        progress: 0,
+      }));
+      setFileStates((prev) => [...prev, ...newStates]);
     }
   }
 
@@ -70,39 +83,90 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
     if (e.target.files) {
       addFiles(e.target.files);
     }
-    // Reset so the same file can be re-selected
     e.target.value = '';
   }
 
   function removeFile(index: number) {
-    setStagedFiles((prev) => prev.filter((_, i) => i !== index));
+    setFileStates((prev) => {
+      const state = prev[index];
+      if (state.tusUpload) {
+        state.tusUpload.abort();
+      }
+      return prev.filter((_, i) => i !== index);
+    });
   }
 
-  async function handleUpload() {
-    if (stagedFiles.length === 0 || isUploading) return;
+  const handleUpload = useCallback(async () => {
+    const stagedIndices = fileStates
+      .map((f, i) => (f.status === 'staged' ? i : -1))
+      .filter((i) => i !== -1);
 
-    setIsUploading(true);
-    setUploadPercent(0);
+    if (stagedIndices.length === 0) return;
     setUploadError(null);
 
-    try {
-      await uploadMutation.mutateAsync({
-        experimentId,
-        files: stagedFiles,
-        onProgress: setUploadPercent,
-      });
-      setStagedFiles([]);
-      setUploadPercent(0);
-      onUploadComplete();
-    } catch (err) {
-      const apiErr = err as ApiError;
-      setUploadError(apiErr.detail ?? apiErr.error ?? 'Upload failed');
-    } finally {
-      setIsUploading(false);
-    }
-  }
+    let completedCount = 0;
+    const totalFiles = stagedIndices.length;
 
-  const totalStagedSize = stagedFiles.reduce((sum, f) => sum + f.size, 0);
+    function checkAllComplete() {
+      completedCount++;
+      if (completedCount === totalFiles) {
+        onUploadComplete();
+      }
+    }
+
+    for (const idx of stagedIndices) {
+      const fileState = fileStates[idx];
+
+      const upload = new tus.Upload(fileState.file, {
+        endpoint: '/api/v1/tus',
+        chunkSize: TUS_CHUNK_SIZE,
+        retryDelays: [0, 1000, 3000, 5000],
+        metadata: {
+          experiment_id: String(experimentId),
+          filename: fileState.file.name,
+        },
+        headers: {},
+        onBeforeRequest: (req) => {
+          const token = getAccessToken();
+          if (token) {
+            req.setHeader('Authorization', `Bearer ${token}`);
+          }
+        },
+        onProgress: (bytesUploaded, bytesTotal) => {
+          const percent = Math.round((bytesUploaded / bytesTotal) * 100);
+          setFileStates((prev) =>
+            prev.map((f, i) => (i === idx ? { ...f, progress: percent } : f)),
+          );
+        },
+        onSuccess: () => {
+          setFileStates((prev) =>
+            prev.map((f, i) => (i === idx ? { ...f, status: 'complete', progress: 100 } : f)),
+          );
+          checkAllComplete();
+        },
+        onError: (error) => {
+          setFileStates((prev) =>
+            prev.map((f, i) =>
+              i === idx ? { ...f, status: 'error', error: error.message } : f,
+            ),
+          );
+        },
+      });
+
+      setFileStates((prev) =>
+        prev.map((f, i) => (i === idx ? { ...f, status: 'uploading', tusUpload: upload } : f)),
+      );
+
+      upload.start();
+    }
+  }, [fileStates, experimentId, onUploadComplete]);
+
+  const stagedFiles = fileStates.filter((f) => f.status === 'staged');
+  const totalStagedSize = stagedFiles.reduce((sum, f) => sum + f.file.size, 0);
+  const overallProgress =
+    fileStates.length > 0
+      ? Math.round(fileStates.reduce((sum, f) => sum + f.progress, 0) / fileStates.length)
+      : 0;
 
   return (
     <div className="mb-4">
@@ -147,28 +211,56 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
         />
       </div>
 
-      {stagedFiles.length > 0 && (
+      {fileStates.length > 0 && (
         <div className="mt-3">
           <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-            {stagedFiles.length} file{stagedFiles.length !== 1 ? 's' : ''} selected ({formatBytes(totalStagedSize)})
+            {fileStates.length} file{fileStates.length !== 1 ? 's' : ''}{' '}
+            {stagedFiles.length > 0 && `(${formatBytes(totalStagedSize)})`}
           </div>
           <div className="max-h-48 overflow-y-auto rounded border border-gray-200">
-            {stagedFiles.map((file, i) => (
+            {fileStates.map((fs, i) => (
               <div
-                key={`${file.name}-${i}`}
+                key={`${fs.file.name}-${i}`}
                 className="flex items-center justify-between border-b border-gray-100 px-3 py-2 last:border-0"
               >
                 <div className="min-w-0 flex-1">
-                  <span className="truncate text-sm text-gray-700">{file.name}</span>
-                  <span className="ml-2 text-xs text-gray-400">{formatBytes(file.size)}</span>
+                  <span className="truncate text-sm text-gray-700">{fs.file.name}</span>
+                  <span className="ml-2 text-xs text-gray-400">{formatBytes(fs.file.size)}</span>
+                  {fs.status === 'complete' && (
+                    <span className="ml-2 text-xs text-green-600">Done</span>
+                  )}
+                  {fs.status === 'error' && (
+                    <span className="ml-2 text-xs text-red-600">{fs.error || 'Failed'}</span>
+                  )}
+                  {fs.status === 'uploading' && (
+                    <span className="ml-2 text-xs text-primary">{fs.progress}%</span>
+                  )}
                 </div>
-                {!isUploading && (
+                {fs.status === 'uploading' && (
+                  <div className="mx-2 h-1.5 w-24 overflow-hidden rounded-full bg-gray-200">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all duration-300"
+                      style={{ width: `${fs.progress}%` }}
+                    />
+                  </div>
+                )}
+                {(fs.status === 'staged' || fs.status === 'error') && (
                   <button
                     type="button"
                     onClick={() => removeFile(i)}
                     className="ml-2 text-gray-400 hover:text-red-500"
                   >
                     ✕
+                  </button>
+                )}
+                {fs.status === 'uploading' && (
+                  <button
+                    type="button"
+                    onClick={() => removeFile(i)}
+                    className="ml-2 text-xs text-gray-400 hover:text-red-500"
+                    title="Cancel upload"
+                  >
+                    Cancel
                   </button>
                 )}
               </div>
@@ -180,10 +272,10 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
               <div className="h-2 overflow-hidden rounded-full bg-gray-200">
                 <div
                   className="h-full rounded-full bg-primary transition-all duration-300"
-                  style={{ width: `${uploadPercent}%` }}
+                  style={{ width: `${overallProgress}%` }}
                 />
               </div>
-              <p className="mt-1 text-xs text-gray-500">{uploadPercent}% uploaded</p>
+              <p className="mt-1 text-xs text-gray-500">{overallProgress}% overall</p>
             </div>
           )}
 

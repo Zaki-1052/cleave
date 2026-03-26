@@ -459,3 +459,67 @@ def test_get_xaccel_path_strips_trailing_slash(tmp_path):
     result = get_xaccel_path(test_file.resolve(), storage_root, "/internal-files/")
     assert result.startswith("/internal-files/")
     assert "//" not in result
+
+
+# --- Signed Download Token Tests ---
+
+
+@pytest.mark.anyio
+async def test_signed_download_single_file(client: AsyncClient):
+    """Get a signed download token and use it to download a single file."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    experiment_id = await _create_experiment(client, headers, project_id)
+    await _upload_fastqs(client, headers, experiment_id)
+
+    # Get download token
+    resp = await client.post(
+        "/api/v1/files/download-token",
+        json={"experimentId": experiment_id, "path": "fastqs/raw/sample_L001_R1_001.fastq.gz"},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "url" in data
+    assert "/api/v1/files/signed-download?token=" in data["url"]
+
+    # Use the signed URL to download (no auth header needed)
+    download_resp = await client.get(data["url"])
+    assert download_resp.status_code == 200
+
+
+@pytest.mark.anyio
+async def test_signed_download_expired_token(client: AsyncClient):
+    """An expired token should return 401."""
+    from services.download_token_service import create_download_token
+
+    token = create_download_token(
+        {"type": "single", "exp_id": 1, "path": "test.txt"},
+        settings.SECRET_KEY,
+        -10,  # Already expired
+    )
+    resp = await client.get(f"/api/v1/files/signed-download?token={token}")
+    assert resp.status_code == 401
+
+
+@pytest.mark.anyio
+async def test_signed_download_invalid_token(client: AsyncClient):
+    """A tampered token should return 401."""
+    resp = await client.get("/api/v1/files/signed-download?token=invalid.token")
+    assert resp.status_code == 401
+
+
+@pytest.mark.anyio
+async def test_signed_download_nonmember_cannot_get_token(client: AsyncClient):
+    """A non-member cannot get a download token for another user's experiment."""
+    headers_a = await _register_and_get_headers(client, "a@example.com")
+    headers_b = await _register_and_get_headers(client, "b@example.com")
+    project_id = await _create_project(client, headers_a)
+    experiment_id = await _create_experiment(client, headers_a, project_id)
+
+    resp = await client.post(
+        "/api/v1/files/download-token",
+        json={"experimentId": experiment_id, "path": "test.txt"},
+        headers=headers_b,
+    )
+    assert resp.status_code == 404

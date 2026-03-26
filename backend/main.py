@@ -16,6 +16,7 @@ from routers import (
     notifications,
     projects,
     reactions,
+    tus_upload,
     users,
 )
 
@@ -41,6 +42,7 @@ app.include_router(reactions.router, prefix="/api/v1", tags=["reactions"])
 app.include_router(fastq_files.router, prefix="/api/v1", tags=["fastqs"])
 app.include_router(jobs.router, prefix="/api/v1", tags=["jobs"])
 app.include_router(files.router, prefix="/api/v1", tags=["files"])
+app.include_router(tus_upload.router, prefix="/api/v1/tus", tags=["uploads"])
 app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["notifications"])
 
 

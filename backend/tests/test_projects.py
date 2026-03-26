@@ -257,3 +257,41 @@ async def test_add_nonexistent_user_returns_404(client: AsyncClient):
         headers=headers,
     )
     assert resp.status_code == 404
+
+
+async def test_list_projects_respects_per_page_alias(client: AsyncClient):
+    """The perPage query alias works for the projects list endpoint."""
+    headers = await _register_and_get_headers(client, "admin@example.com")
+    await _create_project(client, headers, "Project A")
+    await _create_project(client, headers, "Project B")
+    await _create_project(client, headers, "Project C")
+
+    resp = await client.get("/api/v1/projects?perPage=2", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 3
+    assert data["perPage"] == 2
+    assert len(data["items"]) == 2
+
+
+async def test_nonmember_gets_404_for_project_actions(client: AsyncClient):
+    """A non-member should receive 404 (not 403) for project endpoints."""
+    headers_owner = await _register_and_get_headers(client, "owner@example.com")
+    headers_outsider = await _register_and_get_headers(client, "outsider@example.com")
+    project_id = await _create_project(client, headers_owner)
+
+    # Non-member tries to update project — should get 404, not 403
+    resp = await client.patch(
+        f"/api/v1/projects/{project_id}",
+        json={"name": "Hacked"},
+        headers=headers_outsider,
+    )
+    assert resp.status_code == 404
+
+    # Non-member tries to delete project — should get 404
+    resp = await client.delete(f"/api/v1/projects/{project_id}", headers=headers_outsider)
+    assert resp.status_code == 404
+
+    # Non-member tries to list members — should get 404
+    resp = await client.get(f"/api/v1/projects/{project_id}/members", headers=headers_outsider)
+    assert resp.status_code == 404

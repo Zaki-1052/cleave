@@ -1,8 +1,9 @@
 # backend/routers/files.py
+import asyncio
 import mimetypes
+import queue as queue_mod
 import re
-import zipfile
-from io import BytesIO
+from datetime import datetime
 from pathlib import Path
 from typing import AsyncIterator
 
@@ -19,13 +20,19 @@ from models.experiment import Experiment
 from models.job_output import JobOutput
 from models.project import ProjectMember
 from models.user import User
-from schemas.file import BatchDownloadRequest, FileTreeResponse
+from schemas.file import (
+    BatchDownloadRequest,
+    DownloadTokenRequest,
+    DownloadTokenResponse,
+    FileTreeResponse,
+)
 from services.file_service import (
     build_experiment_file_tree,
     get_xaccel_path,
     is_compressed_file,
     validate_experiment_path,
 )
+from services.download_token_service import create_download_token, verify_download_token
 from services.permission_helpers import check_experiment_membership
 
 router = APIRouter()
@@ -59,26 +66,49 @@ def _sanitize_filename(name: str) -> str:
     return re.sub(r"[^\w.\-]", "_", name)
 
 
+def _file_chunks(abs_path: Path):
+    """Yield file contents in chunks for streaming zip."""
+    with open(abs_path, "rb") as f:
+        while chunk := f.read(ZIP_CHUNK_SIZE):
+            yield chunk
+
+
 async def _stream_zip(
     files: list[tuple[str, Path]],
 ) -> AsyncIterator[bytes]:
-    """Build a zip archive in memory and stream it in chunks."""
-    buffer = BytesIO()
-    with zipfile.ZipFile(buffer, "w") as zf:
-        for archive_name, abs_path in files:
-            compression = (
-                zipfile.ZIP_STORED
-                if is_compressed_file(abs_path.name)
-                else zipfile.ZIP_DEFLATED
-            )
-            zf.write(abs_path, arcname=archive_name, compress_type=compression)
+    """Stream a zip archive, reading each source file in chunks.
 
-    buffer.seek(0)
+    Uses stream-zip for true streaming — never holds the full archive in memory.
+    Synchronous generator runs in a thread to avoid blocking the event loop.
+    """
+    from stream_zip import NO_COMPRESSION_64, ZIP_64, stream_zip
+
+    def _generate():
+        member_files = []
+        for archive_name, abs_path in files:
+            method = NO_COMPRESSION_64 if is_compressed_file(abs_path.name) else ZIP_64
+            stat = abs_path.stat()
+            modified_at = datetime.fromtimestamp(stat.st_mtime)
+            member_files.append((archive_name, modified_at, 0o644, method, _file_chunks(abs_path)))
+        yield from stream_zip(member_files)
+
+    chunk_queue: queue_mod.Queue[bytes | None] = queue_mod.Queue(maxsize=32)
+    loop = asyncio.get_running_loop()
+
+    def _run_generator():
+        for chunk in _generate():
+            chunk_queue.put(chunk)
+        chunk_queue.put(None)
+
+    writer_future = loop.run_in_executor(None, _run_generator)
+
     while True:
-        chunk = buffer.read(ZIP_CHUNK_SIZE)
-        if not chunk:
+        chunk = await loop.run_in_executor(None, chunk_queue.get)
+        if chunk is None:
             break
         yield chunk
+
+    await writer_future
 
 
 @router.get(
@@ -239,3 +269,131 @@ async def download_job_file(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found on disk")
 
     return _file_download_response(abs_path)
+
+
+@router.post("/files/download-token", response_model=DownloadTokenResponse)
+async def create_download_token_endpoint(
+    body: DownloadTokenRequest,
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Generate a short-lived signed token for browser-native file downloads."""
+    experiment = await check_experiment_membership(db, body.experiment_id, current_user.id)
+    if experiment is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Experiment not found or not authorized",
+        )
+
+    if body.path and body.paths:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Provide either 'path' (single) or 'paths' (batch), not both",
+        )
+
+    if body.path:
+        try:
+            abs_path = validate_experiment_path(
+                settings.STORAGE_ROOT, experiment.project_id, body.experiment_id, body.path
+            )
+        except ValueError:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+        if not abs_path.is_file():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+
+        payload = {
+            "type": "single",
+            "exp_id": body.experiment_id,
+            "proj_id": experiment.project_id,
+            "path": body.path,
+        }
+    elif body.paths:
+        payload = {
+            "type": "batch",
+            "exp_id": body.experiment_id,
+            "proj_id": experiment.project_id,
+            "paths": body.paths,
+        }
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Provide 'path' or 'paths'",
+        )
+
+    token = create_download_token(
+        payload, settings.SECRET_KEY, settings.DOWNLOAD_TOKEN_EXPIRY_SECONDS
+    )
+    return DownloadTokenResponse(url=f"/api/v1/files/signed-download?token={token}")
+
+
+@router.get("/files/signed-download")
+async def signed_download(
+    token: str = Query(...),
+):
+    """Download a file using a signed token. No JWT auth required."""
+    payload = verify_download_token(token, settings.SECRET_KEY)
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired download token",
+        )
+
+    download_type = payload.get("type")
+    experiment_id = payload.get("exp_id")
+    project_id = payload.get("proj_id")
+
+    if download_type == "single":
+        rel_path = payload.get("path")
+        if not rel_path or not experiment_id or not project_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token")
+
+        try:
+            abs_path = validate_experiment_path(
+                settings.STORAGE_ROOT, project_id, experiment_id, rel_path
+            )
+        except ValueError:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+        if not abs_path.is_file():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+
+        return _file_download_response(abs_path)
+
+    elif download_type == "batch":
+        paths = payload.get("paths", [])
+        if not paths or not experiment_id or not project_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token")
+
+        valid_files: list[tuple[str, Path]] = []
+        skipped: list[str] = []
+        for rel_path in paths:
+            try:
+                abs_path = validate_experiment_path(
+                    settings.STORAGE_ROOT, project_id, experiment_id, rel_path
+                )
+            except ValueError:
+                continue
+            if not abs_path.is_file():
+                skipped.append(rel_path)
+                continue
+            valid_files.append((rel_path, abs_path))
+
+        if not valid_files:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="None of the requested files exist",
+            )
+
+        zip_filename = f"batch_download_{experiment_id}.zip"
+        dl_headers: dict[str, str] = {
+            "Content-Disposition": f'attachment; filename="{zip_filename}"',
+        }
+        if skipped:
+            dl_headers["X-Batch-Skipped"] = ", ".join(skipped)
+
+        return StreamingResponse(
+            _stream_zip(valid_files),
+            media_type="application/zip",
+            headers=dl_headers,
+        )
+
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token type")

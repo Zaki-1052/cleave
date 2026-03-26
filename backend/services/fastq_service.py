@@ -76,18 +76,37 @@ async def _save_file_to_disk(
     """Stream an UploadFile to disk in chunks.
 
     If auto_gzip is True, compresses the output and appends .gz to the path.
+    Gzip compression runs in a thread to avoid blocking the async event loop.
     Returns (final_path, bytes_written).
     """
+    import asyncio
+    import queue as queue_mod
+
     dest_path.parent.mkdir(parents=True, exist_ok=True)
 
     if auto_gzip:
         dest_path = dest_path.parent / (dest_path.name + ".gz")
+        chunk_queue: queue_mod.Queue[bytes | None] = queue_mod.Queue(maxsize=8)
+
+        def _gzip_writer() -> None:
+            with gzip.open(dest_path, "wb") as f:
+                while True:
+                    chunk = chunk_queue.get()
+                    if chunk is None:
+                        break
+                    f.write(chunk)
+
+        loop = asyncio.get_running_loop()
+        writer_future = loop.run_in_executor(None, _gzip_writer)
+
         bytes_written = 0
-        with gzip.open(dest_path, "wb") as f:
-            while chunk := await upload_file.read(CHUNK_SIZE):
-                f.write(chunk)
-                bytes_written += len(chunk)
-        # Return the actual compressed size on disk
+        while chunk := await upload_file.read(CHUNK_SIZE):
+            bytes_written += len(chunk)
+            await loop.run_in_executor(None, chunk_queue.put, chunk)
+
+        await loop.run_in_executor(None, chunk_queue.put, None)
+        await writer_future
+
         return dest_path, dest_path.stat().st_size
     else:
         bytes_written = 0
