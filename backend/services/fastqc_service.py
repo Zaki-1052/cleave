@@ -81,6 +81,7 @@ async def run_fastqc_for_files(
                     .values(
                         total_reads=result.total_reads,
                         fastqc_report_path=report_relative,
+                        adapter_status=result.adapter_status,
                     )
                 )
                 if report_size > 0:

@@ -3,20 +3,40 @@ import time
 from pathlib import Path
 
 from config import settings
+from pipelines.base import PipelineError, PipelineStage
+from pipelines.trimming import TrimmingStage
+
+# Registry of pipeline stages by job_type
+_STAGES: dict[str, PipelineStage] = {
+    "trimming": TrimmingStage(),
+}
 
 
 def run(job_type: str, params: dict, working_dir: Path) -> dict:
     """Dispatch pipeline execution by job type.
 
-    In mock mode, returns canned results after a short delay.
-    In real mode, raises NotImplementedError until pipeline modules are built.
+    Registered stages use their own mock_run/run methods.
+    Unregistered types fall back to a generic mock (for forward compatibility).
     """
+    stage = _STAGES.get(job_type)
+
+    if stage is not None:
+        errors = stage.validate(params)
+        if errors:
+            raise PipelineError(f"Validation failed: {'; '.join(errors)}")
+
+        if settings.PIPELINE_MODE == "mock":
+            return stage.mock_run(params.get("job_id", 0), params, working_dir)
+        return stage.run(params.get("job_id", 0), params, working_dir)
+
+    # Fallback for unregistered pipeline types
     if settings.PIPELINE_MODE == "mock":
         return _mock_run(job_type, params, working_dir)
-    raise NotImplementedError(f"Pipeline '{job_type}' not yet implemented")
+    raise PipelineError(f"Unknown pipeline type: {job_type}")
 
 
 def _mock_run(job_type: str, params: dict, working_dir: Path) -> dict:
+    """Generic mock for unregistered pipeline types."""
     time.sleep(2)
     return {
         "job_type": job_type,

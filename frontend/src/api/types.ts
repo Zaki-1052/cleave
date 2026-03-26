@@ -115,6 +115,7 @@ export interface FastqFile {
   filePath: string;
   fastqcReportPath: string | null;
   isTrimmed: boolean;
+  adapterStatus: string | null;
   uploadSource: string | null;
   uploadedAt: string;
 }

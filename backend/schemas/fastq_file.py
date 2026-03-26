@@ -19,6 +19,7 @@ class FastqFileRead(CamelModel):
     file_path: str
     fastqc_report_path: str | None = None
     is_trimmed: bool = False
+    adapter_status: str | None = None
     upload_source: str | None = None
     uploaded_at: datetime
 
