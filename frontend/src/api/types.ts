@@ -43,6 +43,65 @@ export interface Reaction {
   cutanaSpikeIn: string;
   cutanaSpikeInTarget: string | null;
   ecoliSpikeIn: boolean;
+  cellType: string | null;
+  cellNumber: string | null;
+  samplePrep: string | null;
+  experimentalCondition: string | null;
+  antibodyVendor: string | null;
+  antibodyCatNo: string | null;
+  antibodyLotNo: string | null;
+  cutanaSpikeIn2: string | null;
+  cutanaSpikeInTarget2: string | null;
+}
+
+export interface PrefixInfo {
+  prefix: string;
+  hasR1: boolean;
+  hasR2: boolean;
+}
+
+export interface CsvImportResponse {
+  created: number;
+  reactions: Reaction[];
+  warnings: string[];
+}
+
+export interface ReactionCreatePayload {
+  fastqPrefix: string;
+  shortName: string;
+  organism: string;
+  assayType: string;
+  cutanaSpikeIn?: string;
+  cutanaSpikeInTarget?: string | null;
+  ecoliSpikeIn?: boolean;
+  cellType?: string | null;
+  cellNumber?: string | null;
+  samplePrep?: string | null;
+  experimentalCondition?: string | null;
+  antibodyVendor?: string | null;
+  antibodyCatNo?: string | null;
+  antibodyLotNo?: string | null;
+  cutanaSpikeIn2?: string | null;
+  cutanaSpikeInTarget2?: string | null;
+}
+
+export interface ReactionUpdatePayload {
+  fastqPrefix?: string;
+  shortName?: string;
+  organism?: string;
+  assayType?: string;
+  cutanaSpikeIn?: string;
+  cutanaSpikeInTarget?: string | null;
+  ecoliSpikeIn?: boolean;
+  cellType?: string | null;
+  cellNumber?: string | null;
+  samplePrep?: string | null;
+  experimentalCondition?: string | null;
+  antibodyVendor?: string | null;
+  antibodyCatNo?: string | null;
+  antibodyLotNo?: string | null;
+  cutanaSpikeIn2?: string | null;
+  cutanaSpikeInTarget2?: string | null;
 }
 
 export interface FastqFile {
