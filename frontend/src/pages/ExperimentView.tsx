@@ -1,8 +1,10 @@
 // frontend/src/pages/ExperimentView.tsx
+import { useState } from 'react';
 import { Link, Outlet, useParams, useLocation } from 'react-router-dom';
 import { Card } from '@/components/layout/Card';
-import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { NewAnalysisDropdown } from '@/components/experiments/NewAnalysisDropdown';
+import { NewAlignmentWizard } from '@/components/alignment/NewAlignmentWizard';
 import { useExperiment } from '@/hooks/useExperiments';
 
 const TABS = [
@@ -19,6 +21,7 @@ export default function ExperimentView() {
   const { id } = useParams<{ id: string }>();
   const { pathname } = useLocation();
   const { data: experiment, isLoading } = useExperiment(Number(id));
+  const [showAlignmentWizard, setShowAlignmentWizard] = useState(false);
 
   if (isLoading) {
     return (
@@ -47,7 +50,7 @@ export default function ExperimentView() {
           </div>
           <StatusBadge status={experiment.status} />
         </div>
-        <Button>New Analysis ▼</Button>
+        <NewAnalysisDropdown onAlignmentClick={() => setShowAlignmentWizard(true)} />
       </div>
 
       <div className="flex gap-6">
@@ -77,6 +80,12 @@ export default function ExperimentView() {
           <Outlet context={{ experiment }} />
         </div>
       </div>
+
+      <NewAlignmentWizard
+        isOpen={showAlignmentWizard}
+        onClose={() => setShowAlignmentWizard(false)}
+        experiment={experiment}
+      />
     </div>
   );
 }

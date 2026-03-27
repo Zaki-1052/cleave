@@ -38,6 +38,24 @@ export const ORGANISMS = ['Human', 'Mouse', 'Drosophila', 'Yeast'] as const;
 
 export const CUTANA_SPIKE_IN_OPTIONS = ['None', 'KMetStat'] as const;
 
+export const REFERENCE_GENOMES: Record<string, { value: string; label: string }[]> = {
+  Human: [
+    { value: 'hg38', label: 'Human GRCh38/hg38' },
+    { value: 'hg19', label: 'Human hg19' },
+  ],
+  Mouse: [{ value: 'mm10', label: 'Mouse mm10' }],
+  Drosophila: [{ value: 'dm6', label: 'Drosophila dm6' }],
+  Yeast: [{ value: 'sacCer3', label: 'Yeast sacCer3' }],
+};
+
+export const GENOME_DISPLAY_NAMES: Record<string, string> = {
+  mm10: 'Mouse mm10',
+  hg38: 'Human GRCh38/hg38',
+  hg19: 'Human hg19',
+  dm6: 'Drosophila dm6',
+  sacCer3: 'Yeast sacCer3',
+};
+
 export const CUTANA_SPIKE_IN_TARGETS = [
   'Unmodified',
   'H3K4me1',
