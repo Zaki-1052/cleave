@@ -261,13 +261,28 @@ async def test_worker_generic_output_persistence(client: AsyncClient, patch_work
     project_id = await _create_project(client, headers)
     exp_id = await _create_experiment(client, headers, project_id)
 
-    # Create a generic mock job (not trimming — uses the fallback mock)
+    # Create an alignment mock job with valid params
     resp = await client.post(
         f"/api/v1/experiments/{exp_id}/jobs",
         json={
             "jobType": "alignment",
             "name": "Align",
-            "params": {},
+            "params": {
+                "experiment_id": exp_id,
+                "project_id": project_id,
+                "reference_genome": "mm10",
+                "reactions": [
+                    {
+                        "reaction_id": None,
+                        "short_name": "IgG",
+                        "r1_path": "projects/1/1/fastqs/raw/IgG_R1.fastq.gz",
+                        "r2_path": "projects/1/1/fastqs/raw/IgG_R2.fastq.gz",
+                        "total_reads": 1000000,
+                        "ecoli_spike_in": False,
+                        "cutana_spike_in": "None",
+                    }
+                ],
+            },
         },
         headers=headers,
     )
@@ -276,7 +291,7 @@ async def test_worker_generic_output_persistence(client: AsyncClient, patch_work
 
     await poll_and_run()
 
-    # The generic fallback mock returns empty outputs, so job should complete
+    # Alignment mock should complete and persist outputs
     async with test_session_factory() as db:
         job = await db.get(AnalysisJob, job_id)
 
