@@ -12,7 +12,7 @@ _STAGES: dict[str, PipelineStage] = {
 }
 
 
-def run(job_type: str, params: dict, working_dir: Path) -> dict:
+def run(job_type: str, params: dict, working_dir: Path, job_dir: Path) -> dict:
     """Dispatch pipeline execution by job type.
 
     Registered stages use their own mock_run/run methods.
@@ -25,9 +25,10 @@ def run(job_type: str, params: dict, working_dir: Path) -> dict:
         if errors:
             raise PipelineError(f"Validation failed: {'; '.join(errors)}")
 
+        job_id = params.get("job_id", 0)
         if settings.PIPELINE_MODE == "mock":
-            return stage.mock_run(params.get("job_id", 0), params, working_dir)
-        return stage.run(params.get("job_id", 0), params, working_dir)
+            return stage.mock_run(job_id, params, working_dir, job_dir)
+        return stage.run(job_id, params, working_dir, job_dir)
 
     # Fallback for unregistered pipeline types
     if settings.PIPELINE_MODE == "mock":

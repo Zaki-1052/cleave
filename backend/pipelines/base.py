@@ -16,11 +16,11 @@ class PipelineStage(ABC):
         ...
 
     @abstractmethod
-    def run(self, job_id: int, params: dict, working_dir: Path) -> dict:
+    def run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
         """Execute the pipeline stage."""
         ...
 
-    def mock_run(self, job_id: int, params: dict, working_dir: Path) -> dict:
+    def mock_run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
         """Return canned results for local dev without bioinformatics tools."""
         return {
             "job_id": job_id,

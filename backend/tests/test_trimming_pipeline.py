@@ -95,8 +95,9 @@ def test_mock_run_creates_files(stage, tmp_fastq_pair):
 
     params = _make_valid_params(tmp_fastq_pair)
     working_dir = Path(settings.STORAGE_ROOT) / "projects"
+    job_dir = working_dir / "1" / "1" / "jobs" / "1"
 
-    result = stage.mock_run(job_id=1, params=params, working_dir=working_dir)
+    result = stage.mock_run(job_id=1, params=params, working_dir=working_dir, job_dir=job_dir)
 
     assert result["status"] == "complete"
     assert len(result["outputs"]) == 1
@@ -116,8 +117,9 @@ def test_mock_run_return_shape(stage, tmp_fastq_pair):
 
     params = _make_valid_params(tmp_fastq_pair)
     working_dir = Path(settings.STORAGE_ROOT) / "projects"
+    job_dir = working_dir / "1" / "1" / "jobs" / "42"
 
-    result = stage.mock_run(job_id=42, params=params, working_dir=working_dir)
+    result = stage.mock_run(job_id=42, params=params, working_dir=working_dir, job_dir=job_dir)
 
     assert "status" in result
     assert "outputs" in result

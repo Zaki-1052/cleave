@@ -58,6 +58,34 @@ def override_storage_root(tmp_path):
 
 
 @pytest.fixture
+def patch_worker_sessions(monkeypatch):
+    """Patch async_session_factory in modules that import it directly.
+
+    Worker and service code bypass FastAPI DI and use async_session_factory
+    from their own module namespace (captured at import time). This fixture
+    patches each module's local reference to point at the test database.
+    Only used by tests that exercise the worker or job_output_service.
+    """
+    import database
+    import services.fastqc_service
+    import services.job_output_service
+    import services.trimming_service
+    import worker
+
+    monkeypatch.setattr(database, "async_session_factory", test_session_factory)
+    monkeypatch.setattr(worker, "async_session_factory", test_session_factory)
+    monkeypatch.setattr(
+        services.trimming_service, "async_session_factory", test_session_factory
+    )
+    monkeypatch.setattr(
+        services.job_output_service, "async_session_factory", test_session_factory
+    )
+    monkeypatch.setattr(
+        services.fastqc_service, "async_session_factory", test_session_factory
+    )
+
+
+@pytest.fixture
 async def registered_user(client: AsyncClient) -> dict:
     """Register a test user and return {email, password, access_token, refresh_cookie}."""
     email = "test@example.com"

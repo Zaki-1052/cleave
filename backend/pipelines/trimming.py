@@ -69,7 +69,7 @@ class TrimmingStage(PipelineStage):
 
         return errors
 
-    def run(self, job_id: int, params: dict, working_dir: Path) -> dict:
+    def run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
         project_id = params["project_id"]
         experiment_id = params["experiment_id"]
         fastq_pairs = params["fastq_pairs"]
@@ -207,7 +207,7 @@ class TrimmingStage(PipelineStage):
             "methods_text": self.generate_methods_text(params),
         }
 
-    def mock_run(self, job_id: int, params: dict, working_dir: Path) -> dict:
+    def mock_run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
         """Create real stub files by copying input FASTQs to trimmed output paths."""
         time.sleep(2)
 
