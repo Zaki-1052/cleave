@@ -18,7 +18,6 @@ interface DownloadTokenResponse {
 export async function downloadFile(
   experimentId: number,
   filePath: string,
-  _filename: string,
 ): Promise<void> {
   const { data } = await client.post<DownloadTokenResponse>(
     '/files/download-token',
@@ -30,7 +29,6 @@ export async function downloadFile(
 export async function batchDownloadFiles(
   experimentId: number,
   paths: string[],
-  _filename: string,
 ): Promise<void> {
   const { data } = await client.post<DownloadTokenResponse>(
     '/files/download-token',

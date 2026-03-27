@@ -57,10 +57,11 @@ export function TrimConfigModal({
     <Modal isOpen={isOpen} onClose={onClose} title="Configure Trimming">
       <div className="space-y-4">
         <div>
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+          <label htmlFor="trim-adapter-file" className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
             Adapter File
           </label>
           <select
+            id="trim-adapter-file"
             value={params.adapterFile}
             onChange={(e) => handleChange('adapterFile', e.target.value)}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none"
@@ -72,10 +73,11 @@ export function TrimConfigModal({
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+          <label htmlFor="trim-illuminaclip" className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
             ILLUMINACLIP
           </label>
           <input
+            id="trim-illuminaclip"
             type="text"
             value={params.illuminaclip}
             onChange={(e) => handleChange('illuminaclip', e.target.value)}
@@ -88,10 +90,11 @@ export function TrimConfigModal({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+            <label htmlFor="trim-leading" className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
               Leading Quality
             </label>
             <input
+              id="trim-leading"
               type="number"
               value={params.leading}
               onChange={(e) => handleChange('leading', Number(e.target.value))}
@@ -99,10 +102,11 @@ export function TrimConfigModal({
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+            <label htmlFor="trim-trailing" className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
               Trailing Quality
             </label>
             <input
+              id="trim-trailing"
               type="number"
               value={params.trailing}
               onChange={(e) => handleChange('trailing', Number(e.target.value))}
@@ -113,10 +117,11 @@ export function TrimConfigModal({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+            <label htmlFor="trim-slidingwindow" className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
               Sliding Window
             </label>
             <input
+              id="trim-slidingwindow"
               type="text"
               value={params.slidingwindow}
               onChange={(e) => handleChange('slidingwindow', e.target.value)}
@@ -125,10 +130,11 @@ export function TrimConfigModal({
             <p className="mt-1 text-xs text-gray-400">windowSize:requiredQuality</p>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+            <label htmlFor="trim-minlen" className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
               Min Length
             </label>
             <input
+              id="trim-minlen"
               type="number"
               value={params.minlen}
               onChange={(e) => handleChange('minlen', Number(e.target.value))}
@@ -138,10 +144,11 @@ export function TrimConfigModal({
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+          <label htmlFor="trim-kseq-length" className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
             kseq_test Target Length (bp)
           </label>
           <input
+            id="trim-kseq-length"
             type="number"
             value={params.kseqLength}
             onChange={(e) => handleChange('kseqLength', Number(e.target.value))}

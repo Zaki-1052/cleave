@@ -103,13 +103,14 @@ export default function SettingsPage() {
           <div className="flex flex-col gap-4">
             <Input label="Account Email" value={user.email} disabled />
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              <label htmlFor="email-notifications" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                 Job Email Notification
               </label>
               <p className="mb-1 text-xs text-gray-400">
                 Get an email notification when a job finishes running.
               </p>
               <select
+                id="email-notifications"
                 value={emailNotifications}
                 onChange={(e) => {
                   setEmailNotifications(e.target.value);

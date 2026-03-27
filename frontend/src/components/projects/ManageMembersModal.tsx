@@ -96,10 +96,11 @@ export function ManageMembersModal({ isOpen, onClose, projectId }: ManageMembers
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="invite-role" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
             Access
           </label>
           <select
+            id="invite-role"
             value={role}
             onChange={(e) => setRole(e.target.value)}
             className="rounded-md border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
@@ -132,6 +133,7 @@ export function ManageMembersModal({ isOpen, onClose, projectId }: ManageMembers
               </span>
               <div className="flex items-center gap-2">
                 <select
+                  aria-label={`Role for ${getDisplayName(member.user)}`}
                   value={member.role}
                   disabled={isSelf}
                   onChange={(e) => handleRoleChange(member.userId, e.target.value)}

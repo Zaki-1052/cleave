@@ -1,6 +1,5 @@
 // frontend/src/components/reactions/CsvUploadZone.tsx
 import { useRef, useState, type DragEvent } from 'react';
-import { Button } from '@/components/ui/Button';
 import { useImportReactionsCsv } from '@/hooks/useReactions';
 import { downloadTemplate } from '@/api/reactions';
 import type { ApiError, CsvImportResponse } from '@/api/types';
@@ -152,6 +151,7 @@ export function CsvUploadZone({ experimentId, onImportComplete }: CsvUploadZoneP
           accept=".csv"
           onChange={handleFileInput}
           className="hidden"
+          aria-label="Select CSV reaction sheet"
         />
       </div>
     </div>

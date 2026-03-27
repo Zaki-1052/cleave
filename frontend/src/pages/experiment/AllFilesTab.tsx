@@ -131,19 +131,16 @@ export default function AllFilesTab() {
     if (selectedFiles.size === 0) return;
     setDownloading(true);
     try {
-      if (selectedFiles.size === 1) {
-        const filePath = [...selectedFiles][0];
-        const filename = filePath.split('/').pop() ?? 'file';
-        await downloadFile(experiment.id, filePath, filename);
+      const paths = [...selectedFiles] as [string, ...string[]];
+      if (paths.length === 1) {
+        await downloadFile(experiment.id, paths[0]);
       } else {
-        const paths = [...selectedFiles];
-        const zipName = `${experiment.name}_files.zip`;
-        await batchDownloadFiles(experiment.id, paths, zipName);
+        await batchDownloadFiles(experiment.id, paths);
       }
     } finally {
       setDownloading(false);
     }
-  }, [selectedFiles, experiment.id, experiment.name]);
+  }, [selectedFiles, experiment.id]);
 
   if (isLoading) {
     return (
@@ -194,6 +191,7 @@ export default function AllFilesTab() {
             className="h-4 w-4 rounded border-gray-300"
             checked={selectedFiles.has(node.path)}
             onChange={() => handleToggleFile(node.path)}
+            aria-label={`Select ${node.name}`}
           />
         );
       },
@@ -208,6 +206,7 @@ export default function AllFilesTab() {
         if (node.type === 'folder') {
           return (
             <button
+              type="button"
               className="flex items-center gap-2 text-primary hover:underline"
               onClick={() => {
                 handleSelect(node.path);
@@ -248,7 +247,7 @@ export default function AllFilesTab() {
 
   return (
     <div className="flex gap-4">
-      <Card className="w-64 shrink-0 overflow-y-auto p-0" style={{ maxHeight: 600 }}>
+      <Card className="max-h-[600px] w-64 shrink-0 overflow-y-auto p-0">
         <div className="border-b px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
           Directory Tree
         </div>

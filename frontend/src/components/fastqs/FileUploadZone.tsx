@@ -89,7 +89,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
   function removeFile(index: number) {
     setFileStates((prev) => {
       const state = prev[index];
-      if (state.tusUpload) {
+      if (state?.tusUpload) {
         state.tusUpload.abort();
       }
       return prev.filter((_, i) => i !== index);
@@ -116,6 +116,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
 
     for (const idx of stagedIndices) {
       const fileState = fileStates[idx];
+      if (!fileState) continue;
 
       const upload = new tus.Upload(fileState.file, {
         endpoint: '/api/v1/tus',
@@ -206,9 +207,10 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
           ref={fileInputRef}
           type="file"
           multiple
-          accept=".fastq,.fastq.gz,.fq,.fq.gz"
+          accept=".fastq,.fastq.gz,.fq,.fq.gz,.gz"
           onChange={handleFileInput}
           className="hidden"
+          aria-label="Select FASTQ files"
         />
       </div>
 
