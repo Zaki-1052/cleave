@@ -35,10 +35,27 @@ export function useJobs(experimentId: number, page = 1, perPage = 25) {
   });
 }
 
-export function useAllJobs(page = 1, perPage = 25, status?: string) {
+export function useAllJobs(
+  page = 1,
+  perPage = 25,
+  status?: string,
+  jobType?: string,
+  search?: string,
+) {
   return useQuery({
-    queryKey: ['all-jobs', { page, perPage, status }],
-    queryFn: () => jobsApi.listAllJobs(page, perPage, status),
+    queryKey: ['all-jobs', { page, perPage, status, jobType, search }],
+    queryFn: () => jobsApi.listAllJobs(page, perPage, status, jobType, search),
+  });
+}
+
+export function useUpdateJobNotes() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ jobId, notes }: { jobId: number; notes: string | null }) =>
+      jobsApi.updateJobNotes(jobId, notes),
+    onSuccess: (job) => {
+      void queryClient.invalidateQueries({ queryKey: ['job', job.id] });
+    },
   });
 }
 

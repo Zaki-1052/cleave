@@ -96,10 +96,13 @@ async def sse_event_generator(user_id: int) -> AsyncGenerator[str, None]:
                     new_notifications = notif_result.all()
 
                     for notif in new_notifications:
-                        yield _format_sse("notification", {
-                            "id": notif.id,
-                            "type": notif.type,
-                        })
+                        yield _format_sse(
+                            "notification",
+                            {
+                                "id": notif.id,
+                                "type": notif.type,
+                            },
+                        )
                         last_notification_id = notif.id
 
                     # --- Check for job status changes ---
@@ -109,11 +112,14 @@ async def sse_event_generator(user_id: int) -> AsyncGenerator[str, None]:
                     for job_id, (experiment_id, new_status) in current_jobs.items():
                         old_status = tracked_jobs.get(job_id)
                         if old_status != new_status:
-                            yield _format_sse("job_status", {
-                                "jobId": job_id,
-                                "experimentId": experiment_id,
-                                "status": new_status,
-                            })
+                            yield _format_sse(
+                                "job_status",
+                                {
+                                    "jobId": job_id,
+                                    "experimentId": experiment_id,
+                                    "status": new_status,
+                                },
+                            )
 
                     # Rebuild tracked set: keep active jobs, drop terminal ones
                     tracked_jobs = {

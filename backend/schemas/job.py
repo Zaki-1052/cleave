@@ -16,6 +16,10 @@ class JobCreate(CamelModel):
     parent_job_id: int | None = None
 
 
+class JobUpdate(CamelModel):
+    notes: str | None = None
+
+
 class JobRead(CamelModel):
     model_config = ConfigDict(from_attributes=True)
 

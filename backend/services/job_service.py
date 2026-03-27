@@ -63,6 +63,30 @@ async def get_job(
     return result.scalar_one_or_none()
 
 
+async def update_job_notes(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+    notes: str | None,
+) -> AnalysisJob | None:
+    """Update notes on a job. Returns None if unauthorized or not found."""
+    job = await get_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    # Verify user has edit permission (admin or contributor)
+    experiment = await get_experiment_with_permission(
+        db, job.experiment_id, user_id, ["admin", "contributor"]
+    )
+    if experiment is None:
+        return None
+
+    job.notes = notes
+    await db.commit()
+    await db.refresh(job)
+    return job
+
+
 async def get_job_outputs(
     db: AsyncSession,
     job_id: int,
@@ -89,8 +113,12 @@ async def list_all_jobs_for_user(
     page: int,
     per_page: int,
     status: str | None = None,
+    job_type: str | None = None,
+    search: str | None = None,
 ) -> tuple[list[AnalysisJob], int]:
     """List all jobs across projects the user is a member of."""
+    from models.project import Project
+
     base = (
         select(AnalysisJob)
         .join(Experiment, Experiment.id == AnalysisJob.experiment_id)
@@ -99,6 +127,13 @@ async def list_all_jobs_for_user(
     )
     if status is not None:
         base = base.where(AnalysisJob.status == status)
+    if job_type is not None:
+        base = base.where(AnalysisJob.job_type == job_type)
+    if search is not None:
+        like = f"%{search}%"
+        base = base.join(Project, Project.id == Experiment.project_id, isouter=True).where(
+            AnalysisJob.name.ilike(like) | Experiment.name.ilike(like) | Project.name.ilike(like)
+        )
 
     count_result = await db.execute(select(func.count()).select_from(base.subquery()))
     total = count_result.scalar_one()

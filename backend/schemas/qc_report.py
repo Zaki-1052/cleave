@@ -28,6 +28,24 @@ class AlignmentReactionMetrics(CamelModel):
     chrm_bandwidth: float
     ecoli_read_pairs: int
     ecoli_alignment_rate: float
+    ecoli_normalization_factor: float
+
+
+class SpikeInPTMResult(CamelModel):
+    """Per-PTM barcode count and recovery percentage."""
+
+    ptm_name: str
+    raw_count: int
+    pct_recovery: float
+
+
+class SpikeInReactionResult(CamelModel):
+    """Per-reaction spike-in QC results."""
+
+    short_name: str
+    on_target_ptm: str | None = None
+    total_barcode_reads: int
+    ptm_results: list[SpikeInPTMResult]
 
 
 class AlignmentQCReport(CamelModel):
@@ -35,3 +53,4 @@ class AlignmentQCReport(CamelModel):
 
     reference_genome: str
     metrics: list[AlignmentReactionMetrics]
+    spike_in_results: list[SpikeInReactionResult] | None = None

@@ -233,6 +233,7 @@ def test_mock_run_qc_csv_matches_cutana_format(stage):
         "chrM_Bandwidth(%)",
         "Ecoli_Read_Pairs",
         "Ecoli_Alignment_Rate(%)",
+        "Ecoli_Normalization_Factor",
     ]
     assert headers == expected_headers
 
@@ -391,6 +392,7 @@ def test_write_qc_csv(tmp_path):
             "chrm_bandwidth": 0.12,
             "ecoli_read_pairs": 12842807,
             "ecoli_alignment_rate": 54.56,
+            "ecoli_normalization_factor": 1.873178,
         }
     ]
     output = tmp_path / "test_metrics.csv"
@@ -437,6 +439,7 @@ def test_alignment_qc_schema():
                 chrm_bandwidth=0.12,
                 ecoli_read_pairs=12842807,
                 ecoli_alignment_rate=54.56,
+                ecoli_normalization_factor=1.873178,
             )
         ],
     )
@@ -457,12 +460,14 @@ def test_alignment_qc_schema_camel_case():
         chrm_bandwidth=0.0,
         ecoli_read_pairs=1020,
         ecoli_alignment_rate=0.01,
+        ecoli_normalization_factor=0.000134,
     )
     data = metrics.model_dump(by_alias=True)
     assert "shortName" in data
     assert "totalReadPairs" in data
     assert "uniqueAlignmentRate" in data
     assert "ecoliReadPairs" in data
+    assert "ecoliNormalizationFactor" in data
 
 
 # --- Genome size constants test ---

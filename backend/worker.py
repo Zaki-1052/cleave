@@ -35,9 +35,7 @@ async def _update_experiment_status(experiment_id: int, job_status: str) -> None
             )
         elif job_status == "error":
             await db.execute(
-                update(Experiment)
-                .where(Experiment.id == experiment_id)
-                .values(status="error")
+                update(Experiment).where(Experiment.id == experiment_id).values(status="error")
             )
         elif job_status == "complete":
             # Check if any jobs are still pending for this experiment
@@ -106,9 +104,7 @@ async def poll_and_run() -> None:
 
         # Fetch experiment name and project_id for working directory + notifications
         exp_result = await db.execute(
-            select(Experiment.name, Experiment.project_id).where(
-                Experiment.id == job.experiment_id
-            )
+            select(Experiment.name, Experiment.project_id).where(Experiment.id == job.experiment_id)
         )
         exp_row = exp_result.one_or_none()
         experiment_name = exp_row.name if exp_row else "Unknown"

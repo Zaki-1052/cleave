@@ -123,6 +123,65 @@ async def test_get_job_not_found_404(client: AsyncClient):
     assert resp.status_code == 404
 
 
+# --- Job update tests ---
+
+
+async def test_update_job_notes_200(client: AsyncClient):
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    create_resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/jobs",
+        json={"jobType": "alignment", "name": "Test Align", "params": {}},
+        headers=headers,
+    )
+    job_id = create_resp.json()["id"]
+
+    resp = await client.patch(
+        f"/api/v1/jobs/{job_id}",
+        json={"notes": "Updated notes text"},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    assert resp.json()["notes"] == "Updated notes text"
+
+    # Verify persisted
+    get_resp = await client.get(f"/api/v1/jobs/{job_id}", headers=headers)
+    assert get_resp.json()["notes"] == "Updated notes text"
+
+
+async def test_update_job_notes_unauthorized_404(client: AsyncClient):
+    headers1 = await _register_and_get_headers(client, "owner@example.com")
+    headers2 = await _register_and_get_headers(client, "stranger@example.com")
+    project_id = await _create_project(client, headers1)
+    exp_id = await _create_experiment(client, headers1, project_id)
+
+    create_resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/jobs",
+        json={"jobType": "alignment", "name": "Test Align", "params": {}},
+        headers=headers1,
+    )
+    job_id = create_resp.json()["id"]
+
+    resp = await client.patch(
+        f"/api/v1/jobs/{job_id}",
+        json={"notes": "Hacked"},
+        headers=headers2,
+    )
+    assert resp.status_code == 404
+
+
+async def test_update_job_notes_not_found_404(client: AsyncClient):
+    headers = await _register_and_get_headers(client, "user@example.com")
+    resp = await client.patch(
+        "/api/v1/jobs/99999",
+        json={"notes": "No such job"},
+        headers=headers,
+    )
+    assert resp.status_code == 404
+
+
 async def test_list_jobs_for_experiment_200(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -145,6 +204,18 @@ async def test_list_jobs_for_experiment_200(client: AsyncClient):
     data = resp.json()
     assert data["total"] == 2
     assert len(data["items"]) == 2
+
+    # Verify perPage alias works (regression test for missing alias bug)
+    resp2 = await client.get(
+        f"/api/v1/experiments/{exp_id}/jobs",
+        params={"perPage": 1},
+        headers=headers,
+    )
+    assert resp2.status_code == 200
+    data2 = resp2.json()
+    assert data2["total"] == 2
+    assert len(data2["items"]) == 1
+    assert data2["perPage"] == 1
 
 
 async def test_list_jobs_unauthorized_403(client: AsyncClient):
@@ -400,9 +471,7 @@ async def test_list_all_jobs_status_filter(client: AsyncClient, db_session):
 
     from models.analysis_job import AnalysisJob
 
-    result = await db_session.execute(
-        select(AnalysisJob).where(AnalysisJob.id == job2_id)
-    )
+    result = await db_session.execute(select(AnalysisJob).where(AnalysisJob.id == job2_id))
     job2 = result.scalar_one()
     job2.status = "running"
     await db_session.commit()

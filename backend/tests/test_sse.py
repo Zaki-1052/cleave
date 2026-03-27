@@ -5,6 +5,7 @@ HTTP-level auth tests use normal client.get() (401 responses are finite).
 Event emission tests call the sse_event_generator directly to avoid
 httpx ASGI transport limitations with infinite streaming responses.
 """
+
 import asyncio
 
 import pytest
@@ -108,15 +109,18 @@ async def test_sse_emits_notification_event(
     settings.WORKER_POLL_INTERVAL_SECONDS = 0.1
 
     try:
+
         async def _insert():
             await asyncio.sleep(0.2)
             async with test_session_factory() as db:
-                db.add(Notification(
-                    user_id=user_id,
-                    type="job_complete",
-                    title="Test Job Done",
-                    message="Test notification for SSE",
-                ))
+                db.add(
+                    Notification(
+                        user_id=user_id,
+                        type="job_complete",
+                        title="Test Job Done",
+                        message="Test notification for SSE",
+                    )
+                )
                 await db.commit()
 
         task = asyncio.create_task(_insert())
@@ -140,7 +144,8 @@ async def test_sse_emits_job_status_event(
     token = registered_user["access_token"]
 
     proj = await client.post(
-        "/api/v1/projects", json={"name": "SSE Project"},
+        "/api/v1/projects",
+        json={"name": "SSE Project"},
         headers={"Authorization": f"Bearer {token}"},
     )
     exp = await client.post(
@@ -156,7 +161,8 @@ async def test_sse_emits_job_status_event(
     job_id = job.json()["id"]
 
     me = await client.get(
-        "/api/v1/users/me", headers={"Authorization": f"Bearer {token}"},
+        "/api/v1/users/me",
+        headers={"Authorization": f"Bearer {token}"},
     )
     user_id = me.json()["id"]
 
@@ -166,13 +172,12 @@ async def test_sse_emits_job_status_event(
     settings.WORKER_POLL_INTERVAL_SECONDS = 0.1
 
     try:
+
         async def _update():
             await asyncio.sleep(0.2)
             async with test_session_factory() as db:
                 await db.execute(
-                    update(AnalysisJob)
-                    .where(AnalysisJob.id == job_id)
-                    .values(status="running")
+                    update(AnalysisJob).where(AnalysisJob.id == job_id).values(status="running")
                 )
                 await db.commit()
 
@@ -216,15 +221,18 @@ async def test_sse_isolates_users(
     settings.WORKER_POLL_INTERVAL_SECONDS = 0.1
 
     try:
+
         async def _insert_for_b():
             await asyncio.sleep(0.2)
             async with test_session_factory() as db:
-                db.add(Notification(
-                    user_id=user_b_id,
-                    type="job_complete",
-                    title="B's Job",
-                    message="For user B only",
-                ))
+                db.add(
+                    Notification(
+                        user_id=user_b_id,
+                        type="job_complete",
+                        title="B's Job",
+                        message="For user B only",
+                    )
+                )
                 await db.commit()
 
         task = asyncio.create_task(_insert_for_b())

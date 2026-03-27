@@ -2,6 +2,7 @@
 import { type ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 
+import { batchDownloadJobFiles } from '@/api/jobs';
 import type { JobOutput } from '@/api/types';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
@@ -51,9 +52,20 @@ export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
     }
   }
 
-  function handleDownload() {
-    for (const id of selectedIds) {
+  const [downloading, setDownloading] = useState(false);
+
+  async function handleDownload() {
+    if (selectedIds.size === 0) return;
+    if (selectedIds.size === 1) {
+      const [id] = selectedIds;
       window.open(`/api/v1/jobs/${jobId}/files/${id}/download`, '_blank');
+      return;
+    }
+    setDownloading(true);
+    try {
+      await batchDownloadJobFiles(jobId, [...selectedIds]);
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -125,10 +137,10 @@ export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
         <Button
           variant="outlined"
           onClick={handleDownload}
-          disabled={selectedIds.size === 0}
+          disabled={selectedIds.size === 0 || downloading}
           className="text-xs"
         >
-          Download ({selectedIds.size})
+          {downloading ? 'Downloading...' : `Download (${selectedIds.size})`}
         </Button>
       </div>
 

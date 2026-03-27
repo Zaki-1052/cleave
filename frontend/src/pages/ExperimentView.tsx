@@ -6,6 +6,13 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { NewAnalysisDropdown } from '@/components/experiments/NewAnalysisDropdown';
 import { NewAlignmentWizard } from '@/components/alignment/NewAlignmentWizard';
 import { useExperiment } from '@/hooks/useExperiments';
+import { useJobs } from '@/hooks/useJobs';
+
+const JOB_TYPE_LABELS: Record<string, string> = {
+  alignment: 'Alignment',
+  trimming: 'Trimming',
+  peak_calling: 'Peak Calling',
+};
 
 const TABS = [
   { label: 'Description', path: 'description' },
@@ -21,7 +28,13 @@ export default function ExperimentView() {
   const { id } = useParams<{ id: string }>();
   const { pathname } = useLocation();
   const { data: experiment, isLoading } = useExperiment(Number(id));
+  const { data: jobsData } = useJobs(Number(id), 1, 1);
   const [showAlignmentWizard, setShowAlignmentWizard] = useState(false);
+
+  const lastJob = jobsData?.items?.[0] ?? null;
+  const lastJobLabel = lastJob
+    ? JOB_TYPE_LABELS[lastJob.jobType] ?? lastJob.jobType
+    : 'None';
 
   if (isLoading) {
     return (
@@ -46,7 +59,11 @@ export default function ExperimentView() {
           <h1 className="text-xl font-bold text-gray-800">{experiment.name}</h1>
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <span>Last Job:</span>
-            <span className="text-gray-400">None</span>
+            {lastJob ? (
+              <span className="font-medium text-gray-700">{lastJobLabel}</span>
+            ) : (
+              <span className="text-gray-400">None</span>
+            )}
           </div>
           <StatusBadge status={experiment.status} />
         </div>

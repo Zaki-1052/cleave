@@ -25,6 +25,7 @@ from schemas.file import (
     DownloadTokenRequest,
     DownloadTokenResponse,
     FileTreeResponse,
+    JobBatchDownloadRequest,
 )
 from services.download_token_service import create_download_token, verify_download_token
 from services.file_service import (
@@ -269,6 +270,78 @@ async def download_job_file(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found on disk")
 
     return _file_download_response(abs_path)
+
+
+@router.post("/jobs/{job_id}/files/batch-download")
+async def batch_download_job_files(
+    job_id: int,
+    body: JobBatchDownloadRequest,
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Create a zip archive of selected job output files and stream it back."""
+    if not body.output_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No output IDs provided",
+        )
+
+    if len(body.output_ids) > settings.BATCH_DOWNLOAD_MAX_FILES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Too many files (max {settings.BATCH_DOWNLOAD_MAX_FILES})",
+        )
+
+    # Verify user access and fetch outputs in one query
+    result = await db.execute(
+        select(JobOutput)
+        .join(AnalysisJob, AnalysisJob.id == JobOutput.job_id)
+        .join(Experiment, Experiment.id == AnalysisJob.experiment_id)
+        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
+        .where(
+            JobOutput.job_id == job_id,
+            JobOutput.id.in_(body.output_ids),
+            ProjectMember.user_id == current_user.id,
+        )
+    )
+    outputs = list(result.scalars().all())
+    if not outputs:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No accessible files found",
+        )
+
+    storage_root = Path(settings.STORAGE_ROOT).resolve()
+    valid_files: list[tuple[str, Path]] = []
+    total_size = 0
+
+    for output in outputs:
+        abs_path = (Path(settings.STORAGE_ROOT) / output.file_path).resolve()
+        if not str(abs_path).startswith(str(storage_root) + "/"):
+            continue
+        if not abs_path.is_file():
+            continue
+        total_size += abs_path.stat().st_size
+        valid_files.append((output.filename, abs_path))
+
+    if not valid_files:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="None of the requested files exist on disk",
+        )
+
+    if total_size > settings.BATCH_DOWNLOAD_MAX_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Total file size exceeds maximum for batch download",
+        )
+
+    zip_filename = _sanitize_filename(f"job_{job_id}_files.zip")
+    return StreamingResponse(
+        _stream_zip(valid_files),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{zip_filename}"'},
+    )
 
 
 @router.post("/files/download-token", response_model=DownloadTokenResponse)

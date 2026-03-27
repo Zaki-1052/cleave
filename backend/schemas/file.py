@@ -31,6 +31,12 @@ class BatchDownloadRequest(CamelModel):
     paths: list[str]
 
 
+class JobBatchDownloadRequest(CamelModel):
+    """Request body for batch downloading job output files."""
+
+    output_ids: list[int]
+
+
 class DownloadTokenRequest(CamelModel):
     """Request body for generating a signed download token."""
 

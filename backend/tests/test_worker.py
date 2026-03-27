@@ -124,9 +124,7 @@ async def test_worker_creates_notification(client: AsyncClient, patch_worker_ses
 
     # Verify notification exists
     async with test_session_factory() as db:
-        result = await db.execute(
-            select(Notification).where(Notification.type == "job_complete")
-        )
+        result = await db.execute(select(Notification).where(Notification.type == "job_complete"))
         notif = result.scalar_one_or_none()
 
     assert notif is not None
@@ -187,9 +185,7 @@ async def test_worker_creates_error_notification(client: AsyncClient, patch_work
     await poll_and_run()
 
     async with test_session_factory() as db:
-        result = await db.execute(
-            select(Notification).where(Notification.type == "job_error")
-        )
+        result = await db.execute(select(Notification).where(Notification.type == "job_error"))
         notif = result.scalar_one_or_none()
 
     assert notif is not None

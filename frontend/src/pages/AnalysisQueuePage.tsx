@@ -1,5 +1,5 @@
 // frontend/src/pages/AnalysisQueuePage.tsx
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Card } from '@/components/layout/Card';
 import { DataTable } from '@/components/ui/DataTable';
@@ -15,6 +15,13 @@ const STATUS_OPTIONS = [
   { value: 'complete', label: 'Complete' },
   { value: 'error', label: 'Error' },
   { value: 'terminated', label: 'Terminated' },
+];
+
+const JOB_TYPE_OPTIONS = [
+  { value: '', label: 'All Types' },
+  { value: 'alignment', label: 'Alignment' },
+  { value: 'trimming', label: 'Trimming' },
+  { value: 'peak_calling', label: 'Peak Calling' },
 ];
 
 const columns: ColumnDef<QueueJob, unknown>[] = [
@@ -55,27 +62,28 @@ const PER_PAGE = 25;
 export default function AnalysisQueuePage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [jobTypeFilter, setJobTypeFilter] = useState<string>('');
   const [searchText, setSearchText] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search input for server-side filtering
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchText);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchText]);
 
   const { data, isLoading } = useAllJobs(
     page,
     PER_PAGE,
     statusFilter || undefined,
+    jobTypeFilter || undefined,
+    debouncedSearch || undefined,
   );
   const jobs = data?.items ?? [];
   const total = data?.total ?? 0;
-
-  const filtered = useMemo(() => {
-    if (!searchText.trim()) return jobs;
-    const q = searchText.toLowerCase();
-    return jobs.filter(
-      (j) =>
-        j.name.toLowerCase().includes(q) ||
-        j.projectName.toLowerCase().includes(q) ||
-        j.experimentName.toLowerCase().includes(q) ||
-        j.jobType.toLowerCase().includes(q),
-    );
-  }, [jobs, searchText]);
 
   const totalPages = Math.ceil(total / PER_PAGE);
   const rangeStart = total > 0 ? (page - 1) * PER_PAGE + 1 : 0;
@@ -109,6 +117,20 @@ export default function AnalysisQueuePage() {
             </svg>
           </div>
           <select
+            value={jobTypeFilter}
+            onChange={(e) => {
+              setJobTypeFilter(e.target.value);
+              setPage(1);
+            }}
+            className="rounded-md border border-gray-300 py-1.5 pl-3 pr-8 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          >
+            {JOB_TYPE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <select
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value);
@@ -127,12 +149,10 @@ export default function AnalysisQueuePage() {
 
       {isLoading ? (
         <p className="py-12 text-center text-sm text-gray-400">Loading...</p>
-      ) : filtered.length === 0 ? (
-        <p className="py-12 text-center text-sm text-gray-400">
-          {total === 0 ? 'No jobs found.' : 'No matching jobs on this page.'}
-        </p>
+      ) : jobs.length === 0 ? (
+        <p className="py-12 text-center text-sm text-gray-400">No jobs found.</p>
       ) : (
-        <DataTable data={filtered} columns={columns} pageSize={filtered.length} />
+        <DataTable data={jobs} columns={columns} pageSize={jobs.length} />
       )}
 
       {total > 0 && (

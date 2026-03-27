@@ -75,18 +75,10 @@ def patch_worker_sessions(monkeypatch):
 
     monkeypatch.setattr(database, "async_session_factory", test_session_factory)
     monkeypatch.setattr(worker, "async_session_factory", test_session_factory)
-    monkeypatch.setattr(
-        services.trimming_service, "async_session_factory", test_session_factory
-    )
-    monkeypatch.setattr(
-        services.job_output_service, "async_session_factory", test_session_factory
-    )
-    monkeypatch.setattr(
-        services.fastqc_service, "async_session_factory", test_session_factory
-    )
-    monkeypatch.setattr(
-        services.sse_service, "async_session_factory", test_session_factory
-    )
+    monkeypatch.setattr(services.trimming_service, "async_session_factory", test_session_factory)
+    monkeypatch.setattr(services.job_output_service, "async_session_factory", test_session_factory)
+    monkeypatch.setattr(services.fastqc_service, "async_session_factory", test_session_factory)
+    monkeypatch.setattr(services.sse_service, "async_session_factory", test_session_factory)
 
 
 @pytest.fixture

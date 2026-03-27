@@ -7,7 +7,7 @@ from auth import current_active_user
 from database import get_db
 from models.user import User
 from schemas.common import PaginatedResponse
-from schemas.job import JobCreate, JobOutputRead, JobQueueRead, JobRead
+from schemas.job import JobCreate, JobOutputRead, JobQueueRead, JobRead, JobUpdate
 from schemas.qc_report import AlignmentQCReport
 from services.job_service import (
     create_job,
@@ -15,6 +15,7 @@ from services.job_service import (
     get_job_outputs,
     list_all_jobs_for_user,
     list_jobs_for_experiment,
+    update_job_notes,
 )
 from services.qc_report_service import get_alignment_qc_report, get_qc_csv_path
 
@@ -45,7 +46,7 @@ async def create_job_endpoint(
 async def list_experiment_jobs(
     experiment_id: int,
     page: int = Query(1, ge=1),
-    per_page: int = Query(25, ge=1, le=100),
+    per_page: int = Query(25, ge=1, le=100, alias="perPage"),
     db: AsyncSession = Depends(get_db),
     user: User = Depends(current_active_user),
 ):
@@ -64,10 +65,14 @@ async def list_all_jobs(
     page: int = Query(1, ge=1),
     per_page: int = Query(25, ge=1, le=100, alias="perPage"),
     status: str | None = Query(None),
+    job_type: str | None = Query(None, alias="jobType"),
+    search: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
     user: User = Depends(current_active_user),
 ):
-    jobs, total = await list_all_jobs_for_user(db, user.id, page, per_page, status)
+    jobs, total = await list_all_jobs_for_user(
+        db, user.id, page, per_page, status, job_type, search
+    )
     items = [JobQueueRead.from_job(j) for j in jobs]
     return {"items": items, "total": total, "page": page, "per_page": per_page}
 
@@ -83,6 +88,22 @@ async def get_job_endpoint(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Job not found",
+        )
+    return job
+
+
+@router.patch("/jobs/{job_id}", response_model=JobRead)
+async def update_job_endpoint(
+    job_id: int,
+    body: JobUpdate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    job = await update_job_notes(db, job_id, user.id, body.notes)
+    if job is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found or insufficient permissions",
         )
     return job
 

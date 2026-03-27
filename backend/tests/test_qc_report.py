@@ -20,6 +20,7 @@ QC_CSV_HEADERS = [
     "chrM_Bandwidth(%)",
     "Ecoli_Read_Pairs",
     "Ecoli_Alignment_Rate(%)",
+    "Ecoli_Normalization_Factor",
 ]
 
 SAMPLE_QC_ROWS = [
@@ -33,6 +34,7 @@ SAMPLE_QC_ROWS = [
         "chrM_Bandwidth(%)": "0.12",
         "Ecoli_Read_Pairs": "12842807",
         "Ecoli_Alignment_Rate(%)": "54.56",
+        "Ecoli_Normalization_Factor": "1.873178",
     },
     {
         "Short_Name": "K4me3_ctrl1",
@@ -44,6 +46,7 @@ SAMPLE_QC_ROWS = [
         "chrM_Bandwidth(%)": "0.0",
         "Ecoli_Read_Pairs": "1020",
         "Ecoli_Alignment_Rate(%)": "0.01",
+        "Ecoli_Normalization_Factor": "0.000134",
     },
 ]
 
@@ -135,9 +138,7 @@ async def _complete_job_with_qc(
 
     async with test_session_factory() as db:
         await db.execute(
-            update(AnalysisJob)
-            .where(AnalysisJob.id == job_id)
-            .values(status="complete")
+            update(AnalysisJob).where(AnalysisJob.id == job_id).values(status="complete")
         )
         output = JobOutput(
             job_id=job_id,
@@ -181,6 +182,7 @@ async def test_get_qc_report_success(client: AsyncClient):
     assert igG["chrmBandwidth"] == 0.12
     assert igG["ecoliReadPairs"] == 12842807
     assert igG["ecoliAlignmentRate"] == 54.56
+    assert igG["ecoliNormalizationFactor"] == 1.873178
 
     ctrl = data["metrics"][1]
     assert ctrl["shortName"] == "K4me3_ctrl1"

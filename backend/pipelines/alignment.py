@@ -24,6 +24,7 @@ import structlog
 from config import settings
 from pipelines.base import PipelineError, PipelineStage
 from pipelines.methods_text import EFFECTIVE_GENOME_SIZES, alignment_methods
+from pipelines.spike_in_barcodes import PTM_NAMES, count_barcodes, normalize_counts
 
 logger = structlog.get_logger(__name__)
 
@@ -57,6 +58,7 @@ _QC_CSV_HEADERS = [
     "chrM_Bandwidth(%)",
     "Ecoli_Read_Pairs",
     "Ecoli_Alignment_Rate(%)",
+    "Ecoli_Normalization_Factor",
 ]
 
 # Minimal 1x1 transparent PNG (89 bytes) for mock heatmap stubs
@@ -231,8 +233,27 @@ def _write_qc_csv(metrics_list: list[dict], output_path: Path) -> None:
                 "chrM_Bandwidth(%)": round(m["chrm_bandwidth"], 2),
                 "Ecoli_Read_Pairs": m["ecoli_read_pairs"],
                 "Ecoli_Alignment_Rate(%)": round(m["ecoli_alignment_rate"], 2),
+                "Ecoli_Normalization_Factor": round(m["ecoli_normalization_factor"], 6),
             }
         )
+    output_path.write_text(buf.getvalue())
+
+
+def _write_spike_in_csv(spike_in_data: list[dict], output_path: Path) -> None:
+    """Write spike-in barcode QC data to CSV."""
+    headers = ["Short_Name", "On_Target_PTM", "Total_Barcode_Reads"] + PTM_NAMES
+    buf = io.StringIO()
+    writer = csv.DictWriter(buf, fieldnames=headers)
+    writer.writeheader()
+    for entry in spike_in_data:
+        row: dict[str, str | int] = {
+            "Short_Name": entry["short_name"],
+            "On_Target_PTM": entry.get("on_target_ptm") or "",
+            "Total_Barcode_Reads": entry["total_barcode_reads"],
+        }
+        for ptm in PTM_NAMES:
+            row[ptm] = entry["ptm_counts"].get(ptm, 0)
+        writer.writerow(row)
     output_path.write_text(buf.getvalue())
 
 
@@ -248,17 +269,20 @@ def _load_canned_qc_data() -> list[dict]:
     with open(csv_path, newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
+            ecoli = int(row["Ecoli_Read_Pairs"])
+            uniq = int(row["Uniquely_Aligned_Read_Pairs"])
             rows.append(
                 {
                     "short_name": row["Short_Name"],
                     "total_read_pairs": int(row["Total_Read_Pairs"]),
                     "aligned_read_pairs": int(row["Aligned_Read_Pairs"]),
-                    "uniquely_aligned_read_pairs": int(row["Uniquely_Aligned_Read_Pairs"]),
+                    "uniquely_aligned_read_pairs": uniq,
                     "unique_alignment_rate": float(row["Unique_Alignment_Rate(%)"]),
                     "duplication_rate": float(row["Duplication_Rate(%)"]),
                     "chrm_bandwidth": float(row["chrM_Bandwidth(%)"]),
-                    "ecoli_read_pairs": int(row["Ecoli_Read_Pairs"]),
+                    "ecoli_read_pairs": ecoli,
                     "ecoli_alignment_rate": float(row["Ecoli_Alignment_Rate(%)"]),
+                    "ecoli_normalization_factor": round(ecoli / uniq, 6) if uniq > 0 else 0.0,
                 }
             )
     return rows
@@ -401,6 +425,7 @@ class AlignmentStage(PipelineStage):
 
         eff_genome_size = EFFECTIVE_GENOME_SIZES[genome]
         all_metrics: list[dict] = []
+        spike_in_data: list[dict] = []
         outputs: list[dict] = []
         project_id = params["project_id"]
         experiment_id = params["experiment_id"]
@@ -768,6 +793,27 @@ class AlignmentStage(PipelineStage):
                 else:
                     logger.warning("alignment.no_ecoli_index")
 
+            # ---- Step 14: K-MetStat spike-in barcode count (if applicable) ----
+            spike_in_type = rxn.get("cutana_spike_in")
+            if spike_in_type and spike_in_type != "None":
+                logger.info(
+                    "alignment.spike_in_barcode_count",
+                    short_name=short_name,
+                    spike_in_type=spike_in_type,
+                )
+                ptm_counts = count_barcodes(r1_abs, r2_abs)
+                on_target = rxn.get("cutana_spike_in_target")
+                pct_recovery = normalize_counts(ptm_counts, on_target)
+                spike_in_data.append(
+                    {
+                        "short_name": short_name,
+                        "on_target_ptm": on_target,
+                        "total_barcode_reads": sum(ptm_counts.values()),
+                        "ptm_counts": ptm_counts,
+                        "pct_recovery": pct_recovery,
+                    }
+                )
+
             # ---- Collect QC metrics ----
             bt2_stats = _parse_bowtie2_log(bt2_log)
             total_reads = rxn.get("total_reads") or bt2_stats["total_reads"]
@@ -783,6 +829,8 @@ class AlignmentStage(PipelineStage):
                 chrm_pct = 0.0
                 ecoli_rate = 0.0
 
+            ecoli_norm_factor = round(ecoli_reads / uniq_reads, 6) if uniq_reads > 0 else 0.0
+
             all_metrics.append(
                 {
                     "short_name": short_name,
@@ -794,6 +842,7 @@ class AlignmentStage(PipelineStage):
                     "chrm_bandwidth": chrm_pct,
                     "ecoli_read_pairs": ecoli_reads,
                     "ecoli_alignment_rate": ecoli_rate,
+                    "ecoli_normalization_factor": ecoli_norm_factor,
                 }
             )
 
@@ -843,6 +892,21 @@ class AlignmentStage(PipelineStage):
             }
         )
 
+        # ---- Write spike-in QC CSV (if any reactions had spike-in) ----
+        if spike_in_data:
+            spike_csv = qc_dir / "spike_in_qc.csv"
+            _write_spike_in_csv(spike_in_data, spike_csv)
+            outputs.append(
+                {
+                    "file_category": "spike_in_qc",
+                    "filename": spike_csv.name,
+                    "file_path": f"{rel_job}/qc/{spike_csv.name}",
+                    "file_type": "csv",
+                    "file_size_bytes": spike_csv.stat().st_size,
+                    "reaction_id": None,
+                }
+            )
+
         return {
             "job_id": job_id,
             "status": "complete",
@@ -884,16 +948,21 @@ class AlignmentStage(PipelineStage):
                 canned_row = canned[i % len(canned)]
                 metrics = {**canned_row, "short_name": short_name}
             else:
+                mock_uniq = int(rxn.get("total_reads", 1000000) * 0.80)
+                mock_ecoli = 500
                 metrics = {
                     "short_name": short_name,
                     "total_read_pairs": rxn.get("total_reads", 1000000),
                     "aligned_read_pairs": int(rxn.get("total_reads", 1000000) * 0.85),
-                    "uniquely_aligned_read_pairs": int(rxn.get("total_reads", 1000000) * 0.80),
+                    "uniquely_aligned_read_pairs": mock_uniq,
                     "unique_alignment_rate": 80.0,
                     "duplication_rate": 12.0,
                     "chrm_bandwidth": 0.01,
-                    "ecoli_read_pairs": 500,
+                    "ecoli_read_pairs": mock_ecoli,
                     "ecoli_alignment_rate": 0.05,
+                    "ecoli_normalization_factor": (
+                        round(mock_ecoli / mock_uniq, 6) if mock_uniq > 0 else 0.0
+                    ),
                 }
             all_metrics.append(metrics)
 
@@ -970,6 +1039,44 @@ class AlignmentStage(PipelineStage):
                 "reaction_id": None,
             }
         )
+
+        # Write mock spike-in CSV if any reaction has spike-in
+        mock_spike_in_data: list[dict] = []
+        for rxn in reactions:
+            spike_type = rxn.get("cutana_spike_in")
+            if spike_type and spike_type != "None":
+                on_target = rxn.get("cutana_spike_in_target")
+                # Generate plausible mock counts
+                ptm_counts: dict[str, int] = {}
+                for ptm in PTM_NAMES:
+                    if ptm == on_target:
+                        ptm_counts[ptm] = 50000
+                    elif ptm == "Unmodified" and on_target is None:
+                        ptm_counts[ptm] = 30000
+                    else:
+                        ptm_counts[ptm] = int(50000 * 0.05)  # ~5% off-target
+                mock_spike_in_data.append(
+                    {
+                        "short_name": rxn["short_name"],
+                        "on_target_ptm": on_target,
+                        "total_barcode_reads": sum(ptm_counts.values()),
+                        "ptm_counts": ptm_counts,
+                    }
+                )
+
+        if mock_spike_in_data:
+            spike_csv = qc_dir / "spike_in_qc.csv"
+            _write_spike_in_csv(mock_spike_in_data, spike_csv)
+            outputs.append(
+                {
+                    "file_category": "spike_in_qc",
+                    "filename": spike_csv.name,
+                    "file_path": f"{rel_job}/qc/{spike_csv.name}",
+                    "file_type": "csv",
+                    "file_size_bytes": spike_csv.stat().st_size,
+                    "reaction_id": None,
+                }
+            )
 
         return {
             "job_id": job_id,

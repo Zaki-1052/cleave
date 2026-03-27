@@ -57,11 +57,46 @@ export async function listAllJobs(
   page = 1,
   perPage = 25,
   status?: string,
+  jobType?: string,
+  search?: string,
 ): Promise<PaginatedResponse<QueueJob>> {
   const { data } = await client.get<PaginatedResponse<QueueJob>>('/jobs', {
-    params: { page, perPage, ...(status && { status }) },
+    params: {
+      page,
+      perPage,
+      ...(status && { status }),
+      ...(jobType && { jobType }),
+      ...(search && { search }),
+    },
   });
   return data;
+}
+
+export async function updateJobNotes(
+  jobId: number,
+  notes: string | null,
+): Promise<AnalysisJob> {
+  const { data } = await client.patch<AnalysisJob>(`/jobs/${jobId}`, { notes });
+  return data;
+}
+
+export async function batchDownloadJobFiles(
+  jobId: number,
+  outputIds: number[],
+): Promise<void> {
+  const response = await client.post(
+    `/jobs/${jobId}/files/batch-download`,
+    { outputIds },
+    { responseType: 'blob' },
+  );
+  const url = URL.createObjectURL(response.data as Blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `job_${jobId}_files.zip`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 export async function downloadQCCsv(jobId: number): Promise<void> {

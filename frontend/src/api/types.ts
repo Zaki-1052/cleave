@@ -178,11 +178,26 @@ export interface AlignmentReactionMetrics {
   chrmBandwidth: number;
   ecoliReadPairs: number;
   ecoliAlignmentRate: number;
+  ecoliNormalizationFactor: number;
+}
+
+export interface SpikeInPTMResult {
+  ptmName: string;
+  rawCount: number;
+  pctRecovery: number;
+}
+
+export interface SpikeInReactionResult {
+  shortName: string;
+  onTargetPtm: string | null;
+  totalBarcodeReads: number;
+  ptmResults: SpikeInPTMResult[];
 }
 
 export interface AlignmentQCReport {
   referenceGenome: string;
   metrics: AlignmentReactionMetrics[];
+  spikeInResults: SpikeInReactionResult[] | null;
 }
 
 export interface Notification {

@@ -12,7 +12,13 @@ from config import settings
 from models.analysis_job import AnalysisJob
 from models.experiment import Experiment
 from models.project import ProjectMember
-from schemas.qc_report import AlignmentQCReport, AlignmentReactionMetrics
+from pipelines.spike_in_barcodes import PTM_NAMES, normalize_counts
+from schemas.qc_report import (
+    AlignmentQCReport,
+    AlignmentReactionMetrics,
+    SpikeInPTMResult,
+    SpikeInReactionResult,
+)
 
 
 async def _get_authorized_alignment_job(
@@ -40,34 +46,75 @@ def _parse_qc_csv(csv_path: Path) -> list[AlignmentReactionMetrics]:
     with open(csv_path, newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
+            ecoli = int(row["Ecoli_Read_Pairs"])
+            uniq = int(row["Uniquely_Aligned_Read_Pairs"])
+            # Backward compat: old CSVs may not have the normalization factor column
+            raw_norm = row.get("Ecoli_Normalization_Factor")
+            ecoli_norm = (
+                float(raw_norm) if raw_norm else (round(ecoli / uniq, 6) if uniq > 0 else 0.0)
+            )
             metrics.append(
                 AlignmentReactionMetrics(
                     short_name=row["Short_Name"],
                     total_read_pairs=int(row["Total_Read_Pairs"]),
                     aligned_read_pairs=int(row["Aligned_Read_Pairs"]),
-                    uniquely_aligned_read_pairs=int(row["Uniquely_Aligned_Read_Pairs"]),
+                    uniquely_aligned_read_pairs=uniq,
                     unique_alignment_rate=float(row["Unique_Alignment_Rate(%)"]),
                     duplication_rate=float(row["Duplication_Rate(%)"]),
                     chrm_bandwidth=float(row["chrM_Bandwidth(%)"]),
-                    ecoli_read_pairs=int(row["Ecoli_Read_Pairs"]),
+                    ecoli_read_pairs=ecoli,
                     ecoli_alignment_rate=float(row["Ecoli_Alignment_Rate(%)"]),
+                    ecoli_normalization_factor=ecoli_norm,
                 )
             )
     return metrics
 
 
-def _resolve_qc_csv_path(job: AnalysisJob) -> Path | None:
-    """Find the QC CSV file on disk from job outputs."""
+def _parse_spike_in_csv(csv_path: Path) -> list[SpikeInReactionResult]:
+    """Parse spike-in barcode QC CSV into structured results."""
+    results: list[SpikeInReactionResult] = []
+    with open(csv_path, newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            on_target = row.get("On_Target_PTM") or None
+            ptm_counts = {ptm: int(row.get(ptm, 0)) for ptm in PTM_NAMES}
+            pct_recovery = normalize_counts(ptm_counts, on_target)
+            total = sum(ptm_counts.values())
+            ptm_results = [
+                SpikeInPTMResult(
+                    ptm_name=ptm,
+                    raw_count=ptm_counts[ptm],
+                    pct_recovery=pct_recovery[ptm],
+                )
+                for ptm in PTM_NAMES
+            ]
+            results.append(
+                SpikeInReactionResult(
+                    short_name=row["Short_Name"],
+                    on_target_ptm=on_target,
+                    total_barcode_reads=total,
+                    ptm_results=ptm_results,
+                )
+            )
+    return results
+
+
+def _resolve_output_path(job: AnalysisJob, category: str, file_type: str) -> Path | None:
+    """Find a job output file on disk by category and type."""
     storage_root = Path(settings.STORAGE_ROOT)
     for output in job.outputs:
-        if output.file_category == "qc_report" and output.file_type == "csv":
+        if output.file_category == category and output.file_type == file_type:
             abs_path = storage_root / output.file_path
-            # Path traversal guard
             if not abs_path.resolve().is_relative_to(storage_root.resolve()):
                 return None
             if abs_path.exists():
                 return abs_path
     return None
+
+
+def _resolve_qc_csv_path(job: AnalysisJob) -> Path | None:
+    """Find the QC CSV file on disk from job outputs."""
+    return _resolve_output_path(job, "qc_report", "csv")
 
 
 async def get_alignment_qc_report(
@@ -87,8 +134,7 @@ async def get_alignment_qc_report(
 
     if job.job_type != "alignment" or job.status != "complete":
         raise ValueError(
-            f"Job {job_id} is not a completed alignment"
-            f" (type={job.job_type}, status={job.status})"
+            f"Job {job_id} is not a completed alignment (type={job.job_type}, status={job.status})"
         )
 
     csv_path = _resolve_qc_csv_path(job)
@@ -98,7 +144,17 @@ async def get_alignment_qc_report(
     genome = job.params.get("reference_genome", "unknown") if job.params else "unknown"
     metrics = _parse_qc_csv(csv_path)
 
-    return AlignmentQCReport(reference_genome=genome, metrics=metrics)
+    # Include spike-in data if available
+    spike_in_results = None
+    spike_csv = _resolve_output_path(job, "spike_in_qc", "csv")
+    if spike_csv is not None:
+        spike_in_results = _parse_spike_in_csv(spike_csv)
+
+    return AlignmentQCReport(
+        reference_genome=genome,
+        metrics=metrics,
+        spike_in_results=spike_in_results,
+    )
 
 
 async def get_qc_csv_path(
@@ -118,8 +174,7 @@ async def get_qc_csv_path(
 
     if job.job_type != "alignment" or job.status != "complete":
         raise ValueError(
-            f"Job {job_id} is not a completed alignment"
-            f" (type={job.job_type}, status={job.status})"
+            f"Job {job_id} is not a completed alignment (type={job.job_type}, status={job.status})"
         )
 
     csv_path = _resolve_qc_csv_path(job)

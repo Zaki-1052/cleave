@@ -5,6 +5,7 @@ import type { AnalysisJob } from '@/api/types';
 import { Card } from '@/components/layout/Card';
 import { DetailRow } from '@/components/ui/DetailRow';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { useUpdateJobNotes } from '@/hooks/useJobs';
 import { formatDate, getDisplayName } from '@/lib/utils';
 
 interface AlignmentInfoPanelProps {
@@ -13,6 +14,9 @@ interface AlignmentInfoPanelProps {
 
 export function AlignmentInfoPanel({ job }: AlignmentInfoPanelProps) {
   const [copied, setCopied] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(job.notes ?? '');
+  const updateNotes = useUpdateJobNotes();
 
   const launcherName = job.launcher ? getDisplayName(job.launcher) : 'Unknown';
 
@@ -21,6 +25,20 @@ export function AlignmentInfoPanel({ job }: AlignmentInfoPanelProps) {
     await navigator.clipboard.writeText(job.methodsText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  function handleEditStart() {
+    setDraft(job.notes ?? '');
+    setEditing(true);
+  }
+
+  function handleSave() {
+    updateNotes.mutate(
+      { jobId: job.id, notes: draft || null },
+      {
+        onSuccess: () => setEditing(false),
+      },
+    );
   }
 
   return (
@@ -69,9 +87,41 @@ export function AlignmentInfoPanel({ job }: AlignmentInfoPanelProps) {
         <Card className="flex-[2]">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Notes</h3>
-            <span className="cursor-default text-xs font-medium text-primary">Manage</span>
+            {!editing && (
+              <button
+                onClick={handleEditStart}
+                className="text-xs font-medium text-primary hover:text-primary-dark"
+              >
+                Manage
+              </button>
+            )}
           </div>
-          {job.notes ? (
+          {editing ? (
+            <div className="space-y-2">
+              <textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                rows={4}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSave}
+                  disabled={updateNotes.isPending}
+                  className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-white hover:bg-primary-dark disabled:opacity-50"
+                >
+                  {updateNotes.isPending ? 'Saving...' : 'Save'}
+                </button>
+                <button
+                  onClick={() => setEditing(false)}
+                  disabled={updateNotes.isPending}
+                  className="rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : job.notes ? (
             <p className="text-sm text-gray-600">{job.notes}</p>
           ) : (
             <p className="text-sm text-gray-400">No notes</p>

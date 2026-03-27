@@ -3,7 +3,7 @@ import { type ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 
 import { downloadQCCsv } from '@/api/jobs';
-import type { AlignmentReactionMetrics, AnalysisJob } from '@/api/types';
+import type { AlignmentReactionMetrics, AnalysisJob, SpikeInReactionResult } from '@/api/types';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
@@ -57,6 +57,11 @@ const columns: ColumnDef<AlignmentReactionMetrics, unknown>[] = [
     accessorKey: 'ecoliAlignmentRate',
     header: 'E. coli Alignment Rate (%)',
     cell: ({ getValue }) => (getValue() as number).toFixed(2),
+  },
+  {
+    accessorKey: 'ecoliNormalizationFactor',
+    header: 'E. coli Norm. Factor',
+    cell: ({ getValue }) => (getValue() as number).toFixed(6),
   },
 ];
 
@@ -210,6 +215,16 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
                   reconstitution.
                 </p>
               </div>
+              <div>
+                <span className="font-semibold text-gray-700">
+                  E. coli Norm. Factor
+                </span>
+                <p>
+                  Ratio of E. coli spike-in reads to uniquely aligned reads
+                  (ecoli_reads / unique_reads). Used as a scalar for spike-in
+                  normalization of bigWig files via bamCoverage --scaleFactor.
+                </p>
+              </div>
             </div>
           </Card>
         </div>
@@ -220,9 +235,11 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
         <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
           SNAP-CUTANA K-MetStat Spike-in
         </h3>
-        {hasSpikeIn ? (
+        {report.spikeInResults && report.spikeInResults.length > 0 ? (
+          <SpikeInHeatmap results={report.spikeInResults} />
+        ) : hasSpikeIn ? (
           <p className="text-sm text-gray-500">
-            Spike-in QC heatmap will be available in a future update.
+            Spike-in barcode data is being processed...
           </p>
         ) : (
           <p className="text-sm text-gray-400">
@@ -230,6 +247,89 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
           </p>
         )}
       </Card>
+    </div>
+  );
+}
+
+function spikeInCellColor(pct: number, isOnTarget: boolean): string {
+  if (isOnTarget) return 'rgb(59, 130, 246)';
+  if (pct <= 20) return `rgba(34, 197, 94, ${Math.max(0.15, pct / 20 * 0.6)})`;
+  if (pct <= 50) return `rgba(234, 179, 8, ${0.3 + (pct - 20) / 30 * 0.5})`;
+  return `rgba(239, 68, 68, ${0.4 + Math.min((pct - 50) / 50, 1) * 0.5})`;
+}
+
+function SpikeInHeatmap({ results }: { results: SpikeInReactionResult[] }) {
+  if (results.length === 0) return null;
+  const ptmNames = results[0].ptmResults.map((r) => r.ptmName);
+
+  return (
+    <div className="space-y-3">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-xs">
+          <thead>
+            <tr>
+              <th className="border border-gray-200 bg-gray-50 px-2 py-1.5 text-left font-semibold text-gray-600">
+                Reaction
+              </th>
+              {ptmNames.map((ptm) => (
+                <th
+                  key={ptm}
+                  className="border border-gray-200 bg-gray-50 px-1.5 py-1.5 text-center font-semibold text-gray-600"
+                  style={{ writingMode: 'vertical-lr', minWidth: 32, height: 100 }}
+                >
+                  {ptm}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {results.map((rxn) => (
+              <tr key={rxn.shortName}>
+                <td className="border border-gray-200 px-2 py-1.5 font-medium text-gray-700 whitespace-nowrap">
+                  {rxn.shortName}
+                </td>
+                {rxn.ptmResults.map((ptmRes) => {
+                  const isOnTarget = ptmRes.ptmName === rxn.onTargetPtm;
+                  return (
+                    <td
+                      key={ptmRes.ptmName}
+                      className="border border-gray-200 px-1 py-1 text-center font-mono"
+                      style={{
+                        backgroundColor: spikeInCellColor(ptmRes.pctRecovery, isOnTarget),
+                        color: isOnTarget || ptmRes.pctRecovery > 50 ? 'white' : 'inherit',
+                      }}
+                      title={`${ptmRes.ptmName}: ${ptmRes.rawCount} reads (${ptmRes.pctRecovery.toFixed(1)}%)${isOnTarget ? ' [on-target]' : ''}`}
+                    >
+                      {ptmRes.pctRecovery.toFixed(1)}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="flex items-center gap-4 text-xs text-gray-500">
+        <div className="flex items-center gap-1">
+          <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: 'rgba(34, 197, 94, 0.4)' }} />
+          <span>Pass (&lt;20%)</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: 'rgba(234, 179, 8, 0.6)' }} />
+          <span>Warning (20-50%)</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: 'rgba(239, 68, 68, 0.7)' }} />
+          <span>Fail (&gt;50%)</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: 'rgb(59, 130, 246)' }} />
+          <span>On-target</span>
+        </div>
+      </div>
+      <p className="text-xs text-gray-400">
+        Values show % recovery relative to the on-target PTM. Off-target recovery &lt;20% indicates assay success per CUTANA QC criteria.
+      </p>
     </div>
   );
 }
