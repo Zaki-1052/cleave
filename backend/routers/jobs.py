@@ -7,9 +7,15 @@ from auth import current_active_user
 from database import get_db
 from models.user import User
 from schemas.common import PaginatedResponse
-from schemas.job import JobCreate, JobOutputRead, JobRead
+from schemas.job import JobCreate, JobOutputRead, JobQueueRead, JobRead
 from schemas.qc_report import AlignmentQCReport
-from services.job_service import create_job, get_job, get_job_outputs, list_jobs_for_experiment
+from services.job_service import (
+    create_job,
+    get_job,
+    get_job_outputs,
+    list_all_jobs_for_user,
+    list_jobs_for_experiment,
+)
 from services.qc_report_service import get_alignment_qc_report, get_qc_csv_path
 
 router = APIRouter()
@@ -51,6 +57,19 @@ async def list_experiment_jobs(
         )
     jobs, total = result
     return {"items": jobs, "total": total, "page": page, "per_page": per_page}
+
+
+@router.get("/jobs", response_model=PaginatedResponse[JobQueueRead])
+async def list_all_jobs(
+    page: int = Query(1, ge=1),
+    per_page: int = Query(25, ge=1, le=100, alias="perPage"),
+    status: str | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    jobs, total = await list_all_jobs_for_user(db, user.id, page, per_page, status)
+    items = [JobQueueRead.from_job(j) for j in jobs]
+    return {"items": items, "total": total, "page": page, "per_page": per_page}
 
 
 @router.get("/jobs/{job_id}", response_model=JobRead)

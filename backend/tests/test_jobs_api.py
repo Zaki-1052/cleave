@@ -293,6 +293,193 @@ async def test_list_job_outputs_unauthorized_404(client: AsyncClient):
     assert resp.status_code == 404
 
 
+# --- Analysis Queue (cross-project) tests ---
+
+
+async def _create_job(
+    client: AsyncClient, headers: dict, exp_id: int, project_id: int, name: str = "Job"
+) -> int:
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/jobs",
+        json={
+            "jobType": "alignment",
+            "name": name,
+            "params": {"experiment_id": exp_id, "project_id": project_id, "reactions": []},
+        },
+        headers=headers,
+    )
+    assert resp.status_code == 201
+    return resp.json()["id"]
+
+
+async def test_list_all_jobs_200(client: AsyncClient):
+    """Cross-project job listing returns jobs from all user's projects."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+
+    proj1 = await _create_project(client, headers)
+    exp1 = await _create_experiment(client, headers, proj1)
+    await _create_job(client, headers, exp1, proj1, "Job A")
+
+    proj2 = await _create_project(client, headers)
+    exp2 = await _create_experiment(client, headers, proj2)
+    await _create_job(client, headers, exp2, proj2, "Job B")
+
+    resp = await client.get("/api/v1/jobs", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 2
+    assert len(data["items"]) == 2
+    names = {item["name"] for item in data["items"]}
+    assert names == {"Job A", "Job B"}
+    # Verify queue-specific fields are present
+    item = data["items"][0]
+    assert "projectName" in item
+    assert "experimentName" in item
+    assert "launcher" in item
+
+
+async def test_list_all_jobs_cross_project_isolation(client: AsyncClient):
+    """Users only see jobs from projects they belong to."""
+    alice = await _register_and_get_headers(client, "alice@example.com")
+    bob = await _register_and_get_headers(client, "bob@example.com")
+
+    proj_a = await _create_project(client, alice)
+    exp_a = await _create_experiment(client, alice, proj_a)
+    await _create_job(client, alice, exp_a, proj_a, "Alice Job")
+
+    proj_b = await _create_project(client, bob)
+    exp_b = await _create_experiment(client, bob, proj_b)
+    await _create_job(client, bob, exp_b, proj_b, "Bob Job")
+
+    resp_alice = await client.get("/api/v1/jobs", headers=alice)
+    assert resp_alice.json()["total"] == 1
+    assert resp_alice.json()["items"][0]["name"] == "Alice Job"
+
+    resp_bob = await client.get("/api/v1/jobs", headers=bob)
+    assert resp_bob.json()["total"] == 1
+    assert resp_bob.json()["items"][0]["name"] == "Bob Job"
+
+
+async def test_list_all_jobs_shared_project_visibility(client: AsyncClient):
+    """Members added to a project can see that project's jobs."""
+    alice = await _register_and_get_headers(client, "alice@example.com")
+    bob = await _register_and_get_headers(client, "bob@example.com")
+
+    proj = await _create_project(client, alice)
+    exp = await _create_experiment(client, alice, proj)
+    await _create_job(client, alice, exp, proj, "Shared Job")
+
+    # Bob has no jobs yet
+    resp = await client.get("/api/v1/jobs", headers=bob)
+    assert resp.json()["total"] == 0
+
+    # Alice adds Bob to the project
+    await client.post(
+        f"/api/v1/projects/{proj}/members",
+        json={"email": "bob@example.com", "role": "contributor"},
+        headers=alice,
+    )
+
+    # Now Bob sees Alice's job
+    resp = await client.get("/api/v1/jobs", headers=bob)
+    assert resp.json()["total"] == 1
+    assert resp.json()["items"][0]["name"] == "Shared Job"
+
+
+async def test_list_all_jobs_status_filter(client: AsyncClient, db_session):
+    """Filter jobs by status query parameter."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+
+    await _create_job(client, headers, exp, proj, "Queued Job")
+    job2_id = await _create_job(client, headers, exp, proj, "Running Job")
+
+    # Update job2 to running via DB
+    from sqlalchemy import select
+
+    from models.analysis_job import AnalysisJob
+
+    result = await db_session.execute(
+        select(AnalysisJob).where(AnalysisJob.id == job2_id)
+    )
+    job2 = result.scalar_one()
+    job2.status = "running"
+    await db_session.commit()
+
+    # No filter — both returned
+    resp = await client.get("/api/v1/jobs", headers=headers)
+    assert resp.json()["total"] == 2
+
+    # Filter queued
+    resp = await client.get("/api/v1/jobs", params={"status": "queued"}, headers=headers)
+    assert resp.json()["total"] == 1
+    assert resp.json()["items"][0]["name"] == "Queued Job"
+
+    # Filter running
+    resp = await client.get("/api/v1/jobs", params={"status": "running"}, headers=headers)
+    assert resp.json()["total"] == 1
+    assert resp.json()["items"][0]["name"] == "Running Job"
+
+
+async def test_list_all_jobs_pagination(client: AsyncClient):
+    """Pagination works with perPage and page params."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+
+    for i in range(3):
+        await _create_job(client, headers, exp, proj, f"Job {i}")
+
+    resp = await client.get("/api/v1/jobs", params={"perPage": 2, "page": 1}, headers=headers)
+    data = resp.json()
+    assert data["total"] == 3
+    assert len(data["items"]) == 2
+
+    resp = await client.get("/api/v1/jobs", params={"perPage": 2, "page": 2}, headers=headers)
+    data = resp.json()
+    assert data["total"] == 3
+    assert len(data["items"]) == 1
+
+
+async def test_list_all_jobs_response_shape(client: AsyncClient):
+    """Response items have exactly the expected queue-specific fields."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+    await _create_job(client, headers, exp, proj, "Shape Test")
+
+    resp = await client.get("/api/v1/jobs", headers=headers)
+    item = resp.json()["items"][0]
+
+    expected_keys = {
+        "id",
+        "experimentId",
+        "experimentName",
+        "projectId",
+        "projectName",
+        "jobType",
+        "name",
+        "status",
+        "launchedBy",
+        "launcher",
+        "startedAt",
+        "completedAt",
+        "durationSeconds",
+        "createdAt",
+    }
+    assert set(item.keys()) == expected_keys
+    assert item["launcher"] is not None
+    assert "email" in item["launcher"]
+    assert "firstName" in item["launcher"]
+
+
+async def test_list_all_jobs_unauthenticated_401(client: AsyncClient):
+    """Unauthenticated request returns 401."""
+    resp = await client.get("/api/v1/jobs")
+    assert resp.status_code == 401
+
+
 async def test_adapter_status_in_fastq_response(client: AsyncClient):
     """Verify adapterStatus field is included in FASTQ list response."""
     headers = await _register_and_get_headers(client, "user@example.com")

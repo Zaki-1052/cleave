@@ -35,6 +35,13 @@ export function useJobs(experimentId: number, page = 1, perPage = 25) {
   });
 }
 
+export function useAllJobs(page = 1, perPage = 25, status?: string) {
+  return useQuery({
+    queryKey: ['all-jobs', { page, perPage, status }],
+    queryFn: () => jobsApi.listAllJobs(page, perPage, status),
+  });
+}
+
 export function useQCReport(jobId: number | null) {
   return useQuery({
     queryKey: ['qc-report', jobId],

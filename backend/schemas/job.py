@@ -37,6 +37,51 @@ class JobRead(CamelModel):
     created_at: datetime
 
 
+class JobQueueRead(CamelModel):
+    """Lean job schema for the cross-project Analysis Queue page."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    experiment_id: int
+    experiment_name: str
+    project_id: int
+    project_name: str
+    job_type: str
+    name: str
+    status: str = "queued"
+    launched_by: int | None = None
+    launcher: UserBrief | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    duration_seconds: int | None = None
+    created_at: datetime
+
+    @classmethod
+    def from_job(cls, job) -> "JobQueueRead":
+        """Build from an AnalysisJob with eagerly-loaded experiment.project and launcher."""
+        return cls(
+            id=job.id,
+            experiment_id=job.experiment_id,
+            experiment_name=job.experiment.name,
+            project_id=job.experiment.project_id,
+            project_name=job.experiment.project.name,
+            job_type=job.job_type,
+            name=job.name,
+            status=job.status,
+            launched_by=job.launched_by,
+            launcher=(
+                UserBrief.model_validate(job.launcher, from_attributes=True)
+                if job.launcher
+                else None
+            ),
+            started_at=job.started_at,
+            completed_at=job.completed_at,
+            duration_seconds=job.duration_seconds,
+            created_at=job.created_at,
+        )
+
+
 class JobOutputRead(CamelModel):
     model_config = ConfigDict(from_attributes=True)
 

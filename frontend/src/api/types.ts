@@ -139,6 +139,23 @@ export interface AnalysisJob {
   createdAt: string;
 }
 
+export interface QueueJob {
+  id: number;
+  experimentId: number;
+  experimentName: string;
+  projectId: number;
+  projectName: string;
+  jobType: string;
+  name: string;
+  status: string;
+  launchedBy: number | null;
+  launcher: MemberUser | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  durationSeconds: number | null;
+  createdAt: string;
+}
+
 export interface JobOutput {
   id: number;
   jobId: number;

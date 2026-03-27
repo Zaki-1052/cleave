@@ -1,6 +1,6 @@
 // frontend/src/api/jobs.ts
 import client from './client';
-import type { AlignmentQCReport, AnalysisJob, JobOutput, PaginatedResponse } from './types';
+import type { AlignmentQCReport, AnalysisJob, JobOutput, PaginatedResponse, QueueJob } from './types';
 
 export interface JobCreatePayload {
   jobType: string;
@@ -49,6 +49,17 @@ export async function getJobOutputs(
 ): Promise<JobOutput[]> {
   const { data } = await client.get<JobOutput[]>(`/jobs/${jobId}/outputs`, {
     params: category ? { category } : undefined,
+  });
+  return data;
+}
+
+export async function listAllJobs(
+  page = 1,
+  perPage = 25,
+  status?: string,
+): Promise<PaginatedResponse<QueueJob>> {
+  const { data } = await client.get<PaginatedResponse<QueueJob>>('/jobs', {
+    params: { page, perPage, ...(status && { status }) },
   });
   return data;
 }

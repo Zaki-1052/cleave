@@ -83,6 +83,38 @@ async def get_job_outputs(
     return list(result.scalars().all())
 
 
+async def list_all_jobs_for_user(
+    db: AsyncSession,
+    user_id: int,
+    page: int,
+    per_page: int,
+    status: str | None = None,
+) -> tuple[list[AnalysisJob], int]:
+    """List all jobs across projects the user is a member of."""
+    base = (
+        select(AnalysisJob)
+        .join(Experiment, Experiment.id == AnalysisJob.experiment_id)
+        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
+        .where(ProjectMember.user_id == user_id)
+    )
+    if status is not None:
+        base = base.where(AnalysisJob.status == status)
+
+    count_result = await db.execute(select(func.count()).select_from(base.subquery()))
+    total = count_result.scalar_one()
+
+    result = await db.execute(
+        base.order_by(AnalysisJob.created_at.desc())
+        .offset((page - 1) * per_page)
+        .limit(per_page)
+        .options(
+            selectinload(AnalysisJob.launcher),
+            selectinload(AnalysisJob.experiment).selectinload(Experiment.project),
+        )
+    )
+    return list(result.scalars().unique().all()), total
+
+
 async def list_jobs_for_experiment(
     db: AsyncSession,
     experiment_id: int,
