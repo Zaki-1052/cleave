@@ -33,7 +33,10 @@ class Settings(BaseSettings):
     BATCH_DOWNLOAD_MAX_BYTES: int = 10 * 1024 * 1024 * 1024  # 10 GB
 
     # Worker
-    WORKER_POLL_INTERVAL_SECONDS: int = 2
+    WORKER_POLL_INTERVAL_SECONDS: float = 2
+
+    # SSE
+    SSE_KEEPALIVE_SECONDS: int = 15
 
     # Email (Phase 3)
     SMTP_HOST: str = ""

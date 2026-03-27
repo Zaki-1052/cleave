@@ -1,5 +1,6 @@
 # backend/routers/notifications.py
 from fastapi import APIRouter, Depends, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import current_active_user
@@ -7,8 +8,25 @@ from database import get_db
 from models.user import User
 from schemas.notification import NotificationRead
 from services import notification_service
+from services.sse_service import sse_event_generator
 
 router = APIRouter()
+
+
+@router.get("/stream")
+async def notification_stream(
+    current_user: User = Depends(current_active_user),
+):
+    """SSE endpoint — streams notification and job status events to the current user."""
+    return StreamingResponse(
+        sse_event_generator(current_user.id),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 @router.get("", response_model=list[NotificationRead])

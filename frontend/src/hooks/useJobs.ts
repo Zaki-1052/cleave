@@ -24,14 +24,6 @@ export function useJob(jobId: number | null) {
     queryKey: ['job', jobId],
     queryFn: () => jobsApi.getJob(jobId!),
     enabled: jobId !== null,
-    // Poll while job is still running
-    refetchInterval: (query) => {
-      const status = query.state.data?.status;
-      if (status === 'queued' || status === 'running') {
-        return 2000;
-      }
-      return false;
-    },
   });
 }
 

@@ -69,6 +69,7 @@ def patch_worker_sessions(monkeypatch):
     import database
     import services.fastqc_service
     import services.job_output_service
+    import services.sse_service
     import services.trimming_service
     import worker
 
@@ -82,6 +83,9 @@ def patch_worker_sessions(monkeypatch):
     )
     monkeypatch.setattr(
         services.fastqc_service, "async_session_factory", test_session_factory
+    )
+    monkeypatch.setattr(
+        services.sse_service, "async_session_factory", test_session_factory
     )
 
 

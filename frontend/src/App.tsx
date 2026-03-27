@@ -18,8 +18,10 @@ import HistoryTab from '@/pages/experiment/HistoryTab';
 import AllFilesTab from '@/pages/experiment/AllFilesTab';
 import AnalysisQueuePage from '@/pages/AnalysisQueuePage';
 import SettingsPage from '@/pages/SettingsPage';
+import { useSSE } from '@/hooks/useSSE';
 
 function AuthenticatedLayout() {
+  useSSE();
   return (
     <GradientBackground>
       <Navbar />
