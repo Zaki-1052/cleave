@@ -349,6 +349,11 @@ class AlignmentStage(PipelineStage):
                     errors.append(f"reactions[{i}]: missing 'reaction_id'")
                 if "short_name" not in rxn:
                     errors.append(f"reactions[{i}]: missing 'short_name'")
+                elif not re.match(r"^[A-Za-z0-9][A-Za-z0-9_\-\.]*$", rxn["short_name"]):
+                    errors.append(
+                        f"reactions[{i}]: short_name contains unsafe characters "
+                        "(only letters, digits, underscores, hyphens, dots allowed)"
+                    )
                 if "r1_path" not in rxn:
                     errors.append(f"reactions[{i}]: missing 'r1_path'")
                 if "r2_path" not in rxn:

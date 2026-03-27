@@ -571,3 +571,125 @@ async def test_list_prefixes_empty(client: AsyncClient):
     )
     assert resp.status_code == 200
     assert resp.json() == []
+
+
+# ---------------------------------------------------------------------------
+# Security: short_name and fastq_prefix path traversal prevention
+# ---------------------------------------------------------------------------
+
+
+async def test_create_reaction_rejects_path_traversal(client: AsyncClient):
+    """short_name with ../ must be rejected to prevent path traversal."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions",
+        json=_reaction_body(short_name="../../../tmp/evil"),
+        headers=headers,
+    )
+    assert resp.status_code == 422
+
+
+async def test_create_reaction_rejects_slash(client: AsyncClient):
+    """short_name with forward slash must be rejected."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions",
+        json=_reaction_body(short_name="foo/bar"),
+        headers=headers,
+    )
+    assert resp.status_code == 422
+
+
+async def test_create_reaction_rejects_backslash(client: AsyncClient):
+    """short_name with backslash must be rejected."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions",
+        json=_reaction_body(short_name="foo\\bar"),
+        headers=headers,
+    )
+    assert resp.status_code == 422
+
+
+async def test_create_reaction_rejects_null_byte(client: AsyncClient):
+    """short_name with null byte must be rejected."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions",
+        json=_reaction_body(short_name="foo\x00bar"),
+        headers=headers,
+    )
+    assert resp.status_code == 422
+
+
+async def test_create_reaction_rejects_space_in_short_name(client: AsyncClient):
+    """short_name with spaces must be rejected (unsafe in filenames)."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions",
+        json=_reaction_body(short_name="foo bar"),
+        headers=headers,
+    )
+    assert resp.status_code == 422
+
+
+async def test_create_reaction_valid_complex_short_name(client: AsyncClient):
+    """short_name with allowed special chars (underscore, hyphen, dot) succeeds."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions",
+        json=_reaction_body(short_name="K4me3_ctrl-1.rep2"),
+        headers=headers,
+    )
+    assert resp.status_code == 201
+    assert resp.json()["shortName"] == "K4me3_ctrl-1.rep2"
+
+
+async def test_create_reaction_rejects_prefix_path_traversal(client: AsyncClient):
+    """fastq_prefix with ../ must be rejected."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions",
+        json=_reaction_body(prefix="../../etc/passwd"),
+        headers=headers,
+    )
+    assert resp.status_code == 422
+
+
+async def test_csv_import_rejects_path_traversal_short_name(client: AsyncClient):
+    """CSV import with traversal short_name must be rejected."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    csv_content = (
+        "FASTQ Prefix,Short Name,Organism\n"
+        "sample1,../../../evil,Mouse\n"
+    )
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions/import-csv",
+        files={"file": ("reactions.csv", io.BytesIO(csv_content.encode()), "text/csv")},
+        headers=headers,
+    )
+    assert resp.status_code == 422

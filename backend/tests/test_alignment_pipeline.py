@@ -115,6 +115,28 @@ def test_validate_all_supported_genomes(stage):
         assert errors == [], f"Validation failed for genome {genome}: {errors}"
 
 
+def test_validate_rejects_path_traversal_short_name(stage):
+    """Defense-in-depth: pipeline validates short_name has no path traversal chars."""
+    for malicious_name in ["../evil", "foo/bar", "foo\\bar", "..", "a/../b"]:
+        params = _make_valid_params()
+        params["reactions"][0]["short_name"] = malicious_name
+        errors = stage.validate(params)
+        assert any("unsafe" in e.lower() for e in errors), (
+            f"Expected validation error for short_name='{malicious_name}', got: {errors}"
+        )
+
+
+def test_validate_accepts_safe_short_names(stage):
+    """Defense-in-depth: pipeline accepts legitimate short_name values."""
+    for safe_name in ["IgG", "K4me3_ctrl-1", "H3K27me3.rep2", "A1"]:
+        params = _make_valid_params()
+        params["reactions"][0]["short_name"] = safe_name
+        errors = stage.validate(params)
+        assert not any("unsafe" in e.lower() for e in errors), (
+            f"Unexpected validation error for short_name='{safe_name}': {errors}"
+        )
+
+
 # --- Mock run tests ---
 
 

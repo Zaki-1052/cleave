@@ -80,3 +80,31 @@
 ## Still Deferred
 - EC2 real-mode validation (deployment task)
 - Email notifications (Phase 7.5, needs SES)
+
+---
+
+## Security Review & Fix Session (same day)
+
+**Scope**: End-to-end security review of Phases 1-3, fix confirmed vulnerabilities.
+
+### Review Process
+- 3 parallel exploration agents examined: auth/permissions, input validation/injection, data exposure/crypto
+- 5 targeted validation agents filtered false positives (JWT algorithm confusion, IDOR, command injection, XSS, FastQC)
+- 1 confirmed HIGH-severity vulnerability; 10 other candidates validated as false positives
+
+### Confirmed Vulnerability: Path Traversal via `short_name`
+- `short_name` field on reactions accepted arbitrary strings (including `../`)
+- Used directly in 20+ f-string file path constructions in `alignment.py`
+- Contributor could write files outside intended job directory within STORAGE_ROOT
+
+### Fix (defense in depth, 2 layers)
+1. **Schema validation** (`schemas/reaction.py`): Added `_validate_safe_name()` with regex `^[A-Za-z0-9][A-Za-z0-9_\-\.]{0,99}$`. Applied to `short_name` and `fastq_prefix` on both `ReactionCreate` and `ReactionUpdate`. CSV import automatically protected.
+2. **Pipeline validation** (`pipelines/alignment.py`): Same regex check in `validate()` as defense-in-depth against schema bypass.
+
+### Files Modified
+- `backend/schemas/reaction.py` (validators for short_name + fastq_prefix)
+- `backend/pipelines/alignment.py` (defense-in-depth validation)
+- `backend/tests/test_reactions.py` (+8 security tests)
+- `backend/tests/test_alignment_pipeline.py` (+2 security tests)
+
+### Test Count: 226 (was 216, +10 new security tests). All passing, ruff clean.

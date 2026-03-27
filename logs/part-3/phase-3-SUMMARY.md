@@ -200,16 +200,18 @@ No new backend Python dependencies — all pipeline tools (bowtie2, samtools, pi
 - ~~`update_storage_bytes` duplication~~ → Consolidated all copies to `job_output_service.py`
 - ~~Job notifications missing `link_target`~~ → Added `/experiments/{id}` link
 
+### Resolved in Phase 3 Bug-Fix Session (2026-03-27)
+- ~~SNAP-CUTANA K-MetStat spike-in QC~~ → Full implementation: barcode grep via `zgrep -c`, 32 barcodes from `k_metstat_script.sh`, spike-in CSV output, heatmap UI with pass/fail coloring
+- ~~E. coli spike-in normalization factor~~ → New `ecoli_normalization_factor` column in QC report (ecoli_reads / unique_reads)
+- ~~"Last Job" in ExperimentView header~~ → Wired to `useJobs(id, 1, 1)`, displays formatted job type label
+- ~~Notes "Manage" link~~ → `PATCH /api/v1/jobs/{id}` endpoint + inline textarea editor with Save/Cancel
+- ~~Batch download in Files sub-tab~~ → `POST /api/v1/jobs/{id}/files/batch-download` streams zip; single file still opens tab
+- ~~`list_experiment_jobs` endpoint~~ → Added missing `alias="perPage"` + regression test
+- ~~Column-level filter dropdowns~~ → Server-side `jobType` and `search` params on `GET /api/v1/jobs`; "Executable" dropdown + debounced search in UI
+
 ### Still Open
-- **SNAP-CUTANA K-MetStat spike-in QC**: UI has conditional placeholder, but pipeline doesn't yet run barcode grep on FASTQs. All 32 barcode sequences available in `references/media_misc/k_metstat_script.sh`. Low effort to implement.
-- **E. coli spike-in normalization factor**: Pipeline aligns to E. coli genome but normalization factor not surfaced in QC report columns.
 - **EC2 real-mode validation**: Real alignment pipeline implemented but not yet tested with actual FASTQs on EC2 instance.
 - **Email notifications**: Deferred to Phase 7.5 (needs Amazon SES configuration).
-- **"Last Job" in ExperimentView header**: Still shows static "None" — needs wiring to actual job data.
-- **Notes "Manage" link**: No-op in Info sub-tab (editing not implemented).
-- **Batch download in Files sub-tab**: Opens multiple browser tabs (one per file) — could use zip download.
-- **`list_experiment_jobs` endpoint**: Missing `perPage` alias — frontend pagination may silently default to 25.
-- **Column-level filter dropdowns**: Analysis Queue uses search + status dropdown, not per-column filters per spec §5.
 - **IGV sub-tab**: Phase 5 stub placeholder.
 
 ---
