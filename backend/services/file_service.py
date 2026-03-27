@@ -18,9 +18,7 @@ def validate_experiment_path(
     if ".." in relative_path.split("/") or relative_path.startswith("/"):
         raise ValueError("Invalid path")
 
-    experiment_dir = (
-        Path(storage_root) / "projects" / str(project_id) / str(experiment_id)
-    )
+    experiment_dir = Path(storage_root) / "projects" / str(project_id) / str(experiment_id)
     abs_path = (experiment_dir / relative_path).resolve()
     experiment_dir_resolved = experiment_dir.resolve()
 
@@ -123,14 +121,10 @@ def build_experiment_file_tree(
 
     Returns (root_node, total_files, total_size).
     """
-    experiment_dir = (
-        Path(storage_root) / "projects" / str(project_id) / str(experiment_id)
-    )
+    experiment_dir = Path(storage_root) / "projects" / str(project_id) / str(experiment_id)
 
     if not experiment_dir.is_dir():
-        empty_root = FileNode(
-            name="Root", path="", type="folder", size=None, children=[]
-        )
+        empty_root = FileNode(name="Root", path="", type="folder", size=None, children=[])
         return empty_root, 0, 0
 
     return _scan_directory(experiment_dir, "")

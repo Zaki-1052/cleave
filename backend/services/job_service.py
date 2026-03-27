@@ -79,8 +79,6 @@ async def list_jobs_for_experiment(
     total = count_result.scalar_one()
 
     result = await db.execute(
-        base.order_by(AnalysisJob.created_at.desc())
-        .offset((page - 1) * per_page)
-        .limit(per_page)
+        base.order_by(AnalysisJob.created_at.desc()).offset((page - 1) * per_page).limit(per_page)
     )
     return list(result.scalars().all()), total

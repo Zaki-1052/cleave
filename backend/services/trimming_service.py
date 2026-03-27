@@ -85,11 +85,13 @@ async def create_trimmed_fastq_records(
                 total_bytes += file_size
 
                 # Queue FastQC for the trimmed file
-                fastqc_inputs.append({
-                    "fastq_id": fastq_record.id,
-                    "file_path": file_path,
-                    "filename": filename,
-                })
+                fastqc_inputs.append(
+                    {
+                        "fastq_id": fastq_record.id,
+                        "file_path": file_path,
+                        "filename": filename,
+                    }
+                )
 
         if total_bytes > 0:
             await _update_storage_bytes(db, experiment_id, project_id, total_bytes)

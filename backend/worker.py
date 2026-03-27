@@ -107,9 +107,7 @@ async def poll_and_run() -> None:
             if pipeline_result and pipeline_result.get("methods_text"):
                 values["methods_text"] = pipeline_result["methods_text"]
 
-            await db.execute(
-                update(AnalysisJob).where(AnalysisJob.id == job_id).values(**values)
-            )
+            await db.execute(update(AnalysisJob).where(AnalysisJob.id == job_id).values(**values))
             await db.commit()
 
         logger.info("Job %d completed in %ds", job_id, duration)

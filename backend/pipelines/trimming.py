@@ -127,11 +127,19 @@ class TrimmingStage(PipelineStage):
             r2_unpaired = trimmed_intermediate / f"{prefix}_R2_001.unpaired.fastq.gz"
 
             trim_cmd = [
-                "java", "-jar", trimmomatic_jar, "PE",
-                "-threads", str(threads), "-phred33",
-                str(r1_abs), str(r2_abs),
-                str(r1_paired), str(r1_unpaired),
-                str(r2_paired), str(r2_unpaired),
+                "java",
+                "-jar",
+                trimmomatic_jar,
+                "PE",
+                "-threads",
+                str(threads),
+                "-phred33",
+                str(r1_abs),
+                str(r2_abs),
+                str(r1_paired),
+                str(r1_unpaired),
+                str(r2_paired),
+                str(r2_unpaired),
                 f"ILLUMINACLIP:{adapter_path}:{illuminaclip}",
                 f"LEADING:{leading}",
                 f"TRAILING:{trailing}",
@@ -140,17 +148,11 @@ class TrimmingStage(PipelineStage):
             ]
 
             logger.info("trimming.stage1_start", prefix=prefix, cmd=" ".join(trim_cmd))
-            proc = subprocess.run(
-                trim_cmd, capture_output=True, text=True, timeout=3600
-            )
+            proc = subprocess.run(trim_cmd, capture_output=True, text=True, timeout=3600)
             # Write Trimmomatic log (it outputs stats to stderr)
-            (log_dir / f"{prefix}_trimmomatic.log").write_text(
-                proc.stdout + "\n" + proc.stderr
-            )
+            (log_dir / f"{prefix}_trimmomatic.log").write_text(proc.stdout + "\n" + proc.stderr)
             if proc.returncode != 0:
-                raise PipelineError(
-                    f"Trimmomatic failed for {prefix}: {proc.stderr.strip()}"
-                )
+                raise PipelineError(f"Trimmomatic failed for {prefix}: {proc.stderr.strip()}")
 
             # Stage 2: kseq_test fixed-length trim
             r1_final = trimmed_final / f"{prefix}_R1_001_trimmed.fastq.gz"
@@ -162,9 +164,7 @@ class TrimmingStage(PipelineStage):
             ]:
                 kseq_cmd = [kseq_bin, str(paired_in), str(kseq_length), str(final_out)]
                 logger.info("trimming.stage2_start", prefix=prefix, read=read)
-                proc = subprocess.run(
-                    kseq_cmd, capture_output=True, text=True, timeout=1800
-                )
+                proc = subprocess.run(kseq_cmd, capture_output=True, text=True, timeout=1800)
                 if proc.returncode != 0:
                     raise PipelineError(
                         f"kseq_test failed for {prefix} {read}: {proc.stderr.strip()}"
@@ -175,17 +175,19 @@ class TrimmingStage(PipelineStage):
             r2_size = r2_final.stat().st_size if r2_final.exists() else 0
             rel_base = f"projects/{project_id}/{experiment_id}/fastqs/trimmed"
 
-            outputs.append({
-                "prefix": prefix,
-                "r1_path": f"{rel_base}/{r1_final.name}",
-                "r2_path": f"{rel_base}/{r2_final.name}",
-                "r1_filename": r1_final.name,
-                "r2_filename": r2_final.name,
-                "r1_size": r1_size,
-                "r2_size": r2_size,
-                "r1_id": pair.get("r1_id"),
-                "r2_id": pair.get("r2_id"),
-            })
+            outputs.append(
+                {
+                    "prefix": prefix,
+                    "r1_path": f"{rel_base}/{r1_final.name}",
+                    "r2_path": f"{rel_base}/{r2_final.name}",
+                    "r1_filename": r1_final.name,
+                    "r2_filename": r2_final.name,
+                    "r1_size": r1_size,
+                    "r2_size": r2_size,
+                    "r1_id": pair.get("r1_id"),
+                    "r2_id": pair.get("r2_id"),
+                }
+            )
 
             logger.info(
                 "trimming.pair_complete",
@@ -241,17 +243,19 @@ class TrimmingStage(PipelineStage):
             r2_size = r2_final.stat().st_size if r2_final.exists() else 0
             rel_base = f"projects/{project_id}/{experiment_id}/fastqs/trimmed"
 
-            outputs.append({
-                "prefix": prefix,
-                "r1_path": f"{rel_base}/{r1_final.name}",
-                "r2_path": f"{rel_base}/{r2_final.name}",
-                "r1_filename": r1_final.name,
-                "r2_filename": r2_final.name,
-                "r1_size": r1_size,
-                "r2_size": r2_size,
-                "r1_id": pair.get("r1_id"),
-                "r2_id": pair.get("r2_id"),
-            })
+            outputs.append(
+                {
+                    "prefix": prefix,
+                    "r1_path": f"{rel_base}/{r1_final.name}",
+                    "r2_path": f"{rel_base}/{r2_final.name}",
+                    "r1_filename": r1_final.name,
+                    "r2_filename": r2_final.name,
+                    "r1_size": r1_size,
+                    "r2_size": r2_size,
+                    "r1_id": pair.get("r1_id"),
+                    "r2_id": pair.get("r2_id"),
+                }
+            )
 
             logger.info("trimming.mock_pair_complete", prefix=prefix)
 
