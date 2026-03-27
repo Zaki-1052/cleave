@@ -124,6 +124,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
         metadata: {
           experiment_id: String(experimentId),
           filename: fileState.file.name,
+          filetype: 'application/octet-stream',
         },
         headers: {},
         onBeforeRequest: (req) => {

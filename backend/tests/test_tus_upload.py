@@ -1,11 +1,14 @@
 # backend/tests/test_tus_upload.py
 import base64
 import gzip
+from urllib.parse import urlparse
 
 import pytest
 from httpx import AsyncClient
 
 FASTQ_CONTENT = b"@SEQ_ID\nACGTACGT\n+\nIIIIIIII\n"
+
+TUS_HEADERS = {"Tus-Resumable": "1.0.0"}
 
 
 async def _register_and_get_headers(client: AsyncClient, email: str) -> dict:
@@ -15,7 +18,7 @@ async def _register_and_get_headers(client: AsyncClient, email: str) -> dict:
     )
     assert resp.status_code == 201
     token = resp.json()["accessToken"]
-    return {"Authorization": f"Bearer {token}"}
+    return {"Authorization": f"Bearer {token}", **TUS_HEADERS}
 
 
 async def _create_project(client: AsyncClient, headers: dict) -> int:
@@ -48,10 +51,16 @@ def _encode_metadata(**kwargs) -> str:
     return ", ".join(parts)
 
 
+def _extract_path(location: str) -> str:
+    """Extract path from absolute or relative Location URL."""
+    parsed = urlparse(location)
+    return parsed.path if parsed.scheme else location
+
+
 @pytest.mark.anyio
 async def test_tus_options(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
-    resp = await client.options("/api/v1/tus", headers=headers)
+    resp = await client.options("/api/v1/tus/", headers=headers)
     assert resp.status_code == 204
     assert resp.headers["tus-resumable"] == "1.0.0"
     assert "creation" in resp.headers["tus-extension"]
@@ -67,6 +76,7 @@ async def test_tus_create_upload(client: AsyncClient):
     metadata = _encode_metadata(
         experiment_id=experiment_id,
         filename="sample_L001_R1_001.fastq.gz",
+        filetype="application/octet-stream",
     )
 
     resp = await client.post(
@@ -75,12 +85,10 @@ async def test_tus_create_upload(client: AsyncClient):
             **headers,
             "Upload-Length": str(len(file_data)),
             "Upload-Metadata": metadata,
-            "Content-Type": "application/offset-octet-stream",
         },
     )
     assert resp.status_code == 201
     assert "location" in resp.headers
-    assert resp.headers["upload-offset"] == "0"
 
 
 @pytest.mark.anyio
@@ -94,6 +102,7 @@ async def test_tus_full_upload_flow(client: AsyncClient):
     metadata = _encode_metadata(
         experiment_id=experiment_id,
         filename="sample_L001_R1_001.fastq.gz",
+        filetype="application/octet-stream",
     )
 
     # 1. Create upload
@@ -106,7 +115,7 @@ async def test_tus_full_upload_flow(client: AsyncClient):
         },
     )
     assert create_resp.status_code == 201
-    location = create_resp.headers["location"]
+    location = _extract_path(create_resp.headers["location"])
 
     # 2. Upload data via PATCH
     patch_resp = await client.patch(
@@ -115,7 +124,8 @@ async def test_tus_full_upload_flow(client: AsyncClient):
         headers={
             **headers,
             "Upload-Offset": "0",
-            "Content-Type": "application/offset-octet-stream",
+            "Content-Type": "application/offset+octet-stream",
+            "Content-Length": str(len(file_data)),
         },
     )
     assert patch_resp.status_code == 204
@@ -145,6 +155,7 @@ async def test_tus_resume_upload(client: AsyncClient):
     metadata = _encode_metadata(
         experiment_id=experiment_id,
         filename="sample_L001_R2_001.fastq.gz",
+        filetype="application/octet-stream",
     )
 
     # Create
@@ -156,7 +167,7 @@ async def test_tus_resume_upload(client: AsyncClient):
             "Upload-Metadata": metadata,
         },
     )
-    location = create_resp.headers["location"]
+    location = _extract_path(create_resp.headers["location"])
 
     # Upload first half
     await client.patch(
@@ -165,7 +176,8 @@ async def test_tus_resume_upload(client: AsyncClient):
         headers={
             **headers,
             "Upload-Offset": "0",
-            "Content-Type": "application/offset-octet-stream",
+            "Content-Type": "application/offset+octet-stream",
+            "Content-Length": str(half),
         },
     )
 
@@ -181,7 +193,8 @@ async def test_tus_resume_upload(client: AsyncClient):
         headers={
             **headers,
             "Upload-Offset": str(half),
-            "Content-Type": "application/offset-octet-stream",
+            "Content-Type": "application/offset+octet-stream",
+            "Content-Length": str(len(file_data) - half),
         },
     )
     assert patch_resp.status_code == 204
@@ -197,6 +210,7 @@ async def test_tus_invalid_filename_rejected(client: AsyncClient):
     metadata = _encode_metadata(
         experiment_id=experiment_id,
         filename="bad_file.txt",
+        filetype="application/octet-stream",
     )
 
     resp = await client.post(
@@ -220,6 +234,7 @@ async def test_tus_nonmember_rejected(client: AsyncClient):
     metadata = _encode_metadata(
         experiment_id=experiment_id,
         filename="sample_L001_R1_001.fastq.gz",
+        filetype="application/octet-stream",
     )
 
     resp = await client.post(
@@ -242,6 +257,7 @@ async def test_tus_terminate_upload(client: AsyncClient):
     metadata = _encode_metadata(
         experiment_id=experiment_id,
         filename="sample_L001_R1_001.fastq.gz",
+        filetype="application/octet-stream",
     )
 
     create_resp = await client.post(
@@ -252,7 +268,7 @@ async def test_tus_terminate_upload(client: AsyncClient):
             "Upload-Metadata": metadata,
         },
     )
-    location = create_resp.headers["location"]
+    location = _extract_path(create_resp.headers["location"])
 
     # Terminate the upload
     del_resp = await client.delete(location, headers=headers)

@@ -19,6 +19,7 @@ dependencies = [
     "fastapi-users[sqlalchemy]",
     "slowapi",
     "python-multipart",
+    "tuspyserver>=4.2.3",
     "httpx",
     "structlog",
     "stream-zip>=0.0.83",

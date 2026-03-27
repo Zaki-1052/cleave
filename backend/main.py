@@ -32,6 +32,16 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=[
+        "Location",
+        "Upload-Offset",
+        "Upload-Length",
+        "Upload-Expires",
+        "Tus-Resumable",
+        "Tus-Version",
+        "Tus-Extension",
+        "Tus-Max-Size",
+    ],
 )
 
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
@@ -42,7 +52,7 @@ app.include_router(reactions.router, prefix="/api/v1", tags=["reactions"])
 app.include_router(fastq_files.router, prefix="/api/v1", tags=["fastqs"])
 app.include_router(jobs.router, prefix="/api/v1", tags=["jobs"])
 app.include_router(files.router, prefix="/api/v1", tags=["files"])
-app.include_router(tus_upload.router, prefix="/api/v1/tus", tags=["uploads"])
+app.include_router(tus_upload.router, prefix="/api/v1", tags=["uploads"])
 app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["notifications"])
 
 
