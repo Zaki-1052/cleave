@@ -6,15 +6,22 @@
 
 ## Current Status
 
-**Phase 1 scaffold is complete.** Docker Compose runs Postgres + FastAPI + Vite. All 9 database tables exist. The backend has models, schemas, routers, services, and pipeline stubs. The frontend has routing, components, API client, and auth context. Nothing is wired end-to-end yet.
+**Phases 1 and 2 are complete.** Docker Compose runs Postgres + FastAPI + Vite. All 9 database tables exist (4 Alembic migrations). Auth, project/experiment CRUD, FASTQ upload (tus resumable), FastQC, reactions, trimming, file browser, and file download are all wired end-to-end. **151 tests passing** (46 from Phase 1, 105 from Phase 2). Ready for Phase 3 (Core Pipeline).
 
 **What works right now:**
 - `docker compose up` starts all 3 services
 - `localhost:8000/api/v1/health` returns `{"status":"ok"}`
 - `localhost:8000/docs` shows OpenAPI interactive docs
-- `localhost:5173` serves the React app (redirects to `/login`)
-- All Alembic migrations apply and reverse cleanly
+- `localhost:5173` serves the React app with full auth flow
+- All Alembic migrations apply and reverse cleanly (4 migrations)
 - `ruff check backend/` and `npx tsc --noEmit` pass
+- tus resumable FASTQ uploads with per-file progress, cancel, resume
+- FastQC auto-runs post-upload, reports viewable in modal
+- Reactions CRUD + CSV import/export
+- 3-step experiment creation wizard (Details → FASTQs → Reactions)
+- Trimming pipeline (mock mode) with adapter detection banners
+- File browser with dual-panel tree + table layout
+- Streaming zip batch download with HMAC-signed download tokens
 
 ---
 
