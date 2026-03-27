@@ -98,6 +98,15 @@ def on_fastq_upload_complete(
 
         rel_storage_path = f"projects/{project_id}/{experiment_id}/fastqs/raw/{filename}"
         dest_path = Path(settings.STORAGE_ROOT) / rel_storage_path
+
+        # Defense-in-depth: verify resolved path is within storage root
+        storage_root_resolved = Path(settings.STORAGE_ROOT).resolve()
+        if not str(dest_path.resolve()).startswith(str(storage_root_resolved) + "/"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Path traversal detected in filename",
+            )
+
         dest_path.parent.mkdir(parents=True, exist_ok=True)
 
         lower = filename.lower()
@@ -111,6 +120,14 @@ def on_fastq_upload_complete(
             gz_filename = filename + ".gz"
             rel_storage_path = f"projects/{project_id}/{experiment_id}/fastqs/raw/{gz_filename}"
             gz_dest = Path(settings.STORAGE_ROOT) / rel_storage_path
+
+            # Defense-in-depth: verify gzip dest is also within storage root
+            if not str(gz_dest.resolve()).startswith(str(storage_root_resolved) + "/"):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Path traversal detected in filename",
+                )
+
             gz_dest.parent.mkdir(parents=True, exist_ok=True)
 
             chunk_queue: queue_mod.Queue[bytes | None] = queue_mod.Queue(maxsize=8)

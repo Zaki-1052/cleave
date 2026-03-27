@@ -22,6 +22,7 @@ def validate_fastq_filename(filename: str) -> tuple[str, str]:
 
     Rules:
     - Must start with alphanumeric character
+    - Must not contain path separators (/, \\) or '..'
     - Must end with .fastq.gz, .fastq, .fq.gz, or .fq
     - Must contain _R1 or _R2 to identify read direction
     """
@@ -30,6 +31,10 @@ def validate_fastq_filename(filename: str) -> tuple[str, str]:
 
     if not re.match(r"^[A-Za-z0-9]", filename):
         raise ValueError(f"Filename must start with an alphanumeric character: {filename}")
+
+    # Reject path traversal characters — filenames must be flat (no directory components)
+    if "/" in filename or "\\" in filename or ".." in filename:
+        raise ValueError(f"Filename must not contain path separators or '..': {filename}")
 
     lower = filename.lower()
     if not any(lower.endswith(ext) for ext in VALID_EXTENSIONS):
@@ -195,6 +200,12 @@ async def upload_fastqs(
             needs_gzip = lower.endswith(".fastq") or lower.endswith(".fq")
 
             dest_path = _build_storage_path(project_id, experiment_id, filename)
+
+            # Defense-in-depth: verify resolved path is within storage root
+            storage_root_resolved = Path(settings.STORAGE_ROOT).resolve()
+            if not str(dest_path.resolve()).startswith(str(storage_root_resolved) + "/"):
+                raise ValueError(f"Path traversal detected in filename: {filename}")
+
             final_path, bytes_written = await _save_file_to_disk(
                 upload_file, dest_path, auto_gzip=needs_gzip
             )

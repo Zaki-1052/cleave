@@ -137,7 +137,7 @@ async def get_fastqc_report(
 
     # Path traversal guard
     storage_root = Path(settings.STORAGE_ROOT).resolve()
-    if not str(abs_path).startswith(str(storage_root)):
+    if not str(abs_path).startswith(str(storage_root) + "/"):
         raise HTTPException(status_code=403, detail="Access denied")
 
     if not abs_path.exists():
@@ -181,7 +181,7 @@ async def get_fastqc_summary(
 
     # Path traversal guard
     storage_root = Path(settings.STORAGE_ROOT).resolve()
-    if not str(abs_html).startswith(str(storage_root)):
+    if not str(abs_html).startswith(str(storage_root) + "/"):
         raise HTTPException(status_code=403, detail="Access denied")
 
     txt_path = find_fastqc_data_txt(abs_html)
