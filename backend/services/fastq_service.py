@@ -4,13 +4,12 @@ import re
 from pathlib import Path
 
 from fastapi import UploadFile
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import settings
-from models.experiment import Experiment
 from models.fastq_file import FastqFile
-from models.project import Project
+from services.job_output_service import update_storage_bytes
 from services.permission_helpers import get_experiment_with_permission
 
 CHUNK_SIZE = 1024 * 1024  # 1 MB
@@ -122,21 +121,6 @@ async def _save_file_to_disk(
         return dest_path, bytes_written
 
 
-async def _update_storage_bytes_atomic(
-    db: AsyncSession, experiment_id: int, project_id: int, delta_bytes: int
-) -> None:
-    """Atomically increment storage_bytes on both experiment and project."""
-    await db.execute(
-        update(Experiment)
-        .where(Experiment.id == experiment_id)
-        .values(storage_bytes=Experiment.storage_bytes + delta_bytes)
-    )
-    await db.execute(
-        update(Project)
-        .where(Project.id == project_id)
-        .values(storage_bytes=Project.storage_bytes + delta_bytes)
-    )
-
 
 async def upload_fastqs(
     db: AsyncSession,
@@ -235,7 +219,7 @@ async def upload_fastqs(
                 path.unlink()
         raise
 
-    await _update_storage_bytes_atomic(db, experiment_id, project_id, total_bytes)
+    await update_storage_bytes(db, experiment_id, project_id, total_bytes)
     await db.commit()
 
     # Refresh records to get server-generated fields (id, uploaded_at)
@@ -310,7 +294,7 @@ async def delete_fastq(
 
     await db.delete(fastq)
     if file_size > 0:
-        await _update_storage_bytes_atomic(db, experiment_id, experiment.project_id, -file_size)
+        await update_storage_bytes(db, experiment_id, experiment.project_id, -file_size)
     await db.commit()
 
     return True

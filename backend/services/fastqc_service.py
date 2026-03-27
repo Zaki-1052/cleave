@@ -6,14 +6,12 @@ from typing import TypedDict
 
 import structlog
 from sqlalchemy import update
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import settings
 from database import async_session_factory
-from models.experiment import Experiment
 from models.fastq_file import FastqFile
-from models.project import Project
 from pipelines.fastqc import run_fastqc
+from services.job_output_service import update_storage_bytes
 
 logger = structlog.get_logger(__name__)
 
@@ -22,22 +20,6 @@ class FastqcInput(TypedDict):
     fastq_id: int
     file_path: str
     filename: str
-
-
-async def _update_storage_bytes(
-    db: AsyncSession, experiment_id: int, project_id: int, delta_bytes: int
-) -> None:
-    """Atomically increment storage_bytes on both experiment and project."""
-    await db.execute(
-        update(Experiment)
-        .where(Experiment.id == experiment_id)
-        .values(storage_bytes=Experiment.storage_bytes + delta_bytes)
-    )
-    await db.execute(
-        update(Project)
-        .where(Project.id == project_id)
-        .values(storage_bytes=Project.storage_bytes + delta_bytes)
-    )
 
 
 async def run_fastqc_for_files(
@@ -85,7 +67,7 @@ async def run_fastqc_for_files(
                     )
                 )
                 if report_size > 0:
-                    await _update_storage_bytes(db, experiment_id, project_id, report_size)
+                    await update_storage_bytes(db, experiment_id, project_id, report_size)
                 await db.commit()
 
             logger.info(

@@ -14,10 +14,8 @@ from auth import current_active_user
 from config import settings
 from database import get_db
 from models.user import User
-from services.fastq_service import (
-    _update_storage_bytes_atomic,
-    validate_fastq_filename,
-)
+from services.fastq_service import validate_fastq_filename
+from services.job_output_service import update_storage_bytes
 from services.permission_helpers import get_experiment_with_permission
 
 
@@ -169,7 +167,7 @@ def on_fastq_upload_complete(
         await db.commit()
         await db.refresh(record)
 
-        await _update_storage_bytes_atomic(db, experiment_id, project_id, file_size)
+        await update_storage_bytes(db, experiment_id, project_id, file_size)
 
         # Clean up tuspyserver staging files (data file + .info sidecar)
         staging_data = Path(file_path)

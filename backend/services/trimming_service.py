@@ -2,33 +2,14 @@
 """Post-trimming DB persistence — creates FastqFile + JobOutput records for trimmed FASTQs."""
 
 import structlog
-from sqlalchemy import update
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import async_session_factory
-from models.experiment import Experiment
 from models.fastq_file import FastqFile
 from models.job_output import JobOutput
-from models.project import Project
 from services.fastqc_service import FastqcInput, run_fastqc_for_files
+from services.job_output_service import update_storage_bytes
 
 logger = structlog.get_logger(__name__)
-
-
-async def _update_storage_bytes(
-    db: AsyncSession, experiment_id: int, project_id: int, delta_bytes: int
-) -> None:
-    """Atomically increment storage_bytes on both experiment and project."""
-    await db.execute(
-        update(Experiment)
-        .where(Experiment.id == experiment_id)
-        .values(storage_bytes=Experiment.storage_bytes + delta_bytes)
-    )
-    await db.execute(
-        update(Project)
-        .where(Project.id == project_id)
-        .values(storage_bytes=Project.storage_bytes + delta_bytes)
-    )
 
 
 async def create_trimmed_fastq_records(
@@ -94,7 +75,7 @@ async def create_trimmed_fastq_records(
                 )
 
         if total_bytes > 0:
-            await _update_storage_bytes(db, experiment_id, project_id, total_bytes)
+            await update_storage_bytes(db, experiment_id, project_id, total_bytes)
 
         await db.commit()
 

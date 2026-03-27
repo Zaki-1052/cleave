@@ -25,7 +25,7 @@
 
 ## Open items
 
-- `_update_storage_bytes` is still duplicated across `trimming_service.py`, `fastqc_service.py`, `fastq_service.py`, `tus_upload.py` — consolidate to import from `job_output_service.py` in a future cleanup
+- ~~`_update_storage_bytes` duplication~~ — DONE: consolidated all copies to import `update_storage_bytes` from `job_output_service.py`
 - Full test suite not yet run (user to verify) — individual file runs all pass
 - Step 3.2 (SSE) and 3.3 (alignment pipeline module) are next
 
