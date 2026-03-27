@@ -42,3 +42,11 @@ export function useQCReport(jobId: number | null) {
     enabled: jobId !== null,
   });
 }
+
+export function useJobOutputs(jobId: number | null, category?: string) {
+  return useQuery({
+    queryKey: ['job-outputs', jobId, category],
+    queryFn: () => jobsApi.getJobOutputs(jobId!, category),
+    enabled: jobId !== null,
+  });
+}

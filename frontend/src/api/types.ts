@@ -130,11 +130,24 @@ export interface AnalysisJob {
   params: Record<string, unknown>;
   parentJobId: number | null;
   launchedBy: number | null;
+  launcher: MemberUser | null;
   startedAt: string | null;
   completedAt: string | null;
   durationSeconds: number | null;
   errorMessage: string | null;
   methodsText: string | null;
+  createdAt: string;
+}
+
+export interface JobOutput {
+  id: number;
+  jobId: number;
+  reactionId: number | null;
+  fileCategory: string;
+  filename: string;
+  filePath: string;
+  fileType: string | null;
+  fileSizeBytes: number | null;
   createdAt: string;
 }
 

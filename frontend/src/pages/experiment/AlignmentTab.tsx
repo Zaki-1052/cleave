@@ -2,12 +2,13 @@
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import type { Experiment } from '@/api/types';
+import { AlignmentFilesPanel } from '@/components/alignment/AlignmentFilesPanel';
+import { AlignmentInfoPanel } from '@/components/alignment/AlignmentInfoPanel';
+import { AlignmentInputPanel } from '@/components/alignment/AlignmentInputPanel';
 import { AlignmentQCReportPanel } from '@/components/alignment/AlignmentQCReportPanel';
 import { Card } from '@/components/layout/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs } from '@/hooks/useJobs';
-import { GENOME_DISPLAY_NAMES } from '@/lib/constants';
-import { formatDateTime, formatDuration } from '@/lib/utils';
 
 type AlignmentSubTab = 'info' | 'input' | 'qc-report' | 'files' | 'igv';
 
@@ -66,8 +67,6 @@ export default function AlignmentTab() {
     );
   }
 
-  const genome = job?.params?.reference_genome as string | undefined;
-
   return (
     <div className="space-y-4">
       {/* Job selector + status */}
@@ -111,93 +110,7 @@ export default function AlignmentTab() {
       )}
 
       {/* Sub-tab content */}
-      {job && activeSubTab === 'info' && (
-        <Card>
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
-            Alignment Details
-          </h3>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                Run ID
-              </span>
-              <p className="text-gray-800">{job.id}</p>
-            </div>
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                Status
-              </span>
-              <div className="mt-0.5">
-                <StatusBadge status={job.status} />
-              </div>
-            </div>
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                Created Date
-              </span>
-              <p className="text-gray-800">{formatDateTime(job.createdAt)}</p>
-            </div>
-            {genome && (
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                  Reference Genome
-                </span>
-                <p className="text-gray-800">{GENOME_DISPLAY_NAMES[genome] ?? genome}</p>
-              </div>
-            )}
-            {job.startedAt && (
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                  Started
-                </span>
-                <p className="text-gray-800">{formatDateTime(job.startedAt)}</p>
-              </div>
-            )}
-            {job.completedAt && (
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                  Completed
-                </span>
-                <p className="text-gray-800">{formatDateTime(job.completedAt)}</p>
-              </div>
-            )}
-            {job.durationSeconds != null && (
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                  Duration
-                </span>
-                <p className="text-gray-800">{formatDuration(job.durationSeconds)}</p>
-              </div>
-            )}
-          </div>
-
-          {job.errorMessage && (
-            <div className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
-              {job.errorMessage}
-            </div>
-          )}
-
-          {job.methodsText && (
-            <div className="mt-4">
-              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                Run Methods
-              </h4>
-              <p className="whitespace-pre-wrap text-sm text-gray-600">
-                {job.methodsText}
-              </p>
-            </div>
-          )}
-
-          {job.notes && (
-            <div className="mt-4">
-              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                Notes
-              </h4>
-              <p className="text-sm text-gray-600">{job.notes}</p>
-            </div>
-          )}
-        </Card>
-      )}
+      {job && activeSubTab === 'info' && <AlignmentInfoPanel job={job} />}
 
       {job && activeSubTab === 'qc-report' && (
         job.status === 'complete' ? (
@@ -212,15 +125,19 @@ export default function AlignmentTab() {
       )}
 
       {job && activeSubTab === 'input' && (
-        <Card>
-          <p className="text-sm text-gray-400">Input details coming in Step 3.6.</p>
-        </Card>
+        <AlignmentInputPanel job={job} experimentId={experiment.id} />
       )}
 
       {job && activeSubTab === 'files' && (
-        <Card>
-          <p className="text-sm text-gray-400">Files browser coming in Step 3.6.</p>
-        </Card>
+        job.status === 'complete' ? (
+          <AlignmentFilesPanel jobId={job.id} experimentId={experiment.id} />
+        ) : (
+          <Card>
+            <p className="text-sm text-gray-400">
+              Files will be available when the alignment completes.
+            </p>
+          </Card>
+        )
       )}
 
       {job && activeSubTab === 'igv' && (

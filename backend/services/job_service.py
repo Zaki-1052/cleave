@@ -7,6 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from models.analysis_job import AnalysisJob
 from models.experiment import Experiment
+from models.job_output import JobOutput
 from models.project import ProjectMember
 from schemas.job import JobCreate
 from services.permission_helpers import get_experiment_with_permission
@@ -54,9 +55,32 @@ async def get_job(
             AnalysisJob.id == job_id,
             ProjectMember.user_id == user_id,
         )
-        .options(selectinload(AnalysisJob.outputs))
+        .options(
+            selectinload(AnalysisJob.outputs),
+            selectinload(AnalysisJob.launcher),
+        )
     )
     return result.scalar_one_or_none()
+
+
+async def get_job_outputs(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+    category: str | None = None,
+) -> list[JobOutput] | None:
+    """List output files for a job. Returns None if unauthorized."""
+    # Verify user has access to this job's project
+    job = await get_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    stmt = select(JobOutput).where(JobOutput.job_id == job_id)
+    if category is not None:
+        stmt = stmt.where(JobOutput.file_category == category)
+    stmt = stmt.order_by(JobOutput.filename)
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
 
 
 async def list_jobs_for_experiment(

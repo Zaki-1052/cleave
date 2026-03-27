@@ -157,6 +157,142 @@ async def test_list_jobs_unauthorized_403(client: AsyncClient):
     assert resp.status_code == 403
 
 
+async def test_get_job_includes_launcher(client: AsyncClient):
+    """Job detail response includes launcher user info."""
+    headers = await _register_and_get_headers(client, "launcher@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/jobs",
+        json={
+            "jobType": "alignment",
+            "name": "Align",
+            "params": {"experiment_id": exp_id, "project_id": project_id, "reactions": []},
+        },
+        headers=headers,
+    )
+    job_id = resp.json()["id"]
+
+    resp = await client.get(f"/api/v1/jobs/{job_id}", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["launcher"] is not None
+    assert data["launcher"]["email"] == "launcher@example.com"
+
+
+async def test_list_job_outputs_200(client: AsyncClient, db_session):
+    """List outputs for a job with persisted output records."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/jobs",
+        json={
+            "jobType": "alignment",
+            "name": "Align",
+            "params": {"experiment_id": exp_id, "project_id": project_id, "reactions": []},
+        },
+        headers=headers,
+    )
+    job_id = resp.json()["id"]
+
+    # Persist outputs directly in the DB
+    from models.job_output import JobOutput
+
+    for cat, fname, ftype in [
+        ("unique_bam", "sample.bam", "bam"),
+        ("unique_bam", "sample.bam.bai", "bai"),
+        ("bigwig", "sample.bw", "bw"),
+    ]:
+        db_session.add(
+            JobOutput(
+                job_id=job_id,
+                file_category=cat,
+                filename=fname,
+                file_path=f"projects/{project_id}/{exp_id}/jobs/{job_id}/{fname}",
+                file_type=ftype,
+                file_size_bytes=1024,
+            )
+        )
+    await db_session.commit()
+
+    resp = await client.get(f"/api/v1/jobs/{job_id}/outputs", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data) == 3
+    filenames = {o["filename"] for o in data}
+    assert "sample.bam" in filenames
+    assert "sample.bw" in filenames
+
+
+async def test_list_job_outputs_category_filter(client: AsyncClient, db_session):
+    """Filter outputs by file_category query param."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/jobs",
+        json={
+            "jobType": "alignment",
+            "name": "Align",
+            "params": {"experiment_id": exp_id, "project_id": project_id, "reactions": []},
+        },
+        headers=headers,
+    )
+    job_id = resp.json()["id"]
+
+    from models.job_output import JobOutput
+
+    for cat, fname, ftype in [
+        ("unique_bam", "sample.bam", "bam"),
+        ("bigwig", "sample.bw", "bw"),
+        ("log", "sample.log", "txt"),
+    ]:
+        db_session.add(
+            JobOutput(
+                job_id=job_id,
+                file_category=cat,
+                filename=fname,
+                file_path=f"projects/{project_id}/{exp_id}/jobs/{job_id}/{fname}",
+                file_type=ftype,
+            )
+        )
+    await db_session.commit()
+
+    resp = await client.get(
+        f"/api/v1/jobs/{job_id}/outputs", params={"category": "bigwig"}, headers=headers
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data) == 1
+    assert data[0]["fileCategory"] == "bigwig"
+
+
+async def test_list_job_outputs_unauthorized_404(client: AsyncClient):
+    """Non-member cannot list job outputs."""
+    headers1 = await _register_and_get_headers(client, "owner@example.com")
+    headers2 = await _register_and_get_headers(client, "stranger@example.com")
+    project_id = await _create_project(client, headers1)
+    exp_id = await _create_experiment(client, headers1, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/jobs",
+        json={
+            "jobType": "alignment",
+            "name": "Align",
+            "params": {"experiment_id": exp_id, "project_id": project_id, "reactions": []},
+        },
+        headers=headers1,
+    )
+    job_id = resp.json()["id"]
+
+    resp = await client.get(f"/api/v1/jobs/{job_id}/outputs", headers=headers2)
+    assert resp.status_code == 404
+
+
 async def test_adapter_status_in_fastq_response(client: AsyncClient):
     """Verify adapterStatus field is included in FASTQ list response."""
     headers = await _register_and_get_headers(client, "user@example.com")

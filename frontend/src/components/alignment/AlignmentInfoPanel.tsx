@@ -1,0 +1,87 @@
+// frontend/src/components/alignment/AlignmentInfoPanel.tsx
+import { useState } from 'react';
+
+import type { AnalysisJob } from '@/api/types';
+import { Card } from '@/components/layout/Card';
+import { DetailRow } from '@/components/ui/DetailRow';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { formatDate, getDisplayName } from '@/lib/utils';
+
+interface AlignmentInfoPanelProps {
+  job: AnalysisJob;
+}
+
+export function AlignmentInfoPanel({ job }: AlignmentInfoPanelProps) {
+  const [copied, setCopied] = useState(false);
+
+  const launcherName = job.launcher ? getDisplayName(job.launcher) : 'Unknown';
+
+  async function handleCopyMethods() {
+    if (!job.methodsText) return;
+    await navigator.clipboard.writeText(job.methodsText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-4">
+        {/* Details card */}
+        <Card className="flex-[2]">
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+            Details
+          </h3>
+          <div>
+            <DetailRow label="Run ID">{job.id}</DetailRow>
+            <DetailRow label="Created By">{launcherName}</DetailRow>
+            <DetailRow label="Created Date">{formatDate(job.createdAt)}</DetailRow>
+            <DetailRow label="Status">
+              <StatusBadge status={job.status} />
+            </DetailRow>
+          </div>
+        </Card>
+
+        {/* Run Methods card */}
+        <Card className="flex-[3]">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+              Run Methods
+            </h3>
+            {job.methodsText && (
+              <button
+                onClick={handleCopyMethods}
+                className="text-xs font-medium text-primary hover:text-primary-dark"
+              >
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            )}
+          </div>
+          {job.methodsText ? (
+            <p className="whitespace-pre-wrap text-sm text-gray-600">{job.methodsText}</p>
+          ) : (
+            <p className="text-sm text-gray-400">
+              Methods text will be available when the alignment completes.
+            </p>
+          )}
+        </Card>
+
+        {/* Notes card */}
+        <Card className="flex-[2]">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Notes</h3>
+            <span className="cursor-default text-xs font-medium text-primary">Manage</span>
+          </div>
+          {job.notes ? (
+            <p className="text-sm text-gray-600">{job.notes}</p>
+          ) : (
+            <p className="text-sm text-gray-400">No notes</p>
+          )}
+        </Card>
+      </div>
+
+      {job.errorMessage && (
+        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{job.errorMessage}</div>
+      )}
+    </div>
+  );
+}

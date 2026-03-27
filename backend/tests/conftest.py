@@ -112,3 +112,10 @@ async def registered_user(client: AsyncClient) -> dict:
 @pytest.fixture
 def auth_headers(registered_user: dict) -> dict:
     return {"Authorization": f"Bearer {registered_user['access_token']}"}
+
+
+@pytest.fixture
+async def db_session():
+    """Provide a raw async session for tests that need direct DB manipulation."""
+    async with test_session_factory() as session:
+        yield session

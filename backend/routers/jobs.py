@@ -7,9 +7,9 @@ from auth import current_active_user
 from database import get_db
 from models.user import User
 from schemas.common import PaginatedResponse
-from schemas.job import JobCreate, JobRead
+from schemas.job import JobCreate, JobOutputRead, JobRead
 from schemas.qc_report import AlignmentQCReport
-from services.job_service import create_job, get_job, list_jobs_for_experiment
+from services.job_service import create_job, get_job, get_job_outputs, list_jobs_for_experiment
 from services.qc_report_service import get_alignment_qc_report, get_qc_csv_path
 
 router = APIRouter()
@@ -66,6 +66,22 @@ async def get_job_endpoint(
             detail="Job not found",
         )
     return job
+
+
+@router.get("/jobs/{job_id}/outputs", response_model=list[JobOutputRead])
+async def list_job_outputs(
+    job_id: int,
+    category: str | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    outputs = await get_job_outputs(db, job_id, user.id, category)
+    if outputs is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return outputs
 
 
 @router.get("/jobs/{job_id}/qc-report", response_model=AlignmentQCReport)

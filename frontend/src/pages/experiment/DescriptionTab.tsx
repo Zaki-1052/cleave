@@ -1,20 +1,14 @@
 // frontend/src/pages/experiment/DescriptionTab.tsx
 import { useOutletContext } from 'react-router-dom';
+import type { Experiment } from '@/api/types';
 import { Card } from '@/components/layout/Card';
+import { DetailRow } from '@/components/ui/DetailRow';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { formatBytes, formatDate, getDisplayName } from '@/lib/utils';
-import type { Experiment } from '@/api/types';
 
 interface ExperimentContext {
   experiment: Experiment;
 }
-
-const DetailRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div className="flex items-center justify-between border-b border-gray-100 py-2 last:border-0">
-    <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">{label}</span>
-    <span className="text-sm text-gray-800">{children}</span>
-  </div>
-);
 
 export default function DescriptionTab() {
   const { experiment } = useOutletContext<ExperimentContext>();
