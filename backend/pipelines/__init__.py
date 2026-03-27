@@ -5,12 +5,14 @@ from pathlib import Path
 from config import settings
 from pipelines.alignment import AlignmentStage
 from pipelines.base import PipelineError, PipelineStage
+from pipelines.peak_calling import PeakCallingStage
 from pipelines.trimming import TrimmingStage
 
 # Registry of pipeline stages by job_type
 _STAGES: dict[str, PipelineStage] = {
     "trimming": TrimmingStage(),
     "alignment": AlignmentStage(),
+    "peak_calling": PeakCallingStage(),
 }
 
 

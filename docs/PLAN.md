@@ -374,14 +374,14 @@ Wire the Analysis Queue page per `cutana-cloud-ui.md` §5.
 
 ### Phase 3 Done Criteria
 
-- [ ] Worker picks up queued jobs and runs pipeline modules
-- [ ] SSE pushes real-time status updates to the browser
-- [ ] Alignment wizard creates correctly parameterized jobs
-- [ ] Mock alignment produces QC data matching CUTANA export format
-- [ ] QC report renders with stats table and spike-in heatmap
-- [ ] Alignment files browsable and downloadable by category
-- [ ] Methods text auto-generated with tool versions and parameters
-- [ ] Analysis Queue shows cross-project job list
+- [x] Worker picks up queued jobs and runs pipeline modules
+- [x] SSE pushes real-time status updates to the browser
+- [x] Alignment wizard creates correctly parameterized jobs
+- [x] Mock alignment produces QC data matching CUTANA export format
+- [x] QC report renders with stats table and spike-in heatmap
+- [x] Alignment files browsable and downloadable by category
+- [x] Methods text auto-generated with tool versions and parameters
+- [x] Analysis Queue shows cross-project job list
 - [ ] (EC2) Real alignment runs with test FASTQs and produces valid outputs
 
 ---

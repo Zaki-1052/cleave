@@ -683,10 +683,7 @@ async def test_csv_import_rejects_path_traversal_short_name(client: AsyncClient)
     project_id = await _create_project(client, headers)
     exp_id = await _create_experiment(client, headers, project_id)
 
-    csv_content = (
-        "FASTQ Prefix,Short Name,Organism\n"
-        "sample1,../../../evil,Mouse\n"
-    )
+    csv_content = "FASTQ Prefix,Short Name,Organism\nsample1,../../../evil,Mouse\n"
     resp = await client.post(
         f"/api/v1/experiments/{exp_id}/reactions/import-csv",
         files={"file": ("reactions.csv", io.BytesIO(csv_content.encode()), "text/csv")},

@@ -54,3 +54,58 @@ class AlignmentQCReport(CamelModel):
     reference_genome: str
     metrics: list[AlignmentReactionMetrics]
     spike_in_results: list[SpikeInReactionResult] | None = None
+
+
+# ---------------------------------------------------------------------------
+# Peak Calling QC Report
+# ---------------------------------------------------------------------------
+
+
+class PeakCallingReactionMetrics(CamelModel):
+    """Per-reaction peak calling QC metrics.
+
+    Column mapping to cutana/H3K4me3/peak_caller_metrics.csv:
+        short_name                  → Short_Name
+        control_short_name          → Control_Short_Name
+        reference_genome            → Reference_Genome
+        peak_caller                 → Peak_Caller
+        peak_size                   → Peak_Size
+        significance_threshold      → Significance_Threshold
+        uniquely_aligned_read_pairs → Uniquely_Aligned_Read_Pairs
+        called_peaks                → Called_Peaks
+        reads_in_peaks              → Reads_in_Peaks
+        frip                        → FRiP
+    """
+
+    short_name: str
+    control_short_name: str
+    reference_genome: str
+    peak_caller: str
+    peak_size: str
+    significance_threshold: float
+    uniquely_aligned_read_pairs: int
+    called_peaks: int
+    reads_in_peaks: int
+    frip: float
+
+
+class TopCalledPeak(CamelModel):
+    """Top called peaks for a reaction."""
+
+    short_name: str
+    control_short_name: str
+    reference_genome: str
+    peak_caller: str
+    peak_size: str
+    significance_threshold: float
+    top_peaks: list[str]
+
+
+class PeakCallingQCReport(CamelModel):
+    """Full peak calling QC report for a peak calling job."""
+
+    reference_genome: str
+    peak_caller: str
+    peak_size: str
+    metrics: list[PeakCallingReactionMetrics]
+    top_peaks: list[TopCalledPeak] | None = None
