@@ -138,6 +138,23 @@ export interface AnalysisJob {
   createdAt: string;
 }
 
+export interface AlignmentReactionMetrics {
+  shortName: string;
+  totalReadPairs: number;
+  alignedReadPairs: number;
+  uniquelyAlignedReadPairs: number;
+  uniqueAlignmentRate: number;
+  duplicationRate: number;
+  chrmBandwidth: number;
+  ecoliReadPairs: number;
+  ecoliAlignmentRate: number;
+}
+
+export interface AlignmentQCReport {
+  referenceGenome: string;
+  metrics: AlignmentReactionMetrics[];
+}
+
 export interface Notification {
   id: number;
   userId: number;

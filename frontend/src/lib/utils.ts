@@ -48,6 +48,10 @@ export function getInitials(user: {
   return user.email.substring(0, 2).toUpperCase();
 }
 
+export function formatNumber(n: number): string {
+  return n.toLocaleString('en-US');
+}
+
 export function formatDuration(seconds: number): string {
   if (seconds < 60) return `${seconds}s`;
   const m = Math.floor(seconds / 60);

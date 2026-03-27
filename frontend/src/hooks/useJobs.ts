@@ -34,3 +34,11 @@ export function useJobs(experimentId: number, page = 1, perPage = 25) {
     enabled: !!experimentId,
   });
 }
+
+export function useQCReport(jobId: number | null) {
+  return useQuery({
+    queryKey: ['qc-report', jobId],
+    queryFn: () => jobsApi.getQCReport(jobId!),
+    enabled: jobId !== null,
+  });
+}

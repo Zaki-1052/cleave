@@ -1,6 +1,6 @@
 // frontend/src/api/jobs.ts
 import client from './client';
-import type { AnalysisJob, PaginatedResponse } from './types';
+import type { AlignmentQCReport, AnalysisJob, PaginatedResponse } from './types';
 
 export interface JobCreatePayload {
   jobType: string;
@@ -36,4 +36,23 @@ export async function listJobs(
     { params: { page, perPage } },
   );
   return data;
+}
+
+export async function getQCReport(jobId: number): Promise<AlignmentQCReport> {
+  const { data } = await client.get<AlignmentQCReport>(`/jobs/${jobId}/qc-report`);
+  return data;
+}
+
+export async function downloadQCCsv(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/qc-report/download`, {
+    responseType: 'blob',
+  });
+  const url = URL.createObjectURL(response.data as Blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'alignment_metrics.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
