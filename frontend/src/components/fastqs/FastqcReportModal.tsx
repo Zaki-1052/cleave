@@ -166,6 +166,7 @@ export function FastqcReportModal({
             src={reportUrl}
             title={`FastQC Report for ${filename}`}
             className="flex-1 border-0"
+            sandbox="allow-same-origin"
           />
         </div>
       </div>

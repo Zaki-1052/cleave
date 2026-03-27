@@ -108,3 +108,8 @@
 - `backend/tests/test_alignment_pipeline.py` (+2 security tests)
 
 ### Test Count: 226 (was 216, +10 new security tests). All passing, ruff clean.
+
+### Additional Hardening (from review recommendations)
+1. **FastQC iframe sandbox** (`FastqcReportModal.tsx:164`): Added `sandbox="allow-same-origin"` to prevent script execution in the FastQC HTML report iframe. Defense-in-depth — the HTML is generated server-side by FastQC, but sandboxing blocks any theoretical JS injection.
+2. **COOKIE_SECURE documentation** (`.env.example`): Added comment reminding to set `COOKIE_SECURE=true` in production (HTTPS required).
+3. **Rate limit on /auth/refresh** (`routers/auth.py`): Added `@limiter.limit("10/minute")` — login had 5/min and register 3/min but refresh was unlimited.

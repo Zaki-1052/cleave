@@ -127,6 +127,7 @@ async def register(
 
 
 @router.post("/refresh", response_model=TokenResponse)
+@limiter.limit("10/minute")
 async def refresh(
     request: Request,
     response: Response,
