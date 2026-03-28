@@ -2,11 +2,31 @@
 import os
 import subprocess
 from abc import ABC, abstractmethod
+from datetime import datetime, timezone
 from pathlib import Path
 
 import structlog
 
 logger = structlog.get_logger(__name__)
+
+
+def append_to_master_log(
+    master_log: Path | None,
+    header: str,
+    content: str,
+) -> None:
+    """Append a timestamped section to the master job log file."""
+    if master_log is None:
+        return
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    with open(master_log, "a") as f:
+        f.write(f"\n{'=' * 72}\n")
+        f.write(f"[{timestamp}] {header}\n")
+        f.write(f"{'=' * 72}\n")
+        if content.strip():
+            f.write(content.rstrip() + "\n")
+        else:
+            f.write("(no output)\n")
 
 
 class PipelineError(Exception):
@@ -59,9 +79,11 @@ def run_cmd(
     timeout: int = 7200,
     check: bool = True,
     cwd: Path | None = None,
+    master_log: Path | None = None,
 ) -> subprocess.CompletedProcess:
     """Run a subprocess, capture output, optionally write to log, raise on failure."""
-    logger.info("pipeline.subprocess", cmd=" ".join(cmd))
+    cmd_str = " ".join(cmd)
+    logger.info("pipeline.subprocess", cmd=cmd_str)
     proc = subprocess.run(
         cmd,
         capture_output=True,
@@ -71,6 +93,11 @@ def run_cmd(
     )
     if log_path:
         log_path.write_text(proc.stdout + "\n" + proc.stderr)
+
+    combined = (proc.stdout + "\n" + proc.stderr).strip()
+    status_label = f"exit {proc.returncode}" + (" OK" if proc.returncode == 0 else " FAILED")
+    append_to_master_log(master_log, f"{status_label} | {cmd_str}", combined)
+
     if check and proc.returncode != 0:
         stderr_tail = proc.stderr.strip()[-500:] if proc.stderr else "(no stderr)"
         raise PipelineError(f"Command failed (exit {proc.returncode}): {stderr_tail}")
@@ -83,12 +110,15 @@ def run_piped_cmd(
     output_path: Path,
     log_path: Path | None = None,
     timeout: int = 7200,
+    master_log: Path | None = None,
 ) -> None:
     """Run two commands piped together: cmd1 | cmd2 > output_path."""
+    cmd1_str = " ".join(cmd1)
+    cmd2_str = " ".join(cmd2)
     logger.info(
         "pipeline.piped_subprocess",
-        cmd1=" ".join(cmd1),
-        cmd2=" ".join(cmd2),
+        cmd1=cmd1_str,
+        cmd2=cmd2_str,
     )
     with open(output_path, "wb") as out_f:
         p1 = subprocess.Popen(cmd1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -100,6 +130,13 @@ def run_piped_cmd(
 
     if log_path and stderr1:
         log_path.write_text(stderr1.decode("utf-8", errors="replace"))
+
+    stderr1_str = stderr1.decode("utf-8", errors="replace") if stderr1 else ""
+    stderr2_str = stderr2.decode("utf-8", errors="replace") if stderr2 else ""
+    combined = f"cmd1 stderr:\n{stderr1_str}\ncmd2 stderr:\n{stderr2_str}".strip()
+    pipe_str = f"{cmd1_str} | {cmd2_str} > {output_path.name}"
+    status = "OK" if (p1.returncode == 0 and p2.returncode == 0) else "FAILED"
+    append_to_master_log(master_log, f"exit {p1.returncode}/{p2.returncode} {status} | {pipe_str}", combined)
 
     if p1.returncode != 0:
         raise PipelineError(

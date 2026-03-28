@@ -1,5 +1,5 @@
 // frontend/src/components/peak-calling/PeakAnnotationChart.tsx
-import { useCallback, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import {
   Bar,
   BarChart,
@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 
 import { downloadPeakAnnotationCsv } from '@/api/jobs';
-import type { PeakAnnotationResult } from '@/api/types';
+import type { PeakAnnotationResult, PeakCallingReactionMetrics } from '@/api/types';
 import { Card } from '@/components/layout/Card';
 
 const ANNOTATION_CATEGORIES = [
@@ -44,14 +44,25 @@ interface PeakAnnotationChartProps {
   jobId: number;
   annotations: PeakAnnotationResult[];
   referenceGenome: string;
+  metrics?: PeakCallingReactionMetrics[];
 }
 
 export function PeakAnnotationChart({
   jobId,
   annotations,
   referenceGenome,
+  metrics,
 }: PeakAnnotationChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
+
+  // Build lookup: shortName → metrics for rich tooltip
+  const metricsMap = useMemo(() => {
+    const map = new Map<string, PeakCallingReactionMetrics>();
+    if (metrics) {
+      for (const m of metrics) map.set(m.shortName, m);
+    }
+    return map;
+  }, [metrics]);
 
   const chartData = annotations.map((a) => {
     const row: Record<string, string | number> = { shortName: a.shortName };
@@ -125,8 +136,31 @@ export function PeakAnnotationChart({
             <XAxis type="number" domain={[0, 100]} tickFormatter={(v: number) => `${v}%`} />
             <YAxis type="category" dataKey="shortName" width={110} tick={{ fontSize: 12 }} />
             <Tooltip
-              formatter={(value: number, name: string) => [`${value.toFixed(1)}%`, name]}
-              contentStyle={{ fontSize: 12 }}
+              content={({ active, payload, label }) => {
+                if (!active || !payload || !payload.length) return null;
+                const shortName = label as string;
+                const m = metricsMap.get(shortName);
+                const hoveredEntry = payload.find((p) => p.value && (p.value as number) > 0);
+                return (
+                  <div className="rounded border border-gray-300 bg-white px-3 py-2 text-xs shadow-lg">
+                    <p className="mb-1 font-semibold text-gray-800">{shortName}</p>
+                    {hoveredEntry && (
+                      <>
+                        <p>Annotation={hoveredEntry.name}</p>
+                        <p>Percentage (%)={(hoveredEntry.value as number).toFixed(5)}</p>
+                      </>
+                    )}
+                    {m && (
+                      <>
+                        <p>Control Short Name={m.controlShortName || 'N/A'}</p>
+                        <p>Peak Type={m.peakSize}</p>
+                        <p>Peak Caller={m.peakCaller}</p>
+                        <p>Significance Threshold={m.significanceThreshold}</p>
+                      </>
+                    )}
+                  </div>
+                );
+              }}
             />
             <Legend wrapperStyle={{ fontSize: 12 }} />
             {ANNOTATION_CATEGORIES.map((cat) => (

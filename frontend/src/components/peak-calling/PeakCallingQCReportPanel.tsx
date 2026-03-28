@@ -1,6 +1,6 @@
 // frontend/src/components/peak-calling/PeakCallingQCReportPanel.tsx
 import type { AnalysisJob } from '@/api/types';
-import { downloadPeakCallingQCCsv } from '@/api/jobs';
+import { downloadPeakCallingQCCsv, downloadTopPeaksCsv } from '@/api/jobs';
 import { Card } from '@/components/layout/Card';
 import { PeakAnnotationChart } from '@/components/peak-calling/PeakAnnotationChart';
 import { usePeakCallingQCReport } from '@/hooks/useJobs';
@@ -141,21 +141,20 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
             </div>
           </Card>
 
-          {/* Peak Annotation Plots */}
-          {report.annotations && report.annotations.length > 0 && (
-            <PeakAnnotationChart
-              jobId={jobId}
-              annotations={report.annotations}
-              referenceGenome={genome}
-            />
-          )}
-
           {/* Top Called Peaks */}
           {report.topPeaks && report.topPeaks.length > 0 && (
             <Card className="mt-4">
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
-                Top Called Peaks
-              </h3>
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                  Top Called Peaks
+                </h3>
+                <button
+                  onClick={() => void downloadTopPeaksCsv(jobId)}
+                  className="text-xs font-medium text-primary hover:text-primary-dark"
+                >
+                  Download Data as CSV
+                </button>
+              </div>
               <div className="space-y-3">
                 {report.topPeaks.map((tp) => (
                   <div key={tp.shortName}>
@@ -177,6 +176,16 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
                 ))}
               </div>
             </Card>
+          )}
+
+          {/* Peak Annotation Plots */}
+          {report.annotations && report.annotations.length > 0 && (
+            <PeakAnnotationChart
+              jobId={jobId}
+              annotations={report.annotations}
+              referenceGenome={genome}
+              metrics={report.metrics}
+            />
           )}
         </div>
 

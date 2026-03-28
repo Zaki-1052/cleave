@@ -32,6 +32,7 @@ from services.qc_report_service import (
     get_peak_calling_qc_csv_path,
     get_peak_calling_qc_report,
     get_qc_csv_path,
+    get_top_peaks_csv_path,
 )
 
 router = APIRouter()
@@ -252,6 +253,30 @@ async def download_peak_qc_csv(
         csv_path,
         media_type="text/csv",
         filename="peak_caller_metrics.csv",
+    )
+
+
+@router.get("/jobs/{job_id}/peak-qc-report/top-peaks-csv")
+async def download_top_peaks_csv(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        csv_path = await get_top_peaks_csv_path(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if csv_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return FileResponse(
+        csv_path,
+        media_type="text/csv",
+        filename="top_called_peaks.csv",
     )
 
 

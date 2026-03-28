@@ -24,6 +24,7 @@ from config import settings
 from pipelines.base import (
     PipelineError,
     PipelineStage,
+    append_to_master_log,
     count_bam_reads,
     get_threads,
     resolve_blacklist,
@@ -358,6 +359,23 @@ class AlignmentStage(PipelineStage):
         for d in [bams_dir, bigwigs_dir, heatmaps_dir, qc_dir, logs_dir]:
             d.mkdir(parents=True, exist_ok=True)
 
+        # Master log: consolidated output from all pipeline steps
+        master_log = logs_dir / "alignment.log"
+        append_to_master_log(
+            master_log,
+            f"Alignment job {job_id} started",
+            f"Genome: {genome}\nReactions: {len(reactions)}\n"
+            f"Remove duplicates: {remove_dups}\nRemove DAC exclusion: {remove_dac}\n"
+            f"Bin size: {bin_size}\nSmoothed bin size: {smoothed_bin_size}\nThreads: {threads}",
+        )
+
+        # Local helpers that auto-pass master_log to every subprocess call
+        def _run(cmd, **kwargs):
+            return run_cmd(cmd, master_log=master_log, **kwargs)
+
+        def _run_piped(cmd1, cmd2, output_path, **kwargs):
+            return run_piped_cmd(cmd1, cmd2, output_path, master_log=master_log, **kwargs)
+
         eff_genome_size = EFFECTIVE_GENOME_SIZES[genome]
         all_metrics: list[dict] = []
         spike_in_data: list[dict] = []
@@ -419,6 +437,7 @@ class AlignmentStage(PipelineStage):
                     timeout=43200,  # 12 hours max (from SLURM config)
                 )
             bt2_log.write_text(proc.stderr)
+            append_to_master_log(master_log, f"Bowtie2 alignment — {short_name}", proc.stderr)
             if proc.returncode != 0:
                 raise PipelineError(
                     f"Bowtie2 failed for {short_name}: {proc.stderr.strip()[-500:]}"
@@ -434,6 +453,8 @@ class AlignmentStage(PipelineStage):
                     stderr=subprocess.PIPE,
                     timeout=3600,
                 )
+            append_to_master_log(master_log, f"SAM→BAM conversion — {short_name}",
+                                 proc.stderr.decode("utf-8", errors="replace") if proc.stderr else "")
             if proc.returncode != 0:
                 raise PipelineError(
                     f"SAM→BAM failed for {short_name}: "
@@ -467,6 +488,8 @@ class AlignmentStage(PipelineStage):
                     stderr=subprocess.PIPE,
                     timeout=3600,
                 )
+            append_to_master_log(master_log, f"Filter unmapped + multi-mapper removal — {short_name}",
+                                 proc.stderr.decode("utf-8", errors="replace") if proc.stderr else "")
             if proc.returncode != 0:
                 raise PipelineError(f"Filter/multi-mapper removal failed for {short_name}")
             # Remove raw BAM (intermediate)
@@ -490,6 +513,8 @@ class AlignmentStage(PipelineStage):
                         stderr=subprocess.PIPE,
                         timeout=3600,
                     )
+                append_to_master_log(master_log, f"DAC exclusion list filtering — {short_name}",
+                                     proc.stderr.decode("utf-8", errors="replace") if proc.stderr else "")
                 if proc.returncode != 0:
                     raise PipelineError(f"DAC exclusion list filtering failed for {short_name}")
                 # Use filtered BAM going forward, remove uniq
@@ -503,7 +528,7 @@ class AlignmentStage(PipelineStage):
             # picard SortSam INPUT=... OUTPUT=... SORT_ORDER=coordinate
             #   VALIDATION_STRINGENCY=SILENT
             sorted_bam = bams_dir / f"{short_name}_sorted.bam"
-            run_cmd(
+            _run(
                 [
                     picard,
                     "SortSam",
@@ -522,7 +547,7 @@ class AlignmentStage(PipelineStage):
             #   METRICS_FILE=metrics.txt
             dup_marked_bam = bams_dir / f"{short_name}_dup_marked.bam"
             picard_metrics = logs_dir / f"{short_name}_picard_metrics.txt"
-            run_cmd(
+            _run(
                 [
                     picard,
                     "MarkDuplicates",
@@ -549,6 +574,8 @@ class AlignmentStage(PipelineStage):
                         stderr=subprocess.PIPE,
                         timeout=3600,
                     )
+                append_to_master_log(master_log, f"Duplicate removal — {short_name}",
+                                     proc.stderr.decode("utf-8", errors="replace") if proc.stderr else "")
                 if proc.returncode != 0:
                     raise PipelineError(f"Duplicate removal failed for {short_name}")
                 dup_marked_bam.unlink(missing_ok=True)
@@ -556,7 +583,7 @@ class AlignmentStage(PipelineStage):
                 shutil.move(str(dup_marked_bam), str(final_bam))
 
             # ---- Step 8: Index final BAM ----
-            run_cmd([samtools, "index", str(final_bam)], timeout=1800)
+            _run([samtools, "index", str(final_bam)], timeout=1800)
             final_bai = bams_dir / f"{short_name}_final.bam.bai"
 
             # ---- Step 9: Unsmoothed bigWig (20bp bins) ----
@@ -566,7 +593,7 @@ class AlignmentStage(PipelineStage):
             #   cleave-spec-decisions.md §7)
             unsmoothed_bw = bigwigs_dir / f"{short_name}.bw"
             if bam_coverage:
-                run_cmd(
+                _run(
                     [
                         bam_coverage,
                         "-b",
@@ -589,7 +616,7 @@ class AlignmentStage(PipelineStage):
             # ---- Step 10: Smoothed bigWig (100bp bins) ----
             smoothed_bw = bigwigs_dir / f"{short_name}_smoothed.bw"
             if bam_coverage:
-                run_cmd(
+                _run(
                     [
                         bam_coverage,
                         "-b",
@@ -616,7 +643,7 @@ class AlignmentStage(PipelineStage):
                 # TSS heatmap (reference-point mode)
                 # Flanking from lab's heatmaps.sh line 74: -a 1500 -b 1500
                 tss_matrix = heatmaps_dir / f"{short_name}_tss_matrix.gz"
-                run_cmd(
+                _run(
                     [
                         compute_matrix,
                         "reference-point",
@@ -636,7 +663,7 @@ class AlignmentStage(PipelineStage):
                     ],
                     timeout=7200,
                 )
-                run_cmd(
+                _run(
                     [
                         plot_heatmap,
                         "-m",
@@ -652,7 +679,7 @@ class AlignmentStage(PipelineStage):
 
                 # Gene body heatmap (scale-regions mode)
                 genebody_matrix = heatmaps_dir / (f"{short_name}_genebody_matrix.gz")
-                run_cmd(
+                _run(
                     [
                         compute_matrix,
                         "scale-regions",
@@ -670,7 +697,7 @@ class AlignmentStage(PipelineStage):
                     ],
                     timeout=7200,
                 )
-                run_cmd(
+                _run(
                     [
                         plot_heatmap,
                         "-m",
@@ -723,7 +750,7 @@ class AlignmentStage(PipelineStage):
                         str(threads),
                         "-",
                     ]
-                    run_piped_cmd(
+                    _run_piped(
                         ecoli_bt2_cmd,
                         ecoli_sam_cmd,
                         ecoli_bam,
@@ -846,6 +873,22 @@ class AlignmentStage(PipelineStage):
                     "file_path": f"{rel_job}/qc/{spike_csv.name}",
                     "file_type": "csv",
                     "file_size_bytes": spike_csv.stat().st_size,
+                    "reaction_id": None,
+                }
+            )
+
+        append_to_master_log(master_log, "Alignment complete",
+                             f"Processed {len(reactions)} reactions, {len(all_metrics)} QC records")
+
+        # Register the master log as a job output
+        if master_log.exists():
+            outputs.append(
+                {
+                    "file_category": "log",
+                    "filename": master_log.name,
+                    "file_path": f"{rel_job}/logs/{master_log.name}",
+                    "file_type": "txt",
+                    "file_size_bytes": master_log.stat().st_size,
                     "reaction_id": None,
                 }
             )

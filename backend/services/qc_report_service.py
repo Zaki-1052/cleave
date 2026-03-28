@@ -204,7 +204,7 @@ def _parse_annotation_stats(stats_path: Path) -> dict[str, float]:
                 continue
             raw_label = parts[0]
             try:
-                peak_count = int(parts[1])
+                peak_count = int(float(parts[1]))
             except ValueError:
                 continue
             category = _classify_annotation(raw_label)
@@ -428,6 +428,31 @@ async def get_peak_calling_qc_csv_path(
     csv_path = _resolve_output_path(job, "qc_report", "csv")
     if csv_path is None:
         raise FileNotFoundError(f"Peak calling QC CSV not found for job {job_id}")
+
+    return csv_path
+
+
+async def get_top_peaks_csv_path(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> Path | None:
+    """Return the absolute path to the top called peaks CSV file for download."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    if job.job_type != "peak_calling" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed peak calling job "
+            f"(type={job.job_type}, status={job.status})"
+        )
+
+    csv_path = _resolve_output_path(job, "top_peaks", "csv") or _resolve_output_by_name(
+        job, "top_called_peaks.csv"
+    )
+    if csv_path is None:
+        raise FileNotFoundError(f"Top called peaks CSV not found for job {job_id}")
 
     return csv_path
 

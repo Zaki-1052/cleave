@@ -26,6 +26,7 @@ from config import settings
 from pipelines.base import (
     PipelineError,
     PipelineStage,
+    append_to_master_log,
     count_bam_reads,
     resolve_blacklist,
     run_cmd,
@@ -839,6 +840,22 @@ class PeakCallingStage(PipelineStage):
         for d in [filtered_bams_dir, peaks_dir, annotation_dir, qc_dir, logs_dir]:
             d.mkdir(parents=True, exist_ok=True)
 
+        # Master log: consolidated output from all pipeline steps
+        master_log = logs_dir / "peak_calling.log"
+        append_to_master_log(
+            master_log,
+            f"Peak calling job {job_id} started",
+            f"Genome: {genome}\nPeak caller: {peak_caller}\nPeak size: {peak_size}\n"
+            f"Reactions: {len(reactions)}\nFragment filter: {fragment_filter}",
+        )
+
+        # Local helpers that auto-pass master_log
+        def _run(cmd, **kwargs):
+            return run_cmd(cmd, master_log=master_log, **kwargs)
+
+        def _run_piped(cmd1, cmd2, output_path, **kwargs):
+            return run_piped_cmd(cmd1, cmd2, output_path, master_log=master_log, **kwargs)
+
         # Blacklist for post-peak-calling subtraction
         blacklist = resolve_blacklist(genome)
 
@@ -937,11 +954,17 @@ class PeakCallingStage(PipelineStage):
             # ---- Step 5: Blacklist subtraction ----
             if blacklist and peak_file.exists():
                 clean_peak = peaks_dir / f"{peak_file.stem}_clean{peak_file.suffix}"
+                bl_cmd = ["bedtools", "subtract", "-a", str(peak_file), "-b", str(blacklist)]
                 proc = subprocess.run(
-                    ["bedtools", "subtract", "-a", str(peak_file), "-b", str(blacklist)],
+                    bl_cmd,
                     capture_output=True,
                     text=True,
                     timeout=3600,
+                )
+                append_to_master_log(
+                    master_log,
+                    f"Blacklist subtraction — {short_name} (exit {proc.returncode})",
+                    proc.stderr,
                 )
                 if proc.returncode == 0:
                     clean_peak.write_text(proc.stdout)
@@ -963,11 +986,17 @@ class PeakCallingStage(PipelineStage):
             homer = shutil.which("annotatePeaks.pl")
             if homer and peak_file.exists():
                 homer_cmd = [homer, str(peak_file), genome, "-annStats", str(annotation_stats)]
+                logger.info("pipeline.subprocess", cmd=" ".join(homer_cmd))
                 proc = subprocess.run(
                     homer_cmd,
                     capture_output=True,
                     text=True,
                     timeout=7200,
+                )
+                append_to_master_log(
+                    master_log,
+                    f"HOMER annotatePeaks — {short_name} (exit {proc.returncode})",
+                    proc.stderr,
                 )
                 if proc.returncode == 0:
                     annotation_file.write_text(proc.stdout)
@@ -1087,6 +1116,28 @@ class PeakCallingStage(PipelineStage):
                 "reaction_id": None,
             }
         )
+
+        # Consolidate individual tool logs into master log
+        for log_file in sorted(logs_dir.glob("*.log")):
+            if log_file.name == "peak_calling.log":
+                continue
+            append_to_master_log(master_log, f"Tool log: {log_file.name}", log_file.read_text())
+
+        append_to_master_log(master_log, "Peak calling complete",
+                             f"Processed {len(reactions)} reactions, {len(all_metrics)} results")
+
+        # Register the master log as a job output
+        if master_log.exists():
+            outputs.append(
+                {
+                    "file_category": "log",
+                    "filename": master_log.name,
+                    "file_path": f"{rel_job}/logs/{master_log.name}",
+                    "file_type": "txt",
+                    "file_size_bytes": master_log.stat().st_size,
+                    "reaction_id": None,
+                }
+            )
 
         return {
             "job_id": job_id,
