@@ -101,6 +101,13 @@ class TopCalledPeak(CamelModel):
     top_peaks: list[str]
 
 
+class PeakAnnotationResult(CamelModel):
+    """Per-reaction peak annotation distribution (% peaks per genomic feature)."""
+
+    short_name: str
+    categories: dict[str, float]
+
+
 class PeakCallingQCReport(CamelModel):
     """Full peak calling QC report for a peak calling job."""
 
@@ -109,3 +116,4 @@ class PeakCallingQCReport(CamelModel):
     peak_size: str
     metrics: list[PeakCallingReactionMetrics]
     top_peaks: list[TopCalledPeak] | None = None
+    annotations: list[PeakAnnotationResult] | None = None

@@ -223,12 +223,18 @@ export interface TopCalledPeak {
   topPeaks: string[];
 }
 
+export interface PeakAnnotationResult {
+  shortName: string;
+  categories: Record<string, number>;
+}
+
 export interface PeakCallingQCReport {
   referenceGenome: string;
   peakCaller: string;
   peakSize: string;
   metrics: PeakCallingReactionMetrics[];
   topPeaks: TopCalledPeak[] | null;
+  annotations: PeakAnnotationResult[] | null;
 }
 
 export interface Notification {

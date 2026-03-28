@@ -2,6 +2,7 @@
 import type { AnalysisJob } from '@/api/types';
 import { downloadPeakCallingQCCsv } from '@/api/jobs';
 import { Card } from '@/components/layout/Card';
+import { PeakAnnotationChart } from '@/components/peak-calling/PeakAnnotationChart';
 import { usePeakCallingQCReport } from '@/hooks/useJobs';
 import { formatNumber } from '@/lib/utils';
 
@@ -140,6 +141,15 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
             </div>
           </Card>
 
+          {/* Peak Annotation Plots */}
+          {report.annotations && report.annotations.length > 0 && (
+            <PeakAnnotationChart
+              jobId={jobId}
+              annotations={report.annotations}
+              referenceGenome={genome}
+            />
+          )}
+
           {/* Top Called Peaks */}
           {report.topPeaks && report.topPeaks.length > 0 && (
             <Card className="mt-4">
@@ -211,6 +221,14 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
                     <span>&lt; 0.1 — Low quality</span>
                   </div>
                 </div>
+              </div>
+              <div className="border-t pt-3">
+                <h4 className="font-semibold text-gray-700">About Peak Annotation Plots</h4>
+                <p>
+                  Visual breakdown of where peaks fall relative to genomic features
+                  (e.g., promoters, exons, intergenic). Helps contextualize your peaks
+                  biologically and is useful for qualitative assessments of replicate datasets.
+                </p>
               </div>
             </div>
           </Card>

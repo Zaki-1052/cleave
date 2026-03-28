@@ -1,7 +1,8 @@
 # backend/services/qc_report_service.py
-"""Service for reading and returning alignment QC report data."""
+"""Service for reading and returning QC report data (alignment + peak calling)."""
 
 import csv
+import io
 from pathlib import Path
 
 from sqlalchemy import select
@@ -16,6 +17,7 @@ from pipelines.spike_in_barcodes import PTM_NAMES, normalize_counts
 from schemas.qc_report import (
     AlignmentQCReport,
     AlignmentReactionMetrics,
+    PeakAnnotationResult,
     PeakCallingQCReport,
     PeakCallingReactionMetrics,
     SpikeInPTMResult,
@@ -113,6 +115,105 @@ def _resolve_output_path(job: AnalysisJob, category: str, file_type: str) -> Pat
             if abs_path.exists():
                 return abs_path
     return None
+
+
+def _resolve_output_by_name(job: AnalysisJob, filename: str) -> Path | None:
+    """Find a job output file on disk by exact filename (fallback for category mismatches)."""
+    storage_root = Path(settings.STORAGE_ROOT)
+    for output in job.outputs:
+        if output.filename == filename:
+            abs_path = storage_root / output.file_path
+            if not abs_path.resolve().is_relative_to(storage_root.resolve()):
+                return None
+            if abs_path.exists():
+                return abs_path
+    return None
+
+
+def _resolve_all_outputs(
+    job: AnalysisJob, category: str, file_type: str
+) -> list[tuple[int | None, Path]]:
+    """Find all job output files matching category and type.
+
+    Returns (reaction_id, path) pairs for per-reaction output files.
+    """
+    storage_root = Path(settings.STORAGE_ROOT)
+    results: list[tuple[int | None, Path]] = []
+    for output in job.outputs:
+        if output.file_category == category and output.file_type == file_type:
+            abs_path = storage_root / output.file_path
+            if abs_path.resolve().is_relative_to(storage_root.resolve()) and abs_path.exists():
+                results.append((output.reaction_id, abs_path))
+    return results
+
+
+# Ordered list of genomic feature categories for peak annotation (matches CUTANA Cloud)
+ANNOTATION_CATEGORIES = [
+    "Promoter",
+    "Exon",
+    "Intron",
+    "Intergenic",
+    "3UTR",
+    "5UTR",
+    "TTS",
+    "ncRNA",
+    "miRNA",
+    "pseudo",
+]
+
+# Prefix-based mapping from HOMER annotation labels to CUTANA Cloud categories.
+# HOMER appends gene details (e.g. "Intron (ENSMUSG...)") so we match on prefix.
+_ANNOTATION_PREFIX_MAP: list[tuple[str, str]] = [
+    ("Promoter", "Promoter"),
+    ("5' UTR", "5UTR"),
+    ("3' UTR", "3UTR"),
+    ("5UTR", "5UTR"),
+    ("3UTR", "3UTR"),
+    ("Exon", "Exon"),
+    ("exon", "Exon"),
+    ("Intron", "Intron"),
+    ("intron", "Intron"),
+    ("Intergenic", "Intergenic"),
+    ("TTS", "TTS"),
+    ("non-coding", "ncRNA"),
+    ("ncRNA", "ncRNA"),
+    ("miRNA", "miRNA"),
+    ("pseudo", "pseudo"),
+]
+
+
+def _classify_annotation(raw_label: str) -> str:
+    """Map a HOMER annotation label to a CUTANA Cloud category."""
+    for prefix, category in _ANNOTATION_PREFIX_MAP:
+        if raw_label.startswith(prefix):
+            return category
+    return "Intergenic"
+
+
+def _parse_annotation_stats(stats_path: Path) -> dict[str, float]:
+    """Parse a HOMER annotation_stats.txt file into {category: percentage}."""
+    counts: dict[str, int] = {cat: 0 for cat in ANNOTATION_CATEGORIES}
+    total = 0
+    with open(stats_path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("Annotation"):
+                continue
+            parts = line.split("\t")
+            if len(parts) < 2:
+                continue
+            raw_label = parts[0]
+            try:
+                peak_count = int(parts[1])
+            except ValueError:
+                continue
+            category = _classify_annotation(raw_label)
+            counts[category] += peak_count
+            total += peak_count
+
+    if total == 0:
+        return {cat: 0.0 for cat in ANNOTATION_CATEGORIES}
+    return {cat: round(counts[cat] / total * 100, 2) for cat in ANNOTATION_CATEGORIES}
 
 
 def _resolve_qc_csv_path(job: AnalysisJob) -> Path | None:
@@ -279,9 +380,24 @@ async def get_peak_calling_qc_report(
     metrics = _parse_peak_qc_csv(csv_path)
 
     top_peaks = None
-    top_peaks_path = _resolve_output_path(job, "top_peaks", "csv")
+    top_peaks_path = _resolve_output_path(job, "top_peaks", "csv") or _resolve_output_by_name(
+        job, "top_called_peaks.csv"
+    )
     if top_peaks_path is not None:
         top_peaks = _parse_top_peaks_csv(top_peaks_path)
+
+    # Load per-reaction peak annotation stats from HOMER output
+    annotations = None
+    annotation_outputs = _resolve_all_outputs(job, "annotation_stats", "txt")
+    if annotation_outputs:
+        rxn_lookup: dict[int, str] = {
+            rxn["reaction_id"]: rxn["short_name"] for rxn in params.get("reactions", [])
+        }
+        annotations = []
+        for reaction_id, stats_path in annotation_outputs:
+            short_name = rxn_lookup.get(reaction_id, f"reaction_{reaction_id}")  # type: ignore[arg-type]
+            pcts = _parse_annotation_stats(stats_path)
+            annotations.append(PeakAnnotationResult(short_name=short_name, categories=pcts))
 
     return PeakCallingQCReport(
         reference_genome=genome,
@@ -289,6 +405,7 @@ async def get_peak_calling_qc_report(
         peak_size=peak_size,
         metrics=metrics,
         top_peaks=top_peaks,
+        annotations=annotations,
     )
 
 
@@ -313,3 +430,48 @@ async def get_peak_calling_qc_csv_path(
         raise FileNotFoundError(f"Peak calling QC CSV not found for job {job_id}")
 
     return csv_path
+
+
+async def get_peak_annotation_csv(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> str:
+    """Generate a CSV string with peak annotation percentages for all reactions.
+
+    Returns None if the job is not found or the user lacks access.
+    Raises ValueError if the job is not a completed peak_calling job.
+    Raises FileNotFoundError if no annotation stats files exist.
+    """
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        raise FileNotFoundError(f"Job {job_id} not found or access denied")
+
+    if job.job_type != "peak_calling" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed peak calling job "
+            f"(type={job.job_type}, status={job.status})"
+        )
+
+    annotation_outputs = _resolve_all_outputs(job, "annotation_stats", "txt")
+    if not annotation_outputs:
+        raise FileNotFoundError(f"No annotation stats files found for job {job_id}")
+
+    params = job.params or {}
+    rxn_lookup: dict[int, str] = {
+        rxn["reaction_id"]: rxn["short_name"] for rxn in params.get("reactions", [])
+    }
+
+    buf = io.StringIO()
+    fieldnames = ["Short_Name", *ANNOTATION_CATEGORIES]
+    writer = csv.DictWriter(buf, fieldnames=fieldnames)
+    writer.writeheader()
+    for reaction_id, stats_path in annotation_outputs:
+        pcts = _parse_annotation_stats(stats_path)
+        row: dict[str, str | float] = {
+            "Short_Name": rxn_lookup.get(reaction_id, f"reaction_{reaction_id}"),  # type: ignore[arg-type]
+        }
+        row.update(pcts)
+        writer.writerow(row)  # type: ignore[arg-type]
+
+    return buf.getvalue()

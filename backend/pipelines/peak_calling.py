@@ -1114,7 +1114,7 @@ class PeakCallingStage(PipelineStage):
         _write_top_peaks_csv(all_top_peaks, top_csv)
         outputs.append(
             {
-                "file_category": "qc_report",
+                "file_category": "top_peaks",
                 "filename": top_csv.name,
                 "file_path": f"{rel_job}/qc/{top_csv.name}",
                 "file_type": "csv",
@@ -1229,15 +1229,33 @@ class PeakCallingStage(PipelineStage):
             )
 
             annotation_stats_file = annotation_dir / f"{short_name}_annotation_stats.txt"
-            annotation_stats_file.write_text(
-                "Annotation\tNumber of peaks\tTotal size (bp)\tLog2 Enrichment\n"
-                "Promoter-TSS\t5000\t25000000\t2.5\n"
-                "Intron\t8000\t120000000\t0.8\n"
-                "Intergenic\t6000\t80000000\t-0.3\n"
-                "Exon\t2000\t15000000\t1.2\n"
-                "3UTR\t500\t4000000\t0.5\n"
-                "TTS\t300\t2000000\t0.3\n"
-            )
+            is_igg = not rxn.get("igg_bam_path") or short_name.lower().startswith("igg")
+            if is_igg:
+                # IgG-like: heavy intergenic/intron, low promoter
+                annotation_stats_file.write_text(
+                    "Annotation\tNumber of peaks\tTotal size (bp)\tLog2 Enrichment\n"
+                    "Promoter-TSS\t800\t4000000\t0.5\n"
+                    "Intron\t4500\t135000000\t0.9\n"
+                    "Intergenic\t5200\t156000000\t1.1\n"
+                    "Exon\t400\t6000000\t0.3\n"
+                    "3' UTR\t200\t3000000\t0.2\n"
+                    "5' UTR\t50\t500000\t0.1\n"
+                    "TTS\t150\t1500000\t0.2\n"
+                    "non-coding\t80\t800000\t0.1\n"
+                )
+            else:
+                # Target-like: heavy promoter (H3K4me3 biology)
+                annotation_stats_file.write_text(
+                    "Annotation\tNumber of peaks\tTotal size (bp)\tLog2 Enrichment\n"
+                    "Promoter-TSS\t8500\t42500000\t3.2\n"
+                    "Intron\t5000\t150000000\t0.5\n"
+                    "Intergenic\t3000\t90000000\t-0.5\n"
+                    "Exon\t3500\t52500000\t1.8\n"
+                    "3' UTR\t800\t12000000\t0.7\n"
+                    "5' UTR\t400\t4000000\t0.8\n"
+                    "TTS\t500\t5000000\t0.4\n"
+                    "non-coding\t200\t2000000\t0.2\n"
+                )
 
             log_file = logs_dir / f"{short_name}_macs2.log"
             log_file.write_text(f"Mock peak calling log for {short_name}\n")
@@ -1282,7 +1300,7 @@ class PeakCallingStage(PipelineStage):
         _write_top_peaks_csv(all_top_peaks, top_csv)
         outputs.append(
             {
-                "file_category": "qc_report",
+                "file_category": "top_peaks",
                 "filename": top_csv.name,
                 "file_path": f"{rel_job}/qc/{top_csv.name}",
                 "file_type": "csv",

@@ -19,6 +19,7 @@ from services.job_service import (
 )
 from services.qc_report_service import (
     get_alignment_qc_report,
+    get_peak_annotation_csv,
     get_peak_calling_qc_csv_path,
     get_peak_calling_qc_report,
     get_qc_csv_path,
@@ -190,6 +191,27 @@ async def download_peak_qc_csv(
         csv_path,
         media_type="text/csv",
         filename="peak_caller_metrics.csv",
+    )
+
+
+@router.get("/jobs/{job_id}/peak-qc-report/annotation-csv")
+async def download_peak_annotation_csv(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        csv_content = await get_peak_annotation_csv(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    from fastapi.responses import Response
+
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=peak_annotation.csv"},
     )
 
 

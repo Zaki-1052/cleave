@@ -125,6 +125,20 @@ export async function downloadPeakCallingQCCsv(jobId: number): Promise<void> {
   URL.revokeObjectURL(url);
 }
 
+export async function downloadPeakAnnotationCsv(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/peak-qc-report/annotation-csv`, {
+    responseType: 'blob',
+  });
+  const url = URL.createObjectURL(response.data as Blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'peak_annotation.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export async function downloadQCCsv(jobId: number): Promise<void> {
   const response = await client.get(`/jobs/${jobId}/qc-report/download`, {
     responseType: 'blob',
