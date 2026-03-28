@@ -130,7 +130,7 @@ No new migrations in Phase 6. All 4 new job types use the existing `analysis_job
 | `test_job_output_service.py` | 4 | Output persistence, storage update, category assignment, empty outputs |
 | **Total** | **373** | |
 
-All 373 tests pass. `ruff check` + `ruff format --check`: clean. `tsc --noEmit`: clean.
+All 373 tests pass. `ruff check` + `ruff format --check`: clean. `npm run build` (`tsc -b` + Vite): clean after fixing 28 TS errors in Phase 6 files (see below).
 
 ---
 
@@ -215,6 +215,12 @@ All 373 tests pass. `ruff check` + `ruff format --check`: clean. `tsc --noEmit`:
 - `frontend/src/pages/ExperimentView.tsx` — Added 4 tabs, 4 wizard states, 4 dropdown callbacks, 4 wizard components
 - `frontend/src/App.tsx` — Added 4 routes (`diffbind/:jid`, `heatmaps/:jid`, `correlations/:jid`, `normalization/:jid`)
 
+### TypeScript Build Fixes (28 errors across Phase 6 files)
+- 3 tab files (`CustomHeatmapTab`, `NormalizationTab`, `PearsonCorrelationTab`) — Used `<DetailRow value={X} />` but component only accepts `children`. Converted to `<DetailRow>{X}</DetailRow>` (18 errors).
+- 3 SelectSamplesStep components — Array destructuring swap failed under `noUncheckedIndexedAccess`. Added `!` non-null assertions on bounds-checked indices (6 errors).
+- `NormalizationSettingsStep` + `NormalizationTab` — `samples[0]` possibly undefined under `noUncheckedIndexedAccess`. Added `?.` optional chaining (2 errors).
+- `vite.config.ts` — Missing `@types/node` for `path`/`__dirname`. Installed dep + added `"types": ["node"]` to `tsconfig.node.json` (2 errors).
+
 ### Pre-existing Code Fixes
 - `backend/pipelines/alignment.py` — 4 line-length violations fixed (long `append_to_master_log` calls), extraneous `f` prefix
 - `backend/pipelines/base.py` — 1 line-length violation fixed
@@ -239,6 +245,7 @@ No new pip or npm dependencies. All pipeline tools (R/Rscript, deepTools, DiffBi
 - ~~No Pearson correlation~~ → Two-script chain (R + Python) with multi-genome support
 - ~~No Roman normalization~~ → Mouse-only 99th-percentile normalization with masking
 - ~~Test infrastructure intermittent failures~~ → `DROP SCHEMA public CASCADE` replaces fragile `drop_all`
+- ~~28 TypeScript build errors in Phase 6 files~~ → DetailRow prop mismatch, `noUncheckedIndexedAccess` array swap/index issues, missing `@types/node`
 
 ### Still Open
 - **EC2 real-mode validation**: All 4 Phase 6 pipelines implemented but not yet tested with actual data on EC2. Each requires specific conda environments: DiffBind (`diffbind`), deepTools (`deeptools_env` or `cleave-pipeline`), rtracklayer (`bwnorm`), seaborn/matplotlib (system Python or `cleave-pipeline`).

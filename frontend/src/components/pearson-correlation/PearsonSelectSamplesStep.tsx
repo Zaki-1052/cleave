@@ -71,7 +71,7 @@ export function PearsonSelectSamplesStep({
     const target = index + direction;
     if (target < 0 || target >= samples.length) return;
     const next = [...samples];
-    [next[index], next[target]] = [next[target], next[index]];
+    [next[index], next[target]] = [next[target]!, next[index]!];
     setSamples(next);
   }
 

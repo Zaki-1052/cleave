@@ -182,18 +182,16 @@ function CorrelationInfoPanel({ job }: { job: AnalysisJob }) {
         <Card>
           <h4 className="mb-3 text-xs font-semibold uppercase text-gray-500">Details</h4>
           <div className="space-y-2">
-            <DetailRow label="Run ID" value={String(job.id)} />
-            <DetailRow label="Created By" value={launcherName} />
-            <DetailRow label="Created Date" value={formatDate(job.createdAt)} />
-            <DetailRow
-              label="Status"
-              value={<StatusBadge status={job.status} />}
-            />
-            <DetailRow label="Samples" value={String(sampleCount)} />
-            <DetailRow
-              label="Region Restriction"
-              value={restrictLabel ?? 'None (genome-wide)'}
-            />
+            <DetailRow label="Run ID">{String(job.id)}</DetailRow>
+            <DetailRow label="Created By">{launcherName}</DetailRow>
+            <DetailRow label="Created Date">{formatDate(job.createdAt)}</DetailRow>
+            <DetailRow label="Status">
+              <StatusBadge status={job.status} />
+            </DetailRow>
+            <DetailRow label="Samples">{String(sampleCount)}</DetailRow>
+            <DetailRow label="Region Restriction">
+              {restrictLabel ?? 'None (genome-wide)'}
+            </DetailRow>
           </div>
         </Card>
 

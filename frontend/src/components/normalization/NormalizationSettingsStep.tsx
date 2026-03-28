@@ -11,7 +11,7 @@ export function NormalizationSettingsStep({
   genome,
   samples,
 }: NormalizationSettingsStepProps) {
-  const referenceSampleLabel = samples.length > 0 ? samples[0].label : '(none)';
+  const referenceSampleLabel = samples.length > 0 ? samples[0]?.label ?? '(none)' : '(none)';
 
   return (
     <div className="space-y-6">

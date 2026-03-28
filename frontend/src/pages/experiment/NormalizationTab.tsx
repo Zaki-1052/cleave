@@ -155,7 +155,7 @@ function NormalizationInfoPanel({ job }: { job: AnalysisJob }) {
   const params = job.params ?? {};
   const sampleCount = ((params.samples as unknown[]) ?? []).length;
   const samples = (params.samples as Array<{ label?: string }>) ?? [];
-  const referenceSampleLabel = samples.length > 0 ? (samples[0].label ?? 'Unknown') : 'Unknown';
+  const referenceSampleLabel = samples.length > 0 ? (samples[0]?.label ?? 'Unknown') : 'Unknown';
 
   async function handleCopyMethods() {
     if (!job.methodsText) return;
@@ -183,15 +183,14 @@ function NormalizationInfoPanel({ job }: { job: AnalysisJob }) {
         <Card>
           <h4 className="mb-3 text-xs font-semibold uppercase text-gray-500">Details</h4>
           <div className="space-y-2">
-            <DetailRow label="Run ID" value={String(job.id)} />
-            <DetailRow label="Created By" value={launcherName} />
-            <DetailRow label="Created Date" value={formatDate(job.createdAt)} />
-            <DetailRow
-              label="Status"
-              value={<StatusBadge status={job.status} />}
-            />
-            <DetailRow label="Samples" value={String(sampleCount)} />
-            <DetailRow label="Reference Sample" value={referenceSampleLabel} />
+            <DetailRow label="Run ID">{String(job.id)}</DetailRow>
+            <DetailRow label="Created By">{launcherName}</DetailRow>
+            <DetailRow label="Created Date">{formatDate(job.createdAt)}</DetailRow>
+            <DetailRow label="Status">
+              <StatusBadge status={job.status} />
+            </DetailRow>
+            <DetailRow label="Samples">{String(sampleCount)}</DetailRow>
+            <DetailRow label="Reference Sample">{referenceSampleLabel}</DetailRow>
           </div>
         </Card>
 
