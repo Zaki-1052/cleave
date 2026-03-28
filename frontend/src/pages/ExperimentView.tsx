@@ -6,6 +6,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { NewAnalysisDropdown } from '@/components/experiments/NewAnalysisDropdown';
 import { NewAlignmentWizard } from '@/components/alignment/NewAlignmentWizard';
 import { NewPeakCallingWizard } from '@/components/peak-calling/NewPeakCallingWizard';
+import { NewDiffBindWizard } from '@/components/diffbind/NewDiffBindWizard';
 import { useExperiment } from '@/hooks/useExperiments';
 import { useJobs } from '@/hooks/useJobs';
 
@@ -13,6 +14,7 @@ const JOB_TYPE_LABELS: Record<string, string> = {
   alignment: 'Alignment',
   trimming: 'Trimming',
   peak_calling: 'Peak Calling',
+  diffbind: 'DiffBind',
 };
 
 const TABS = [
@@ -21,6 +23,7 @@ const TABS = [
   { label: 'Reactions', path: 'reactions' },
   { label: 'Alignment', path: 'alignment/0' },
   { label: 'Peak Calling', path: 'peaks/0' },
+  { label: 'DiffBind', path: 'diffbind/0' },
   { label: 'History', path: 'history' },
   { label: 'All Files', path: 'files' },
 ] as const;
@@ -32,6 +35,7 @@ export default function ExperimentView() {
   const { data: jobsData } = useJobs(Number(id), 1, 1);
   const [showAlignmentWizard, setShowAlignmentWizard] = useState(false);
   const [showPeakCallingWizard, setShowPeakCallingWizard] = useState(false);
+  const [showDiffBindWizard, setShowDiffBindWizard] = useState(false);
 
   const lastJob = jobsData?.items?.[0] ?? null;
   const lastJobLabel = lastJob
@@ -72,6 +76,7 @@ export default function ExperimentView() {
         <NewAnalysisDropdown
           onAlignmentClick={() => setShowAlignmentWizard(true)}
           onPeakCallingClick={() => setShowPeakCallingWizard(true)}
+          onDiffBindClick={() => setShowDiffBindWizard(true)}
         />
       </div>
 
@@ -112,6 +117,12 @@ export default function ExperimentView() {
       <NewPeakCallingWizard
         isOpen={showPeakCallingWizard}
         onClose={() => setShowPeakCallingWizard(false)}
+        experiment={experiment}
+      />
+
+      <NewDiffBindWizard
+        isOpen={showDiffBindWizard}
+        onClose={() => setShowDiffBindWizard(false)}
         experiment={experiment}
       />
     </div>

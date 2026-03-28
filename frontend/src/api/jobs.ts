@@ -3,6 +3,7 @@ import client from './client';
 import type {
   AlignmentQCReport,
   AnalysisJob,
+  DiffBindReport,
   JobOutput,
   PaginatedResponse,
   PeakCallingQCReport,
@@ -175,4 +176,38 @@ export async function downloadQCCsv(jobId: number): Promise<void> {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+}
+
+// ---------------------------------------------------------------------------
+// DiffBind
+// ---------------------------------------------------------------------------
+
+export async function getDiffBindReport(jobId: number): Promise<DiffBindReport> {
+  const { data } = await client.get<DiffBindReport>(`/jobs/${jobId}/diffbind-report`);
+  return data;
+}
+
+function _downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export async function downloadDiffBindResults(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/diffbind-report/download-results`, {
+    responseType: 'blob',
+  });
+  _downloadBlob(response.data as Blob, 'diffbind_results.txt');
+}
+
+export async function downloadDiffBindCounts(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/diffbind-report/download-counts`, {
+    responseType: 'blob',
+  });
+  _downloadBlob(response.data as Blob, 'normalized_counts.csv');
 }

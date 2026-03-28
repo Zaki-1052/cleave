@@ -117,3 +117,33 @@ class PeakCallingQCReport(CamelModel):
     metrics: list[PeakCallingReactionMetrics]
     top_peaks: list[TopCalledPeak] | None = None
     annotations: list[PeakAnnotationResult] | None = None
+
+
+# ---------------------------------------------------------------------------
+# DiffBind Report
+# ---------------------------------------------------------------------------
+
+
+class DiffBindPlotInfo(CamelModel):
+    """Metadata for a DiffBind plot output (PNG + SVG pair)."""
+
+    plot_type: str  # pca, ma, volcano, heatmap_group, heatmap_condition
+    output_id_png: int | None = None
+    output_id_svg: int | None = None
+
+
+class DiffBindReport(CamelModel):
+    """Full DiffBind results report.
+
+    column_names and results_preview use dynamic keys — the Conc_X columns
+    come from dba.report() based on the sample sheet Condition column values.
+    """
+
+    analysis_method: str
+    conditions: list[str]
+    column_names: list[str]
+    total_peaks: int
+    significant_peaks_005: int
+    significant_peaks_001: int
+    results_preview: list[dict[str, str | float]]
+    plot_outputs: list[DiffBindPlotInfo]

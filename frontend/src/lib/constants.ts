@@ -160,6 +160,60 @@ export const PEAK_CALLING_DEFAULTS: {
   fragment_size: 120,
 };
 
+export const DIFFBIND_ANALYSIS_METHODS = [
+  { value: 'deseq2_consensus', label: 'DESeq2 (Consensus Peakset)' },
+  { value: 'deseq2_peaklist', label: 'DESeq2 (Custom Peakset)' },
+  { value: 'edger_peaklist', label: 'edgeR (Custom Peakset)' },
+] as const;
+
+export const DIFFBIND_FILE_CATEGORIES = [
+  {
+    value: 'diffbind_results',
+    label: 'Results',
+    description: 'Differential binding results with fold change, p-values, and FDR.',
+  },
+  {
+    value: 'normalized_counts',
+    label: 'Normalized Counts',
+    description: 'Read counts matrix normalized across all samples.',
+  },
+  {
+    value: 'diffbind_plot_pca',
+    label: 'PCA Plot',
+    description: 'Principal Component Analysis of sample similarity.',
+  },
+  {
+    value: 'diffbind_plot_ma',
+    label: 'MA Plot',
+    description: 'Mean-Average plot showing fold change vs. mean concentration.',
+  },
+  {
+    value: 'diffbind_plot_volcano',
+    label: 'Volcano Plot',
+    description: 'Statistical significance vs. fold change.',
+  },
+  {
+    value: 'diffbind_plot_heatmap_group',
+    label: 'Heatmap (Group)',
+    description: 'Correlation heatmap grouped by sample similarity.',
+  },
+  {
+    value: 'diffbind_plot_heatmap_condition',
+    label: 'Heatmap (Condition)',
+    description: 'Binding affinity heatmap colored by condition.',
+  },
+  {
+    value: 'diffbind_sample_sheet',
+    label: 'Sample Sheet',
+    description: 'The DiffBind sample sheet CSV used for the analysis.',
+  },
+  {
+    value: 'log',
+    label: 'Logs',
+    description: 'DiffBind pipeline execution log files.',
+  },
+] as const;
+
 export const CUTANA_SPIKE_IN_TARGETS = [
   'Unmodified',
   'H3K4me1',

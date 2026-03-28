@@ -17,6 +17,8 @@ from pipelines.spike_in_barcodes import PTM_NAMES, normalize_counts
 from schemas.qc_report import (
     AlignmentQCReport,
     AlignmentReactionMetrics,
+    DiffBindPlotInfo,
+    DiffBindReport,
     PeakAnnotationResult,
     PeakCallingQCReport,
     PeakCallingReactionMetrics,
@@ -500,3 +502,167 @@ async def get_peak_annotation_csv(
         writer.writerow(row)  # type: ignore[arg-type]
 
     return buf.getvalue()
+
+
+# ---------------------------------------------------------------------------
+# DiffBind Report
+# ---------------------------------------------------------------------------
+
+_DIFFBIND_PLOT_CATEGORIES = {
+    "pca": "diffbind_plot_pca",
+    "heatmap_group": "diffbind_plot_heatmap_group",
+    "heatmap_condition": "diffbind_plot_heatmap_condition",
+    "ma": "diffbind_plot_ma",
+    "volcano": "diffbind_plot_volcano",
+}
+
+
+def _parse_diffbind_results_tsv(
+    tsv_path: Path,
+    max_rows: int = 100,
+) -> tuple[list[str], list[dict[str, str | float]], int, int, int]:
+    """Parse DiffBind results TSV. Returns (columns, preview_rows,
+    total_peaks, sig_005, sig_001)."""
+    columns: list[str] = []
+    rows: list[dict[str, str | float]] = []
+    total = 0
+    sig_005 = 0
+    sig_001 = 0
+
+    with open(tsv_path, newline="") as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        columns = list(reader.fieldnames or [])
+        for row in reader:
+            total += 1
+            fdr_str = row.get("FDR", "1")
+            try:
+                fdr = float(fdr_str)
+            except ValueError:
+                fdr = 1.0
+            if fdr < 0.05:
+                sig_005 += 1
+            if fdr < 0.01:
+                sig_001 += 1
+            if total <= max_rows:
+                parsed: dict[str, str | float] = {}
+                for col in columns:
+                    val = row.get(col, "")
+                    try:
+                        parsed[col] = float(val)
+                    except ValueError:
+                        parsed[col] = val
+                rows.append(parsed)
+
+    return columns, rows, total, sig_005, sig_001
+
+
+def _find_plot_output_ids(
+    job: AnalysisJob,
+) -> list[DiffBindPlotInfo]:
+    """Match job outputs to DiffBind plot types (PNG + SVG pairs)."""
+    plot_infos: list[DiffBindPlotInfo] = []
+    for plot_type, category in _DIFFBIND_PLOT_CATEGORIES.items():
+        png_id = None
+        svg_id = None
+        for output in job.outputs:
+            if output.file_category == category:
+                if output.file_type == "png":
+                    png_id = output.id
+                elif output.file_type == "svg":
+                    svg_id = output.id
+        if png_id or svg_id:
+            plot_infos.append(
+                DiffBindPlotInfo(
+                    plot_type=plot_type,
+                    output_id_png=png_id,
+                    output_id_svg=svg_id,
+                )
+            )
+    return plot_infos
+
+
+async def get_diffbind_report(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> DiffBindReport | None:
+    """Return structured DiffBind report for a completed diffbind job."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    if job.job_type != "diffbind" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed diffbind job "
+            f"(type={job.job_type}, status={job.status})"
+        )
+
+    tsv_path = _resolve_output_path(job, "diffbind_results", "tsv")
+    if tsv_path is None:
+        raise FileNotFoundError(
+            f"DiffBind results TSV not found for job {job_id}"
+        )
+
+    columns, preview, total, sig_005, sig_001 = (
+        _parse_diffbind_results_tsv(tsv_path)
+    )
+
+    params = job.params or {}
+    conditions = sorted(
+        {s["condition"] for s in params.get("samples", [])}
+    )
+    method = params.get("analysis_method", "unknown")
+    plot_infos = _find_plot_output_ids(job)
+
+    return DiffBindReport(
+        analysis_method=method,
+        conditions=conditions,
+        column_names=columns,
+        total_peaks=total,
+        significant_peaks_005=sig_005,
+        significant_peaks_001=sig_001,
+        results_preview=preview,
+        plot_outputs=plot_infos,
+    )
+
+
+async def get_diffbind_results_path(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> Path | None:
+    """Return absolute path to DiffBind results TSV for download."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+    if job.job_type != "diffbind" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed diffbind job"
+        )
+    path = _resolve_output_path(job, "diffbind_results", "tsv")
+    if path is None:
+        raise FileNotFoundError(
+            f"DiffBind results not found for job {job_id}"
+        )
+    return path
+
+
+async def get_diffbind_counts_path(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> Path | None:
+    """Return absolute path to normalized counts CSV for download."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+    if job.job_type != "diffbind" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed diffbind job"
+        )
+    path = _resolve_output_path(job, "normalized_counts", "csv")
+    if path is None:
+        raise FileNotFoundError(
+            f"Normalized counts not found for job {job_id}"
+        )
+    return path

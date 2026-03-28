@@ -87,6 +87,40 @@ def peak_calling_methods(params: dict) -> str:
     return text
 
 
+def diffbind_methods(params: dict) -> str:
+    """Generate DiffBind methods text for the differential peak analysis pipeline."""
+    method = params.get("analysis_method", "deseq2_consensus")
+    samples = params.get("samples", [])
+    n_samples = len(samples)
+    conditions = sorted({s["condition"] for s in samples})
+
+    engine = "DESeq2" if "deseq2" in method else "edgeR"
+    if "consensus" in method:
+        peakset_desc = "A consensus peakset was derived from overlapping peaks across all samples"
+    else:
+        peakset_desc = "A user-supplied custom peakset was used for read counting"
+
+    norm_desc = ""
+    if method == "edger_peaklist":
+        norm_desc = (
+            "Reads were normalized using the TMM (trimmed mean of M-values) method "
+            "with full library sizes and native normalization. "
+        )
+
+    return (
+        f"Differential peak analysis was performed using DiffBind with {engine} "
+        f"as the statistical engine. "
+        f"{peakset_desc} across {n_samples} samples in {len(conditions)} conditions "
+        f"({', '.join(conditions)}). "
+        f"{norm_desc}"
+        f"Contrasts were computed between conditions with a minimum of 2 replicates "
+        f"per group. Differentially bound sites were identified and reported with "
+        f"log2 fold changes and FDR-adjusted p-values for all peaks (threshold = 1). "
+        f"PCA plots, correlation heatmaps, MA plots, and volcano plots were generated "
+        f"for quality assessment."
+    )
+
+
 def alignment_methods(params: dict) -> str:
     """Generate alignment methods text matching CUTANA Cloud format.
 

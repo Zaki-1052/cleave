@@ -14,6 +14,7 @@ import FastqsTab from '@/pages/experiment/FastqsTab';
 import ReactionsTab from '@/pages/experiment/ReactionsTab';
 import AlignmentTab from '@/pages/experiment/AlignmentTab';
 import PeakCallingTab from '@/pages/experiment/PeakCallingTab';
+import DiffBindTab from '@/pages/experiment/DiffBindTab';
 import HistoryTab from '@/pages/experiment/HistoryTab';
 import AllFilesTab from '@/pages/experiment/AllFilesTab';
 import AnalysisQueuePage from '@/pages/AnalysisQueuePage';
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="reactions" element={<ReactionsTab />} />
           <Route path="alignment/:jid" element={<AlignmentTab />} />
           <Route path="peaks/:jid" element={<PeakCallingTab />} />
+          <Route path="diffbind/:jid" element={<DiffBindTab />} />
           <Route path="history" element={<HistoryTab />} />
           <Route path="files" element={<AllFilesTab />} />
         </Route>

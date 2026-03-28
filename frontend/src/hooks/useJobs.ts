@@ -82,3 +82,11 @@ export function useJobOutputs(jobId: number | null, category?: string) {
     enabled: jobId !== null,
   });
 }
+
+export function useDiffBindReport(jobId: number | null) {
+  return useQuery({
+    queryKey: ['diffbind-report', jobId],
+    queryFn: () => jobsApi.getDiffBindReport(jobId!),
+    enabled: jobId !== null,
+  });
+}

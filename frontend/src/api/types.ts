@@ -237,6 +237,23 @@ export interface PeakCallingQCReport {
   annotations: PeakAnnotationResult[] | null;
 }
 
+export interface DiffBindPlotInfo {
+  plotType: string;
+  outputIdPng: number | null;
+  outputIdSvg: number | null;
+}
+
+export interface DiffBindReport {
+  analysisMethod: string;
+  conditions: string[];
+  columnNames: string[];
+  totalPeaks: number;
+  significantPeaks005: number;
+  significantPeaks001: number;
+  resultsPreview: Record<string, string | number>[];
+  plotOutputs: DiffBindPlotInfo[];
+}
+
 export interface Notification {
   id: number;
   userId: number;

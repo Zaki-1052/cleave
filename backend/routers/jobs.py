@@ -1,5 +1,4 @@
 # backend/routers/jobs.py
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import FileResponse
@@ -14,10 +13,10 @@ from models.experiment import Experiment
 from models.job_output import JobOutput
 from models.project import ProjectMember
 from models.user import User
-from services.download_token_service import create_download_token
 from schemas.common import PaginatedResponse
 from schemas.job import JobCreate, JobOutputRead, JobQueueRead, JobRead, JobUpdate
-from schemas.qc_report import AlignmentQCReport, PeakCallingQCReport
+from schemas.qc_report import AlignmentQCReport, DiffBindReport, PeakCallingQCReport
+from services.download_token_service import create_download_token
 from services.job_service import (
     create_job,
     get_job,
@@ -28,6 +27,9 @@ from services.job_service import (
 )
 from services.qc_report_service import (
     get_alignment_qc_report,
+    get_diffbind_counts_path,
+    get_diffbind_report,
+    get_diffbind_results_path,
     get_peak_annotation_csv,
     get_peak_calling_qc_csv_path,
     get_peak_calling_qc_report,
@@ -322,4 +324,89 @@ async def download_qc_csv(
         csv_path,
         media_type="text/csv",
         filename="alignment_metrics.csv",
+    )
+
+
+# ---------------------------------------------------------------------------
+# DiffBind report endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get("/jobs/{job_id}/diffbind-report", response_model=DiffBindReport)
+async def get_diffbind_report_endpoint(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        report = await get_diffbind_report(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        )
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return report
+
+
+@router.get("/jobs/{job_id}/diffbind-report/download-results")
+async def download_diffbind_results(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        tsv_path = await get_diffbind_results_path(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        )
+    if tsv_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return FileResponse(
+        tsv_path,
+        media_type="text/tab-separated-values",
+        filename="diffbind_results.txt",
+    )
+
+
+@router.get("/jobs/{job_id}/diffbind-report/download-counts")
+async def download_diffbind_counts(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        csv_path = await get_diffbind_counts_path(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        )
+    if csv_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return FileResponse(
+        csv_path,
+        media_type="text/csv",
+        filename="normalized_counts.csv",
     )
