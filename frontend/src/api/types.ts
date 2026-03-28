@@ -269,6 +269,7 @@ export interface CustomHeatmapReport {
   sortOrder: string;
   colorMap: string | null;
   plotOutput: CustomHeatmapPlotInfo;
+  profileOutput: CustomHeatmapPlotInfo;
   matrixOutputId: number | null;
 }
 

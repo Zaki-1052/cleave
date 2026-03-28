@@ -176,7 +176,8 @@ def custom_heatmap_methods(params: dict) -> str:
         f"{ref_point} of regions in the reference BED file "
         f"({bed_label}) with a flanking window of {upstream} bp upstream "
         f"and {downstream} bp downstream using computeMatrix reference-point. "
-        f"Heatmaps were visualized using plotHeatmap"
+        f"Heatmaps were visualized using plotHeatmap "
+        f"and mean signal profiles were generated using plotProfile (--perGroup)"
     )
 
     extras: list[str] = []

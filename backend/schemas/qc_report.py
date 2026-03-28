@@ -173,4 +173,5 @@ class CustomHeatmapReport(CamelModel):
     sort_order: str
     color_map: str | None = None
     plot_output: CustomHeatmapPlotInfo
+    profile_output: CustomHeatmapPlotInfo
     matrix_output_id: int | None = None

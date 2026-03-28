@@ -79,7 +79,7 @@ class CustomHeatmapStage(PipelineStage):
             )
 
         if settings.PIPELINE_MODE != "mock":
-            for tool in ("computeMatrix", "plotHeatmap"):
+            for tool in ("computeMatrix", "plotHeatmap", "plotProfile"):
                 if not shutil.which(tool):
                     errors.append(f"{tool} not found in PATH")
 
@@ -228,6 +228,54 @@ class CustomHeatmapStage(PipelineStage):
             master_log=master_log,
         )
 
+        # --- plotProfile (PNG) — mean signal line plot from same matrix ---
+        profile_png = results_dir / f"{heatmap_name}_profile.png"
+        profile_cmd = [
+            "plotProfile",
+            "-m",
+            str(matrix_path),
+            "--samplesLabel",
+            *sample_labels,
+            "-out",
+            str(profile_png),
+            "--perGroup",
+        ]
+        if color_map:
+            profile_cmd.extend(["--colors"] + [color_map])
+
+        append_to_master_log(master_log, "Running plotProfile (PNG)", " ".join(profile_cmd))
+        run_cmd(
+            profile_cmd,
+            log_path=logs_dir / "plotProfile_png.log",
+            timeout=3600,
+            master_log=master_log,
+        )
+
+        # --- plotProfile (SVG) ---
+        profile_svg = results_dir / f"{heatmap_name}_profile.svg"
+        profile_svg_cmd = [
+            "plotProfile",
+            "-m",
+            str(matrix_path),
+            "--samplesLabel",
+            *sample_labels,
+            "--plotFileFormat",
+            "svg",
+            "-out",
+            str(profile_svg),
+            "--perGroup",
+        ]
+        if color_map:
+            profile_svg_cmd.extend(["--colors"] + [color_map])
+
+        append_to_master_log(master_log, "Running plotProfile (SVG)", " ".join(profile_svg_cmd))
+        run_cmd(
+            profile_svg_cmd,
+            log_path=logs_dir / "plotProfile_svg.log",
+            timeout=3600,
+            master_log=master_log,
+        )
+
         append_to_master_log(master_log, "Custom heatmap complete", f"Outputs in {results_dir}")
 
         # Register outputs
@@ -238,6 +286,19 @@ class CustomHeatmapStage(PipelineStage):
                 outputs.append(
                     {
                         "file_category": "custom_heatmap_plot",
+                        "filename": path.name,
+                        "file_path": f"{rel_job}/results/{path.name}",
+                        "file_type": ftype,
+                        "file_size_bytes": path.stat().st_size,
+                        "reaction_id": None,
+                    }
+                )
+
+        for path, ftype in [(profile_png, "png"), (profile_svg, "svg")]:
+            if path.exists():
+                outputs.append(
+                    {
+                        "file_category": "custom_heatmap_profile",
                         "filename": path.name,
                         "file_path": f"{rel_job}/results/{path.name}",
                         "file_type": ftype,
@@ -340,6 +401,37 @@ class CustomHeatmapStage(PipelineStage):
                 "file_path": f"{rel_job}/results/{svg_path.name}",
                 "file_type": "svg",
                 "file_size_bytes": svg_path.stat().st_size,
+                "reaction_id": None,
+            }
+        )
+
+        # Stub profile PNG
+        profile_png = results_dir / f"{heatmap_name}_profile.png"
+        profile_png.write_bytes(_STUB_PNG)
+        outputs.append(
+            {
+                "file_category": "custom_heatmap_profile",
+                "filename": profile_png.name,
+                "file_path": f"{rel_job}/results/{profile_png.name}",
+                "file_type": "png",
+                "file_size_bytes": profile_png.stat().st_size,
+                "reaction_id": None,
+            }
+        )
+
+        # Stub profile SVG
+        profile_svg = results_dir / f"{heatmap_name}_profile.svg"
+        profile_svg.write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">'
+            '<text x="10" y="30">Mock Profile Plot</text></svg>'
+        )
+        outputs.append(
+            {
+                "file_category": "custom_heatmap_profile",
+                "filename": profile_svg.name,
+                "file_path": f"{rel_job}/results/{profile_svg.name}",
+                "file_type": "svg",
+                "file_size_bytes": profile_svg.stat().st_size,
                 "reaction_id": None,
             }
         )

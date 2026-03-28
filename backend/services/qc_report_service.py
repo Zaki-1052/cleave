@@ -661,12 +661,15 @@ async def get_diffbind_counts_path(
 # ---------------------------------------------------------------------------
 
 
-def _find_heatmap_plot_info(job: AnalysisJob) -> CustomHeatmapPlotInfo:
-    """Match job outputs to heatmap plot PNG + SVG."""
+def _find_heatmap_plot_info(
+    job: AnalysisJob,
+    category: str,
+) -> CustomHeatmapPlotInfo:
+    """Match job outputs to a plot type's PNG + SVG by file category."""
     png_id = None
     svg_id = None
     for output in job.outputs:
-        if output.file_category == "custom_heatmap_plot":
+        if output.file_category == category:
             if output.file_type == "png":
                 png_id = output.id
             elif output.file_type == "svg":
@@ -693,7 +696,8 @@ async def get_custom_heatmap_report(
     params = job.params or {}
     samples = params.get("samples", [])
 
-    plot_info = _find_heatmap_plot_info(job)
+    plot_info = _find_heatmap_plot_info(job, "custom_heatmap_plot")
+    profile_info = _find_heatmap_plot_info(job, "custom_heatmap_profile")
 
     matrix_output_id = None
     for output in job.outputs:
@@ -711,6 +715,7 @@ async def get_custom_heatmap_report(
         sort_order=params.get("sort_order", "descend"),
         color_map=params.get("color_map"),
         plot_output=plot_info,
+        profile_output=profile_info,
         matrix_output_id=matrix_output_id,
     )
 

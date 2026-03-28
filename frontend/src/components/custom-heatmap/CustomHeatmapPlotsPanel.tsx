@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 
 import { getOutputSignedUrl, downloadHeatmapMatrix } from '@/api/jobs';
+import type { CustomHeatmapPlotInfo } from '@/api/types';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { useCustomHeatmapReport } from '@/hooks/useJobs';
@@ -12,28 +13,7 @@ interface CustomHeatmapPlotsPanelProps {
 
 export function CustomHeatmapPlotsPanel({ jobId }: CustomHeatmapPlotsPanelProps) {
   const { data: report, isLoading, error } = useCustomHeatmapReport(jobId);
-  const [pngUrl, setPngUrl] = useState<string | null>(null);
-  const [svgUrl, setSvgUrl] = useState<string | null>(null);
-  const [imgError, setImgError] = useState(false);
   const [matrixDownloading, setMatrixDownloading] = useState(false);
-
-  const plotOutput = report?.plotOutput;
-
-  useEffect(() => {
-    if (plotOutput?.outputIdPng != null) {
-      getOutputSignedUrl(jobId, plotOutput.outputIdPng)
-        .then((res) => setPngUrl(res.url))
-        .catch(() => setImgError(true));
-    }
-  }, [jobId, plotOutput?.outputIdPng]);
-
-  useEffect(() => {
-    if (plotOutput?.outputIdSvg != null) {
-      getOutputSignedUrl(jobId, plotOutput.outputIdSvg)
-        .then((res) => setSvgUrl(res.url))
-        .catch(() => { /* SVG download unavailable — non-critical */ });
-    }
-  }, [jobId, plotOutput?.outputIdSvg]);
 
   if (isLoading) {
     return (
@@ -55,26 +35,6 @@ export function CustomHeatmapPlotsPanel({ jobId }: CustomHeatmapPlotsPanelProps)
     );
   }
 
-  function handleDownloadPng() {
-    if (!pngUrl) return;
-    const link = document.createElement('a');
-    link.href = pngUrl;
-    link.download = 'custom_heatmap.png';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  }
-
-  function handleDownloadSvg() {
-    if (!svgUrl) return;
-    const link = document.createElement('a');
-    link.href = svgUrl;
-    link.download = 'custom_heatmap.svg';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  }
-
   async function handleDownloadMatrix() {
     setMatrixDownloading(true);
     try {
@@ -85,10 +45,108 @@ export function CustomHeatmapPlotsPanel({ jobId }: CustomHeatmapPlotsPanelProps)
   }
 
   return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-gray-500">
+          Signal around the {report.referencePoint} of reference regions in{' '}
+          <strong>{report.bedLabel}</strong>, with a {report.flankingUpstream} bp upstream and{' '}
+          {report.flankingDownstream} bp downstream flanking window.{' '}
+          {report.sampleCount} sample{report.sampleCount !== 1 ? 's' : ''} shown.
+        </p>
+        {report.matrixOutputId != null && (
+          <Button
+            variant="outlined"
+            onClick={handleDownloadMatrix}
+            disabled={matrixDownloading}
+            className="text-xs"
+          >
+            {matrixDownloading ? 'Downloading...' : 'Matrix (.gz)'}
+          </Button>
+        )}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <PlotCard
+          jobId={jobId}
+          plotInfo={report.plotOutput}
+          label="Reference-Point Heatmap"
+          description="Per-region signal heatmap showing enrichment patterns around reference points."
+          filenameBase="custom_heatmap"
+        />
+        <PlotCard
+          jobId={jobId}
+          plotInfo={report.profileOutput}
+          label="Profile Plot"
+          description="Mean signal curve showing average enrichment around reference points across all regions."
+          filenameBase="custom_heatmap_profile"
+        />
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Reusable plot card — fetches signed URL and renders image
+// ---------------------------------------------------------------------------
+
+interface PlotCardProps {
+  jobId: number;
+  plotInfo: CustomHeatmapPlotInfo;
+  label: string;
+  description: string;
+  filenameBase: string;
+}
+
+function PlotCard({ jobId, plotInfo, label, description, filenameBase }: PlotCardProps) {
+  const [pngUrl, setPngUrl] = useState<string | null>(null);
+  const [svgUrl, setSvgUrl] = useState<string | null>(null);
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    if (plotInfo.outputIdPng != null) {
+      getOutputSignedUrl(jobId, plotInfo.outputIdPng)
+        .then((res) => setPngUrl(res.url))
+        .catch(() => setImgError(true));
+    }
+  }, [jobId, plotInfo.outputIdPng]);
+
+  useEffect(() => {
+    if (plotInfo.outputIdSvg != null) {
+      getOutputSignedUrl(jobId, plotInfo.outputIdSvg)
+        .then((res) => setSvgUrl(res.url))
+        .catch(() => { /* SVG unavailable — non-critical */ });
+    }
+  }, [jobId, plotInfo.outputIdSvg]);
+
+  if (plotInfo.outputIdPng == null && plotInfo.outputIdSvg == null) {
+    return null;
+  }
+
+  function handleDownloadPng() {
+    if (!pngUrl) return;
+    const link = document.createElement('a');
+    link.href = pngUrl;
+    link.download = `${filenameBase}.png`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
+  function handleDownloadSvg() {
+    if (!svgUrl) return;
+    const link = document.createElement('a');
+    link.href = svgUrl;
+    link.download = `${filenameBase}.svg`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
+  return (
     <Card>
-      <div className="mb-3 flex items-center justify-between">
-        <h4 className="text-sm font-semibold text-gray-700">Reference-Point Heatmap</h4>
-        <div className="flex items-center gap-3">
+      <div className="mb-2 flex items-center justify-between">
+        <h4 className="text-sm font-semibold text-gray-700">{label}</h4>
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleDownloadPng}
@@ -97,7 +155,7 @@ export function CustomHeatmapPlotsPanel({ jobId }: CustomHeatmapPlotsPanelProps)
           >
             PNG
           </button>
-          {plotOutput?.outputIdSvg != null && (
+          {plotInfo.outputIdSvg != null && (
             <button
               type="button"
               onClick={handleDownloadSvg}
@@ -107,38 +165,24 @@ export function CustomHeatmapPlotsPanel({ jobId }: CustomHeatmapPlotsPanelProps)
               SVG
             </button>
           )}
-          {report.matrixOutputId != null && (
-            <Button
-              variant="outlined"
-              size="sm"
-              onClick={handleDownloadMatrix}
-              disabled={matrixDownloading}
-            >
-              {matrixDownloading ? 'Downloading...' : 'Matrix (.gz)'}
-            </Button>
-          )}
         </div>
       </div>
 
-      <p className="mb-4 text-xs text-gray-500">
-        Signal around the {report.referencePoint} of reference regions in <strong>{report.bedLabel}</strong>,
-        with a {report.flankingUpstream} bp upstream and {report.flankingDownstream} bp downstream flanking window.
-        {report.sampleCount} sample{report.sampleCount !== 1 ? 's' : ''} shown.
-      </p>
+      <p className="mb-3 text-xs text-gray-500">{description}</p>
 
       {imgError ? (
-        <div className="flex h-64 items-center justify-center rounded border border-gray-200 bg-gray-50">
-          <p className="text-xs text-red-500">Failed to load heatmap image.</p>
+        <div className="flex h-48 items-center justify-center rounded border border-gray-200 bg-gray-50">
+          <p className="text-xs text-red-500">Failed to load plot.</p>
         </div>
       ) : pngUrl ? (
         <img
           src={`${pngUrl}&display=inline`}
-          alt="Custom reference-point heatmap"
-          className="mx-auto max-w-full rounded border border-gray-100"
+          alt={label}
+          className="w-full rounded border border-gray-100"
           onError={() => setImgError(true)}
         />
       ) : (
-        <div className="flex h-64 items-center justify-center">
+        <div className="flex h-48 items-center justify-center">
           <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
       )}

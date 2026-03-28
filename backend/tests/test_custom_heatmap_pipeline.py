@@ -136,6 +136,7 @@ def test_mock_run_output_categories(stage, tmp_path):
 
     categories = {o["file_category"] for o in result["outputs"]}
     assert "custom_heatmap_plot" in categories
+    assert "custom_heatmap_profile" in categories
     assert "custom_heatmap_matrix" in categories
     assert "custom_heatmap_bed" in categories
     assert "log" in categories
@@ -148,6 +149,19 @@ def test_mock_run_png_and_svg(stage, tmp_path):
 
     plot_outputs = [o for o in result["outputs"] if o["file_category"] == "custom_heatmap_plot"]
     types = {o["file_type"] for o in plot_outputs}
+    assert "png" in types
+    assert "svg" in types
+
+
+def test_mock_run_profile_png_and_svg(stage, tmp_path):
+    job_dir = tmp_path / "job"
+    working_dir = tmp_path / "working"
+    result = stage.mock_run(1, _make_valid_params(), working_dir, job_dir)
+
+    profile_outputs = [
+        o for o in result["outputs"] if o["file_category"] == "custom_heatmap_profile"
+    ]
+    types = {o["file_type"] for o in profile_outputs}
     assert "png" in types
     assert "svg" in types
 
@@ -187,6 +201,7 @@ def test_methods_text_default_params(stage):
     assert "center" in text
     assert "1500" in text
     assert "4 samples" in text
+    assert "plotProfile" in text
 
 
 def test_methods_text_custom_params(stage):
