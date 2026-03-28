@@ -4,9 +4,13 @@ import { Button } from '@/components/ui/Button';
 
 interface NewAnalysisDropdownProps {
   onAlignmentClick: () => void;
+  onPeakCallingClick: () => void;
 }
 
-export function NewAnalysisDropdown({ onAlignmentClick }: NewAnalysisDropdownProps) {
+export function NewAnalysisDropdown({
+  onAlignmentClick,
+  onPeakCallingClick,
+}: NewAnalysisDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -42,9 +46,11 @@ export function NewAnalysisDropdown({ onAlignmentClick }: NewAnalysisDropdownPro
           </button>
           <button
             type="button"
-            disabled
-            className="w-full px-4 py-2 text-left text-sm text-gray-400 cursor-not-allowed"
-            title="Coming in Phase 4"
+            onClick={() => {
+              setIsOpen(false);
+              onPeakCallingClick();
+            }}
+            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-primary/10"
           >
             Peak Calling
           </button>

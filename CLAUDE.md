@@ -133,10 +133,13 @@ ruff check backend/            # Python linting
 ruff format backend/           # Python formatting
 
 # ⚠️  TESTS MUST RUN INSIDE DOCKER — they need the Postgres `db` service.
-# Do NOT run pytest locally on the host machine. Always use docker compose exec:
-docker compose exec api pytest tests/                            # Run all tests
+# Do NOT run pytest locally on the host machine. Always use docker compose exec.
+# ⚠️  ONLY RUN TESTS RELEVANT TO YOUR CHANGES — the full suite takes 3+ minutes.
+# Target specific test files or use -k to match test names. Only run the full suite
+# if you have made sweeping cross-cutting changes (e.g., DB schema, auth, base classes).
 docker compose exec api pytest tests/test_specific.py            # Single file
 docker compose exec api pytest tests/test_specific.py -k "name"  # Single test
+docker compose exec api pytest tests/                            # Full suite (ONLY if needed)
 docker compose exec api ruff check .                             # Lint in container
 docker compose exec api ruff format --check .                    # Format check in container
 ```

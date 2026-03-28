@@ -5,6 +5,7 @@ import { Card } from '@/components/layout/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { NewAnalysisDropdown } from '@/components/experiments/NewAnalysisDropdown';
 import { NewAlignmentWizard } from '@/components/alignment/NewAlignmentWizard';
+import { NewPeakCallingWizard } from '@/components/peak-calling/NewPeakCallingWizard';
 import { useExperiment } from '@/hooks/useExperiments';
 import { useJobs } from '@/hooks/useJobs';
 
@@ -30,6 +31,7 @@ export default function ExperimentView() {
   const { data: experiment, isLoading } = useExperiment(Number(id));
   const { data: jobsData } = useJobs(Number(id), 1, 1);
   const [showAlignmentWizard, setShowAlignmentWizard] = useState(false);
+  const [showPeakCallingWizard, setShowPeakCallingWizard] = useState(false);
 
   const lastJob = jobsData?.items?.[0] ?? null;
   const lastJobLabel = lastJob
@@ -67,7 +69,10 @@ export default function ExperimentView() {
           </div>
           <StatusBadge status={experiment.status} />
         </div>
-        <NewAnalysisDropdown onAlignmentClick={() => setShowAlignmentWizard(true)} />
+        <NewAnalysisDropdown
+          onAlignmentClick={() => setShowAlignmentWizard(true)}
+          onPeakCallingClick={() => setShowPeakCallingWizard(true)}
+        />
       </div>
 
       <div className="flex gap-6">
@@ -101,6 +106,12 @@ export default function ExperimentView() {
       <NewAlignmentWizard
         isOpen={showAlignmentWizard}
         onClose={() => setShowAlignmentWizard(false)}
+        experiment={experiment}
+      />
+
+      <NewPeakCallingWizard
+        isOpen={showPeakCallingWizard}
+        onClose={() => setShowPeakCallingWizard(false)}
         experiment={experiment}
       />
     </div>

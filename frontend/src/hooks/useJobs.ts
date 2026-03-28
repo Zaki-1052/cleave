@@ -67,6 +67,14 @@ export function useQCReport(jobId: number | null) {
   });
 }
 
+export function usePeakCallingQCReport(jobId: number | null) {
+  return useQuery({
+    queryKey: ['peak-qc-report', jobId],
+    queryFn: () => jobsApi.getPeakCallingQCReport(jobId!),
+    enabled: jobId !== null,
+  });
+}
+
 export function useJobOutputs(jobId: number | null, category?: string) {
   return useQuery({
     queryKey: ['job-outputs', jobId, category],

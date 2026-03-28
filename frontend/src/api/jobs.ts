@@ -1,6 +1,13 @@
 // frontend/src/api/jobs.ts
 import client from './client';
-import type { AlignmentQCReport, AnalysisJob, JobOutput, PaginatedResponse, QueueJob } from './types';
+import type {
+  AlignmentQCReport,
+  AnalysisJob,
+  JobOutput,
+  PaginatedResponse,
+  PeakCallingQCReport,
+  QueueJob,
+} from './types';
 
 export interface JobCreatePayload {
   jobType: string;
@@ -93,6 +100,25 @@ export async function batchDownloadJobFiles(
   const a = document.createElement('a');
   a.href = url;
   a.download = `job_${jobId}_files.zip`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export async function getPeakCallingQCReport(jobId: number): Promise<PeakCallingQCReport> {
+  const { data } = await client.get<PeakCallingQCReport>(`/jobs/${jobId}/peak-qc-report`);
+  return data;
+}
+
+export async function downloadPeakCallingQCCsv(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/peak-qc-report/download`, {
+    responseType: 'blob',
+  });
+  const url = URL.createObjectURL(response.data as Blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'peak_caller_metrics.csv';
   document.body.appendChild(a);
   a.click();
   a.remove();

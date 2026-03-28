@@ -95,6 +95,64 @@ export const ALIGNMENT_FILE_CATEGORIES = [
   },
 ] as const;
 
+export const PEAK_CALLERS = [
+  { value: 'MACS2', label: 'MACS2' },
+  { value: 'SICER2', label: 'SICER2' },
+  { value: 'SEACR', label: 'SEACR' },
+] as const;
+
+export const PEAK_SIZES: Record<string, { value: string; label: string }[]> = {
+  MACS2: [
+    { value: 'narrow', label: 'Narrow' },
+    { value: 'broad', label: 'Broad' },
+  ],
+  SICER2: [{ value: 'broad', label: 'Broad' }],
+  SEACR: [
+    { value: 'stringent', label: 'Stringent' },
+    { value: 'relaxed', label: 'Relaxed' },
+  ],
+};
+
+export const PEAK_CALLING_FILE_CATEGORIES = [
+  {
+    value: 'bed',
+    label: 'BED Files',
+    description:
+      'Peak coordinate files in BED format defining genomic regions where target signal is significantly enriched over background.',
+  },
+  {
+    value: 'frip',
+    label: 'FRiP Score',
+    description:
+      'Fraction of Reads in Peaks metrics — the ratio of unique reads associated with statistically significant peaks to total reads.',
+  },
+  {
+    value: 'annotation',
+    label: 'Peak Annotation',
+    description:
+      'HOMER peak annotation output files mapping each peak to the nearest genomic feature (promoter, exon, intron, intergenic, etc.).',
+  },
+  {
+    value: 'annotation_stats',
+    label: 'Peak Annotation Stats',
+    description: 'Summary statistics from HOMER annotation showing the distribution of peaks across genomic features.',
+  },
+  {
+    value: 'log',
+    label: 'Logs',
+    description: 'Peak calling pipeline execution log files.',
+  },
+] as const;
+
+export const PEAK_CALLING_DEFAULTS = {
+  q_value: 0.01,
+  broad_cutoff: 0.1,
+  seacr_threshold: 0.01,
+  sicer2_fdr: 0.01,
+  fragment_filter: true,
+  fragment_size: 120,
+} as const;
+
 export const CUTANA_SPIKE_IN_TARGETS = [
   'Unmodified',
   'H3K4me1',

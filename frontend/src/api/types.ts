@@ -200,6 +200,37 @@ export interface AlignmentQCReport {
   spikeInResults: SpikeInReactionResult[] | null;
 }
 
+export interface PeakCallingReactionMetrics {
+  shortName: string;
+  controlShortName: string;
+  referenceGenome: string;
+  peakCaller: string;
+  peakSize: string;
+  significanceThreshold: number;
+  uniquelyAlignedReadPairs: number;
+  calledPeaks: number;
+  readsInPeaks: number;
+  frip: number;
+}
+
+export interface TopCalledPeak {
+  shortName: string;
+  controlShortName: string;
+  referenceGenome: string;
+  peakCaller: string;
+  peakSize: string;
+  significanceThreshold: number;
+  topPeaks: string[];
+}
+
+export interface PeakCallingQCReport {
+  referenceGenome: string;
+  peakCaller: string;
+  peakSize: string;
+  metrics: PeakCallingReactionMetrics[];
+  topPeaks: TopCalledPeak[] | null;
+}
+
 export interface Notification {
   id: number;
   userId: number;

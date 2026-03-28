@@ -16,17 +16,20 @@ from pipelines.spike_in_barcodes import PTM_NAMES, normalize_counts
 from schemas.qc_report import (
     AlignmentQCReport,
     AlignmentReactionMetrics,
+    PeakCallingQCReport,
+    PeakCallingReactionMetrics,
     SpikeInPTMResult,
     SpikeInReactionResult,
+    TopCalledPeak,
 )
 
 
-async def _get_authorized_alignment_job(
+async def _get_authorized_job(
     db: AsyncSession,
     job_id: int,
     user_id: int,
 ) -> AnalysisJob | None:
-    """Fetch an alignment job if the user has access to its project."""
+    """Fetch a job if the user has access to its project."""
     result = await db.execute(
         select(AnalysisJob)
         .join(Experiment, Experiment.id == AnalysisJob.experiment_id)
@@ -128,7 +131,7 @@ async def get_alignment_qc_report(
     Raises ValueError if the job is not a completed alignment.
     Raises FileNotFoundError if the QC CSV is missing from disk.
     """
-    job = await _get_authorized_alignment_job(db, job_id, user_id)
+    job = await _get_authorized_job(db, job_id, user_id)
     if job is None:
         return None
 
@@ -168,7 +171,7 @@ async def get_qc_csv_path(
     Raises ValueError if the job is not a completed alignment.
     Raises FileNotFoundError if the QC CSV is missing from disk.
     """
-    job = await _get_authorized_alignment_job(db, job_id, user_id)
+    job = await _get_authorized_job(db, job_id, user_id)
     if job is None:
         return None
 
@@ -180,5 +183,133 @@ async def get_qc_csv_path(
     csv_path = _resolve_qc_csv_path(job)
     if csv_path is None:
         raise FileNotFoundError(f"QC report CSV not found for job {job_id}")
+
+    return csv_path
+
+
+def _parse_peak_qc_csv(csv_path: Path) -> list[PeakCallingReactionMetrics]:
+    """Parse a peak calling metrics CSV into Pydantic models."""
+    metrics: list[PeakCallingReactionMetrics] = []
+    with open(csv_path, newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            metrics.append(
+                PeakCallingReactionMetrics(
+                    short_name=row["Short_Name"],
+                    control_short_name=row.get("Control_Short_Name", ""),
+                    reference_genome=row.get("Reference_Genome", ""),
+                    peak_caller=row.get("Peak_Caller", ""),
+                    peak_size=row.get("Peak_Size", ""),
+                    significance_threshold=float(row.get("Significance_Threshold", 0)),
+                    uniquely_aligned_read_pairs=int(row.get("Uniquely_Aligned_Read_Pairs", 0)),
+                    called_peaks=int(row.get("Called_Peaks", 0)),
+                    reads_in_peaks=int(row.get("Reads_in_Peaks", 0)),
+                    frip=float(row.get("FRiP", 0)),
+                )
+            )
+    return metrics
+
+
+def _parse_top_peaks_csv(csv_path: Path) -> list[TopCalledPeak]:
+    """Parse a top called peaks CSV into Pydantic models."""
+    peaks: list[TopCalledPeak] = []
+    with open(csv_path, newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            top_peaks: list[str] = []
+            for col in [
+                "Top Peak",
+                "2' Peak",
+                "3' Peak",
+                "4' Peak",
+                "5' Peak",
+                "6' Peak",
+                "7' Peak",
+                "8' Peak",
+                "9' Peak",
+                "10' Peak",
+            ]:
+                val = row.get(col, "")
+                if val:
+                    top_peaks.append(val)
+            peaks.append(
+                TopCalledPeak(
+                    short_name=row["Short_Name"],
+                    control_short_name=row.get("Control_Short_Name", ""),
+                    reference_genome=row.get("Reference_Genome", ""),
+                    peak_caller=row.get("Peak_Caller", ""),
+                    peak_size=row.get("Peak_Size", ""),
+                    significance_threshold=float(row.get("Significance_Threshold", 0)),
+                    top_peaks=top_peaks,
+                )
+            )
+    return peaks
+
+
+async def get_peak_calling_qc_report(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> PeakCallingQCReport | None:
+    """Return structured QC report data for a peak calling job.
+
+    Returns None if the job is not found or the user lacks access.
+    Raises ValueError if the job is not a completed peak_calling job.
+    Raises FileNotFoundError if the QC CSV is missing from disk.
+    """
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    if job.job_type != "peak_calling" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed peak calling job "
+            f"(type={job.job_type}, status={job.status})"
+        )
+
+    csv_path = _resolve_output_path(job, "qc_report", "csv")
+    if csv_path is None:
+        raise FileNotFoundError(f"Peak calling QC CSV not found for job {job_id}")
+
+    params = job.params or {}
+    genome = params.get("reference_genome", "unknown")
+    peak_caller = params.get("peak_caller", "unknown")
+    peak_size = params.get("peak_size", "unknown")
+
+    metrics = _parse_peak_qc_csv(csv_path)
+
+    top_peaks = None
+    top_peaks_path = _resolve_output_path(job, "top_peaks", "csv")
+    if top_peaks_path is not None:
+        top_peaks = _parse_top_peaks_csv(top_peaks_path)
+
+    return PeakCallingQCReport(
+        reference_genome=genome,
+        peak_caller=peak_caller,
+        peak_size=peak_size,
+        metrics=metrics,
+        top_peaks=top_peaks,
+    )
+
+
+async def get_peak_calling_qc_csv_path(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> Path | None:
+    """Return the absolute path to the peak calling QC CSV file for download."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    if job.job_type != "peak_calling" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed peak calling job "
+            f"(type={job.job_type}, status={job.status})"
+        )
+
+    csv_path = _resolve_output_path(job, "qc_report", "csv")
+    if csv_path is None:
+        raise FileNotFoundError(f"Peak calling QC CSV not found for job {job_id}")
 
     return csv_path

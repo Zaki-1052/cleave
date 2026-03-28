@@ -8,7 +8,7 @@ from database import get_db
 from models.user import User
 from schemas.common import PaginatedResponse
 from schemas.job import JobCreate, JobOutputRead, JobQueueRead, JobRead, JobUpdate
-from schemas.qc_report import AlignmentQCReport
+from schemas.qc_report import AlignmentQCReport, PeakCallingQCReport
 from services.job_service import (
     create_job,
     get_job,
@@ -17,7 +17,12 @@ from services.job_service import (
     list_jobs_for_experiment,
     update_job_notes,
 )
-from services.qc_report_service import get_alignment_qc_report, get_qc_csv_path
+from services.qc_report_service import (
+    get_alignment_qc_report,
+    get_peak_calling_qc_csv_path,
+    get_peak_calling_qc_report,
+    get_qc_csv_path,
+)
 
 router = APIRouter()
 
@@ -142,6 +147,50 @@ async def get_qc_report(
             detail="Job not found",
         )
     return report
+
+
+@router.get("/jobs/{job_id}/peak-qc-report", response_model=PeakCallingQCReport)
+async def get_peak_qc_report(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        report = await get_peak_calling_qc_report(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return report
+
+
+@router.get("/jobs/{job_id}/peak-qc-report/download")
+async def download_peak_qc_csv(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        csv_path = await get_peak_calling_qc_csv_path(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if csv_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return FileResponse(
+        csv_path,
+        media_type="text/csv",
+        filename="peak_caller_metrics.csv",
+    )
 
 
 @router.get("/jobs/{job_id}/qc-report/download")
