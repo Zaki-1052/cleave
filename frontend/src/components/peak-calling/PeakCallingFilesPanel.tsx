@@ -13,7 +13,6 @@ import { formatBytes } from '@/lib/utils';
 
 interface PeakCallingFilesPanelProps {
   jobId: number;
-  experimentId: number;
 }
 
 type PeakCallingFileCategory = (typeof PEAK_CALLING_FILE_CATEGORIES)[number]['value'];

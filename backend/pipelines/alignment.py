@@ -418,7 +418,7 @@ class AlignmentStage(PipelineStage):
                 "--rg",
                 f"LB:{short_name}",
                 "--rg",
-                f"PL:ILLUMINA",
+                "PL:ILLUMINA",
                 "-x",
                 bt2_index,
                 "-1",
@@ -453,8 +453,8 @@ class AlignmentStage(PipelineStage):
                     stderr=subprocess.PIPE,
                     timeout=3600,
                 )
-            append_to_master_log(master_log, f"SAM→BAM conversion — {short_name}",
-                                 proc.stderr.decode("utf-8", errors="replace") if proc.stderr else "")
+            stderr_text = proc.stderr.decode("utf-8", errors="replace") if proc.stderr else ""
+            append_to_master_log(master_log, f"SAM→BAM conversion — {short_name}", stderr_text)
             if proc.returncode != 0:
                 raise PipelineError(
                     f"SAM→BAM failed for {short_name}: "
@@ -488,8 +488,10 @@ class AlignmentStage(PipelineStage):
                     stderr=subprocess.PIPE,
                     timeout=3600,
                 )
-            append_to_master_log(master_log, f"Filter unmapped + multi-mapper removal — {short_name}",
-                                 proc.stderr.decode("utf-8", errors="replace") if proc.stderr else "")
+            stderr_text = proc.stderr.decode("utf-8", errors="replace") if proc.stderr else ""
+            append_to_master_log(
+                master_log, f"Filter unmapped + multi-mapper removal — {short_name}", stderr_text,
+            )
             if proc.returncode != 0:
                 raise PipelineError(f"Filter/multi-mapper removal failed for {short_name}")
             # Remove raw BAM (intermediate)
@@ -513,8 +515,10 @@ class AlignmentStage(PipelineStage):
                         stderr=subprocess.PIPE,
                         timeout=3600,
                     )
-                append_to_master_log(master_log, f"DAC exclusion list filtering — {short_name}",
-                                     proc.stderr.decode("utf-8", errors="replace") if proc.stderr else "")
+                stderr_text = proc.stderr.decode("utf-8", errors="replace") if proc.stderr else ""
+                append_to_master_log(
+                    master_log, f"DAC exclusion list filtering — {short_name}", stderr_text,
+                )
                 if proc.returncode != 0:
                     raise PipelineError(f"DAC exclusion list filtering failed for {short_name}")
                 # Use filtered BAM going forward, remove uniq
@@ -574,8 +578,8 @@ class AlignmentStage(PipelineStage):
                         stderr=subprocess.PIPE,
                         timeout=3600,
                     )
-                append_to_master_log(master_log, f"Duplicate removal — {short_name}",
-                                     proc.stderr.decode("utf-8", errors="replace") if proc.stderr else "")
+                stderr_text = proc.stderr.decode("utf-8", errors="replace") if proc.stderr else ""
+                append_to_master_log(master_log, f"Duplicate removal — {short_name}", stderr_text)
                 if proc.returncode != 0:
                     raise PipelineError(f"Duplicate removal failed for {short_name}")
                 dup_marked_bam.unlink(missing_ok=True)

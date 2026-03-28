@@ -136,7 +136,8 @@ def run_piped_cmd(
     combined = f"cmd1 stderr:\n{stderr1_str}\ncmd2 stderr:\n{stderr2_str}".strip()
     pipe_str = f"{cmd1_str} | {cmd2_str} > {output_path.name}"
     status = "OK" if (p1.returncode == 0 and p2.returncode == 0) else "FAILED"
-    append_to_master_log(master_log, f"exit {p1.returncode}/{p2.returncode} {status} | {pipe_str}", combined)
+    header = f"exit {p1.returncode}/{p2.returncode} {status} | {pipe_str}"
+    append_to_master_log(master_log, header, combined)
 
     if p1.returncode != 0:
         raise PipelineError(

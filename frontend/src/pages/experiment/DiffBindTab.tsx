@@ -1,39 +1,37 @@
-// frontend/src/pages/experiment/AlignmentTab.tsx
+// frontend/src/pages/experiment/DiffBindTab.tsx
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import type { Experiment } from '@/api/types';
-import { AlignmentFilesPanel } from '@/components/alignment/AlignmentFilesPanel';
-import { AlignmentInfoPanel } from '@/components/alignment/AlignmentInfoPanel';
-import { AlignmentInputPanel } from '@/components/alignment/AlignmentInputPanel';
-import { AlignmentQCReportPanel } from '@/components/alignment/AlignmentQCReportPanel';
-import { IGVPanel } from '@/components/igv/IGVPanel';
+import { DiffBindFilesPanel } from '@/components/diffbind/DiffBindFilesPanel';
+import { DiffBindInfoPanel } from '@/components/diffbind/DiffBindInfoPanel';
+import { DiffBindInputPanel } from '@/components/diffbind/DiffBindInputPanel';
+import { DiffBindPlotsPanel } from '@/components/diffbind/DiffBindPlotsPanel';
+import { DiffBindResultsPanel } from '@/components/diffbind/DiffBindResultsPanel';
 import { Card } from '@/components/layout/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs } from '@/hooks/useJobs';
 
-type AlignmentSubTab = 'info' | 'input' | 'qc-report' | 'files' | 'igv';
+type DiffBindSubTab = 'info' | 'input' | 'results' | 'plots' | 'files';
 
-const SUB_TABS: { key: AlignmentSubTab; label: string }[] = [
+const SUB_TABS: { key: DiffBindSubTab; label: string }[] = [
   { key: 'info', label: 'Info' },
   { key: 'input', label: 'Input' },
-  { key: 'qc-report', label: 'QC Report' },
+  { key: 'results', label: 'Results' },
+  { key: 'plots', label: 'Plots' },
   { key: 'files', label: 'Files' },
-  { key: 'igv', label: 'IGV' },
 ];
 
-export default function AlignmentTab() {
+export default function DiffBindTab() {
   const { id, jid } = useParams<{ id: string; jid: string }>();
   const { experiment } = useOutletContext<{ experiment: Experiment }>();
   const navigate = useNavigate();
-  const [activeSubTab, setActiveSubTab] = useState<AlignmentSubTab>('info');
+  const [activeSubTab, setActiveSubTab] = useState<DiffBindSubTab>('info');
 
-  // Fetch all jobs for this experiment, filter to alignment client-side
   const { data: jobsData, isLoading: jobsLoading } = useJobs(experiment.id, 1, 100);
-  const alignmentJobs = (jobsData?.items ?? []).filter((j) => j.jobType === 'alignment');
+  const diffBindJobs = (jobsData?.items ?? []).filter((j) => j.jobType === 'diffbind');
 
-  // Determine which job to display
   const requestedId = jid && jid !== '0' ? Number(jid) : null;
-  const latestJob = alignmentJobs.length > 0 ? alignmentJobs[0] : null;
+  const latestJob = diffBindJobs.length > 0 ? diffBindJobs[0] : null;
   const activeJobId = requestedId ?? latestJob?.id ?? null;
 
   const { data: job, isLoading: jobLoading } = useJob(activeJobId);
@@ -42,7 +40,7 @@ export default function AlignmentTab() {
 
   function handleJobChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const selectedId = e.target.value;
-    navigate(`/experiments/${id}/alignment/${selectedId}`);
+    navigate(`/experiments/${id}/diffbind/${selectedId}`);
   }
 
   if (isLoading) {
@@ -55,13 +53,13 @@ export default function AlignmentTab() {
     );
   }
 
-  if (alignmentJobs.length === 0) {
+  if (diffBindJobs.length === 0) {
     return (
       <Card>
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <h3 className="text-sm font-medium text-gray-600">No alignment runs yet</h3>
+          <h3 className="text-sm font-medium text-gray-600">No DiffBind runs yet</h3>
           <p className="mt-1 text-sm text-gray-400">
-            Click &ldquo;New Analysis&rdquo; above to create an alignment run.
+            Click &ldquo;New Analysis&rdquo; above to create a DiffBind differential analysis.
           </p>
         </div>
       </Card>
@@ -74,14 +72,14 @@ export default function AlignmentTab() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Alignments
+            DiffBind
           </label>
           <select
             value={activeJobId ?? ''}
             onChange={handleJobChange}
             className="rounded-md border border-gray-300 px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           >
-            {alignmentJobs.map((j) => (
+            {diffBindJobs.map((j) => (
               <option key={j.id} value={j.id}>
                 {j.name}
               </option>
@@ -111,43 +109,41 @@ export default function AlignmentTab() {
       )}
 
       {/* Sub-tab content */}
-      {job && activeSubTab === 'info' && <AlignmentInfoPanel job={job} />}
+      {job && activeSubTab === 'info' && <DiffBindInfoPanel job={job} />}
 
-      {job && activeSubTab === 'qc-report' && (
+      {job && activeSubTab === 'input' && <DiffBindInputPanel job={job} />}
+
+      {job && activeSubTab === 'results' && (
         job.status === 'complete' ? (
-          <AlignmentQCReportPanel jobId={job.id} job={job} />
+          <DiffBindResultsPanel jobId={job.id} />
         ) : (
           <Card>
             <p className="text-sm text-gray-400">
-              QC report will be available when the alignment completes.
+              Results will be available when the DiffBind analysis completes.
             </p>
           </Card>
         )
       )}
 
-      {job && activeSubTab === 'input' && (
-        <AlignmentInputPanel job={job} experimentId={experiment.id} />
+      {job && activeSubTab === 'plots' && (
+        job.status === 'complete' ? (
+          <DiffBindPlotsPanel jobId={job.id} />
+        ) : (
+          <Card>
+            <p className="text-sm text-gray-400">
+              Plots will be available when the DiffBind analysis completes.
+            </p>
+          </Card>
+        )
       )}
 
       {job && activeSubTab === 'files' && (
         job.status === 'complete' ? (
-          <AlignmentFilesPanel jobId={job.id} />
+          <DiffBindFilesPanel jobId={job.id} />
         ) : (
           <Card>
             <p className="text-sm text-gray-400">
-              Files will be available when the alignment completes.
-            </p>
-          </Card>
-        )
-      )}
-
-      {job && activeSubTab === 'igv' && (
-        job.status === 'complete' ? (
-          <IGVPanel job={job} experimentId={experiment.id} mode="alignment" />
-        ) : (
-          <Card>
-            <p className="text-sm text-gray-400">
-              IGV browser will be available when the alignment completes.
+              Files will be available when the DiffBind analysis completes.
             </p>
           </Card>
         )

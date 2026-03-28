@@ -127,7 +127,7 @@ export default function PeakCallingTab() {
 
       {job && activeSubTab === 'files' && (
         job.status === 'complete' ? (
-          <PeakCallingFilesPanel jobId={job.id} experimentId={experiment.id} />
+          <PeakCallingFilesPanel jobId={job.id} />
         ) : (
           <Card>
             <p className="text-sm text-gray-400">

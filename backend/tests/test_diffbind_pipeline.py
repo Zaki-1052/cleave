@@ -3,7 +3,6 @@
 
 import csv
 import json
-from pathlib import Path
 
 import pytest
 
@@ -219,7 +218,7 @@ def test_mock_run_dynamic_column_names(stage, tmp_path):
             _make_sample(4, "s4", "vehicle", 2),
         ]
     )
-    result = stage.mock_run(1, params, tmp_path, job_dir)
+    stage.mock_run(1, params, tmp_path, job_dir)
 
     results_tsv = job_dir / "diffbind_job_1" / "diffbind_job_1_diffbind_results.txt"
     with open(results_tsv) as f:
@@ -235,7 +234,7 @@ def test_mock_run_edger_skips_heatmaps(stage, tmp_path):
         analysis_method="edger_peaklist",
         custom_peakset_path="dummy.bed",
     )
-    result = stage.mock_run(1, params, tmp_path, job_dir)
+    stage.mock_run(1, params, tmp_path, job_dir)
 
     output_dir = job_dir / "diffbind_job_1"
     assert not (output_dir / "diffbind_job_1_heatmapgroup_plot.png").exists()

@@ -29,12 +29,12 @@ from schemas.fastq_file import (
     FastqFileRead,
     FastqFileUploadResponse,
 )
+from services.download_token_service import create_download_token
 from services.fastq_service import (
     delete_fastq,
     list_fastqs,
     upload_fastqs,
 )
-from services.download_token_service import create_download_token
 from services.fastqc_service import run_fastqc_for_files
 from services.permission_helpers import check_experiment_membership
 

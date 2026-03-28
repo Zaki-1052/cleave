@@ -1,4 +1,4 @@
-// frontend/src/components/alignment/AlignmentFilesPanel.tsx
+// frontend/src/components/diffbind/DiffBindFilesPanel.tsx
 import { type ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 
@@ -8,27 +8,27 @@ import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { useJobOutputs } from '@/hooks/useJobs';
-import { ALIGNMENT_FILE_CATEGORIES } from '@/lib/constants';
+import { DIFFBIND_FILE_CATEGORIES } from '@/lib/constants';
 import { formatBytes } from '@/lib/utils';
 
-interface AlignmentFilesPanelProps {
+interface DiffBindFilesPanelProps {
   jobId: number;
 }
 
-type AlignmentFileCategory = (typeof ALIGNMENT_FILE_CATEGORIES)[number]['value'];
+type DiffBindFileCategory = (typeof DIFFBIND_FILE_CATEGORIES)[number]['value'];
 
-export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
-  const [selectedCategory, setSelectedCategory] = useState<AlignmentFileCategory>(
-    ALIGNMENT_FILE_CATEGORIES[0].value,
+export function DiffBindFilesPanel({ jobId }: DiffBindFilesPanelProps) {
+  const [selectedCategory, setSelectedCategory] = useState<DiffBindFileCategory>(
+    DIFFBIND_FILE_CATEGORIES[0].value,
   );
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const { data: outputs, isLoading } = useJobOutputs(jobId, selectedCategory);
 
-  const categoryInfo = ALIGNMENT_FILE_CATEGORIES.find((c) => c.value === selectedCategory);
+  const categoryInfo = DIFFBIND_FILE_CATEGORIES.find((c) => c.value === selectedCategory);
 
   function handleCategoryChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    setSelectedCategory(e.target.value as AlignmentFileCategory);
+    setSelectedCategory(e.target.value as DiffBindFileCategory);
     setSelectedIds(new Set());
   }
 
@@ -112,22 +112,21 @@ export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
 
   return (
     <Card>
-      {/* Category selector + description */}
       <div className="mb-4 flex items-start gap-4">
         <div className="shrink-0">
           <label
-            htmlFor="alignment-file-category"
+            htmlFor="diffbind-file-category"
             className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500"
           >
             Files
           </label>
           <select
-            id="alignment-file-category"
+            id="diffbind-file-category"
             value={selectedCategory}
             onChange={handleCategoryChange}
             className="rounded-md border border-gray-300 px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           >
-            {ALIGNMENT_FILE_CATEGORIES.map((cat) => (
+            {DIFFBIND_FILE_CATEGORIES.map((cat) => (
               <option key={cat.value} value={cat.value}>
                 {cat.label}
               </option>
@@ -139,7 +138,6 @@ export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
         )}
       </div>
 
-      {/* Toolbar */}
       <div className="mb-3 flex items-center gap-2">
         <Button
           variant="outlined"
@@ -151,7 +149,6 @@ export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
         </Button>
       </div>
 
-      {/* Files table */}
       {isLoading ? (
         <div className="flex h-20 items-center justify-center">
           <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
