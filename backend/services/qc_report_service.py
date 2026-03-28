@@ -24,6 +24,8 @@ from schemas.qc_report import (
     PeakAnnotationResult,
     PeakCallingQCReport,
     PeakCallingReactionMetrics,
+    PearsonCorrelationPlotInfo,
+    PearsonCorrelationReport,
     SpikeInPTMResult,
     SpikeInReactionResult,
     TopCalledPeak,
@@ -734,4 +736,111 @@ async def get_custom_heatmap_matrix_path(
     path = _resolve_output_path(job, "custom_heatmap_matrix", "gz")
     if path is None:
         raise FileNotFoundError(f"Heatmap matrix not found for job {job_id}")
+    return path
+
+
+# ---------------------------------------------------------------------------
+# Pearson Correlation
+# ---------------------------------------------------------------------------
+
+
+def _find_pearson_plot_info(
+    job: AnalysisJob,
+    category: str,
+) -> PearsonCorrelationPlotInfo:
+    """Match job outputs to a plot type's PNG + SVG by file category."""
+    png_id = None
+    svg_id = None
+    for output in job.outputs:
+        if output.file_category == category:
+            if output.file_type == "png":
+                png_id = output.id
+            elif output.file_type == "svg":
+                svg_id = output.id
+    return PearsonCorrelationPlotInfo(output_id_png=png_id, output_id_svg=svg_id)
+
+
+async def get_pearson_correlation_report(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> PearsonCorrelationReport | None:
+    """Return structured report for a completed Pearson correlation job."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    if job.job_type != "pearson_correlation" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed pearson_correlation job "
+            f"(type={job.job_type}, status={job.status})"
+        )
+
+    params = job.params or {}
+    samples = params.get("samples", [])
+    genome = params.get("reference_genome", "mm10")
+
+    plot_info = _find_pearson_plot_info(job, "pearson_heatmap")
+
+    coverage_output_id = None
+    correlation_output_id = None
+    for output in job.outputs:
+        if output.file_category == "pearson_matrix":
+            coverage_output_id = output.id
+        elif output.file_category == "pearson_correlation":
+            correlation_output_id = output.id
+
+    return PearsonCorrelationReport(
+        sample_count=len(samples),
+        sample_labels=[
+            s.get("label", s.get("short_name", "")) for s in samples
+        ],
+        reference_genome=genome,
+        masking_applied=genome == "mm10",
+        restrict_bed_label=params.get("restrict_bed_label"),
+        plot_output=plot_info,
+        coverage_matrix_output_id=coverage_output_id,
+        correlation_matrix_output_id=correlation_output_id,
+    )
+
+
+async def get_pearson_correlation_matrix_path(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> Path | None:
+    """Return absolute path to Pearson correlation CSV for download."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+    if job.job_type != "pearson_correlation" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed pearson_correlation job"
+        )
+    path = _resolve_output_path(job, "pearson_correlation", "csv")
+    if path is None:
+        raise FileNotFoundError(
+            f"Correlation matrix not found for job {job_id}"
+        )
+    return path
+
+
+async def get_pearson_coverage_matrix_path(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> Path | None:
+    """Return absolute path to Pearson coverage matrix CSV for download."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+    if job.job_type != "pearson_correlation" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed pearson_correlation job"
+        )
+    path = _resolve_output_path(job, "pearson_matrix", "csv")
+    if path is None:
+        raise FileNotFoundError(
+            f"Coverage matrix not found for job {job_id}"
+        )
     return path

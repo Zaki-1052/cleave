@@ -20,6 +20,7 @@ from schemas.qc_report import (
     CustomHeatmapReport,
     DiffBindReport,
     PeakCallingQCReport,
+    PearsonCorrelationReport,
 )
 from services.download_token_service import create_download_token
 from services.job_service import (
@@ -40,6 +41,9 @@ from services.qc_report_service import (
     get_peak_annotation_csv,
     get_peak_calling_qc_csv_path,
     get_peak_calling_qc_report,
+    get_pearson_correlation_matrix_path,
+    get_pearson_correlation_report,
+    get_pearson_coverage_matrix_path,
     get_qc_csv_path,
     get_top_peaks_csv_path,
 )
@@ -453,4 +457,96 @@ async def download_heatmap_matrix(
         gz_path,
         media_type="application/gzip",
         filename="heatmap_matrix.gz",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Pearson Correlation endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/jobs/{job_id}/pearson-report",
+    response_model=PearsonCorrelationReport,
+)
+async def get_pearson_report_endpoint(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        report = await get_pearson_correlation_report(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        )
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return report
+
+
+@router.get("/jobs/{job_id}/pearson-report/download-correlation")
+async def download_pearson_correlation(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        csv_path = await get_pearson_correlation_matrix_path(
+            db, job_id, user.id
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        )
+    if csv_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return FileResponse(
+        csv_path,
+        media_type="text/csv",
+        filename="pearson_correlation.csv",
+    )
+
+
+@router.get("/jobs/{job_id}/pearson-report/download-coverage")
+async def download_pearson_coverage(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        csv_path = await get_pearson_coverage_matrix_path(
+            db, job_id, user.id
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        )
+    if csv_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return FileResponse(
+        csv_path,
+        media_type="text/csv",
+        filename="pearson_coverage_matrix.csv",
     )

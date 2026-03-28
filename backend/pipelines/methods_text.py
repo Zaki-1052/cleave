@@ -190,3 +190,47 @@ def custom_heatmap_methods(params: dict) -> str:
 
     text += "."
     return text
+
+
+def pearson_correlation_methods(params: dict) -> str:
+    """Generate methods text for Pearson correlation analysis.
+
+    Reference: references/media_pearson_corr/peak_extractor.r + pearson.py
+    """
+    samples = params.get("samples", [])
+    n_samples = len(samples)
+    genome = params.get("reference_genome", "mm10")
+    genome_display = GENOME_DISPLAY_NAMES.get(genome, genome)
+    masking = genome == "mm10"
+    restrict_bed = params.get("restrict_bed_path")
+    bed_label = params.get("restrict_bed_label", "user-provided regions")
+
+    text = (
+        f"Pairwise Pearson correlation analysis was performed to assess "
+        f"replicate concordance across {n_samples} sample"
+        f"{'s' if n_samples != 1 else ''}. "
+        f"RPKM-normalized bigWig signal was extracted at 50 bp resolution "
+        f"across all autosomes and chrX of the {genome_display} reference "
+        f"genome using rtracklayer (R). "
+        f"Genomic bins with zero coverage across all samples were removed. "
+    )
+
+    if masking:
+        text += (
+            "Manually curated masked regions (158 entries) were excluded "
+            "to remove loci with artificially high or low signal. "
+        )
+
+    if restrict_bed:
+        text += (
+            f"Signal was restricted to bins overlapping regions in "
+            f"{bed_label}. "
+        )
+
+    text += (
+        "Pairwise Pearson correlation coefficients were computed using "
+        "pandas DataFrame.corr() and visualized as an annotated heatmap "
+        "using seaborn (cmap='Blues', 2 decimal places)."
+    )
+
+    return text

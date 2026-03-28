@@ -175,3 +175,23 @@ class CustomHeatmapReport(CamelModel):
     plot_output: CustomHeatmapPlotInfo
     profile_output: CustomHeatmapPlotInfo
     matrix_output_id: int | None = None
+
+
+class PearsonCorrelationPlotInfo(CamelModel):
+    """Metadata for a Pearson correlation heatmap output (PNG + SVG)."""
+
+    output_id_png: int | None = None
+    output_id_svg: int | None = None
+
+
+class PearsonCorrelationReport(CamelModel):
+    """Report for a completed Pearson correlation job."""
+
+    sample_count: int
+    sample_labels: list[str]
+    reference_genome: str
+    masking_applied: bool
+    restrict_bed_label: str | None = None
+    plot_output: PearsonCorrelationPlotInfo
+    coverage_matrix_output_id: int | None = None
+    correlation_matrix_output_id: int | None = None
