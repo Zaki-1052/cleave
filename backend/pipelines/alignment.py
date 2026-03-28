@@ -12,7 +12,6 @@ Reference scripts (MANDATORY compliance per CLAUDE.md):
 
 import csv
 import io
-import os
 import re
 import shutil
 import subprocess
@@ -22,7 +21,15 @@ from pathlib import Path
 import structlog
 
 from config import settings
-from pipelines.base import PipelineError, PipelineStage
+from pipelines.base import (
+    PipelineError,
+    PipelineStage,
+    count_bam_reads,
+    get_threads,
+    resolve_blacklist,
+    run_cmd,
+    run_piped_cmd,
+)
 from pipelines.methods_text import EFFECTIVE_GENOME_SIZES, alignment_methods
 from pipelines.spike_in_barcodes import PTM_NAMES, count_barcodes, normalize_counts
 
@@ -39,7 +46,6 @@ BOWTIE2_INDEX_NAMES = {
 }
 
 _REFERENCE_DIR = Path(__file__).resolve().parent / "reference"
-_BLACKLISTS_DIR = _REFERENCE_DIR / "blacklists"
 _ANNOTATIONS_DIR = _REFERENCE_DIR / "annotations"
 
 # Canned QC data location for mock mode
@@ -73,63 +79,6 @@ _STUB_PNG = (
 # ---------------------------------------------------------------------------
 # Helper functions
 # ---------------------------------------------------------------------------
-
-
-def _get_threads() -> int:
-    return os.cpu_count() or 4
-
-
-def _run_cmd(
-    cmd: list[str],
-    log_path: Path | None = None,
-    timeout: int = 7200,
-    check: bool = True,
-) -> subprocess.CompletedProcess:
-    """Run a subprocess, capture output, optionally write to log, raise on failure."""
-    logger.info("alignment.subprocess", cmd=" ".join(cmd))
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
-    if log_path:
-        log_path.write_text(proc.stdout + "\n" + proc.stderr)
-    if check and proc.returncode != 0:
-        stderr_tail = proc.stderr.strip()[-500:] if proc.stderr else "(no stderr)"
-        raise PipelineError(f"Command failed (exit {proc.returncode}): {stderr_tail}")
-    return proc
-
-
-def _run_piped_cmd(
-    cmd1: list[str],
-    cmd2: list[str],
-    output_path: Path,
-    log_path: Path | None = None,
-    timeout: int = 7200,
-) -> None:
-    """Run two commands piped together: cmd1 | cmd2 > output_path."""
-    logger.info(
-        "alignment.piped_subprocess",
-        cmd1=" ".join(cmd1),
-        cmd2=" ".join(cmd2),
-    )
-    with open(output_path, "wb") as out_f:
-        p1 = subprocess.Popen(cmd1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        p2 = subprocess.Popen(cmd2, stdin=p1.stdout, stdout=out_f, stderr=subprocess.PIPE)
-        if p1.stdout:
-            p1.stdout.close()
-        _, stderr2 = p2.communicate(timeout=timeout)
-        _, stderr1 = p1.communicate(timeout=30)
-
-    if log_path and stderr1:
-        log_path.write_text(stderr1.decode("utf-8", errors="replace"))
-
-    if p1.returncode != 0:
-        raise PipelineError(
-            f"Pipe cmd1 failed (exit {p1.returncode}): "
-            f"{stderr1.decode('utf-8', errors='replace').strip()[-500:]}"
-        )
-    if p2.returncode != 0:
-        raise PipelineError(
-            f"Pipe cmd2 failed (exit {p2.returncode}): "
-            f"{stderr2.decode('utf-8', errors='replace').strip()[-500:]}"
-        )
 
 
 def _parse_bowtie2_log(log_path: Path) -> dict:
@@ -188,18 +137,6 @@ def _parse_picard_metrics(metrics_path: Path) -> float:
         logger.warning("alignment.picard_no_dup_col", path=str(metrics_path))
         return 0.0
 
-
-def _count_bam_reads(bam_path: Path) -> int:
-    """Count reads in a BAM file via samtools view -c."""
-    proc = subprocess.run(
-        ["samtools", "view", "-c", str(bam_path)],
-        capture_output=True,
-        text=True,
-    )
-    try:
-        return int(proc.stdout.strip())
-    except ValueError:
-        return 0
 
 
 def _count_chrm_reads(bam_path: Path) -> int:
@@ -287,11 +224,6 @@ def _load_canned_qc_data() -> list[dict]:
             )
     return rows
 
-
-def _resolve_blacklist(genome: str) -> Path | None:
-    """Find the blacklist BED file for the given genome."""
-    bed = _BLACKLISTS_DIR / f"{genome}.blacklist.bed"
-    return bed if bed.exists() else None
 
 
 def _resolve_annotation(genome: str) -> Path | None:
@@ -385,7 +317,7 @@ class AlignmentStage(PipelineStage):
         remove_dac = params.get("remove_dac_exclusion", True)
         bin_size = params.get("bam_coverage_bin_size", 20)
         smoothed_bin_size = params.get("smoothed_bin_size", 100)
-        threads = _get_threads()
+        threads = get_threads()
 
         # Resolve tool paths
         bowtie2 = shutil.which("bowtie2")
@@ -412,7 +344,7 @@ class AlignmentStage(PipelineStage):
         ecoli_bt2_index = str(Path(settings.GENOME_INDEX_DIR) / "ecoli" / ecoli_index_name)
 
         # Blacklist BED
-        blacklist_bed = _resolve_blacklist(genome) if remove_dac else None
+        blacklist_bed = resolve_blacklist(genome) if remove_dac else None
         if remove_dac and not blacklist_bed:
             logger.warning("alignment.no_blacklist", genome=genome)
 
@@ -565,7 +497,7 @@ class AlignmentStage(PipelineStage):
             # picard SortSam INPUT=... OUTPUT=... SORT_ORDER=coordinate
             #   VALIDATION_STRINGENCY=SILENT
             sorted_bam = bams_dir / f"{short_name}_sorted.bam"
-            _run_cmd(
+            run_cmd(
                 [
                     picard,
                     "SortSam",
@@ -584,7 +516,7 @@ class AlignmentStage(PipelineStage):
             #   METRICS_FILE=metrics.txt
             dup_marked_bam = bams_dir / f"{short_name}_dup_marked.bam"
             picard_metrics = logs_dir / f"{short_name}_picard_metrics.txt"
-            _run_cmd(
+            run_cmd(
                 [
                     picard,
                     "MarkDuplicates",
@@ -618,7 +550,7 @@ class AlignmentStage(PipelineStage):
                 shutil.move(str(dup_marked_bam), str(final_bam))
 
             # ---- Step 8: Index final BAM ----
-            _run_cmd([samtools, "index", str(final_bam)], timeout=1800)
+            run_cmd([samtools, "index", str(final_bam)], timeout=1800)
             final_bai = bams_dir / f"{short_name}_final.bam.bai"
 
             # ---- Step 9: Unsmoothed bigWig (20bp bins) ----
@@ -628,7 +560,7 @@ class AlignmentStage(PipelineStage):
             #   cleave-spec-decisions.md §7)
             unsmoothed_bw = bigwigs_dir / f"{short_name}.bw"
             if bam_coverage:
-                _run_cmd(
+                run_cmd(
                     [
                         bam_coverage,
                         "-b",
@@ -651,7 +583,7 @@ class AlignmentStage(PipelineStage):
             # ---- Step 10: Smoothed bigWig (100bp bins) ----
             smoothed_bw = bigwigs_dir / f"{short_name}_smoothed.bw"
             if bam_coverage:
-                _run_cmd(
+                run_cmd(
                     [
                         bam_coverage,
                         "-b",
@@ -678,7 +610,7 @@ class AlignmentStage(PipelineStage):
                 # TSS heatmap (reference-point mode)
                 # Flanking from lab's heatmaps.sh line 74: -a 1500 -b 1500
                 tss_matrix = heatmaps_dir / f"{short_name}_tss_matrix.gz"
-                _run_cmd(
+                run_cmd(
                     [
                         compute_matrix,
                         "reference-point",
@@ -698,7 +630,7 @@ class AlignmentStage(PipelineStage):
                     ],
                     timeout=7200,
                 )
-                _run_cmd(
+                run_cmd(
                     [
                         plot_heatmap,
                         "-m",
@@ -714,7 +646,7 @@ class AlignmentStage(PipelineStage):
 
                 # Gene body heatmap (scale-regions mode)
                 genebody_matrix = heatmaps_dir / (f"{short_name}_genebody_matrix.gz")
-                _run_cmd(
+                run_cmd(
                     [
                         compute_matrix,
                         "scale-regions",
@@ -732,7 +664,7 @@ class AlignmentStage(PipelineStage):
                     ],
                     timeout=7200,
                 )
-                _run_cmd(
+                run_cmd(
                     [
                         plot_heatmap,
                         "-m",
@@ -785,7 +717,7 @@ class AlignmentStage(PipelineStage):
                         str(threads),
                         "-",
                     ]
-                    _run_piped_cmd(
+                    run_piped_cmd(
                         ecoli_bt2_cmd,
                         ecoli_sam_cmd,
                         ecoli_bam,
@@ -822,7 +754,7 @@ class AlignmentStage(PipelineStage):
             # ---- Collect QC metrics ----
             bt2_stats = _parse_bowtie2_log(bt2_log)
             total_reads = rxn.get("total_reads") or bt2_stats["total_reads"]
-            uniq_reads = _count_bam_reads(final_bam)
+            uniq_reads = count_bam_reads(final_bam)
             chrm_reads = _count_chrm_reads(final_bam)
 
             if total_reads > 0:

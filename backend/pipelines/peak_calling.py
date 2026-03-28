@@ -23,7 +23,14 @@ from pathlib import Path
 import structlog
 
 from config import settings
-from pipelines.base import PipelineError, PipelineStage
+from pipelines.base import (
+    PipelineError,
+    PipelineStage,
+    count_bam_reads,
+    resolve_blacklist,
+    run_cmd,
+    run_piped_cmd,
+)
 from pipelines.methods_text import GENOME_DISPLAY_NAMES, peak_calling_methods
 
 logger = structlog.get_logger(__name__)
@@ -59,7 +66,6 @@ DEFAULT_FRAGMENT_SIZE = 120
 
 _TOOLS_DIR = Path(__file__).resolve().parent / "tools"
 _REFERENCE_DIR = Path(__file__).resolve().parent / "reference"
-_BLACKLISTS_DIR = _REFERENCE_DIR / "blacklists"
 _CHROM_SIZES_DIR = _REFERENCE_DIR / "chrom_sizes"
 
 _CUTANA_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "cutana" / "H3K4me3"
@@ -108,72 +114,8 @@ _TOP_PEAKS_CSV_HEADERS = [
 
 
 # ---------------------------------------------------------------------------
-# Subprocess helpers (same pattern as alignment.py)
+# Subprocess helpers
 # ---------------------------------------------------------------------------
-
-
-def _get_threads() -> int:
-    return os.cpu_count() or 4
-
-
-def _run_cmd(
-    cmd: list[str],
-    log_path: Path | None = None,
-    timeout: int = 7200,
-    check: bool = True,
-    cwd: Path | None = None,
-) -> subprocess.CompletedProcess:
-    """Run a subprocess, capture output, optionally write to log, raise on failure."""
-    logger.info("peak_calling.subprocess", cmd=" ".join(cmd))
-    proc = subprocess.run(
-        cmd,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-        cwd=cwd,
-    )
-    if log_path:
-        log_path.write_text(proc.stdout + "\n" + proc.stderr)
-    if check and proc.returncode != 0:
-        stderr_tail = proc.stderr.strip()[-500:] if proc.stderr else "(no stderr)"
-        raise PipelineError(f"Command failed (exit {proc.returncode}): {stderr_tail}")
-    return proc
-
-
-def _run_piped_cmd(
-    cmd1: list[str],
-    cmd2: list[str],
-    output_path: Path,
-    log_path: Path | None = None,
-    timeout: int = 7200,
-) -> None:
-    """Run two commands piped together: cmd1 | cmd2 > output_path."""
-    logger.info(
-        "peak_calling.piped_subprocess",
-        cmd1=" ".join(cmd1),
-        cmd2=" ".join(cmd2),
-    )
-    with open(output_path, "wb") as out_f:
-        p1 = subprocess.Popen(cmd1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        p2 = subprocess.Popen(cmd2, stdin=p1.stdout, stdout=out_f, stderr=subprocess.PIPE)
-        if p1.stdout:
-            p1.stdout.close()
-        _, stderr2 = p2.communicate(timeout=timeout)
-        _, stderr1 = p1.communicate(timeout=30)
-
-    if log_path and stderr1:
-        log_path.write_text(stderr1.decode("utf-8", errors="replace"))
-
-    if p1.returncode != 0:
-        raise PipelineError(
-            f"Pipe cmd1 failed (exit {p1.returncode}): "
-            f"{stderr1.decode('utf-8', errors='replace').strip()[-500:]}"
-        )
-    if p2.returncode != 0:
-        raise PipelineError(
-            f"Pipe cmd2 failed (exit {p2.returncode}): "
-            f"{stderr2.decode('utf-8', errors='replace').strip()[-500:]}"
-        )
 
 
 def _run_triple_pipe(
@@ -221,27 +163,9 @@ def _run_triple_pipe(
             )
 
 
-def _count_bam_reads(bam_path: Path) -> int:
-    """Count reads in a BAM file via samtools view -c."""
-    proc = subprocess.run(
-        ["samtools", "view", "-c", str(bam_path)],
-        capture_output=True,
-        text=True,
-    )
-    try:
-        return int(proc.stdout.strip())
-    except ValueError:
-        return 0
-
-
 # ---------------------------------------------------------------------------
 # Resolution helpers
 # ---------------------------------------------------------------------------
-
-
-def _resolve_blacklist(genome: str) -> Path | None:
-    bl = _BLACKLISTS_DIR / f"{genome}.blacklist.bed"
-    return bl if bl.exists() else None
 
 
 def _resolve_chrom_sizes(genome: str) -> Path | None:
@@ -307,7 +231,7 @@ def _calculate_frip(bam_path: Path, peak_bed: Path) -> tuple[int, float]:
     bedtools intersect -abam bam -b peaks -u | samtools view -c
     Divided by samtools view -c bam.
     """
-    total = _count_bam_reads(bam_path)
+    total = count_bam_reads(bam_path)
     if total == 0:
         return 0, 0.0
 
@@ -516,7 +440,7 @@ def _apply_fragment_filter(
     )
 
     # Index the filtered BAM
-    _run_cmd([samtools, "index", str(output_bam)], timeout=3600)
+    run_cmd([samtools, "index", str(output_bam)], timeout=3600)
 
     logger.info(
         "peak_calling.fragment_filter_complete",
@@ -567,7 +491,7 @@ def _call_macs2_narrow(
     if control_bam:
         cmd.extend(["-c", str(control_bam)])
 
-    _run_cmd(cmd, log_path=logs_dir / f"{short_name}_macs2_narrow.log", timeout=14400)
+    run_cmd(cmd, log_path=logs_dir / f"{short_name}_macs2_narrow.log", timeout=14400)
 
     peak_file = peaks_dir / f"{short_name}_peaks.narrowPeak"
     summit_file = peaks_dir / f"{short_name}_summits.bed"
@@ -611,13 +535,13 @@ def _call_macs2_broad(
     if control_bam:
         cmd.extend(["-c", str(control_bam)])
 
-    _run_cmd(cmd, log_path=logs_dir / f"{short_name}_macs2_broad.log", timeout=14400)
+    run_cmd(cmd, log_path=logs_dir / f"{short_name}_macs2_broad.log", timeout=14400)
 
     peak_file = peaks_dir / f"{short_name}_peaks.broadPeak"
 
     # Extract summits from broadPeak (integrated.step2.sh line 121)
     summit_file = peaks_dir / f"{short_name}_summits.bed"
-    _run_piped_cmd(
+    run_piped_cmd(
         ["python", str(_TOOLS_DIR / "get_summits_broadPeak.py"), str(peak_file)],
         ["bedtools", "sort", "-i", "-"],
         summit_file,
@@ -666,7 +590,7 @@ def _call_seacr(
     ]
     if control_bam:
         bdg_cmd.extend(["-c", str(control_bam)])
-    _run_cmd(bdg_cmd, log_path=logs_dir / f"{short_name}_seacr_macs2.log", timeout=14400)
+    run_cmd(bdg_cmd, log_path=logs_dir / f"{short_name}_seacr_macs2.log", timeout=14400)
 
     treat_bdg = peaks_dir / f"{seacr_macs_name}_treat_pileup.bdg"
     if not treat_bdg.exists():
@@ -700,7 +624,7 @@ def _call_seacr(
         rscript_bin,
     ]
     # SEACR creates temp files in CWD; run from peaks_dir
-    _run_cmd(seacr_cmd, log_path=logs_dir / f"{short_name}_seacr.log", timeout=14400, cwd=peaks_dir)
+    run_cmd(seacr_cmd, log_path=logs_dir / f"{short_name}_seacr.log", timeout=14400, cwd=peaks_dir)
 
     seacr_peak_file = Path(f"{seacr_output_prefix}.{seacr_mode}.bed")
     if not seacr_peak_file.exists():
@@ -708,7 +632,7 @@ def _call_seacr(
 
     # Step C4: Sort peaks (bedtools sort replaces sort-bed from BEDOPS)
     sorted_peak = peaks_dir / f"{short_name}_peaks.{seacr_mode}.sort.bed"
-    _run_piped_cmd(
+    run_piped_cmd(
         ["cat", str(seacr_peak_file)],
         ["bedtools", "sort", "-i", "-"],
         sorted_peak,
@@ -716,7 +640,7 @@ def _call_seacr(
 
     # Step C5: Extract summits (integrated.step2.sh lines 133/145)
     summit_file = peaks_dir / f"{short_name}_summits.bed"
-    _run_piped_cmd(
+    run_piped_cmd(
         ["python", str(_TOOLS_DIR / "get_summits_seacr.py"), str(seacr_peak_file)],
         ["bedtools", "sort", "-i", "-"],
         summit_file,
@@ -769,7 +693,7 @@ def _call_sicer2(
     if control_bam:
         cmd.extend(["-c", str(control_bam)])
 
-    _run_cmd(cmd, log_path=logs_dir / f"{short_name}_sicer2.log", timeout=14400)
+    run_cmd(cmd, log_path=logs_dir / f"{short_name}_sicer2.log", timeout=14400)
 
     # SICER2 names output based on input BAM filename
     bam_stem = call_bam.stem
@@ -786,7 +710,7 @@ def _call_sicer2(
 
     # Extract summits as midpoints (same logic as get_summits_broadPeak.py)
     summit_file = peaks_dir / f"{short_name}_summits.bed"
-    _run_piped_cmd(
+    run_piped_cmd(
         ["python", str(_TOOLS_DIR / "get_summits_broadPeak.py"), str(std_peak)],
         ["bedtools", "sort", "-i", "-"],
         summit_file,
@@ -916,7 +840,7 @@ class PeakCallingStage(PipelineStage):
             d.mkdir(parents=True, exist_ok=True)
 
         # Blacklist for post-peak-calling subtraction
-        blacklist = _resolve_blacklist(genome)
+        blacklist = resolve_blacklist(genome)
 
         all_metrics: list[dict] = []
         all_top_peaks: list[dict] = []
@@ -1030,7 +954,7 @@ class PeakCallingStage(PipelineStage):
                     )
 
             # ---- Step 6: FRiP calculation ----
-            total_reads = _count_bam_reads(call_bam)
+            total_reads = count_bam_reads(call_bam)
             reads_in_peaks, frip = _calculate_frip(call_bam, peak_file)
 
             # ---- Step 7: HOMER peak annotation ----
