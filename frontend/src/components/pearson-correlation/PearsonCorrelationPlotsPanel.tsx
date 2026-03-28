@@ -105,7 +105,7 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
         <p className="text-xs text-gray-500">
           Pairwise Pearson correlation of {report.sampleCount} sample
           {report.sampleCount !== 1 ? 's' : ''} on {report.referenceGenome}.
-          {report.maskingApplied ? ' Zero-coverage bins removed.' : ''}
+          {report.maskingApplied ? ' Masked regions excluded.' : ''}
           {report.restrictBedLabel
             ? ` Restricted to regions in ${report.restrictBedLabel}.`
             : ' Genome-wide analysis.'}

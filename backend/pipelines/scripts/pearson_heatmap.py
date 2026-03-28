@@ -8,7 +8,7 @@
 # Usage:
 #   python3 pearson_heatmap.py <input_csv> <output_png> <output_svg> <correlation_csv>
 
-import sys
+import sys  # isort:skip_file
 
 import matplotlib
 matplotlib.use("Agg")  # non-interactive backend for server use
