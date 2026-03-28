@@ -7,6 +7,7 @@ interface NewAnalysisDropdownProps {
   onPeakCallingClick: () => void;
   onDiffBindClick: () => void;
   onCustomHeatmapClick: () => void;
+  onPearsonCorrelationClick: () => void;
 }
 
 export function NewAnalysisDropdown({
@@ -14,6 +15,7 @@ export function NewAnalysisDropdown({
   onPeakCallingClick,
   onDiffBindClick,
   onCustomHeatmapClick,
+  onPearsonCorrelationClick,
 }: NewAnalysisDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -77,6 +79,16 @@ export function NewAnalysisDropdown({
             className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-primary/10"
           >
             Custom Heatmap
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsOpen(false);
+              onPearsonCorrelationClick();
+            }}
+            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-primary/10"
+          >
+            Correlation
           </button>
         </div>
       )}

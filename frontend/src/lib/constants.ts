@@ -246,6 +246,34 @@ export const CUSTOM_HEATMAP_FILE_CATEGORIES = [
   },
 ] as const;
 
+export const PEARSON_CORRELATION_FILE_CATEGORIES = [
+  {
+    value: 'pearson_heatmap',
+    label: 'Correlation Heatmap',
+    description: 'Pairwise Pearson correlation heatmap (PNG + SVG).',
+  },
+  {
+    value: 'pearson_matrix',
+    label: 'Coverage Matrix',
+    description: 'Raw coverage matrix at 50bp resolution across all genomic bins (CSV).',
+  },
+  {
+    value: 'pearson_correlation',
+    label: 'Correlation Matrix',
+    description: 'Pairwise Pearson correlation coefficients between all samples (CSV).',
+  },
+  {
+    value: 'pearson_sample_sheet',
+    label: 'Sample Sheet',
+    description: 'The sample sheet CSV used for the analysis.',
+  },
+  {
+    value: 'log',
+    label: 'Logs',
+    description: 'Pipeline execution log files.',
+  },
+] as const;
+
 export const HEATMAP_SORT_ORDERS = [
   { value: 'descend', label: 'Descending (default)' },
   { value: 'ascend', label: 'Ascending' },

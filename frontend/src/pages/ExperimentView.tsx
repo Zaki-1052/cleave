@@ -8,6 +8,7 @@ import { NewAlignmentWizard } from '@/components/alignment/NewAlignmentWizard';
 import { NewPeakCallingWizard } from '@/components/peak-calling/NewPeakCallingWizard';
 import { NewCustomHeatmapWizard } from '@/components/custom-heatmap/NewCustomHeatmapWizard';
 import { NewDiffBindWizard } from '@/components/diffbind/NewDiffBindWizard';
+import { NewPearsonCorrelationWizard } from '@/components/pearson-correlation/NewPearsonCorrelationWizard';
 import { useExperiment } from '@/hooks/useExperiments';
 import { useJobs } from '@/hooks/useJobs';
 
@@ -17,6 +18,7 @@ const JOB_TYPE_LABELS: Record<string, string> = {
   peak_calling: 'Peak Calling',
   diffbind: 'DiffBind',
   custom_heatmap: 'Custom Heatmap',
+  pearson_correlation: 'Correlation',
 };
 
 const TABS = [
@@ -27,6 +29,7 @@ const TABS = [
   { label: 'Peak Calling', path: 'peaks/0' },
   { label: 'DiffBind', path: 'diffbind/0' },
   { label: 'Heatmaps', path: 'heatmaps/0' },
+  { label: 'Correlation', path: 'correlations/0' },
   { label: 'History', path: 'history' },
   { label: 'All Files', path: 'files' },
 ] as const;
@@ -40,6 +43,7 @@ export default function ExperimentView() {
   const [showPeakCallingWizard, setShowPeakCallingWizard] = useState(false);
   const [showDiffBindWizard, setShowDiffBindWizard] = useState(false);
   const [showCustomHeatmapWizard, setShowCustomHeatmapWizard] = useState(false);
+  const [showPearsonCorrelationWizard, setShowPearsonCorrelationWizard] = useState(false);
 
   const lastJob = jobsData?.items?.[0] ?? null;
   const lastJobLabel = lastJob
@@ -82,6 +86,7 @@ export default function ExperimentView() {
           onPeakCallingClick={() => setShowPeakCallingWizard(true)}
           onDiffBindClick={() => setShowDiffBindWizard(true)}
           onCustomHeatmapClick={() => setShowCustomHeatmapWizard(true)}
+          onPearsonCorrelationClick={() => setShowPearsonCorrelationWizard(true)}
         />
       </div>
 
@@ -134,6 +139,12 @@ export default function ExperimentView() {
       <NewCustomHeatmapWizard
         isOpen={showCustomHeatmapWizard}
         onClose={() => setShowCustomHeatmapWizard(false)}
+        experiment={experiment}
+      />
+
+      <NewPearsonCorrelationWizard
+        isOpen={showPearsonCorrelationWizard}
+        onClose={() => setShowPearsonCorrelationWizard(false)}
         experiment={experiment}
       />
     </div>

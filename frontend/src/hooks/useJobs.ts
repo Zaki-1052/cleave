@@ -98,3 +98,11 @@ export function useCustomHeatmapReport(jobId: number | null) {
     enabled: jobId !== null,
   });
 }
+
+export function usePearsonCorrelationReport(jobId: number | null) {
+  return useQuery({
+    queryKey: ['pearson-report', jobId],
+    queryFn: () => jobsApi.getPearsonCorrelationReport(jobId!),
+    enabled: jobId !== null,
+  });
+}

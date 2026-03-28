@@ -273,6 +273,22 @@ export interface CustomHeatmapReport {
   matrixOutputId: number | null;
 }
 
+export interface PearsonCorrelationPlotInfo {
+  outputIdPng: number | null;
+  outputIdSvg: number | null;
+}
+
+export interface PearsonCorrelationReport {
+  sampleCount: number;
+  sampleLabels: string[];
+  referenceGenome: string;
+  maskingApplied: boolean;
+  restrictBedLabel: string | null;
+  plotOutput: PearsonCorrelationPlotInfo;
+  coverageMatrixOutputId: number | null;
+  correlationMatrixOutputId: number | null;
+}
+
 export interface Notification {
   id: number;
   userId: number;

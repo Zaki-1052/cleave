@@ -8,6 +8,7 @@ import type {
   JobOutput,
   PaginatedResponse,
   PeakCallingQCReport,
+  PearsonCorrelationReport,
   QueueJob,
 } from './types';
 
@@ -241,4 +242,27 @@ export async function uploadBedFile(
     { headers: { 'Content-Type': 'multipart/form-data' } },
   );
   return data;
+}
+
+// ---------------------------------------------------------------------------
+// Pearson Correlation
+// ---------------------------------------------------------------------------
+
+export async function getPearsonCorrelationReport(jobId: number): Promise<PearsonCorrelationReport> {
+  const { data } = await client.get<PearsonCorrelationReport>(`/jobs/${jobId}/pearson-report`);
+  return data;
+}
+
+export async function downloadPearsonCorrelation(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/pearson-report/download-correlation`, {
+    responseType: 'blob',
+  });
+  _downloadBlob(response.data as Blob, 'pearson_correlation.csv');
+}
+
+export async function downloadPearsonCoverage(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/pearson-report/download-coverage`, {
+    responseType: 'blob',
+  });
+  _downloadBlob(response.data as Blob, 'pearson_coverage_matrix.csv');
 }
