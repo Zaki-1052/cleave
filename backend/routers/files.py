@@ -7,7 +7,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import AsyncIterator
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    UploadFile,
+    status,
+)
 from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -682,3 +692,76 @@ async def igv_serve_file(
 
     range_header = request.headers.get("range")
     return _range_file_response(abs_path, range_header)
+
+
+# ---------------------------------------------------------------------------
+# BED file upload (for custom heatmaps and other reference-point features)
+# ---------------------------------------------------------------------------
+
+_MAX_BED_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
+
+
+@router.post("/experiments/{experiment_id}/upload-bed")
+async def upload_bed_file(
+    experiment_id: int,
+    file: UploadFile = File(...),
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Upload a BED file for use as reference points in custom heatmaps.
+
+    Validates format (tab-delimited, >= 3 columns), saves to experiment
+    uploads directory, and returns the relative storage path.
+    """
+    experiment = await check_experiment_membership(db, experiment_id, current_user.id)
+    if experiment is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Experiment not found or not authorized",
+        )
+
+    filename = file.filename or "upload.bed"
+    if not filename.lower().endswith(".bed"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File must have a .bed extension",
+        )
+
+    content = await file.read()
+    if len(content) > _MAX_BED_SIZE_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"BED file too large (max {_MAX_BED_SIZE_BYTES // (1024 * 1024)} MB)",
+        )
+
+    # Basic BED format validation: tab-delimited, >= 3 columns, non-empty
+    lines = content.decode("utf-8", errors="replace").splitlines()
+    data_lines = [ln for ln in lines if ln.strip() and not ln.startswith("#")]
+    if not data_lines:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="BED file is empty (no data lines)",
+        )
+
+    for i, line in enumerate(data_lines[:5]):
+        cols = line.split("\t")
+        if len(cols) < 3:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Line {i + 1}: expected >= 3 tab-separated columns, got {len(cols)}",
+            )
+
+    safe_name = _sanitize_filename(filename)
+    rel_dir = f"projects/{experiment.project_id}/{experiment_id}/uploads/bed"
+    abs_dir = Path(settings.STORAGE_ROOT) / rel_dir
+    abs_dir.mkdir(parents=True, exist_ok=True)
+
+    abs_path = abs_dir / safe_name
+    abs_path.write_bytes(content)
+
+    rel_path = f"{rel_dir}/{safe_name}"
+    return {
+        "path": rel_path,
+        "filename": safe_name,
+        "line_count": len(data_lines),
+    }

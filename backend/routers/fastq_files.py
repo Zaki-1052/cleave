@@ -177,7 +177,7 @@ async def get_fastqc_signed_url(
     # download token expects path relative to experiment dir, e.g. "fastqc/foo.html"
     experiment_prefix = f"projects/{experiment.project_id}/{experiment_id}/"
     if fastq.fastqc_report_path.startswith(experiment_prefix):
-        rel_path = fastq.fastqc_report_path[len(experiment_prefix):]
+        rel_path = fastq.fastqc_report_path[len(experiment_prefix) :]
     else:
         raise HTTPException(status_code=500, detail="Unexpected report path format")
 

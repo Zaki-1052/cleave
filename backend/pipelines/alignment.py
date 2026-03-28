@@ -490,7 +490,9 @@ class AlignmentStage(PipelineStage):
                 )
             stderr_text = proc.stderr.decode("utf-8", errors="replace") if proc.stderr else ""
             append_to_master_log(
-                master_log, f"Filter unmapped + multi-mapper removal — {short_name}", stderr_text,
+                master_log,
+                f"Filter unmapped + multi-mapper removal — {short_name}",
+                stderr_text,
             )
             if proc.returncode != 0:
                 raise PipelineError(f"Filter/multi-mapper removal failed for {short_name}")
@@ -517,7 +519,9 @@ class AlignmentStage(PipelineStage):
                     )
                 stderr_text = proc.stderr.decode("utf-8", errors="replace") if proc.stderr else ""
                 append_to_master_log(
-                    master_log, f"DAC exclusion list filtering — {short_name}", stderr_text,
+                    master_log,
+                    f"DAC exclusion list filtering — {short_name}",
+                    stderr_text,
                 )
                 if proc.returncode != 0:
                     raise PipelineError(f"DAC exclusion list filtering failed for {short_name}")
@@ -881,8 +885,11 @@ class AlignmentStage(PipelineStage):
                 }
             )
 
-        append_to_master_log(master_log, "Alignment complete",
-                             f"Processed {len(reactions)} reactions, {len(all_metrics)} QC records")
+        append_to_master_log(
+            master_log,
+            "Alignment complete",
+            f"Processed {len(reactions)} reactions, {len(all_metrics)} QC records",
+        )
 
         # Register the master log as a job output
         if master_log.exists():

@@ -71,7 +71,6 @@ _PLOT_CATEGORY_MAP = {
 
 
 class DiffBindStage(PipelineStage):
-
     def validate(self, params: dict) -> list[str]:
         errors: list[str] = []
 
@@ -96,8 +95,12 @@ class DiffBindStage(PipelineStage):
         for i, s in enumerate(samples):
             prefix = f"samples[{i}]"
             required_fields = (
-                "reaction_id", "short_name", "condition",
-                "replicate", "bam_path", "peak_path",
+                "reaction_id",
+                "short_name",
+                "condition",
+                "replicate",
+                "bam_path",
+                "peak_path",
             )
             for field in required_fields:
                 if not s.get(field) and s.get(field) != 0:
@@ -197,14 +200,16 @@ class DiffBindStage(PipelineStage):
         # Results TSV
         results_tsv = output_dir / f"{experiment_name}_diffbind_results.txt"
         if results_tsv.exists():
-            outputs.append({
-                "file_category": "diffbind_results",
-                "filename": results_tsv.name,
-                "file_path": f"{rel_job}/{experiment_name}/{results_tsv.name}",
-                "file_type": "tsv",
-                "file_size_bytes": results_tsv.stat().st_size,
-                "reaction_id": None,
-            })
+            outputs.append(
+                {
+                    "file_category": "diffbind_results",
+                    "filename": results_tsv.name,
+                    "file_path": f"{rel_job}/{experiment_name}/{results_tsv.name}",
+                    "file_type": "tsv",
+                    "file_size_bytes": results_tsv.stat().st_size,
+                    "reaction_id": None,
+                }
+            )
             # Parse column names from TSV header for frontend dynamic rendering
             column_names = self._parse_tsv_columns(results_tsv)
             columns_json = output_dir / "results_columns.json"
@@ -213,14 +218,16 @@ class DiffBindStage(PipelineStage):
         # Normalized counts CSV
         counts_csv = output_dir / f"{experiment_name}_normalized_counts.csv"
         if counts_csv.exists():
-            outputs.append({
-                "file_category": "normalized_counts",
-                "filename": counts_csv.name,
-                "file_path": f"{rel_job}/{experiment_name}/{counts_csv.name}",
-                "file_type": "csv",
-                "file_size_bytes": counts_csv.stat().st_size,
-                "reaction_id": None,
-            })
+            outputs.append(
+                {
+                    "file_category": "normalized_counts",
+                    "filename": counts_csv.name,
+                    "file_path": f"{rel_job}/{experiment_name}/{counts_csv.name}",
+                    "file_type": "csv",
+                    "file_size_bytes": counts_csv.stat().st_size,
+                    "reaction_id": None,
+                }
+            )
 
         # Plot files (PNG + SVG pairs)
         plot_types = _PLOT_TYPES_EDGER if method == "edger_peaklist" else _PLOT_TYPES_FULL
@@ -230,47 +237,55 @@ class DiffBindStage(PipelineStage):
             for ext in ("png", "svg"):
                 plot_file = output_dir / f"{experiment_name}{fname_frag}.{ext}"
                 if plot_file.exists():
-                    outputs.append({
-                        "file_category": category,
-                        "filename": plot_file.name,
-                        "file_path": f"{rel_job}/{experiment_name}/{plot_file.name}",
-                        "file_type": ext,
-                        "file_size_bytes": plot_file.stat().st_size,
-                        "reaction_id": None,
-                    })
+                    outputs.append(
+                        {
+                            "file_category": category,
+                            "filename": plot_file.name,
+                            "file_path": f"{rel_job}/{experiment_name}/{plot_file.name}",
+                            "file_type": ext,
+                            "file_size_bytes": plot_file.stat().st_size,
+                            "reaction_id": None,
+                        }
+                    )
 
         # Sample sheet as output
-        outputs.append({
-            "file_category": "diffbind_sample_sheet",
-            "filename": sample_sheet_path.name,
-            "file_path": f"{rel_job}/{sample_sheet_path.name}",
-            "file_type": "csv",
-            "file_size_bytes": sample_sheet_path.stat().st_size,
-            "reaction_id": None,
-        })
+        outputs.append(
+            {
+                "file_category": "diffbind_sample_sheet",
+                "filename": sample_sheet_path.name,
+                "file_path": f"{rel_job}/{sample_sheet_path.name}",
+                "file_type": "csv",
+                "file_size_bytes": sample_sheet_path.stat().st_size,
+                "reaction_id": None,
+            }
+        )
 
         # Master log
         if master_log.exists():
-            outputs.append({
-                "file_category": "log",
-                "filename": master_log.name,
-                "file_path": f"{rel_job}/logs/{master_log.name}",
-                "file_type": "txt",
-                "file_size_bytes": master_log.stat().st_size,
-                "reaction_id": None,
-            })
+            outputs.append(
+                {
+                    "file_category": "log",
+                    "filename": master_log.name,
+                    "file_path": f"{rel_job}/logs/{master_log.name}",
+                    "file_type": "txt",
+                    "file_size_bytes": master_log.stat().st_size,
+                    "reaction_id": None,
+                }
+            )
 
         # R script output log
         rscript_log = logs_dir / "rscript_output.log"
         if rscript_log.exists():
-            outputs.append({
-                "file_category": "log",
-                "filename": rscript_log.name,
-                "file_path": f"{rel_job}/logs/{rscript_log.name}",
-                "file_type": "txt",
-                "file_size_bytes": rscript_log.stat().st_size,
-                "reaction_id": None,
-            })
+            outputs.append(
+                {
+                    "file_category": "log",
+                    "filename": rscript_log.name,
+                    "file_path": f"{rel_job}/logs/{rscript_log.name}",
+                    "file_type": "txt",
+                    "file_size_bytes": rscript_log.stat().st_size,
+                    "reaction_id": None,
+                }
+            )
 
         return {
             "job_id": job_id,
@@ -300,23 +315,33 @@ class DiffBindStage(PipelineStage):
         # Write sample sheet
         sample_sheet_path = job_dir / "sample_sheet.csv"
         self._write_sample_sheet(samples, sample_sheet_path)
-        outputs.append({
-            "file_category": "diffbind_sample_sheet",
-            "filename": sample_sheet_path.name,
-            "file_path": f"{rel_job}/{sample_sheet_path.name}",
-            "file_type": "csv",
-            "file_size_bytes": sample_sheet_path.stat().st_size,
-            "reaction_id": None,
-        })
+        outputs.append(
+            {
+                "file_category": "diffbind_sample_sheet",
+                "filename": sample_sheet_path.name,
+                "file_path": f"{rel_job}/{sample_sheet_path.name}",
+                "file_type": "csv",
+                "file_size_bytes": sample_sheet_path.stat().st_size,
+                "reaction_id": None,
+            }
+        )
 
         # Create mock results TSV with dynamic column names
         conditions = sorted({s["condition"] for s in samples})
         cond1 = conditions[0] if len(conditions) > 0 else "cond1"
         cond2 = conditions[1] if len(conditions) > 1 else "cond2"
         columns = [
-            "seqnames", "start", "end", "width", "strand",
-            "Conc", f"Conc_{cond1}", f"Conc_{cond2}",
-            "Fold", "p.value", "FDR",
+            "seqnames",
+            "start",
+            "end",
+            "width",
+            "strand",
+            "Conc",
+            f"Conc_{cond1}",
+            f"Conc_{cond2}",
+            "Fold",
+            "p.value",
+            "FDR",
         ]
         results_tsv = output_dir / f"{experiment_name}_diffbind_results.txt"
         buf = io.StringIO()
@@ -325,25 +350,32 @@ class DiffBindStage(PipelineStage):
         # Write 50 mock peaks
         for i in range(50):
             fdr = 0.001 * (i + 1) if i < 20 else 0.1 + 0.01 * i
-            writer.writerow([
-                f"chr{(i % 19) + 1}", 1000000 + i * 5000, 1005000 + i * 5000,
-                5000, "*",
-                f"{5.0 + i * 0.1:.2f}",
-                f"{4.5 + i * 0.05:.2f}",
-                f"{5.5 + i * 0.15:.2f}",
-                f"{(-1) ** i * (2.0 - i * 0.03):.4f}",
-                f"{0.0001 * (i + 1):.6f}",
-                f"{fdr:.6f}",
-            ])
+            writer.writerow(
+                [
+                    f"chr{(i % 19) + 1}",
+                    1000000 + i * 5000,
+                    1005000 + i * 5000,
+                    5000,
+                    "*",
+                    f"{5.0 + i * 0.1:.2f}",
+                    f"{4.5 + i * 0.05:.2f}",
+                    f"{5.5 + i * 0.15:.2f}",
+                    f"{(-1) ** i * (2.0 - i * 0.03):.4f}",
+                    f"{0.0001 * (i + 1):.6f}",
+                    f"{fdr:.6f}",
+                ]
+            )
         results_tsv.write_text(buf.getvalue())
-        outputs.append({
-            "file_category": "diffbind_results",
-            "filename": results_tsv.name,
-            "file_path": f"{rel_job}/{experiment_name}/{results_tsv.name}",
-            "file_type": "tsv",
-            "file_size_bytes": results_tsv.stat().st_size,
-            "reaction_id": None,
-        })
+        outputs.append(
+            {
+                "file_category": "diffbind_results",
+                "filename": results_tsv.name,
+                "file_path": f"{rel_job}/{experiment_name}/{results_tsv.name}",
+                "file_type": "tsv",
+                "file_size_bytes": results_tsv.stat().st_size,
+                "reaction_id": None,
+            }
+        )
 
         # Save column names JSON
         columns_json = output_dir / "results_columns.json"
@@ -361,14 +393,16 @@ class DiffBindStage(PipelineStage):
                 + [f"{50 + i * 3 + j * 10:.1f}" for j in range(len(samples))]
             )
         counts_csv.write_text(counts_buf.getvalue())
-        outputs.append({
-            "file_category": "normalized_counts",
-            "filename": counts_csv.name,
-            "file_path": f"{rel_job}/{experiment_name}/{counts_csv.name}",
-            "file_type": "csv",
-            "file_size_bytes": counts_csv.stat().st_size,
-            "reaction_id": None,
-        })
+        outputs.append(
+            {
+                "file_category": "normalized_counts",
+                "filename": counts_csv.name,
+                "file_path": f"{rel_job}/{experiment_name}/{counts_csv.name}",
+                "file_type": "csv",
+                "file_size_bytes": counts_csv.stat().st_size,
+                "reaction_id": None,
+            }
+        )
 
         # Mock plot files (stub PNGs + empty SVGs)
         plot_types = _PLOT_TYPES_EDGER if method == "edger_peaklist" else _PLOT_TYPES_FULL
@@ -384,26 +418,30 @@ class DiffBindStage(PipelineStage):
                         '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">'
                         '<text x="10" y="50">Mock DiffBind Plot</text></svg>'
                     )
-                outputs.append({
-                    "file_category": category,
-                    "filename": plot_file.name,
-                    "file_path": f"{rel_job}/{experiment_name}/{plot_file.name}",
-                    "file_type": ext,
-                    "file_size_bytes": plot_file.stat().st_size,
-                    "reaction_id": None,
-                })
+                outputs.append(
+                    {
+                        "file_category": category,
+                        "filename": plot_file.name,
+                        "file_path": f"{rel_job}/{experiment_name}/{plot_file.name}",
+                        "file_type": ext,
+                        "file_size_bytes": plot_file.stat().st_size,
+                        "reaction_id": None,
+                    }
+                )
 
         # Mock master log
         master_log = logs_dir / "diffbind.log"
         master_log.write_text(f"Mock DiffBind run for job {job_id}\n")
-        outputs.append({
-            "file_category": "log",
-            "filename": master_log.name,
-            "file_path": f"{rel_job}/logs/{master_log.name}",
-            "file_type": "txt",
-            "file_size_bytes": master_log.stat().st_size,
-            "reaction_id": None,
-        })
+        outputs.append(
+            {
+                "file_category": "log",
+                "filename": master_log.name,
+                "file_path": f"{rel_job}/logs/{master_log.name}",
+                "file_type": "txt",
+                "file_size_bytes": master_log.stat().st_size,
+                "reaction_id": None,
+            }
+        )
 
         return {
             "job_id": job_id,
@@ -426,23 +464,30 @@ class DiffBindStage(PipelineStage):
         """Write the DiffBind sample sheet CSV with absolute paths for BAM/peak files."""
         buf = io.StringIO()
         cols = [
-            "SampleID", "Factor", "Condition", "Replicate",
-            "bamReads", "Peaks", "PeakCaller",
+            "SampleID",
+            "Factor",
+            "Condition",
+            "Replicate",
+            "bamReads",
+            "Peaks",
+            "PeakCaller",
         ]
         writer = csv.DictWriter(buf, fieldnames=cols)
         writer.writeheader()
         for s in samples:
             bam_abs = Path(settings.STORAGE_ROOT) / s["bam_path"]
             peak_abs = Path(settings.STORAGE_ROOT) / s["peak_path"]
-            writer.writerow({
-                "SampleID": s["short_name"],
-                "Factor": s.get("factor", "Factor1"),
-                "Condition": s["condition"],
-                "Replicate": s["replicate"],
-                "bamReads": str(bam_abs),
-                "Peaks": str(peak_abs),
-                "PeakCaller": s.get("peak_caller", "bed"),
-            })
+            writer.writerow(
+                {
+                    "SampleID": s["short_name"],
+                    "Factor": s.get("factor", "Factor1"),
+                    "Condition": s["condition"],
+                    "Replicate": s["replicate"],
+                    "bamReads": str(bam_abs),
+                    "Peaks": str(peak_abs),
+                    "PeakCaller": s.get("peak_caller", "bed"),
+                }
+            )
         output_path.write_text(buf.getvalue())
 
     def _parse_tsv_columns(self, tsv_path: Path) -> list[str]:

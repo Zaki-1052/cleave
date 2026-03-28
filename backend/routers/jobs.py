@@ -15,7 +15,12 @@ from models.project import ProjectMember
 from models.user import User
 from schemas.common import PaginatedResponse
 from schemas.job import JobCreate, JobOutputRead, JobQueueRead, JobRead, JobUpdate
-from schemas.qc_report import AlignmentQCReport, DiffBindReport, PeakCallingQCReport
+from schemas.qc_report import (
+    AlignmentQCReport,
+    CustomHeatmapReport,
+    DiffBindReport,
+    PeakCallingQCReport,
+)
 from services.download_token_service import create_download_token
 from services.job_service import (
     create_job,
@@ -27,6 +32,8 @@ from services.job_service import (
 )
 from services.qc_report_service import (
     get_alignment_qc_report,
+    get_custom_heatmap_matrix_path,
+    get_custom_heatmap_report,
     get_diffbind_counts_path,
     get_diffbind_report,
     get_diffbind_results_path,
@@ -166,15 +173,15 @@ async def get_output_signed_url(
         raise HTTPException(status_code=404, detail="Output not found")
 
     output, project_id = row
-    experiment_id = (await db.execute(
-        select(AnalysisJob.experiment_id).where(AnalysisJob.id == job_id)
-    )).scalar_one()
+    experiment_id = (
+        await db.execute(select(AnalysisJob.experiment_id).where(AnalysisJob.id == job_id))
+    ).scalar_one()
 
     # file_path is relative to STORAGE_ROOT, e.g. "projects/1/2/jobs/3/heatmaps/foo.png"
     # download token needs path relative to experiment dir, e.g. "jobs/3/heatmaps/foo.png"
     experiment_prefix = f"projects/{project_id}/{experiment_id}/"
     if output.file_path.startswith(experiment_prefix):
-        rel_path = output.file_path[len(experiment_prefix):]
+        rel_path = output.file_path[len(experiment_prefix) :]
     else:
         raise HTTPException(status_code=500, detail="Unexpected file path format")
 
@@ -341,13 +348,9 @@ async def get_diffbind_report_endpoint(
     try:
         report = await get_diffbind_report(db, job_id, user.id)
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
     except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     if report is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -365,13 +368,9 @@ async def download_diffbind_results(
     try:
         tsv_path = await get_diffbind_results_path(db, job_id, user.id)
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
     except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     if tsv_path is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -393,13 +392,9 @@ async def download_diffbind_counts(
     try:
         csv_path = await get_diffbind_counts_path(db, job_id, user.id)
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
     except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     if csv_path is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -409,4 +404,53 @@ async def download_diffbind_counts(
         csv_path,
         media_type="text/csv",
         filename="normalized_counts.csv",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Custom Heatmap report endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get("/jobs/{job_id}/heatmap-report", response_model=CustomHeatmapReport)
+async def get_heatmap_report_endpoint(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        report = await get_custom_heatmap_report(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return report
+
+
+@router.get("/jobs/{job_id}/heatmap-report/download-matrix")
+async def download_heatmap_matrix(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        gz_path = await get_custom_heatmap_matrix_path(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if gz_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return FileResponse(
+        gz_path,
+        media_type="application/gzip",
+        filename="heatmap_matrix.gz",
     )

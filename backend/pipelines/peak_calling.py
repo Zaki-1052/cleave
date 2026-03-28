@@ -1123,8 +1123,11 @@ class PeakCallingStage(PipelineStage):
                 continue
             append_to_master_log(master_log, f"Tool log: {log_file.name}", log_file.read_text())
 
-        append_to_master_log(master_log, "Peak calling complete",
-                             f"Processed {len(reactions)} reactions, {len(all_metrics)} results")
+        append_to_master_log(
+            master_log,
+            "Peak calling complete",
+            f"Processed {len(reactions)} reactions, {len(all_metrics)} results",
+        )
 
         # Register the master log as a job output
         if master_log.exists():

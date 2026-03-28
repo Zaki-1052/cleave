@@ -17,6 +17,8 @@ from pipelines.spike_in_barcodes import PTM_NAMES, normalize_counts
 from schemas.qc_report import (
     AlignmentQCReport,
     AlignmentReactionMetrics,
+    CustomHeatmapPlotInfo,
+    CustomHeatmapReport,
     DiffBindPlotInfo,
     DiffBindReport,
     PeakAnnotationResult,
@@ -599,18 +601,12 @@ async def get_diffbind_report(
 
     tsv_path = _resolve_output_path(job, "diffbind_results", "tsv")
     if tsv_path is None:
-        raise FileNotFoundError(
-            f"DiffBind results TSV not found for job {job_id}"
-        )
+        raise FileNotFoundError(f"DiffBind results TSV not found for job {job_id}")
 
-    columns, preview, total, sig_005, sig_001 = (
-        _parse_diffbind_results_tsv(tsv_path)
-    )
+    columns, preview, total, sig_005, sig_001 = _parse_diffbind_results_tsv(tsv_path)
 
     params = job.params or {}
-    conditions = sorted(
-        {s["condition"] for s in params.get("samples", [])}
-    )
+    conditions = sorted({s["condition"] for s in params.get("samples", [])})
     method = params.get("analysis_method", "unknown")
     plot_infos = _find_plot_output_ids(job)
 
@@ -636,14 +632,10 @@ async def get_diffbind_results_path(
     if job is None:
         return None
     if job.job_type != "diffbind" or job.status != "complete":
-        raise ValueError(
-            f"Job {job_id} is not a completed diffbind job"
-        )
+        raise ValueError(f"Job {job_id} is not a completed diffbind job")
     path = _resolve_output_path(job, "diffbind_results", "tsv")
     if path is None:
-        raise FileNotFoundError(
-            f"DiffBind results not found for job {job_id}"
-        )
+        raise FileNotFoundError(f"DiffBind results not found for job {job_id}")
     return path
 
 
@@ -657,12 +649,84 @@ async def get_diffbind_counts_path(
     if job is None:
         return None
     if job.job_type != "diffbind" or job.status != "complete":
-        raise ValueError(
-            f"Job {job_id} is not a completed diffbind job"
-        )
+        raise ValueError(f"Job {job_id} is not a completed diffbind job")
     path = _resolve_output_path(job, "normalized_counts", "csv")
     if path is None:
-        raise FileNotFoundError(
-            f"Normalized counts not found for job {job_id}"
+        raise FileNotFoundError(f"Normalized counts not found for job {job_id}")
+    return path
+
+
+# ---------------------------------------------------------------------------
+# Custom Heatmap report
+# ---------------------------------------------------------------------------
+
+
+def _find_heatmap_plot_info(job: AnalysisJob) -> CustomHeatmapPlotInfo:
+    """Match job outputs to heatmap plot PNG + SVG."""
+    png_id = None
+    svg_id = None
+    for output in job.outputs:
+        if output.file_category == "custom_heatmap_plot":
+            if output.file_type == "png":
+                png_id = output.id
+            elif output.file_type == "svg":
+                svg_id = output.id
+    return CustomHeatmapPlotInfo(output_id_png=png_id, output_id_svg=svg_id)
+
+
+async def get_custom_heatmap_report(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> CustomHeatmapReport | None:
+    """Return structured report for a completed custom heatmap job."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    if job.job_type != "custom_heatmap" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed custom_heatmap job "
+            f"(type={job.job_type}, status={job.status})"
         )
+
+    params = job.params or {}
+    samples = params.get("samples", [])
+
+    plot_info = _find_heatmap_plot_info(job)
+
+    matrix_output_id = None
+    for output in job.outputs:
+        if output.file_category == "custom_heatmap_matrix":
+            matrix_output_id = output.id
+            break
+
+    return CustomHeatmapReport(
+        bed_label=params.get("bed_label", "custom regions"),
+        sample_count=len(samples),
+        sample_labels=[s.get("label", s.get("short_name", "")) for s in samples],
+        flanking_upstream=params.get("flanking_upstream", 1500),
+        flanking_downstream=params.get("flanking_downstream", 1500),
+        reference_point=params.get("reference_point", "center"),
+        sort_order=params.get("sort_order", "descend"),
+        color_map=params.get("color_map"),
+        plot_output=plot_info,
+        matrix_output_id=matrix_output_id,
+    )
+
+
+async def get_custom_heatmap_matrix_path(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> Path | None:
+    """Return absolute path to heatmap matrix .gz for download."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+    if job.job_type != "custom_heatmap" or job.status != "complete":
+        raise ValueError(f"Job {job_id} is not a completed custom_heatmap job")
+    path = _resolve_output_path(job, "custom_heatmap_matrix", "gz")
+    if path is None:
+        raise FileNotFoundError(f"Heatmap matrix not found for job {job_id}")
     return path

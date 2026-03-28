@@ -71,10 +71,11 @@ export default function PeakCallingTab() {
       {/* Job selector + status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="peak-calling-job-select" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
             Peak Calling
           </label>
           <select
+            id="peak-calling-job-select"
             value={activeJobId ?? ''}
             onChange={handleJobChange}
             className="rounded-md border border-gray-300 px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"

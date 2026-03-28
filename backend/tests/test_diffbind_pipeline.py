@@ -270,8 +270,13 @@ def test_mock_run_sample_sheet_csv(stage, tmp_path):
         rows = list(reader)
     assert len(rows) == 4
     assert set(reader.fieldnames) == {
-        "SampleID", "Factor", "Condition", "Replicate",
-        "bamReads", "Peaks", "PeakCaller",
+        "SampleID",
+        "Factor",
+        "Condition",
+        "Replicate",
+        "bamReads",
+        "Peaks",
+        "PeakCaller",
     }
     assert rows[0]["SampleID"] == "K4me3_ctrl1"
     assert rows[0]["Condition"] == "ctrl"

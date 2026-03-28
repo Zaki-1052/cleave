@@ -147,3 +147,30 @@ class DiffBindReport(CamelModel):
     significant_peaks_001: int
     results_preview: list[dict[str, str | float]]
     plot_outputs: list[DiffBindPlotInfo]
+
+
+# ---------------------------------------------------------------------------
+# Custom Heatmap Report
+# ---------------------------------------------------------------------------
+
+
+class CustomHeatmapPlotInfo(CamelModel):
+    """Metadata for a custom heatmap plot output (PNG + SVG)."""
+
+    output_id_png: int | None = None
+    output_id_svg: int | None = None
+
+
+class CustomHeatmapReport(CamelModel):
+    """Report for a completed custom reference-point heatmap job."""
+
+    bed_label: str
+    sample_count: int
+    sample_labels: list[str]
+    flanking_upstream: int
+    flanking_downstream: int
+    reference_point: str
+    sort_order: str
+    color_map: str | None = None
+    plot_output: CustomHeatmapPlotInfo
+    matrix_output_id: int | None = None

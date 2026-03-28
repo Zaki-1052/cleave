@@ -153,3 +153,39 @@ def alignment_methods(params: dict) -> str:
         f"computeMatrix and visualized with plotHeatmap."
     )
     return text
+
+
+def custom_heatmap_methods(params: dict) -> str:
+    """Generate methods text for custom reference-point heatmaps.
+
+    Reference: references/genomewide_plots/heatmaps.sh
+    """
+    samples = params.get("samples", [])
+    n_samples = len(samples)
+    bed_label = params.get("bed_label", "user-provided regions")
+    upstream = params.get("flanking_upstream", 1500)
+    downstream = params.get("flanking_downstream", 1500)
+    ref_point = params.get("reference_point", "center")
+    sort_order = params.get("sort_order", "descend")
+    color_map = params.get("color_map") or None
+
+    text = (
+        f"Custom reference-point heatmaps were generated using deepTools. "
+        f"Signal from RPKM-normalized bigWig files for {n_samples} sample"
+        f"{'s' if n_samples != 1 else ''} was computed around the "
+        f"{ref_point} of regions in the reference BED file "
+        f"({bed_label}) with a flanking window of {upstream} bp upstream "
+        f"and {downstream} bp downstream using computeMatrix reference-point. "
+        f"Heatmaps were visualized using plotHeatmap"
+    )
+
+    extras: list[str] = []
+    if sort_order != "descend":
+        extras.append(f"--sortRegions {sort_order}")
+    if color_map:
+        extras.append(f"--colorMap {color_map}")
+    if extras:
+        text += f" ({', '.join(extras)})"
+
+    text += "."
+    return text
