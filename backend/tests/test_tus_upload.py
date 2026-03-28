@@ -3,7 +3,6 @@ import base64
 import gzip
 from urllib.parse import urlparse
 
-import pytest
 from httpx import AsyncClient
 
 FASTQ_CONTENT = b"@SEQ_ID\nACGTACGT\n+\nIIIIIIII\n"
@@ -57,7 +56,6 @@ def _extract_path(location: str) -> str:
     return parsed.path if parsed.scheme else location
 
 
-@pytest.mark.anyio
 async def test_tus_options(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     resp = await client.options("/api/v1/tus/", headers=headers)
@@ -66,7 +64,6 @@ async def test_tus_options(client: AsyncClient):
     assert "creation" in resp.headers["tus-extension"]
 
 
-@pytest.mark.anyio
 async def test_tus_create_upload(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -91,7 +88,6 @@ async def test_tus_create_upload(client: AsyncClient):
     assert "location" in resp.headers
 
 
-@pytest.mark.anyio
 async def test_tus_full_upload_flow(client: AsyncClient):
     """Create, upload, and verify a file via tus protocol."""
     headers = await _register_and_get_headers(client, "user@example.com")
@@ -143,7 +139,6 @@ async def test_tus_full_upload_flow(client: AsyncClient):
     assert items[0]["uploadSource"] == "tus"
 
 
-@pytest.mark.anyio
 async def test_tus_resume_upload(client: AsyncClient):
     """Upload in two chunks, using HEAD to verify offset between chunks."""
     headers = await _register_and_get_headers(client, "user@example.com")
@@ -201,7 +196,6 @@ async def test_tus_resume_upload(client: AsyncClient):
     assert int(patch_resp.headers["upload-offset"]) == len(file_data)
 
 
-@pytest.mark.anyio
 async def test_tus_invalid_filename_rejected(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -224,7 +218,6 @@ async def test_tus_invalid_filename_rejected(client: AsyncClient):
     assert resp.status_code == 400
 
 
-@pytest.mark.anyio
 async def test_tus_nonmember_rejected(client: AsyncClient):
     headers_a = await _register_and_get_headers(client, "a@example.com")
     headers_b = await _register_and_get_headers(client, "b@example.com")
@@ -248,7 +241,6 @@ async def test_tus_nonmember_rejected(client: AsyncClient):
     assert resp.status_code == 404
 
 
-@pytest.mark.anyio
 async def test_tus_terminate_upload(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)

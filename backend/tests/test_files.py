@@ -75,7 +75,6 @@ async def _upload_fastqs(client: AsyncClient, headers: dict, experiment_id: int)
 # --- File Tree Endpoint Tests ---
 
 
-@pytest.mark.anyio
 async def test_list_files_empty_experiment(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -94,7 +93,6 @@ async def test_list_files_empty_experiment(client: AsyncClient):
     assert data["root"]["children"] == []
 
 
-@pytest.mark.anyio
 async def test_list_files_after_upload(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -116,7 +114,6 @@ async def test_list_files_after_upload(client: AsyncClient):
     assert "fastqs" in folder_names
 
 
-@pytest.mark.anyio
 async def test_list_files_nonmember(client: AsyncClient):
     headers_a = await _register_and_get_headers(client, "a@example.com")
     headers_b = await _register_and_get_headers(client, "b@example.com")
@@ -130,7 +127,6 @@ async def test_list_files_nonmember(client: AsyncClient):
     assert resp.status_code == 404
 
 
-@pytest.mark.anyio
 async def test_list_files_hidden_files_skipped(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -155,7 +151,6 @@ async def test_list_files_hidden_files_skipped(client: AsyncClient):
 # --- Single Download Endpoint Tests ---
 
 
-@pytest.mark.anyio
 async def test_download_file(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -171,7 +166,6 @@ async def test_download_file(client: AsyncClient):
     assert len(resp.content) > 0
 
 
-@pytest.mark.anyio
 async def test_download_path_traversal_dotdot(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -185,7 +179,6 @@ async def test_download_path_traversal_dotdot(client: AsyncClient):
     assert resp.status_code == 403
 
 
-@pytest.mark.anyio
 async def test_download_path_traversal_absolute(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -199,7 +192,6 @@ async def test_download_path_traversal_absolute(client: AsyncClient):
     assert resp.status_code == 403
 
 
-@pytest.mark.anyio
 async def test_download_nonexistent_file(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -213,7 +205,6 @@ async def test_download_nonexistent_file(client: AsyncClient):
     assert resp.status_code == 404
 
 
-@pytest.mark.anyio
 async def test_download_nonmember(client: AsyncClient):
     headers_a = await _register_and_get_headers(client, "a@example.com")
     headers_b = await _register_and_get_headers(client, "b@example.com")
@@ -232,7 +223,6 @@ async def test_download_nonmember(client: AsyncClient):
 # --- X-Accel-Redirect Tests ---
 
 
-@pytest.mark.anyio
 async def test_download_xaccel_redirect(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -261,7 +251,6 @@ async def test_download_xaccel_redirect(client: AsyncClient):
 # --- Batch Download Endpoint Tests ---
 
 
-@pytest.mark.anyio
 async def test_batch_download_success(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -290,7 +279,6 @@ async def test_batch_download_success(client: AsyncClient):
     assert "fastqs/raw/sample_L001_R2_001.fastq.gz" in names
 
 
-@pytest.mark.anyio
 async def test_batch_download_empty_paths(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -304,7 +292,6 @@ async def test_batch_download_empty_paths(client: AsyncClient):
     assert resp.status_code == 400
 
 
-@pytest.mark.anyio
 async def test_batch_download_path_traversal(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -318,7 +305,6 @@ async def test_batch_download_path_traversal(client: AsyncClient):
     assert resp.status_code == 403
 
 
-@pytest.mark.anyio
 async def test_batch_download_nonexistent_skipped(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -343,7 +329,6 @@ async def test_batch_download_nonexistent_skipped(client: AsyncClient):
     assert len(zf.namelist()) == 1
 
 
-@pytest.mark.anyio
 async def test_batch_download_all_missing(client: AsyncClient):
     headers = await _register_and_get_headers(client, "user@example.com")
     project_id = await _create_project(client, headers)
@@ -357,7 +342,6 @@ async def test_batch_download_all_missing(client: AsyncClient):
     assert resp.status_code == 404
 
 
-@pytest.mark.anyio
 async def test_batch_download_nonmember(client: AsyncClient):
     headers_a = await _register_and_get_headers(client, "a@example.com")
     headers_b = await _register_and_get_headers(client, "b@example.com")
@@ -464,7 +448,6 @@ def test_get_xaccel_path_strips_trailing_slash(tmp_path):
 # --- Signed Download Token Tests ---
 
 
-@pytest.mark.anyio
 async def test_signed_download_single_file(client: AsyncClient):
     """Get a signed download token and use it to download a single file."""
     headers = await _register_and_get_headers(client, "user@example.com")
@@ -488,7 +471,6 @@ async def test_signed_download_single_file(client: AsyncClient):
     assert download_resp.status_code == 200
 
 
-@pytest.mark.anyio
 async def test_signed_download_expired_token(client: AsyncClient):
     """An expired token should return 401."""
     from services.download_token_service import create_download_token
@@ -502,14 +484,12 @@ async def test_signed_download_expired_token(client: AsyncClient):
     assert resp.status_code == 401
 
 
-@pytest.mark.anyio
 async def test_signed_download_invalid_token(client: AsyncClient):
     """A tampered token should return 401."""
     resp = await client.get("/api/v1/files/signed-download?token=invalid.token")
     assert resp.status_code == 401
 
 
-@pytest.mark.anyio
 async def test_signed_download_nonmember_cannot_get_token(client: AsyncClient):
     """A non-member cannot get a download token for another user's experiment."""
     headers_a = await _register_and_get_headers(client, "a@example.com")
@@ -570,7 +550,6 @@ async def _create_job_with_output(client, headers, db_session, project_id, exper
     return job_id, output.id, abs_path
 
 
-@pytest.mark.anyio
 async def test_igv_tokens_returns_tokens(client: AsyncClient, db_session):
     """Valid request returns a token for each output ID."""
     headers = await _register_and_get_headers(client, "user@example.com")
@@ -591,7 +570,6 @@ async def test_igv_tokens_returns_tokens(client: AsyncClient, db_session):
     assert "/api/v1/files/igv-serve?token=" in data["tokens"][str(output_id)]
 
 
-@pytest.mark.anyio
 async def test_igv_tokens_nonmember_404(client: AsyncClient, db_session):
     """Non-member cannot get IGV tokens for another user's outputs."""
     headers_a = await _register_and_get_headers(client, "a@example.com")
@@ -610,7 +588,6 @@ async def test_igv_tokens_nonmember_404(client: AsyncClient, db_session):
     assert resp.status_code == 404
 
 
-@pytest.mark.anyio
 async def test_igv_tokens_invalid_ids_404(client: AsyncClient):
     """Non-existent output IDs return 404."""
     headers = await _register_and_get_headers(client, "user@example.com")
@@ -623,7 +600,6 @@ async def test_igv_tokens_invalid_ids_404(client: AsyncClient):
     assert resp.status_code == 404
 
 
-@pytest.mark.anyio
 async def test_igv_serve_expired_token_401(client: AsyncClient):
     """An expired IGV token returns 401."""
     from services.download_token_service import create_download_token
@@ -637,7 +613,6 @@ async def test_igv_serve_expired_token_401(client: AsyncClient):
     assert resp.status_code == 401
 
 
-@pytest.mark.anyio
 async def test_igv_serve_invalid_token_401(client: AsyncClient):
     """A tampered IGV token returns 401."""
     resp = await client.get("/api/v1/files/igv-serve?token=bad.token")
@@ -647,7 +622,6 @@ async def test_igv_serve_invalid_token_401(client: AsyncClient):
 # --- Range Request Tests ---
 
 
-@pytest.mark.anyio
 async def test_igv_serve_no_range_returns_200(client: AsyncClient, db_session):
     """Without a Range header, serve the full file with 200 and Accept-Ranges."""
     headers = await _register_and_get_headers(client, "user@example.com")
@@ -672,7 +646,6 @@ async def test_igv_serve_no_range_returns_200(client: AsyncClient, db_session):
     assert len(resp.content) == 4096
 
 
-@pytest.mark.anyio
 async def test_igv_serve_valid_range_returns_206(client: AsyncClient, db_session):
     """A valid Range header returns 206 with correct Content-Range."""
     headers = await _register_and_get_headers(client, "user@example.com")
@@ -696,7 +669,6 @@ async def test_igv_serve_valid_range_returns_206(client: AsyncClient, db_session
     assert resp.headers.get("accept-ranges") == "bytes"
 
 
-@pytest.mark.anyio
 async def test_igv_serve_open_ended_range_returns_206(client: AsyncClient, db_session):
     """An open-ended Range (bytes=100-) serves from offset to end of file."""
     headers = await _register_and_get_headers(client, "user@example.com")
@@ -719,7 +691,6 @@ async def test_igv_serve_open_ended_range_returns_206(client: AsyncClient, db_se
     assert len(resp.content) == 3996
 
 
-@pytest.mark.anyio
 async def test_igv_serve_range_beyond_file_returns_416(client: AsyncClient, db_session):
     """Range start beyond file size returns 416 Range Not Satisfiable."""
     headers = await _register_and_get_headers(client, "user@example.com")
@@ -741,7 +712,6 @@ async def test_igv_serve_range_beyond_file_returns_416(client: AsyncClient, db_s
     assert "bytes */4096" in resp.headers.get("content-range", "")
 
 
-@pytest.mark.anyio
 async def test_igv_serve_malformed_range_returns_200(client: AsyncClient, db_session):
     """A malformed Range header falls back to serving the full file."""
     headers = await _register_and_get_headers(client, "user@example.com")
