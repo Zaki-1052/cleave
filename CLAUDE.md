@@ -149,10 +149,10 @@ docker compose exec api ruff format --check .                    # Format check 
 Current phase tracking (update as we progress):
 1. ✅ Foundation (auth, project/experiment CRUD, UI shell)
 2. ✅ Data Management (FASTQ upload, FastQC, reactions, trimming)
-3. 🔴 Core Pipeline (worker, SSE polling, alignment, QC reports, spike-in QC)
-4. 🔴 Peak Calling (MACS2/SICER2/SEACR, HOMER, FRiP, fragment filter)
-5. 🔴 Visualization (IGV.js integration)
-6. 🔴 Lab Extensions (DiffBind, custom heatmaps, Pearson correlation, Roman normalization)
+3. ✅ Core Pipeline (worker, SSE polling, alignment, QC reports, spike-in QC)
+4. ✅ Peak Calling (MACS2/SICER2/SEACR, HOMER, FRiP, fragment filter)
+5. ✅ Visualization (IGV.js integration)
+6. ✅ Lab Extensions (DiffBind, custom heatmaps, Pearson correlation, Roman normalization)
 7. 🔴 Polish & QA
 
 ## Test Ownership

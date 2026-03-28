@@ -6,20 +6,29 @@
 
 ## Current Status
 
-**Phases 1 and 2 are complete.** Docker Compose runs Postgres + FastAPI + Vite. All 9 database tables exist (4 Alembic migrations). Auth, project/experiment CRUD, FASTQ upload (tus resumable), FastQC, reactions, trimming, file browser, and file download are all wired end-to-end. **151 tests passing** (46 from Phase 1, 105 from Phase 2). Ready for Phase 3 (Core Pipeline).
+**Phases 1 through 6 are complete.** The full analysis platform is functional end-to-end: auth, project/experiment CRUD, FASTQ upload (tus resumable), FastQC, trimming, alignment, peak calling (MACS2/SICER2/SEACR), IGV.js visualization, DiffBind differential analysis, custom heatmaps, Pearson correlation, and Roman normalization. **373 tests passing** across all phases. Ready for Phase 7 (Polish & QA).
 
 **What works right now:**
-- `docker compose up` starts all 3 services
+- `docker compose up` starts all 4 services (db, api, worker, frontend)
 - `localhost:8000/api/v1/health` returns `{"status":"ok"}`
 - `localhost:8000/docs` shows OpenAPI interactive docs
 - `localhost:5173` serves the React app with full auth flow
-- All Alembic migrations apply and reverse cleanly (4 migrations)
-- `ruff check backend/` and `npx tsc --noEmit` pass
+- All Alembic migrations apply and reverse cleanly
+- `ruff check backend/`, `ruff format --check backend/`, and `npm run build` all pass
 - tus resumable FASTQ uploads with per-file progress, cancel, resume
 - FastQC auto-runs post-upload, reports viewable in modal
 - Reactions CRUD + CSV import/export
 - 3-step experiment creation wizard (Details → FASTQs → Reactions)
-- Trimming pipeline (mock mode) with adapter detection banners
+- Trimming pipeline with adapter detection banners
+- Worker process picks up queued jobs, runs pipeline modules, updates status via SSE
+- Alignment pipeline: Bowtie2 → SAMtools → BEDTools → Picard → deepTools (BAMs, bigWigs, heatmaps)
+- Peak calling: MACS2 narrow/broad, SICER2, SEACR stringent/relaxed with fragment filter, FRiP, HOMER
+- IGV.js genome browser with reaction selector, track loading, byte-range serving
+- DiffBind differential peak analysis with sample sheet builder, 3 analysis modes, dynamic columns
+- Custom reference-point heatmaps from user-provided BED files
+- Pearson correlation matrices with optional BED restriction
+- Roman normalization (mouse mm10 only) with 99th-percentile quantile masking
+- Analysis Queue shows cross-project job list
 - File browser with dual-panel tree + table layout
 - Streaming zip batch download with HMAC-signed download tokens
 
@@ -443,14 +452,14 @@ Build Info, Input, Files sub-tabs (same pattern as alignment).
 
 ### Phase 4 Done Criteria
 
-- [ ] All 5 peak caller modes work (MACS2 narrow/broad, SICER2, SEACR stringent/relaxed)
-- [ ] Fragment filter (<120bp) applied by default before calling
-- [ ] IgG control correctly assigned per reaction
-- [ ] SEACR preprocessing chain (MACS2 bdg → integer conversion → SEACR) works
-- [ ] FRiP calculation produces scores >0.2 for good enrichment targets
-- [ ] HOMER annotates peaks to genomic features
-- [ ] QC report shows FRiP table and annotation stacked bar chart
-- [ ] Peak calling files browsable by category (BED, FRiP, Annotation)
+- [x] All 5 peak caller modes work (MACS2 narrow/broad, SICER2, SEACR stringent/relaxed)
+- [x] Fragment filter (<120bp) applied by default before calling
+- [x] IgG control correctly assigned per reaction
+- [x] SEACR preprocessing chain (MACS2 bdg → integer conversion → SEACR) works
+- [x] FRiP calculation produces scores >0.2 for good enrichment targets
+- [x] HOMER annotates peaks to genomic features
+- [x] QC report shows FRiP table and annotation stacked bar chart
+- [x] Peak calling files browsable by category (BED, FRiP, Annotation)
 
 ---
 
@@ -488,12 +497,12 @@ Build the IGV sub-tab per `cutana-cloud-ui.md` §6f-v.
 
 ### Phase 5 Done Criteria
 
-- [ ] IGV.js renders in both Alignment and Peak Calling tabs
-- [ ] Reaction selector loads tracks on demand
-- [ ] Signal tracks display RPKM-normalized coverage
-- [ ] Peak calling BED tracks shown as colored bars below signal
-- [ ] Navigation, zoom, and image export work
-- [ ] Byte-range serving works for large bigWig/BAM files
+- [x] IGV.js renders in both Alignment and Peak Calling tabs
+- [x] Reaction selector loads tracks on demand
+- [x] Signal tracks display RPKM-normalized coverage
+- [x] Peak calling BED tracks shown as colored bars below signal
+- [x] Navigation, zoom, and image export work
+- [x] Byte-range serving works for large bigWig/BAM files
 
 ---
 

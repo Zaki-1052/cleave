@@ -186,13 +186,13 @@ docker compose up -d --build api
 
 | Phase | Scope | Status |
 |-------|-------|--------|
-| 1. Foundation | Scaffold, auth, project/experiment CRUD, UI shell | In Progress |
-| 2. Data Management | FASTQ upload, FastQC, reactions, trimming, file browser | Planned |
-| 3. Core Pipeline | Worker, SSE, alignment, QC reports, spike-in QC | Planned |
-| 4. Peak Calling | MACS2/SICER2/SEACR, HOMER, FRiP, fragment filter | Planned |
-| 5. Visualization | IGV.js integration | Planned |
-| 6. Lab Extensions | DiffBind, custom heatmaps, Pearson correlation, Roman normalization | Planned |
-| 7. Polish & QA | Storage lifecycle, error handling, deployment, e2e testing | Planned |
+| 1. Foundation | Scaffold, auth, project/experiment CRUD, UI shell | Complete |
+| 2. Data Management | FASTQ upload, FastQC, reactions, trimming, file browser | Complete |
+| 3. Core Pipeline | Worker, SSE, alignment, QC reports, spike-in QC | Complete |
+| 4. Peak Calling | MACS2/SICER2/SEACR, HOMER, FRiP, fragment filter | Complete |
+| 5. Visualization | IGV.js integration | Complete |
+| 6. Lab Extensions | DiffBind, custom heatmaps, Pearson correlation, Roman normalization | Complete |
+| 7. Polish & QA | Storage lifecycle, error handling, deployment, e2e testing | Next |
 
 ## Documentation
 
