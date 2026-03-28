@@ -61,8 +61,8 @@ export function NewPeakCallingWizard({
   const [selectedReactionIds, setSelectedReactionIds] = useState<Set<number>>(new Set());
 
   // Step 4: Settings
-  const [peakCaller, setPeakCaller] = useState('MACS2');
-  const [peakSize, setPeakSize] = useState('narrow');
+  const [peakCaller, setPeakCaller] = useState('SEACR');
+  const [peakSize, setPeakSize] = useState('stringent');
   const [iggReactionId, setIggReactionId] = useState<number | null>(null);
   const [qValue, setQValue] = useState(PEAK_CALLING_DEFAULTS.q_value);
   const [broadCutoff, setBroadCutoff] = useState(PEAK_CALLING_DEFAULTS.broad_cutoff);

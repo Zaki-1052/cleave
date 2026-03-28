@@ -42,7 +42,7 @@ if [[ "${CONDA_DEFAULT_ENV:-}" != "$CONDA_ENV" ]]; then
   exit 1
 fi
 # Force conda bin ahead of pyenv shims in PATH
-export PATH="$CONDA_PREFIX/bin:$PATH"
+export PATH="$CONDA_PREFIX/bin:$HOME/homer/bin:$PATH"
 echo "Conda env: $CONDA_DEFAULT_ENV ($(python --version)) — $(which python)"
 
 # ── Set environment variables ─────────────────────────────────────────────────

@@ -6,12 +6,20 @@ import { useAuth } from '@/hooks/useAuth';
 import { getAccessToken, setAccessToken } from '@/api/client';
 import axios from 'axios';
 
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 10;
+const RETRY_DELAY_MS = 3000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 /**
  * Manages an SSE connection for live notification and job status updates.
  * Invalidates TanStack Query caches when events arrive so components
  * re-render with fresh data without polling.
+ *
+ * Resilient to hot-reloads: waits before retrying so the server has time
+ * to restart, and allows up to MAX_RETRIES reconnection attempts.
  */
 export function useSSE(): void {
   const { user } = useAuth();
@@ -71,7 +79,6 @@ export function useSSE(): void {
         },
 
         onclose() {
-          // Server closed the stream — attempt reconnect with fresh token
           if (ctrl.signal.aborted) return;
           retryCountRef.current += 1;
           if (retryCountRef.current > MAX_RETRIES) return;
@@ -79,21 +86,17 @@ export function useSSE(): void {
         },
 
         onerror(err) {
-          if (ctrl.signal.aborted) throw err; // Stop retrying if unmounted
+          if (ctrl.signal.aborted) throw err;
 
           retryCountRef.current += 1;
           if (retryCountRef.current > MAX_RETRIES) {
-            throw err; // Stop retrying — fetchEventSource will close
+            throw err;
           }
 
-          // If unauthorized, try refreshing the token
           if (err instanceof Error && err.message === 'unauthorized') {
             void refreshAndReconnect(ctrl);
-            throw err; // Stop the current connection's retry loop
+            throw err;
           }
-
-          // For other errors, let fetchEventSource retry with backoff
-          // Return nothing to use default retry behavior
         },
       }).catch(() => {
         // fetchEventSource promise rejects when we throw in onerror/onclose
@@ -103,6 +106,11 @@ export function useSSE(): void {
 
     const refreshAndReconnect = async (abortCtrl: AbortController) => {
       if (abortCtrl.signal.aborted) return;
+
+      // Wait before retrying — gives the server time to restart after hot-reload
+      await sleep(RETRY_DELAY_MS);
+      if (abortCtrl.signal.aborted) return;
+
       try {
         const res = await axios.post('/api/v1/auth/refresh', {});
         const newToken = res.data.accessToken as string;
@@ -111,7 +119,13 @@ export function useSSE(): void {
           connect(newToken);
         }
       } catch {
-        // Refresh failed — user will need to re-login
+        // Refresh failed — wait and retry if we have retries left
+        if (retryCountRef.current < MAX_RETRIES && !abortCtrl.signal.aborted) {
+          await sleep(RETRY_DELAY_MS);
+          if (!abortCtrl.signal.aborted) {
+            void refreshAndReconnect(abortCtrl);
+          }
+        }
       }
     };
 
