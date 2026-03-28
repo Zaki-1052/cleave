@@ -6,6 +6,7 @@ import { AlignmentFilesPanel } from '@/components/alignment/AlignmentFilesPanel'
 import { AlignmentInfoPanel } from '@/components/alignment/AlignmentInfoPanel';
 import { AlignmentInputPanel } from '@/components/alignment/AlignmentInputPanel';
 import { AlignmentQCReportPanel } from '@/components/alignment/AlignmentQCReportPanel';
+import { IGVPanel } from '@/components/igv/IGVPanel';
 import { Card } from '@/components/layout/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs } from '@/hooks/useJobs';
@@ -141,9 +142,15 @@ export default function AlignmentTab() {
       )}
 
       {job && activeSubTab === 'igv' && (
-        <Card>
-          <p className="text-sm text-gray-400">IGV genome browser coming in Phase 5.</p>
-        </Card>
+        job.status === 'complete' ? (
+          <IGVPanel job={job} experimentId={experiment.id} mode="alignment" />
+        ) : (
+          <Card>
+            <p className="text-sm text-gray-400">
+              IGV browser will be available when the alignment completes.
+            </p>
+          </Card>
+        )
       )}
     </div>
   );

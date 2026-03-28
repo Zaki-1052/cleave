@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import AsyncIterator
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,6 +25,8 @@ from schemas.file import (
     DownloadTokenRequest,
     DownloadTokenResponse,
     FileTreeResponse,
+    IGVTokenRequest,
+    IGVTokenResponse,
     JobBatchDownloadRequest,
 )
 from services.download_token_service import create_download_token, verify_download_token
@@ -470,3 +472,208 @@ async def signed_download(
         )
 
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token type")
+
+
+# ---------------------------------------------------------------------------
+# IGV.js file serving (Range-aware, token-authenticated)
+# ---------------------------------------------------------------------------
+
+_RANGE_RE = re.compile(r"bytes=(\d+)-(\d*)")
+_IGV_RANGE_CHUNK = 256 * 1024  # 256 KB read chunks for streaming
+
+
+def _range_file_response(abs_path: Path, range_header: str | None) -> Response:
+    """Serve a file with optional HTTP Range support (RFC 7233).
+
+    In production, NGINX handles Range natively via X-Accel-Redirect.
+    This implementation is for dev mode only.
+    """
+    file_size = abs_path.stat().st_size
+    media_type, _ = mimetypes.guess_type(str(abs_path))
+    if media_type is None:
+        media_type = "application/octet-stream"
+
+    base_headers = {
+        "Accept-Ranges": "bytes",
+        "Access-Control-Expose-Headers": "Content-Range, Content-Length, Accept-Ranges",
+    }
+
+    def _full_file_stream():
+        """Stream full file content in chunks."""
+        with open(abs_path, "rb") as f:
+            while chunk := f.read(_IGV_RANGE_CHUNK):
+                yield chunk
+
+    if range_header is None:
+        return StreamingResponse(
+            _full_file_stream(),
+            media_type=media_type,
+            headers={**base_headers, "Content-Length": str(file_size)},
+        )
+
+    match = _RANGE_RE.match(range_header)
+    if not match:
+        # Malformed Range header — serve full file via streaming
+        # (FileResponse would parse the invalid Range header and return 400)
+        return StreamingResponse(
+            _full_file_stream(),
+            media_type=media_type,
+            headers={**base_headers, "Content-Length": str(file_size)},
+        )
+
+    start = int(match.group(1))
+    end_str = match.group(2)
+    end = int(end_str) if end_str else file_size - 1
+
+    # Validate range bounds
+    if start >= file_size or start > end:
+        return Response(
+            content="",
+            status_code=416,
+            headers={
+                "Content-Range": f"bytes */{file_size}",
+                **base_headers,
+            },
+        )
+
+    # Clamp end to file size
+    if end >= file_size:
+        end = file_size - 1
+
+    content_length = end - start + 1
+
+    def _read_range():
+        with open(abs_path, "rb") as f:
+            f.seek(start)
+            remaining = content_length
+            while remaining > 0:
+                chunk_size = min(_IGV_RANGE_CHUNK, remaining)
+                data = f.read(chunk_size)
+                if not data:
+                    break
+                remaining -= len(data)
+                yield data
+
+    return StreamingResponse(
+        _read_range(),
+        status_code=206,
+        media_type=media_type,
+        headers={
+            "Content-Range": f"bytes {start}-{end}/{file_size}",
+            "Content-Length": str(content_length),
+            **base_headers,
+        },
+    )
+
+
+@router.post("/files/igv-tokens", response_model=IGVTokenResponse)
+async def create_igv_tokens(
+    body: IGVTokenRequest,
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Generate signed tokens for IGV.js to load track files via Range requests."""
+    if not body.output_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No output IDs provided",
+        )
+
+    # Verify user has access and fetch all requested outputs in one query
+    result = await db.execute(
+        select(JobOutput)
+        .join(AnalysisJob, AnalysisJob.id == JobOutput.job_id)
+        .join(Experiment, Experiment.id == AnalysisJob.experiment_id)
+        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
+        .where(
+            JobOutput.id.in_(body.output_ids),
+            ProjectMember.user_id == current_user.id,
+        )
+    )
+    outputs = list(result.scalars().all())
+
+    if not outputs:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No accessible outputs found",
+        )
+
+    tokens: dict[int, str] = {}
+    for output in outputs:
+        payload = {
+            "type": "igv",
+            "job_id": output.job_id,
+            "output_id": output.id,
+        }
+        token = create_download_token(
+            payload, settings.SECRET_KEY, settings.IGV_TOKEN_EXPIRY_SECONDS
+        )
+        tokens[output.id] = f"/api/v1/files/igv-serve?token={token}"
+
+    return IGVTokenResponse(tokens=tokens)
+
+
+@router.get("/files/igv-serve")
+async def igv_serve_file(
+    request: Request,
+    token: str = Query(...),
+    db: AsyncSession = Depends(get_db),
+):
+    """Serve a file for IGV.js with Range header support. Token-authenticated (no JWT)."""
+    payload = verify_download_token(token, settings.SECRET_KEY)
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+
+    if payload.get("type") != "igv":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid token type",
+        )
+
+    output_id = payload.get("output_id")
+    if output_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid token payload",
+        )
+
+    result = await db.execute(select(JobOutput).where(JobOutput.id == output_id))
+    output = result.scalar_one_or_none()
+    if output is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found",
+        )
+
+    abs_path = (Path(settings.STORAGE_ROOT) / output.file_path).resolve()
+    storage_root = Path(settings.STORAGE_ROOT).resolve()
+    if not str(abs_path).startswith(str(storage_root) + "/"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied",
+        )
+
+    if not abs_path.is_file():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found on disk",
+        )
+
+    if settings.NGINX_FILE_SERVING:
+        xaccel_path = get_xaccel_path(
+            abs_path, settings.STORAGE_ROOT, settings.NGINX_INTERNAL_PREFIX
+        )
+        return Response(
+            content="",
+            headers={
+                "X-Accel-Redirect": xaccel_path,
+                "Accept-Ranges": "bytes",
+                "Access-Control-Expose-Headers": ("Content-Range, Content-Length, Accept-Ranges"),
+            },
+        )
+
+    range_header = request.headers.get("range")
+    return _range_file_response(abs_path, range_header)

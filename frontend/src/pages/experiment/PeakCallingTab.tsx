@@ -6,6 +6,7 @@ import { PeakCallingFilesPanel } from '@/components/peak-calling/PeakCallingFile
 import { PeakCallingInfoPanel } from '@/components/peak-calling/PeakCallingInfoPanel';
 import { PeakCallingInputPanel } from '@/components/peak-calling/PeakCallingInputPanel';
 import { PeakCallingQCReportPanel } from '@/components/peak-calling/PeakCallingQCReportPanel';
+import { IGVPanel } from '@/components/igv/IGVPanel';
 import { Card } from '@/components/layout/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs } from '@/hooks/useJobs';
@@ -137,9 +138,15 @@ export default function PeakCallingTab() {
       )}
 
       {job && activeSubTab === 'igv' && (
-        <Card>
-          <p className="text-sm text-gray-400">IGV genome browser coming in Phase 5.</p>
-        </Card>
+        job.status === 'complete' ? (
+          <IGVPanel job={job} experimentId={experiment.id} mode="peak_calling" />
+        ) : (
+          <Card>
+            <p className="text-sm text-gray-400">
+              IGV browser will be available when the peak calling completes.
+            </p>
+          </Card>
+        )
       )}
     </div>
   );

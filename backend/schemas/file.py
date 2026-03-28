@@ -49,3 +49,16 @@ class DownloadTokenResponse(CamelModel):
     """Response containing the signed download URL."""
 
     url: str
+
+
+class IGVTokenRequest(CamelModel):
+    """Request body for generating signed IGV file serving tokens."""
+
+    job_id: int
+    output_ids: list[int]
+
+
+class IGVTokenResponse(CamelModel):
+    """Response containing signed URLs for IGV.js track loading."""
+
+    tokens: dict[int, str]

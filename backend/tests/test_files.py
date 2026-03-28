@@ -523,3 +523,241 @@ async def test_signed_download_nonmember_cannot_get_token(client: AsyncClient):
         headers=headers_b,
     )
     assert resp.status_code == 404
+
+
+# --- IGV Token Endpoint Tests ---
+
+
+async def _create_job_with_output(client, headers, db_session, project_id, experiment_id):
+    """Create a job with a file output on disk + in DB."""
+    from models.job_output import JobOutput as JobOutputModel
+
+    resp = await client.post(
+        f"/api/v1/experiments/{experiment_id}/jobs",
+        json={
+            "jobType": "alignment",
+            "name": "Align",
+            "params": {
+                "experiment_id": experiment_id,
+                "project_id": project_id,
+                "reactions": [],
+                "reference_genome": "mm10",
+            },
+        },
+        headers=headers,
+    )
+    assert resp.status_code == 201
+    job_id = resp.json()["id"]
+
+    # Create a real file on disk so Range requests work
+    rel_path = f"projects/{project_id}/{experiment_id}/jobs/{job_id}/bigwigs/sample_smoothed.bw"
+    abs_path = Path(settings.STORAGE_ROOT) / rel_path
+    abs_path.parent.mkdir(parents=True, exist_ok=True)
+    abs_path.write_bytes(b"A" * 4096)  # 4 KB test file
+
+    output = JobOutputModel(
+        job_id=job_id,
+        file_category="smoothed_bigwig",
+        filename="sample_smoothed.bw",
+        file_path=rel_path,
+        file_type="bw",
+        file_size_bytes=4096,
+    )
+    db_session.add(output)
+    await db_session.commit()
+    await db_session.refresh(output)
+
+    return job_id, output.id, abs_path
+
+
+@pytest.mark.anyio
+async def test_igv_tokens_returns_tokens(client: AsyncClient, db_session):
+    """Valid request returns a token for each output ID."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    experiment_id = await _create_experiment(client, headers, project_id)
+    _, output_id, _ = await _create_job_with_output(
+        client, headers, db_session, project_id, experiment_id
+    )
+
+    resp = await client.post(
+        "/api/v1/files/igv-tokens",
+        json={"jobId": 1, "outputIds": [output_id]},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert str(output_id) in data["tokens"]
+    assert "/api/v1/files/igv-serve?token=" in data["tokens"][str(output_id)]
+
+
+@pytest.mark.anyio
+async def test_igv_tokens_nonmember_404(client: AsyncClient, db_session):
+    """Non-member cannot get IGV tokens for another user's outputs."""
+    headers_a = await _register_and_get_headers(client, "a@example.com")
+    headers_b = await _register_and_get_headers(client, "b@example.com")
+    project_id = await _create_project(client, headers_a)
+    experiment_id = await _create_experiment(client, headers_a, project_id)
+    _, output_id, _ = await _create_job_with_output(
+        client, headers_a, db_session, project_id, experiment_id
+    )
+
+    resp = await client.post(
+        "/api/v1/files/igv-tokens",
+        json={"jobId": 1, "outputIds": [output_id]},
+        headers=headers_b,
+    )
+    assert resp.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_igv_tokens_invalid_ids_404(client: AsyncClient):
+    """Non-existent output IDs return 404."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+
+    resp = await client.post(
+        "/api/v1/files/igv-tokens",
+        json={"jobId": 1, "outputIds": [99999]},
+        headers=headers,
+    )
+    assert resp.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_igv_serve_expired_token_401(client: AsyncClient):
+    """An expired IGV token returns 401."""
+    from services.download_token_service import create_download_token
+
+    token = create_download_token(
+        {"type": "igv", "job_id": 1, "output_id": 1},
+        settings.SECRET_KEY,
+        ttl=-1,  # already expired
+    )
+    resp = await client.get(f"/api/v1/files/igv-serve?token={token}")
+    assert resp.status_code == 401
+
+
+@pytest.mark.anyio
+async def test_igv_serve_invalid_token_401(client: AsyncClient):
+    """A tampered IGV token returns 401."""
+    resp = await client.get("/api/v1/files/igv-serve?token=bad.token")
+    assert resp.status_code == 401
+
+
+# --- Range Request Tests ---
+
+
+@pytest.mark.anyio
+async def test_igv_serve_no_range_returns_200(client: AsyncClient, db_session):
+    """Without a Range header, serve the full file with 200 and Accept-Ranges."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    experiment_id = await _create_experiment(client, headers, project_id)
+    _, output_id, _ = await _create_job_with_output(
+        client, headers, db_session, project_id, experiment_id
+    )
+
+    # Get a signed token
+    resp = await client.post(
+        "/api/v1/files/igv-tokens",
+        json={"jobId": 1, "outputIds": [output_id]},
+        headers=headers,
+    )
+    token_url = resp.json()["tokens"][str(output_id)]
+
+    # Fetch without Range header
+    resp = await client.get(token_url)
+    assert resp.status_code == 200
+    assert resp.headers.get("accept-ranges") == "bytes"
+    assert len(resp.content) == 4096
+
+
+@pytest.mark.anyio
+async def test_igv_serve_valid_range_returns_206(client: AsyncClient, db_session):
+    """A valid Range header returns 206 with correct Content-Range."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    experiment_id = await _create_experiment(client, headers, project_id)
+    _, output_id, _ = await _create_job_with_output(
+        client, headers, db_session, project_id, experiment_id
+    )
+
+    resp = await client.post(
+        "/api/v1/files/igv-tokens",
+        json={"jobId": 1, "outputIds": [output_id]},
+        headers=headers,
+    )
+    token_url = resp.json()["tokens"][str(output_id)]
+
+    resp = await client.get(token_url, headers={"Range": "bytes=0-1023"})
+    assert resp.status_code == 206
+    assert resp.headers.get("content-range") == "bytes 0-1023/4096"
+    assert len(resp.content) == 1024
+    assert resp.headers.get("accept-ranges") == "bytes"
+
+
+@pytest.mark.anyio
+async def test_igv_serve_open_ended_range_returns_206(client: AsyncClient, db_session):
+    """An open-ended Range (bytes=100-) serves from offset to end of file."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    experiment_id = await _create_experiment(client, headers, project_id)
+    _, output_id, _ = await _create_job_with_output(
+        client, headers, db_session, project_id, experiment_id
+    )
+
+    resp = await client.post(
+        "/api/v1/files/igv-tokens",
+        json={"jobId": 1, "outputIds": [output_id]},
+        headers=headers,
+    )
+    token_url = resp.json()["tokens"][str(output_id)]
+
+    resp = await client.get(token_url, headers={"Range": "bytes=100-"})
+    assert resp.status_code == 206
+    assert resp.headers.get("content-range") == "bytes 100-4095/4096"
+    assert len(resp.content) == 3996
+
+
+@pytest.mark.anyio
+async def test_igv_serve_range_beyond_file_returns_416(client: AsyncClient, db_session):
+    """Range start beyond file size returns 416 Range Not Satisfiable."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    experiment_id = await _create_experiment(client, headers, project_id)
+    _, output_id, _ = await _create_job_with_output(
+        client, headers, db_session, project_id, experiment_id
+    )
+
+    resp = await client.post(
+        "/api/v1/files/igv-tokens",
+        json={"jobId": 1, "outputIds": [output_id]},
+        headers=headers,
+    )
+    token_url = resp.json()["tokens"][str(output_id)]
+
+    resp = await client.get(token_url, headers={"Range": "bytes=999999-"})
+    assert resp.status_code == 416
+    assert "bytes */4096" in resp.headers.get("content-range", "")
+
+
+@pytest.mark.anyio
+async def test_igv_serve_malformed_range_returns_200(client: AsyncClient, db_session):
+    """A malformed Range header falls back to serving the full file."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    experiment_id = await _create_experiment(client, headers, project_id)
+    _, output_id, _ = await _create_job_with_output(
+        client, headers, db_session, project_id, experiment_id
+    )
+
+    resp = await client.post(
+        "/api/v1/files/igv-tokens",
+        json={"jobId": 1, "outputIds": [output_id]},
+        headers=headers,
+    )
+    token_url = resp.json()["tokens"][str(output_id)]
+
+    resp = await client.get(token_url, headers={"Range": "invalid-range-header"})
+    assert resp.status_code == 200
+    assert len(resp.content) == 4096

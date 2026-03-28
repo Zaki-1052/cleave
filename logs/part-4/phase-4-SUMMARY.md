@@ -176,7 +176,7 @@ All tests run inside Docker (`docker compose exec api pytest tests/`). `ruff che
 - **EC2 real-mode validation**: Real peak calling pipeline implemented but not yet tested with actual data on EC2 instance.
 - **SICER2 real-mode**: SICER2 invocation implemented but not tested (requires SICER2 binary on EC2). Mock mode works.
 - **IGV sub-tab**: Phase 5 placeholder.
-- **Helper function duplication**: `_run_command()`, `_collect_log_files()` etc. duplicated between `alignment.py` and `peak_calling.py`. Each module is self-contained by design, but could be extracted to `base.py` in a future refactor.
+- ~~Helper function duplication~~ → Resolved: extracted `get_threads()`, `run_cmd()`, `run_piped_cmd()`, `count_bam_reads()`, `resolve_blacklist()` to `base.py`. Both `alignment.py` and `peak_calling.py` now import from base.
 
 ---
 

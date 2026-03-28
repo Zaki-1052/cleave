@@ -27,6 +27,7 @@ class Settings(BaseSettings):
 
     # Download tokens
     DOWNLOAD_TOKEN_EXPIRY_SECONDS: int = 300  # 5 minutes
+    IGV_TOKEN_EXPIRY_SECONDS: int = 3600  # 60 minutes (IGV sessions are interactive)
 
     # Batch download limits
     BATCH_DOWNLOAD_MAX_FILES: int = 100

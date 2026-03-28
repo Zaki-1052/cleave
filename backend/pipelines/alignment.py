@@ -138,7 +138,6 @@ def _parse_picard_metrics(metrics_path: Path) -> float:
         return 0.0
 
 
-
 def _count_chrm_reads(bam_path: Path) -> int:
     """Count chrM reads via samtools idxstats."""
     proc = subprocess.run(
@@ -223,7 +222,6 @@ def _load_canned_qc_data() -> list[dict]:
                 }
             )
     return rows
-
 
 
 def _resolve_annotation(genome: str) -> Path | None:

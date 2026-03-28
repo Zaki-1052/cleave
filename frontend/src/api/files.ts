@@ -36,3 +36,18 @@ export async function batchDownloadFiles(
   );
   window.location.href = data.url;
 }
+
+interface IGVTokenResponse {
+  tokens: Record<number, string>;
+}
+
+export async function getIGVTokens(
+  jobId: number,
+  outputIds: number[],
+): Promise<Record<number, string>> {
+  const { data } = await client.post<IGVTokenResponse>('/files/igv-tokens', {
+    jobId,
+    outputIds,
+  });
+  return data.tokens;
+}
