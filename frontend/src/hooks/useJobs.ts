@@ -90,3 +90,11 @@ export function useDiffBindReport(jobId: number | null) {
     enabled: jobId !== null,
   });
 }
+
+export function useCustomHeatmapReport(jobId: number | null) {
+  return useQuery({
+    queryKey: ['custom-heatmap-report', jobId],
+    queryFn: () => jobsApi.getCustomHeatmapReport(jobId!),
+    enabled: jobId !== null,
+  });
+}

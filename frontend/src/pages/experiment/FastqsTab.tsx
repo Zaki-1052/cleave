@@ -108,7 +108,7 @@ export default function FastqsTab() {
 
   const { data: trimmingJob } = useJob(trimmingJobId);
 
-  const fastqs = data?.items ?? [];
+  const fastqs = useMemo(() => data?.items ?? [], [data?.items]);
 
   // Derive adapter detection state
   const adapterState = useMemo(() => {

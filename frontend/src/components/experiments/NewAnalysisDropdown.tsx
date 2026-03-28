@@ -6,12 +6,14 @@ interface NewAnalysisDropdownProps {
   onAlignmentClick: () => void;
   onPeakCallingClick: () => void;
   onDiffBindClick: () => void;
+  onCustomHeatmapClick: () => void;
 }
 
 export function NewAnalysisDropdown({
   onAlignmentClick,
   onPeakCallingClick,
   onDiffBindClick,
+  onCustomHeatmapClick,
 }: NewAnalysisDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -65,6 +67,16 @@ export function NewAnalysisDropdown({
             className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-primary/10"
           >
             DiffBind
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsOpen(false);
+              onCustomHeatmapClick();
+            }}
+            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-primary/10"
+          >
+            Custom Heatmap
           </button>
         </div>
       )}

@@ -29,7 +29,7 @@ export default function ReactionsTab() {
   const [showEditor, setShowEditor] = useState(false);
 
   const reactions = data?.items ?? [];
-  const prefixList: PrefixInfo[] = prefixes ?? [];
+  const prefixList = useMemo<PrefixInfo[]>(() => prefixes ?? [], [prefixes]);
 
   const prefixMap = useMemo(() => {
     const map = new Map<string, PrefixInfo>();

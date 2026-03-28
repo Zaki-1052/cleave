@@ -254,6 +254,24 @@ export interface DiffBindReport {
   plotOutputs: DiffBindPlotInfo[];
 }
 
+export interface CustomHeatmapPlotInfo {
+  outputIdPng: number | null;
+  outputIdSvg: number | null;
+}
+
+export interface CustomHeatmapReport {
+  bedLabel: string;
+  sampleCount: number;
+  sampleLabels: string[];
+  flankingUpstream: number;
+  flankingDownstream: number;
+  referencePoint: string;
+  sortOrder: string;
+  colorMap: string | null;
+  plotOutput: CustomHeatmapPlotInfo;
+  matrixOutputId: number | null;
+}
+
 export interface Notification {
   id: number;
   userId: number;

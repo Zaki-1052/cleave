@@ -3,6 +3,7 @@ import client from './client';
 import type {
   AlignmentQCReport,
   AnalysisJob,
+  CustomHeatmapReport,
   DiffBindReport,
   JobOutput,
   PaginatedResponse,
@@ -210,4 +211,34 @@ export async function downloadDiffBindCounts(jobId: number): Promise<void> {
     responseType: 'blob',
   });
   _downloadBlob(response.data as Blob, 'normalized_counts.csv');
+}
+
+// ---------------------------------------------------------------------------
+// Custom Heatmaps
+// ---------------------------------------------------------------------------
+
+export async function getCustomHeatmapReport(jobId: number): Promise<CustomHeatmapReport> {
+  const { data } = await client.get<CustomHeatmapReport>(`/jobs/${jobId}/heatmap-report`);
+  return data;
+}
+
+export async function downloadHeatmapMatrix(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/heatmap-report/download-matrix`, {
+    responseType: 'blob',
+  });
+  _downloadBlob(response.data as Blob, 'heatmap_matrix.gz');
+}
+
+export async function uploadBedFile(
+  experimentId: number,
+  file: File,
+): Promise<{ path: string; filename: string; lineCount: number }> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const { data } = await client.post(
+    `/experiments/${experimentId}/upload-bed`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+  return data;
 }

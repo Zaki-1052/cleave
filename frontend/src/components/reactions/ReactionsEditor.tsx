@@ -66,7 +66,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
   const [showColumnPicker, setShowColumnPicker] = useState(false);
 
   const reactions = reactionsData?.items ?? [];
-  const prefixList: PrefixInfo[] = prefixes ?? [];
+  const prefixList = useMemo<PrefixInfo[]>(() => prefixes ?? [], [prefixes]);
 
   // Lookup map: prefix string → PrefixInfo
   const prefixMap = useMemo(() => {
