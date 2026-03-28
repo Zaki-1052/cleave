@@ -144,14 +144,21 @@ export const PEAK_CALLING_FILE_CATEGORIES = [
   },
 ] as const;
 
-export const PEAK_CALLING_DEFAULTS = {
+export const PEAK_CALLING_DEFAULTS: {
+  q_value: number;
+  broad_cutoff: number;
+  seacr_threshold: number;
+  sicer2_fdr: number;
+  fragment_filter: boolean;
+  fragment_size: number;
+} = {
   q_value: 0.01,
   broad_cutoff: 0.1,
   seacr_threshold: 0.01,
   sicer2_fdr: 0.01,
   fragment_filter: true,
   fragment_size: 120,
-} as const;
+};
 
 export const CUTANA_SPIKE_IN_TARGETS = [
   'Unmodified',

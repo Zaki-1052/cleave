@@ -50,7 +50,10 @@ export function AlignmentSettingsStep({
     <div className="space-y-6">
       {/* Reference Genome */}
       <div>
-        <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <label
+          htmlFor="alignment-reference-genome"
+          className="text-xs font-semibold uppercase tracking-wide text-gray-500"
+        >
           Reference Genome <span className="text-red-500">*</span>
         </label>
         {hasMixedOrganisms && (
@@ -60,6 +63,7 @@ export function AlignmentSettingsStep({
           </p>
         )}
         <select
+          id="alignment-reference-genome"
           value={referenceGenome}
           onChange={(e) => setReferenceGenome(e.target.value)}
           className="mt-1 w-full max-w-sm rounded-md border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
@@ -159,10 +163,14 @@ export function AlignmentSettingsStep({
               </label>
 
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <label
+                  htmlFor="bam-coverage-bin-size"
+                  className="text-xs font-semibold uppercase tracking-wide text-gray-500"
+                >
                   BAM Coverage Bin Size <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="bam-coverage-bin-size"
                   type="number"
                   min={1}
                   value={bamCoverageBinSize}
@@ -172,10 +180,14 @@ export function AlignmentSettingsStep({
               </div>
 
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <label
+                  htmlFor="smoothed-bin-size"
+                  className="text-xs font-semibold uppercase tracking-wide text-gray-500"
+                >
                   Smoothed BAM Coverage Bin Size <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="smoothed-bin-size"
                   type="number"
                   min={1}
                   value={smoothedBinSize}

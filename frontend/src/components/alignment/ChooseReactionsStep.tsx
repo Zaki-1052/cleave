@@ -52,6 +52,7 @@ export function ChooseReactionsStep({
                   type="checkbox"
                   checked={allChecked}
                   onChange={onToggleAll}
+                  aria-label="Select all reactions"
                   className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
               </th>
@@ -85,6 +86,7 @@ export function ChooseReactionsStep({
                       checked={isSelected}
                       onChange={() => onToggle(r.id)}
                       onClick={(e) => e.stopPropagation()}
+                      aria-label={`Select ${r.shortName}`}
                       className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                     />
                   </td>

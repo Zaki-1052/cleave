@@ -65,6 +65,7 @@ export function PeakCallingInfoPanel({ job }: PeakCallingInfoPanelProps) {
             </h3>
             {job.methodsText && (
               <button
+                type="button"
                 onClick={handleCopyMethods}
                 className="text-xs font-medium text-primary hover:text-primary-dark"
               >
@@ -86,6 +87,7 @@ export function PeakCallingInfoPanel({ job }: PeakCallingInfoPanelProps) {
             <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Notes</h3>
             {!editing && (
               <button
+                type="button"
                 onClick={handleEditStart}
                 className="text-xs font-medium text-primary hover:text-primary-dark"
               >
@@ -99,10 +101,12 @@ export function PeakCallingInfoPanel({ job }: PeakCallingInfoPanelProps) {
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 rows={4}
+                aria-label="Job notes"
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               />
               <div className="flex gap-2">
                 <button
+                  type="button"
                   onClick={handleSave}
                   disabled={updateNotes.isPending}
                   className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-white hover:bg-primary-dark disabled:opacity-50"
@@ -110,6 +114,7 @@ export function PeakCallingInfoPanel({ job }: PeakCallingInfoPanelProps) {
                   {updateNotes.isPending ? 'Saving...' : 'Save'}
                 </button>
                 <button
+                  type="button"
                   onClick={() => setEditing(false)}
                   disabled={updateNotes.isPending}
                   className="rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"

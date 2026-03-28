@@ -36,8 +36,9 @@ function resolveFastqPaths(reaction: Reaction, fastqs: FastqFile[]) {
 
 /** Auto-select the default genome for a set of organisms. */
 function getDefaultGenome(organisms: string[]): string {
-  if (organisms.length !== 1) return '';
-  const genomes = REFERENCE_GENOMES[organisms[0]];
+  const org = organisms.length === 1 ? organisms[0] : undefined;
+  if (!org) return '';
+  const genomes = REFERENCE_GENOMES[org];
   return genomes?.[0]?.value ?? '';
 }
 

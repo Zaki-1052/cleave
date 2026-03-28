@@ -68,10 +68,9 @@ async def test_login_nonexistent_user_fails(client: AsyncClient):
 
 
 async def test_refresh_returns_valid_access_token(client: AsyncClient, registered_user: dict):
-    resp = await client.post(
-        "/api/v1/auth/refresh",
-        cookies={"fapiusers_refresh": registered_user["refresh_cookie"]},
-    )
+    client.cookies.set("fapiusers_refresh", registered_user["refresh_cookie"])
+    resp = await client.post("/api/v1/auth/refresh")
+    client.cookies.clear()
     assert resp.status_code == 200
     data = resp.json()
     assert "accessToken" in data
@@ -116,10 +115,9 @@ async def test_protected_route_with_invalid_token(client: AsyncClient):
 
 
 async def test_logout_clears_cookie(client: AsyncClient, registered_user: dict):
-    resp = await client.post(
-        "/api/v1/auth/logout",
-        cookies={"fapiusers_refresh": registered_user["refresh_cookie"]},
-    )
+    client.cookies.set("fapiusers_refresh", registered_user["refresh_cookie"])
+    resp = await client.post("/api/v1/auth/logout")
+    client.cookies.clear()
     assert resp.status_code == 204
     assert "fapiusers_refresh" in resp.headers.get("set-cookie", "")
 

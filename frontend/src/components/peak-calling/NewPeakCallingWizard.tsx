@@ -167,8 +167,9 @@ export function NewPeakCallingWizard({
       if (selectedReactionIds.size === 0) return;
       // Auto-set peak size to first valid for current caller
       const sizes = PEAK_SIZES[peakCaller] ?? [];
-      if (sizes.length > 0 && !sizes.some((s) => s.value === peakSize)) {
-        setPeakSize(sizes[0].value);
+      const firstSize = sizes[0];
+      if (firstSize && !sizes.some((s) => s.value === peakSize)) {
+        setPeakSize(firstSize.value);
       }
       setCurrentStep(3);
     }

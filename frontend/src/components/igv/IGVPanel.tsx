@@ -35,15 +35,6 @@ function getPeakTrackFormat(job: AnalysisJob): string {
   return 'bed';
 }
 
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
   const [selectedReactionIds, setSelectedReactionIds] = useState<Set<number>>(new Set());
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -57,7 +48,8 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
 
   // Fetch reactions for this experiment
   const { data: reactionsData } = useReactions(experimentId);
-  const allReactions = reactionsData?.items ?? [];
+  const reactionsItems = reactionsData?.items;
+  const allReactions = useMemo(() => reactionsItems ?? [], [reactionsItems]);
 
   // Fetch bigWig outputs — for alignment mode from this job, for peak calling from parent
   const bigWigJobId = mode === 'peak_calling' ? job.parentJobId : job.id;
@@ -138,6 +130,7 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
         type: 'wig',
         format: 'bigwig',
         height: 100,
+        autoscale: true,
         autoscaleGroup: 'signal',
         color: TRACK_COLORS[colorIdx % TRACK_COLORS.length],
       });
@@ -183,7 +176,7 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
 
     async function initBrowser() {
       // Dynamic import keeps igv.js out of the main bundle
-      const igv = await import('igv');
+      const { default: igv } = await import('igv');
 
       if (cancelled || !containerRef.current) return;
 
@@ -199,6 +192,7 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
       const browser = await igv.createBrowser(containerRef.current, {
         genome,
         tracks,
+        showNavigation: true,
       });
 
       if (cancelled) {
@@ -220,7 +214,7 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
   useEffect(() => {
     return () => {
       if (browserRef.current) {
-        import('igv').then((igv) => {
+        import('igv').then(({ default: igv }) => {
           if (browserRef.current) {
             igv.removeBrowser(browserRef.current);
             browserRef.current = null;
@@ -253,45 +247,6 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
     }
   }
 
-  function handleSaveImage() {
-    if (!browserRef.current) return;
-    const svgData = browserRef.current.toSVG();
-    // Offer SVG download
-    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(svgBlob);
-
-    // Convert to PNG via canvas
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        // Fallback to SVG download
-        downloadBlob(svgBlob, `igv_${job.name}.svg`);
-        URL.revokeObjectURL(url);
-        return;
-      }
-      canvas.width = img.width * 2;
-      canvas.height = img.height * 2;
-      ctx.scale(2, 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, img.width, img.height);
-      ctx.drawImage(img, 0, 0);
-      const pngUrl = canvas.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = pngUrl;
-      a.download = `igv_${job.name}.png`;
-      a.click();
-      URL.revokeObjectURL(url);
-    };
-    img.onerror = () => {
-      // Fallback to SVG download
-      downloadBlob(svgBlob, `igv_${job.name}.svg`);
-      URL.revokeObjectURL(url);
-    };
-    img.src = url;
-  }
-
   const genomeLabel = GENOME_DISPLAY_NAMES[genome] ?? genome;
   const hasSelections = selectedReactionIds.size > 0;
 
@@ -314,6 +269,7 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
 
           {/* Select Reactions */}
           <button
+            type="button"
             onClick={() => setIsModalOpen(true)}
             className="inline-flex items-center gap-2 rounded-full border border-primary px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/5"
           >
@@ -327,6 +283,7 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
 
           {/* Refresh */}
           <button
+            type="button"
             onClick={handleRefresh}
             disabled={!hasSelections}
             className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
@@ -335,18 +292,9 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
             &#8635;
           </button>
 
-          {/* Save Image */}
-          <button
-            onClick={handleSaveImage}
-            disabled={!browserRef.current}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-            title="Save Image"
-          >
-            Save Image
-          </button>
-
           {/* Full Screen */}
           <button
+            type="button"
             onClick={handleFullScreen}
             disabled={!hasSelections}
             className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"

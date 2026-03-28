@@ -16,8 +16,10 @@ interface AlignmentFilesPanelProps {
   experimentId: number;
 }
 
+type AlignmentFileCategory = (typeof ALIGNMENT_FILE_CATEGORIES)[number]['value'];
+
 export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
-  const [selectedCategory, setSelectedCategory] = useState(
+  const [selectedCategory, setSelectedCategory] = useState<AlignmentFileCategory>(
     ALIGNMENT_FILE_CATEGORIES[0].value,
   );
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -27,7 +29,7 @@ export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
   const categoryInfo = ALIGNMENT_FILE_CATEGORIES.find((c) => c.value === selectedCategory);
 
   function handleCategoryChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    setSelectedCategory(e.target.value);
+    setSelectedCategory(e.target.value as AlignmentFileCategory);
     setSelectedIds(new Set());
   }
 
@@ -78,6 +80,7 @@ export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
             type="checkbox"
             checked={outputs != null && outputs.length > 0 && selectedIds.size === outputs.length}
             onChange={toggleAll}
+            aria-label="Select all files"
             className="h-4 w-4 rounded border-gray-300"
           />
         ),
@@ -86,6 +89,7 @@ export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
             type="checkbox"
             checked={selectedIds.has(row.original.id)}
             onChange={() => toggleSelection(row.original.id)}
+            aria-label={`Select ${row.original.filename}`}
             className="h-4 w-4 rounded border-gray-300"
           />
         ),
@@ -112,10 +116,14 @@ export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
       {/* Category selector + description */}
       <div className="mb-4 flex items-start gap-4">
         <div className="shrink-0">
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label
+            htmlFor="alignment-file-category"
+            className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500"
+          >
             Files
           </label>
           <select
+            id="alignment-file-category"
             value={selectedCategory}
             onChange={handleCategoryChange}
             className="rounded-md border border-gray-300 px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"

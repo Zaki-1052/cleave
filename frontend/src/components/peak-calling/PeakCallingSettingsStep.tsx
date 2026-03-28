@@ -64,8 +64,9 @@ export function PeakCallingSettingsStep({
   function handlePeakCallerChange(newCaller: string) {
     setPeakCaller(newCaller);
     const sizes = PEAK_SIZES[newCaller] ?? [];
-    if (sizes.length > 0 && !sizes.some((s) => s.value === peakSize)) {
-      setPeakSize(sizes[0].value);
+    const firstSize = sizes[0];
+    if (firstSize && !sizes.some((s) => s.value === peakSize)) {
+      setPeakSize(firstSize.value);
     }
   }
 
@@ -79,10 +80,11 @@ export function PeakCallingSettingsStep({
       {/* Peak caller + peak size global controls */}
       <div className="flex gap-4">
         <div className="flex-1">
-          <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="pc-peak-caller" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
             Peak Caller <span className="text-red-500">*</span>
           </label>
           <select
+            id="pc-peak-caller"
             value={peakCaller}
             onChange={(e) => handlePeakCallerChange(e.target.value)}
             className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
@@ -96,10 +98,11 @@ export function PeakCallingSettingsStep({
         </div>
 
         <div className="flex-1">
-          <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="pc-peak-size" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
             Peak Size <span className="text-red-500">*</span>
           </label>
           <select
+            id="pc-peak-size"
             value={peakSize}
             onChange={(e) => setPeakSize(e.target.value)}
             className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
@@ -113,10 +116,11 @@ export function PeakCallingSettingsStep({
         </div>
 
         <div className="flex-1">
-          <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="pc-igg-control" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
             IgG Control
           </label>
           <select
+            id="pc-igg-control"
             value={iggReactionId ?? ''}
             onChange={(e) => setIggReactionId(e.target.value ? Number(e.target.value) : null)}
             className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
@@ -208,10 +212,11 @@ export function PeakCallingSettingsStep({
               {/* Threshold — conditional on peak caller + size */}
               {peakCaller === 'MACS2' && peakSize === 'narrow' && (
                 <div>
-                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <label htmlFor="pc-q-value" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Q-Value Threshold
                   </label>
                   <input
+                    id="pc-q-value"
                     type="number"
                     step="0.001"
                     min={0}
@@ -230,10 +235,11 @@ export function PeakCallingSettingsStep({
 
               {peakCaller === 'MACS2' && peakSize === 'broad' && (
                 <div>
-                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <label htmlFor="pc-broad-cutoff" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Broad Cutoff
                   </label>
                   <input
+                    id="pc-broad-cutoff"
                     type="number"
                     step="0.01"
                     min={0}
@@ -252,10 +258,11 @@ export function PeakCallingSettingsStep({
 
               {peakCaller === 'SEACR' && (
                 <div>
-                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <label htmlFor="pc-seacr-threshold" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                     SEACR Threshold
                   </label>
                   <input
+                    id="pc-seacr-threshold"
                     type="number"
                     step="0.001"
                     min={0}
@@ -276,10 +283,11 @@ export function PeakCallingSettingsStep({
 
               {peakCaller === 'SICER2' && (
                 <div>
-                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <label htmlFor="pc-sicer2-fdr" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                     SICER2 FDR
                   </label>
                   <input
+                    id="pc-sicer2-fdr"
                     type="number"
                     step="0.001"
                     min={0}
@@ -309,10 +317,11 @@ export function PeakCallingSettingsStep({
 
               {fragmentFilter && (
                 <div>
-                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <label htmlFor="pc-fragment-size" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Fragment Size (bp)
                   </label>
                   <input
+                    id="pc-fragment-size"
                     type="number"
                     min={1}
                     value={fragmentSize}

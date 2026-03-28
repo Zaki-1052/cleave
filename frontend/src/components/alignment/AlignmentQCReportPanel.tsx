@@ -260,7 +260,7 @@ function spikeInCellColor(pct: number, isOnTarget: boolean): string {
 
 function SpikeInHeatmap({ results }: { results: SpikeInReactionResult[] }) {
   if (results.length === 0) return null;
-  const ptmNames = results[0].ptmResults.map((r) => r.ptmName);
+  const ptmNames = results[0]?.ptmResults.map((r) => r.ptmName) ?? [];
 
   return (
     <div className="space-y-3">

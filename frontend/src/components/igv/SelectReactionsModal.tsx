@@ -78,6 +78,7 @@ export function SelectReactionsModal({
                     type="checkbox"
                     checked={allChecked}
                     onChange={handleToggleAll}
+                    aria-label="Select all reactions"
                     className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                   />
                 </th>
@@ -108,6 +109,7 @@ export function SelectReactionsModal({
                         checked={isSelected}
                         onChange={() => handleToggle(r.id)}
                         onClick={(e) => e.stopPropagation()}
+                        aria-label={`Select ${r.shortName}`}
                         className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                       />
                     </td>
@@ -126,12 +128,14 @@ export function SelectReactionsModal({
         </p>
         <div className="mt-4 flex justify-end gap-3">
           <button
+            type="button"
             onClick={onClose}
             className="rounded-full border border-gray-300 px-5 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
           >
             Cancel
           </button>
           <button
+            type="button"
             onClick={handleApply}
             disabled={localIds.size === 0}
             className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"

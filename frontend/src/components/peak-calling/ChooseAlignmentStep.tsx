@@ -73,6 +73,7 @@ export function ChooseAlignmentStep({
                       name="alignment-job"
                       checked={isSelected}
                       onChange={() => onSelect(job.id)}
+                      aria-label={`Select alignment ${job.name}`}
                       className="h-4 w-4 text-primary focus:ring-primary"
                     />
                   </td>

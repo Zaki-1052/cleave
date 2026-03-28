@@ -56,7 +56,7 @@ async def upload_fastq_endpoint(
         result = await upload_fastqs(db, experiment_id, current_user.id, files)
     except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=str(e),
         )
 

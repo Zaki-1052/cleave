@@ -140,7 +140,7 @@ async def import_csv_endpoint(
             csv_content = raw_bytes.decode("latin-1")
         except UnicodeDecodeError:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="Cannot decode CSV file. Use UTF-8 or Latin-1 encoding.",
             )
 
@@ -154,7 +154,7 @@ async def import_csv_endpoint(
     try:
         reactions_data, warnings = parse_reaction_csv(csv_content, default_assay_type)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e))
 
     # Bulk create
     try:
