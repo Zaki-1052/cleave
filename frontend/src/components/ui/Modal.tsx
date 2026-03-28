@@ -15,14 +15,14 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-      <div className={`relative z-10 w-full rounded-lg bg-white shadow-xl ${className ?? 'max-w-2xl'}`}>
-        <div className="flex items-center justify-between border-b bg-primary px-6 py-4">
+      <div className={`relative z-10 flex w-full max-h-[90vh] flex-col rounded-lg bg-white shadow-xl ${className ?? 'max-w-2xl'}`}>
+        <div className="flex shrink-0 items-center justify-between border-b bg-primary px-6 py-4">
           <h2 className="text-lg font-semibold text-white">{title}</h2>
           <button onClick={onClose} className="text-white hover:text-gray-200">
             ✕
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="overflow-y-auto p-6">{children}</div>
       </div>
     </div>
   );

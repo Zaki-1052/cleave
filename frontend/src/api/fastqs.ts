@@ -48,6 +48,13 @@ export function getFastqcReportUrl(experimentId: number, fastqId: number): strin
   return `/api/v1/experiments/${experimentId}/fastqs/${fastqId}/fastqc`;
 }
 
+export async function getFastqcSignedUrl(experimentId: number, fastqId: number): Promise<string> {
+  const { data } = await client.get<{ url: string }>(
+    `/experiments/${experimentId}/fastqs/${fastqId}/fastqc-token`,
+  );
+  return data.url;
+}
+
 export interface FastqcModuleSummary {
   name: string;
   status: string;

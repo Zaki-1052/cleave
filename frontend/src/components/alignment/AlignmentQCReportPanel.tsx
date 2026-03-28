@@ -1,13 +1,13 @@
 // frontend/src/components/alignment/AlignmentQCReportPanel.tsx
 import { type ColumnDef } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { downloadQCCsv } from '@/api/jobs';
-import type { AlignmentReactionMetrics, AnalysisJob, SpikeInReactionResult } from '@/api/types';
+import { downloadQCCsv, getOutputSignedUrl } from '@/api/jobs';
+import type { AlignmentReactionMetrics, AnalysisJob, JobOutput, SpikeInReactionResult } from '@/api/types';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
-import { useQCReport } from '@/hooks/useJobs';
+import { useJobOutputs, useQCReport } from '@/hooks/useJobs';
 import { GENOME_DISPLAY_NAMES } from '@/lib/constants';
 import { formatNumber } from '@/lib/utils';
 
@@ -68,6 +68,7 @@ const columns: ColumnDef<AlignmentReactionMetrics, unknown>[] = [
 export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelProps) {
   const { data: report, isLoading, error } = useQCReport(jobId);
   const [downloading, setDownloading] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const hasSpikeIn = useMemo(() => {
     const reactions = (job.params?.reactions as Array<{ cutana_spike_in?: string }>) ?? [];
@@ -108,127 +109,129 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
 
   return (
     <div className="space-y-4">
-      {/* Main two-column layout */}
-      <div className="flex gap-4">
-        {/* Left: Metrics table */}
-        <div className="min-w-0 flex-1">
-          <Card>
-            {/* Header row */}
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Reference Genome
-                </span>
-                <span className="text-sm font-medium text-gray-800">{genomeName}</span>
-              </div>
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                QC Report
-              </h3>
-            </div>
-
-            {/* Toolbar */}
-            <div className="mb-3 flex items-center gap-2">
-              <Button
-                variant="outlined"
-                onClick={handleDownload}
-                disabled={downloading}
-                className="text-xs"
-              >
-                {downloading ? 'Downloading...' : 'Download Data as CSV'}
-              </Button>
-            </div>
-
-            {/* Metrics table */}
-            <DataTable data={report.metrics} columns={columns} pageSize={25} />
-          </Card>
+      {/* Metrics table */}
+      <Card>
+        {/* Header row */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Reference Genome
+            </span>
+            <span className="text-sm font-medium text-gray-800">{genomeName}</span>
+          </div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+            QC Report
+          </h3>
         </div>
 
-        {/* Right: Info panel */}
-        <div className="w-80 shrink-0">
-          <Card>
-            <h3 className="mb-3 text-sm font-semibold text-primary">
-              About Seq Stats & Alignment Metrics
-            </h3>
-            <div className="space-y-3 text-xs text-gray-600">
-              <div>
-                <span className="font-semibold text-gray-700">Total Read Pairs</span>
-                <p>
-                  Total sequencing reads/read pairs generated after merging R1 and R2
-                  files from paired-end data. These are aligned to the selected reference
-                  genome.
-                </p>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-700">Aligned Read Pairs</span>
-                <p>
-                  Number of read pairs that successfully mapped to the reference genome at
-                  any mapping quality.
-                </p>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-700">
-                  Uniquely Aligned Read Pairs
-                </span>
-                <p>
-                  Read pairs that mapped to exactly one location in the reference genome.
-                  Multi-mappers are excluded.
-                </p>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-700">
-                  Unique Alignment Rate (%)
-                </span>
-                <p>
-                  Percentage of total read pairs that aligned uniquely. Target samples
-                  typically show 70-95%. IgG controls may be lower (20-40%) due to
-                  non-specific binding and E. coli spike-in reads.
-                </p>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-700">Duplication Rate (%)</span>
-                <p>
-                  Percentage of aligned reads that are PCR or optical duplicates. Rates
-                  above 30% may indicate low library complexity or over-amplification.
-                </p>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-700">chrM Bandwidth (%)</span>
-                <p>
-                  Percentage of reads mapping to the mitochondrial genome. High values may
-                  indicate poor nuclear enrichment.
-                </p>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-700">E. coli Read Pairs</span>
-                <p>
-                  Number of reads aligning to the E. coli K12 MG1655 genome. IgG samples
-                  will have the highest counts. Used for spike-in normalization.
-                </p>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-700">
-                  E. coli Alignment Rate (%)
-                </span>
-                <p>
-                  Percentage of total read pairs aligning to E. coli. Goal is 0.2-5% for
-                  target samples. High rates may indicate incorrect spike-in
-                  reconstitution.
-                </p>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-700">
-                  E. coli Norm. Factor
-                </span>
-                <p>
-                  Ratio of E. coli spike-in reads to uniquely aligned reads
-                  (ecoli_reads / unique_reads). Used as a scalar for spike-in
-                  normalization of bigWig files via bamCoverage --scaleFactor.
-                </p>
-              </div>
-            </div>
-          </Card>
+        {/* Toolbar */}
+        <div className="mb-3 flex items-center gap-2">
+          <Button
+            variant="outlined"
+            onClick={handleDownload}
+            disabled={downloading}
+            className="text-xs"
+          >
+            {downloading ? 'Downloading...' : 'Download Data as CSV'}
+          </Button>
         </div>
-      </div>
+
+        {/* Metrics table */}
+        <DataTable data={report.metrics} columns={columns} pageSize={25} />
+      </Card>
+
+      {/* Info panel — collapsible, below table */}
+      <Card>
+        <button
+          type="button"
+          className="flex w-full items-center justify-between"
+          onClick={() => setInfoOpen((v) => !v)}
+        >
+          <h3 className="text-sm font-semibold text-primary">
+            About Seq Stats & Alignment Metrics
+          </h3>
+          <span className="text-xs text-gray-400">{infoOpen ? '▲ Hide' : '▼ Show'}</span>
+        </button>
+        {infoOpen && (
+          <div className="mt-3 grid gap-3 text-xs text-gray-600 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <span className="font-semibold text-gray-700">Total Read Pairs</span>
+              <p>
+                Total sequencing reads/read pairs generated after merging R1 and R2
+                files from paired-end data. These are aligned to the selected reference
+                genome.
+              </p>
+            </div>
+            <div>
+              <span className="font-semibold text-gray-700">Aligned Read Pairs</span>
+              <p>
+                Number of read pairs that successfully mapped to the reference genome at
+                any mapping quality.
+              </p>
+            </div>
+            <div>
+              <span className="font-semibold text-gray-700">
+                Uniquely Aligned Read Pairs
+              </span>
+              <p>
+                Read pairs that mapped to exactly one location in the reference genome.
+                Multi-mappers are excluded.
+              </p>
+            </div>
+            <div>
+              <span className="font-semibold text-gray-700">
+                Unique Alignment Rate (%)
+              </span>
+              <p>
+                Percentage of total read pairs that aligned uniquely. Target samples
+                typically show 70-95%. IgG controls may be lower (20-40%) due to
+                non-specific binding and E. coli spike-in reads.
+              </p>
+            </div>
+            <div>
+              <span className="font-semibold text-gray-700">Duplication Rate (%)</span>
+              <p>
+                Percentage of aligned reads that are PCR or optical duplicates. Rates
+                above 30% may indicate low library complexity or over-amplification.
+              </p>
+            </div>
+            <div>
+              <span className="font-semibold text-gray-700">chrM Bandwidth (%)</span>
+              <p>
+                Percentage of reads mapping to the mitochondrial genome. High values may
+                indicate poor nuclear enrichment.
+              </p>
+            </div>
+            <div>
+              <span className="font-semibold text-gray-700">E. coli Read Pairs</span>
+              <p>
+                Number of reads aligning to the E. coli K12 MG1655 genome. IgG samples
+                will have the highest counts. Used for spike-in normalization.
+              </p>
+            </div>
+            <div>
+              <span className="font-semibold text-gray-700">
+                E. coli Alignment Rate (%)
+              </span>
+              <p>
+                Percentage of total read pairs aligning to E. coli. Goal is 0.2-5% for
+                target samples. High rates may indicate incorrect spike-in
+                reconstitution.
+              </p>
+            </div>
+            <div>
+              <span className="font-semibold text-gray-700">
+                E. coli Norm. Factor
+              </span>
+              <p>
+                Ratio of E. coli spike-in reads to uniquely aligned reads
+                (ecoli_reads / unique_reads). Used as a scalar for spike-in
+                normalization of bigWig files via bamCoverage --scaleFactor.
+              </p>
+            </div>
+          </div>
+        )}
+      </Card>
 
       {/* SNAP-CUTANA Spike-in section */}
       <Card>
@@ -247,9 +250,159 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
           </p>
         )}
       </Card>
+
+      {/* TSS Heatmap */}
+      <HeatmapSection
+        jobId={jobId}
+        category="tss_heatmap"
+        title="TSS Heatmap"
+        description="This heatmap shows read enrichment around Transcription Start Sites (TSS) across the genome. Each heatmap is individually sorted from highest to lowest signal."
+      />
+
+      {/* Gene Body Heatmap */}
+      <HeatmapSection
+        jobId={jobId}
+        category="genebody_heatmap"
+        title="Gene Body Heatmap"
+        description="This heatmap shows read enrichment around Gene Bodies across the genome. Variable gene lengths are normalized to the same window size. Each heatmap is individually sorted from highest to lowest signal."
+      />
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Heatmap section — renders PNG images from job outputs with download buttons
+// ---------------------------------------------------------------------------
+
+interface HeatmapSectionProps {
+  jobId: number;
+  category: string;
+  title: string;
+  description: string;
+}
+
+function HeatmapSection({ jobId, category, title, description }: HeatmapSectionProps) {
+  const { data: outputs, isLoading } = useJobOutputs(jobId, category);
+  const [infoOpen, setInfoOpen] = useState(false);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+          {title}
+        </h3>
+        <div className="flex h-32 items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      </Card>
+    );
+  }
+
+  if (!outputs || outputs.length === 0) {
+    return (
+      <Card>
+        <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+          {title}
+        </h3>
+        <p className="text-sm text-gray-400">No {title.toLowerCase()} data available.</p>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+          {title}
+        </h3>
+        <button
+          type="button"
+          className="text-xs text-primary hover:text-primary/80"
+          onClick={() => setInfoOpen((v) => !v)}
+        >
+          {infoOpen ? '▲ Hide' : 'About ' + title}
+        </button>
+      </div>
+
+      {infoOpen && (
+        <p className="mb-4 rounded bg-gray-50 p-3 text-xs text-gray-600">
+          {description}
+        </p>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {outputs.map((output) => (
+          <HeatmapImage key={output.id} jobId={jobId} output={output} />
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function HeatmapImage({ jobId, output }: { jobId: number; output: JobOutput }) {
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    getOutputSignedUrl(jobId, output.id)
+      .then((res) => setSignedUrl(res.url))
+      .catch(() => setError(true));
+  }, [jobId, output.id]);
+
+  function handleDownload() {
+    if (!signedUrl) return;
+    const link = document.createElement('a');
+    link.href = signedUrl;
+    link.download = output.filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
+  // Extract short name from filename like "h3k4me3_tss_heatmap.png" → "h3k4me3"
+  const label = output.filename.replace(/_tss_heatmap\.png$|_genebody_heatmap\.png$/, '');
+
+  if (error) {
+    return (
+      <div className="rounded border border-gray-200 p-3">
+        <p className="text-xs text-gray-500">{label}</p>
+        <p className="mt-2 text-xs text-red-500">Failed to load heatmap.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded border border-gray-200 p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-xs font-medium text-gray-700">{label}</p>
+        <button
+          type="button"
+          onClick={handleDownload}
+          disabled={!signedUrl}
+          className="text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+          title="Download PNG"
+        >
+          Download PNG
+        </button>
+      </div>
+      {signedUrl ? (
+        <img
+          src={`${signedUrl}&display=inline`}
+          alt={`${label} heatmap`}
+          className="w-full rounded"
+        />
+      ) : (
+        <div className="flex h-48 items-center justify-center">
+          <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Spike-in heatmap
+// ---------------------------------------------------------------------------
 
 function spikeInCellColor(pct: number, isOnTarget: boolean): string {
   if (isOnTarget) return 'rgb(59, 130, 246)';

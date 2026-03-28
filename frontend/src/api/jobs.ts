@@ -60,6 +60,16 @@ export async function getJobOutputs(
   return data;
 }
 
+export async function getOutputSignedUrl(
+  jobId: number,
+  outputId: number,
+): Promise<{ url: string; filename: string }> {
+  const { data } = await client.get<{ url: string; filename: string }>(
+    `/jobs/${jobId}/outputs/${outputId}/signed-url`,
+  );
+  return data;
+}
+
 export async function listAllJobs(
   page = 1,
   perPage = 25,

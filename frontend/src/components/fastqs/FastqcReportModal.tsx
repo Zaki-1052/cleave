@@ -1,8 +1,7 @@
 // frontend/src/components/fastqs/FastqcReportModal.tsx
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { getFastqcReportUrl } from '@/api/fastqs';
-import { useFastqcSummary } from '@/hooks/useFastqs';
+import { getFastqcSignedUrl } from '@/api/fastqs';
 
 interface FastqcReportModalProps {
   isOpen: boolean;
@@ -12,40 +11,6 @@ interface FastqcReportModalProps {
   filename: string;
 }
 
-function StatusIcon({ status }: { status: string }) {
-  if (status === 'pass') {
-    return (
-      <svg className="h-4 w-4 shrink-0 text-status-complete" viewBox="0 0 20 20" fill="currentColor">
-        <path
-          fillRule="evenodd"
-          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-          clipRule="evenodd"
-        />
-      </svg>
-    );
-  }
-  if (status === 'fail') {
-    return (
-      <svg className="h-4 w-4 shrink-0 text-status-error" viewBox="0 0 20 20" fill="currentColor">
-        <path
-          fillRule="evenodd"
-          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-          clipRule="evenodd"
-        />
-      </svg>
-    );
-  }
-  return (
-    <svg className="h-4 w-4 shrink-0 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
-      <path
-        fillRule="evenodd"
-        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-        clipRule="evenodd"
-      />
-    </svg>
-  );
-}
-
 export function FastqcReportModal({
   isOpen,
   onClose,
@@ -53,29 +18,22 @@ export function FastqcReportModal({
   fastqId,
   filename,
 }: FastqcReportModalProps) {
-  const { data: summary, isLoading } = useFastqcSummary(experimentId, fastqId);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    if (!isOpen || fastqId === null) return;
+    setSignedUrl(null);
+    getFastqcSignedUrl(experimentId, fastqId)
+      .then(setSignedUrl)
+      .catch(() => setSignedUrl(null));
+  }, [isOpen, experimentId, fastqId]);
 
   if (!isOpen || fastqId === null) return null;
 
-  const reportUrl = getFastqcReportUrl(experimentId, fastqId);
-
-  function handleModuleClick(index: number) {
-    try {
-      if (iframeRef.current?.contentWindow) {
-        iframeRef.current.contentWindow.location.hash = `#M${index}`;
-      }
-    } catch {
-      // Cross-origin fallback: reload with fragment
-      if (iframeRef.current) {
-        iframeRef.current.src = `${reportUrl}#M${index}`;
-      }
-    }
-  }
-
   function handleDownload() {
-    window.open(reportUrl, '_blank');
+    if (signedUrl) window.open(signedUrl, '_blank');
   }
 
   const modalSizeClasses = isFullScreen
@@ -129,45 +87,21 @@ export function FastqcReportModal({
           </span>
         </div>
 
-        {/* Main content: sidebar + iframe */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar */}
-          <div className="w-56 shrink-0 overflow-y-auto border-r bg-gray-50 p-4">
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Summary
-            </h3>
-            {isLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 11 }).map((_, i) => (
-                  <div key={i} className="h-5 animate-pulse rounded bg-gray-200" />
-                ))}
-              </div>
-            ) : (
-              <ul className="space-y-0.5">
-                {summary?.moduleSummaries.map((mod, index) => (
-                  <li key={mod.name}>
-                    <button
-                      type="button"
-                      onClick={() => handleModuleClick(index)}
-                      className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs hover:bg-gray-100"
-                    >
-                      <StatusIcon status={mod.status} />
-                      <span className="truncate">{mod.name}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {/* Report iframe */}
-          <iframe
-            ref={iframeRef}
-            src={reportUrl}
-            title={`FastQC Report for ${filename}`}
-            className="flex-1 border-0"
-            sandbox="allow-same-origin"
-          />
+        {/* Report iframe */}
+        <div className="flex-1 overflow-hidden">
+          {signedUrl ? (
+            <iframe
+              ref={iframeRef}
+              src={`${signedUrl}&display=inline`}
+              title={`FastQC Report for ${filename}`}
+              className="h-full w-full border-0"
+              sandbox="allow-same-origin"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            </div>
+          )}
         </div>
       </div>
     </div>

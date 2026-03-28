@@ -404,8 +404,9 @@ async def create_download_token_endpoint(
 @router.get("/files/signed-download")
 async def signed_download(
     token: str = Query(...),
+    display: str = Query("attachment", pattern="^(attachment|inline)$"),
 ):
-    """Download a file using a signed token. No JWT auth required."""
+    """Download or view a file using a signed token. No JWT auth required."""
     payload = verify_download_token(token, settings.SECRET_KEY)
     if payload is None:
         raise HTTPException(
@@ -430,6 +431,10 @@ async def signed_download(
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
         if not abs_path.is_file():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+
+        if display == "inline":
+            media_type, _ = mimetypes.guess_type(str(abs_path))
+            return FileResponse(abs_path, media_type=media_type or "text/html")
 
         return _file_download_response(abs_path)
 

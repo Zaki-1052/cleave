@@ -34,6 +34,7 @@ from services.fastq_service import (
     list_fastqs,
     upload_fastqs,
 )
+from services.download_token_service import create_download_token
 from services.fastqc_service import run_fastqc_for_files
 from services.permission_helpers import check_experiment_membership
 
@@ -77,6 +78,8 @@ async def upload_fastq_endpoint(
             fastqc_inputs=fastqc_inputs,
             project_id=experiment.project_id,
             experiment_id=experiment_id,
+            user_id=current_user.id,
+            experiment_name=experiment.name,
         )
 
     total_bytes = sum(r.file_size_bytes or 0 for r in result)
@@ -94,7 +97,7 @@ async def upload_fastq_endpoint(
 async def list_fastqs_endpoint(
     experiment_id: int,
     page: int = Query(1, ge=1),
-    per_page: int = Query(25, ge=1, le=100, alias="perPage"),
+    per_page: int = Query(25, ge=1, le=500, alias="perPage"),
     current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -144,6 +147,51 @@ async def get_fastqc_report(
         raise HTTPException(status_code=404, detail="FastQC report file not found on disk")
 
     return FileResponse(abs_path, media_type="text/html", filename=abs_path.name)
+
+
+@router.get("/experiments/{experiment_id}/fastqs/{fastq_id}/fastqc-token")
+async def get_fastqc_signed_url(
+    experiment_id: int,
+    fastq_id: int,
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return a short-lived signed URL for the FastQC HTML report (for iframe use)."""
+    experiment = await check_experiment_membership(db, experiment_id, current_user.id)
+    if experiment is None:
+        raise HTTPException(status_code=404, detail="Experiment not found or not authorized")
+
+    result = await db.execute(
+        select(FastqFile).where(
+            FastqFile.id == fastq_id,
+            FastqFile.experiment_id == experiment_id,
+        )
+    )
+    fastq = result.scalar_one_or_none()
+    if fastq is None:
+        raise HTTPException(status_code=404, detail="FASTQ file not found")
+    if not fastq.fastqc_report_path:
+        raise HTTPException(status_code=404, detail="FastQC report not yet available")
+
+    # fastqc_report_path is relative to STORAGE_ROOT, e.g. "projects/2/3/fastqc/foo.html"
+    # download token expects path relative to experiment dir, e.g. "fastqc/foo.html"
+    experiment_prefix = f"projects/{experiment.project_id}/{experiment_id}/"
+    if fastq.fastqc_report_path.startswith(experiment_prefix):
+        rel_path = fastq.fastqc_report_path[len(experiment_prefix):]
+    else:
+        raise HTTPException(status_code=500, detail="Unexpected report path format")
+
+    token = create_download_token(
+        {
+            "type": "single",
+            "exp_id": experiment_id,
+            "proj_id": experiment.project_id,
+            "path": rel_path,
+        },
+        settings.SECRET_KEY,
+        settings.DOWNLOAD_TOKEN_EXPIRY_SECONDS,
+    )
+    return {"url": f"/api/v1/files/signed-download?token={token}"}
 
 
 @router.get(

@@ -1,6 +1,7 @@
 # backend/services/fastqc_service.py
 """Background orchestration for FastQC — runs after FASTQ upload completes."""
 
+import asyncio
 from pathlib import Path
 from typing import TypedDict
 
@@ -26,10 +27,12 @@ async def run_fastqc_for_files(
     fastqc_inputs: list[FastqcInput],
     project_id: int,
     experiment_id: int,
+    user_id: int | None = None,
+    experiment_name: str | None = None,
 ) -> None:
     """Run FastQC on each uploaded FASTQ file and update DB with results.
 
-    Called as a FastAPI BackgroundTask after upload. Uses its own DB session
+    Called as a background task after upload. Uses its own DB session
     since the request session is closed by the time this runs.
     Each file is processed independently — errors in one do not affect others.
     """
@@ -37,10 +40,13 @@ async def run_fastqc_for_files(
         Path(settings.STORAGE_ROOT) / "projects" / str(project_id) / str(experiment_id) / "fastqc"
     )
 
+    completed_count = 0
+    total_count = len(fastqc_inputs)
+
     for inp in fastqc_inputs:
         try:
             fastq_abs = Path(settings.STORAGE_ROOT) / inp["file_path"]
-            result = run_fastqc(fastq_abs, output_dir)
+            result = await asyncio.to_thread(run_fastqc, fastq_abs, output_dir)
 
             # Build relative path for DB storage
             report_relative = None
@@ -70,6 +76,7 @@ async def run_fastqc_for_files(
                     await update_storage_bytes(db, experiment_id, project_id, report_size)
                 await db.commit()
 
+            completed_count += 1
             logger.info(
                 "fastqc.file_complete",
                 fastq_id=inp["fastq_id"],
@@ -83,4 +90,19 @@ async def run_fastqc_for_files(
                 "fastqc.file_error",
                 fastq_id=inp["fastq_id"],
                 filename=inp["filename"],
+            )
+
+    # Send notification when all files are processed
+    if user_id and completed_count > 0:
+        from services.notification_service import create_notification
+
+        exp_label = f' in experiment "{experiment_name}"' if experiment_name else ""
+        async with async_session_factory() as db:
+            await create_notification(
+                db,
+                user_id=user_id,
+                type="fastqc_complete",
+                title="FastQC Complete",
+                message=f"FastQC finished for {completed_count}/{total_count} file(s){exp_label}.",
+                link_target=f"/experiments/{experiment_id}/fastqs",
             )

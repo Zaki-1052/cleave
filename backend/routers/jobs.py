@@ -1,11 +1,20 @@
 # backend/routers/jobs.py
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import FileResponse
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import current_active_user
+from config import settings
 from database import get_db
+from models.analysis_job import AnalysisJob
+from models.experiment import Experiment
+from models.job_output import JobOutput
+from models.project import ProjectMember
 from models.user import User
+from services.download_token_service import create_download_token
 from schemas.common import PaginatedResponse
 from schemas.job import JobCreate, JobOutputRead, JobQueueRead, JobRead, JobUpdate
 from schemas.qc_report import AlignmentQCReport, PeakCallingQCReport
@@ -128,6 +137,58 @@ async def list_job_outputs(
             detail="Job not found",
         )
     return outputs
+
+
+@router.get("/jobs/{job_id}/outputs/{output_id}/signed-url")
+async def get_output_signed_url(
+    job_id: int,
+    output_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    """Generate a short-lived signed URL for a job output file (inline display)."""
+    result = await db.execute(
+        select(JobOutput, Experiment.project_id)
+        .join(AnalysisJob, AnalysisJob.id == JobOutput.job_id)
+        .join(Experiment, Experiment.id == AnalysisJob.experiment_id)
+        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
+        .where(
+            JobOutput.id == output_id,
+            JobOutput.job_id == job_id,
+            ProjectMember.user_id == user.id,
+        )
+    )
+    row = result.first()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Output not found")
+
+    output, project_id = row
+    experiment_id = (await db.execute(
+        select(AnalysisJob.experiment_id).where(AnalysisJob.id == job_id)
+    )).scalar_one()
+
+    # file_path is relative to STORAGE_ROOT, e.g. "projects/1/2/jobs/3/heatmaps/foo.png"
+    # download token needs path relative to experiment dir, e.g. "jobs/3/heatmaps/foo.png"
+    experiment_prefix = f"projects/{project_id}/{experiment_id}/"
+    if output.file_path.startswith(experiment_prefix):
+        rel_path = output.file_path[len(experiment_prefix):]
+    else:
+        raise HTTPException(status_code=500, detail="Unexpected file path format")
+
+    token = create_download_token(
+        {
+            "type": "single",
+            "exp_id": experiment_id,
+            "proj_id": project_id,
+            "path": rel_path,
+        },
+        settings.SECRET_KEY,
+        settings.DOWNLOAD_TOKEN_EXPIRY_SECONDS,
+    )
+    return {
+        "url": f"/api/v1/files/signed-download?token={token}",
+        "filename": output.filename,
+    }
 
 
 @router.get("/jobs/{job_id}/qc-report", response_model=AlignmentQCReport)

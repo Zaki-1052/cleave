@@ -1,6 +1,7 @@
 # backend/routers/tus_upload.py
 """tus v1.0.0 resumable upload endpoints via tuspyserver for FASTQ files."""
 
+import asyncio
 import os
 import shutil
 from pathlib import Path
@@ -111,7 +112,6 @@ def on_fastq_upload_complete(
         needs_gzip = lower.endswith(".fastq") or lower.endswith(".fq")
 
         if needs_gzip:
-            import asyncio
             import gzip
             import queue as queue_mod
 
@@ -168,6 +168,7 @@ def on_fastq_upload_complete(
         await db.refresh(record)
 
         await update_storage_bytes(db, experiment_id, project_id, file_size)
+        await db.commit()
 
         # Clean up tuspyserver staging files (data file + .info sidecar)
         staging_data = Path(file_path)
@@ -175,14 +176,16 @@ def on_fastq_upload_complete(
         staging_data.unlink(missing_ok=True)
         staging_info.unlink(missing_ok=True)
 
-        try:
-            await run_fastqc_for_files(
+        # Run FastQC in background — don't block the upload response
+        asyncio.create_task(
+            run_fastqc_for_files(
                 [{"fastq_id": record.id, "file_path": rel_storage_path, "filename": filename}],
                 project_id,
                 experiment_id,
+                user_id=current_user.id,
+                experiment_name=experiment.name,
             )
-        except Exception:
-            pass  # FastQC failure should not fail the upload
+        )
 
     return handler
 

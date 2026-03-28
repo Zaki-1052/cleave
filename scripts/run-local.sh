@@ -7,7 +7,7 @@
 #   ./scripts/run-local.sh mock     # mock pipeline mode
 #   ./scripts/run-local.sh worker   # run the worker process instead of the API
 
-set -euo pipefail
+#set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CONDA_ENV="cleave-pipeline"
@@ -29,8 +29,21 @@ if ! pg_isready -h localhost -p 5432 -q 2>/dev/null; then
 fi
 
 # ── Activate conda ────────────────────────────────────────────────────────────
+# Conda activation scripts (e.g. gfortran) may reference unbound variables,
+# so temporarily allow that during activation.
+set +u 2>/dev/null
 eval "$(conda shell.bash hook)"
 conda activate "$CONDA_ENV"
+set -u 2>/dev/null
+
+# Verify we're actually in the conda env
+if [[ "${CONDA_DEFAULT_ENV:-}" != "$CONDA_ENV" ]]; then
+  echo "ERROR: conda activate failed — CONDA_DEFAULT_ENV=${CONDA_DEFAULT_ENV:-unset}"
+  exit 1
+fi
+# Force conda bin ahead of pyenv shims in PATH
+export PATH="$CONDA_PREFIX/bin:$PATH"
+echo "Conda env: $CONDA_DEFAULT_ENV ($(python --version)) — $(which python)"
 
 # ── Set environment variables ─────────────────────────────────────────────────
 export DATABASE_URL="postgresql+asyncpg://cleave:dev@localhost:5432/cleave"
@@ -74,7 +87,7 @@ fi
 # ── Run migrations and start API ──────────────────────────────────────────────
 cd "$PROJECT_ROOT/backend"
 echo "Running migrations..."
-alembic upgrade head
+python -m alembic upgrade head
 
 if [ "$MODE" != "worker" ]; then
   echo ""
@@ -82,5 +95,5 @@ if [ "$MODE" != "worker" ]; then
   echo "  API docs:  http://localhost:8000/docs"
   echo "  Frontend:  http://localhost:5173 (run 'cd frontend && npm run dev' separately)"
   echo ""
-  exec uvicorn main:app --reload --host 0.0.0.0 --port 8000
+  exec python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000 --timeout-graceful-shutdown 3
 fi
