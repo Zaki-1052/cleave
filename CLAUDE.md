@@ -155,6 +155,10 @@ Current phase tracking (update as we progress):
 6. 🔴 Lab Extensions (DiffBind, custom heatmaps, Pearson correlation, Roman normalization)
 7. 🔴 Polish & QA
 
+## Test Ownership
+
+- **You own the entire test suite, not just the tests you wrote in this session.** If the full suite has failures — even in tests you didn't touch — you are responsible for investigating and fixing them before declaring your work complete. "Pre-existing" is never an excuse to skip broken tests. Diagnose the root cause: if it's a real regression from your changes, fix it; if it's test infrastructure flakiness, fix the flakiness; if it's a genuine pre-existing bug, fix that too. The suite must be green when you're done.
+
 ## Gotchas
 
 - IgG control has intentionally low alignment rates (~29%) — this is expected, not an error.

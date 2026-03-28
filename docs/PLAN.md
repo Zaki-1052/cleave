@@ -551,11 +551,11 @@ Mouse-only sample-to-sample normalization.
 
 ### Phase 6 Done Criteria
 
-- [ ] DiffBind runs with sample sheet builder, produces differential peaks + plots
-- [ ] Dynamic DiffBind column names handled correctly (not hardcoded)
-- [ ] Custom heatmaps from user-provided BED files
-- [ ] Pearson correlation matrices for replicate QC
-- [ ] Roman normalization for mouse samples (with masking)
+- [x] DiffBind runs with sample sheet builder, produces differential peaks + plots
+- [x] Dynamic DiffBind column names handled correctly (not hardcoded)
+- [x] Custom heatmaps from user-provided BED files
+- [x] Pearson correlation matrices for replicate QC
+- [x] Roman normalization for mouse samples (with masking)
 
 ---
 

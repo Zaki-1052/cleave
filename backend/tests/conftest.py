@@ -3,6 +3,7 @@ import os
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
@@ -20,15 +21,28 @@ test_engine = create_async_engine(TEST_DATABASE_URL, echo=False, poolclass=NullP
 test_session_factory = async_sessionmaker(test_engine, expire_on_commit=False)
 
 
+async def _nuke_schema(conn) -> None:
+    """Drop and recreate the public schema to guarantee a clean slate.
+
+    More reliable than Base.metadata.drop_all — handles leftover pg_type
+    entries, failed CASCADE drops, and interrupted test runs that leave
+    partial state in the catalog.
+    """
+    await conn.execute(text("DROP SCHEMA public CASCADE"))
+    await conn.execute(text("CREATE SCHEMA public"))
+    await conn.execute(text("GRANT ALL ON SCHEMA public TO PUBLIC"))
+
+
 @pytest.fixture(autouse=True)
 async def setup_db():
-    """Create all tables before each test, drop after. Disable rate limiting."""
+    """Nuke schema then create all tables before each test. Disable rate limiting."""
     limiter.enabled = False
     async with test_engine.begin() as conn:
+        await _nuke_schema(conn)
         await conn.run_sync(Base.metadata.create_all)
     yield
     async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        await _nuke_schema(conn)
     limiter.enabled = True
 
 
