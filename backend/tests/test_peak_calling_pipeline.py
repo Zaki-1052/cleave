@@ -19,6 +19,7 @@ from pipelines.peak_calling import (
     _extract_top_peaks,
     _load_canned_peak_qc,
     _load_canned_top_peaks,
+    _write_frip_csv,
     _write_peak_qc_csv,
     _write_top_peaks_csv,
 )
@@ -265,7 +266,7 @@ def test_mock_run_output_categories(stage):
     result = stage.mock_run(job_id=102, params=params, working_dir=working_dir, job_dir=job_dir)
 
     categories = {o["file_category"] for o in result["outputs"]}
-    expected = {"bed", "annotation", "annotation_stats", "log", "qc_report"}
+    expected = {"bed", "annotation", "annotation_stats", "log", "qc_report", "top_peaks", "frip"}
     assert categories == expected
 
 
@@ -340,9 +341,10 @@ def test_mock_run_reaction_ids_assigned(stage):
 
     # 2 reactions x 5 files each = 10 per-reaction
     assert len(per_reaction) == 10
-    # 2 QC CSVs at job level
-    assert len(job_level) == 2
-    assert all(o["file_category"] == "qc_report" for o in job_level)
+    # 3 job-level CSVs: qc_report, top_peaks, frip
+    assert len(job_level) == 3
+    job_level_categories = {o["file_category"] for o in job_level}
+    assert job_level_categories == {"qc_report", "top_peaks", "frip"}
 
 
 def test_mock_run_peak_files_have_content(stage):
@@ -603,6 +605,84 @@ def test_write_top_peaks_csv(tmp_path):
     assert len(rows) == 1
     assert rows[0]["Top Peak"] == "chr1:1000-1500"
     assert rows[0]["10' Peak"] == "chr10:10000-10500"
+
+
+def test_write_frip_csv(tmp_path):
+    """FRiP CSV writer produces correct format with FRiP-relevant columns only."""
+    metrics = [
+        {
+            "short_name": "K4me3_ctrl1",
+            "control_short_name": "IgG",
+            "reference_genome": "Mouse mm10",
+            "peak_caller": "MACS2",
+            "peak_size": "Narrow",
+            "significance_threshold": 0.01,
+            "uniquely_aligned_read_pairs": 15265015,
+            "called_peaks": 22236,
+            "reads_in_peaks": 11912997,
+            "frip": 0.7804,
+        },
+    ]
+    output = tmp_path / "test_frip.csv"
+    _write_frip_csv(metrics, output)
+
+    with open(output, newline="") as f:
+        reader = csv.DictReader(f)
+        headers = reader.fieldnames
+        rows = list(reader)
+
+    assert headers == [
+        "Short_Name",
+        "Control_Short_Name",
+        "Uniquely_Aligned_Read_Pairs",
+        "Reads_in_Peaks",
+        "FRiP",
+    ]
+    assert len(rows) == 1
+    assert rows[0]["Short_Name"] == "K4me3_ctrl1"
+    assert rows[0]["Control_Short_Name"] == "IgG"
+    assert int(rows[0]["Uniquely_Aligned_Read_Pairs"]) == 15265015
+    assert int(rows[0]["Reads_in_Peaks"]) == 11912997
+    assert float(rows[0]["FRiP"]) == 0.7804
+
+
+def test_mock_run_frip_csv_produced(stage):
+    """Mock run creates a frip_scores.csv file in the qc directory."""
+    from config import settings
+
+    params = _make_valid_params()
+    working_dir = Path(settings.STORAGE_ROOT) / "projects"
+    job_dir = working_dir / "1" / "1" / "jobs" / "120"
+    job_dir.mkdir(parents=True)
+
+    stage.mock_run(job_id=120, params=params, working_dir=working_dir, job_dir=job_dir)
+
+    frip_csv = job_dir / "qc" / "frip_scores.csv"
+    assert frip_csv.exists()
+    with open(frip_csv, newline="") as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+    assert len(rows) == 2
+    assert all("FRiP" in row for row in rows)
+    assert all("Short_Name" in row for row in rows)
+
+
+def test_mock_run_frip_file_registered(stage):
+    """Mock run registers frip_scores.csv with file_category='frip'."""
+    from config import settings
+
+    params = _make_valid_params()
+    working_dir = Path(settings.STORAGE_ROOT) / "projects"
+    job_dir = working_dir / "1" / "1" / "jobs" / "121"
+    job_dir.mkdir(parents=True)
+
+    result = stage.mock_run(job_id=121, params=params, working_dir=working_dir, job_dir=job_dir)
+
+    frip_outputs = [o for o in result["outputs"] if o["file_category"] == "frip"]
+    assert len(frip_outputs) == 1
+    assert frip_outputs[0]["filename"] == "frip_scores.csv"
+    assert frip_outputs[0]["file_type"] == "csv"
+    assert frip_outputs[0]["reaction_id"] is None
 
 
 # --- QC Report schema tests ---

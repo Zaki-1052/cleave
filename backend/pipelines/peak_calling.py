@@ -79,6 +79,14 @@ _PEAK_QC_CSV_HEADERS = [
     "FRiP",
 ]
 
+_FRIP_CSV_HEADERS = [
+    "Short_Name",
+    "Control_Short_Name",
+    "Uniquely_Aligned_Read_Pairs",
+    "Reads_in_Peaks",
+    "FRiP",
+]
+
 _TOP_PEAKS_CSV_HEADERS = [
     "Short_Name",
     "Control_Short_Name",
@@ -349,6 +357,24 @@ def _write_peak_qc_csv(metrics_list: list[dict], output_path: Path) -> None:
                 "Significance_Threshold": m.get("significance_threshold", ""),
                 "Uniquely_Aligned_Read_Pairs": m.get("uniquely_aligned_read_pairs", 0),
                 "Called_Peaks": m.get("called_peaks", 0),
+                "Reads_in_Peaks": m.get("reads_in_peaks", 0),
+                "FRiP": round(m.get("frip", 0.0), 4),
+            }
+        )
+    output_path.write_text(buf.getvalue())
+
+
+def _write_frip_csv(metrics_list: list[dict], output_path: Path) -> None:
+    """Write FRiP scores to a standalone CSV for the FRiP file category."""
+    buf = io.StringIO()
+    writer = csv.DictWriter(buf, fieldnames=_FRIP_CSV_HEADERS)
+    writer.writeheader()
+    for m in metrics_list:
+        writer.writerow(
+            {
+                "Short_Name": m["short_name"],
+                "Control_Short_Name": m.get("control_short_name", ""),
+                "Uniquely_Aligned_Read_Pairs": m.get("uniquely_aligned_read_pairs", 0),
                 "Reads_in_Peaks": m.get("reads_in_peaks", 0),
                 "FRiP": round(m.get("frip", 0.0), 4),
             }
@@ -1088,6 +1114,8 @@ class PeakCallingStage(PipelineStage):
                 _add_output(annotation_file, "annotation", "txt")
             if annotation_stats.exists():
                 _add_output(annotation_stats, "annotation_stats", "txt")
+            for log_file in sorted(logs_dir.glob(f"{short_name}*.log")):
+                _add_output(log_file, "log", "txt")
 
             logger.info(
                 "peak_calling.reaction_complete",
@@ -1119,6 +1147,19 @@ class PeakCallingStage(PipelineStage):
                 "file_path": f"{rel_job}/qc/{top_csv.name}",
                 "file_type": "csv",
                 "file_size_bytes": top_csv.stat().st_size,
+                "reaction_id": None,
+            }
+        )
+
+        frip_csv = qc_dir / "frip_scores.csv"
+        _write_frip_csv(all_metrics, frip_csv)
+        outputs.append(
+            {
+                "file_category": "frip",
+                "filename": frip_csv.name,
+                "file_path": f"{rel_job}/qc/{frip_csv.name}",
+                "file_type": "csv",
+                "file_size_bytes": frip_csv.stat().st_size,
                 "reaction_id": None,
             }
         )
@@ -1305,6 +1346,19 @@ class PeakCallingStage(PipelineStage):
                 "file_path": f"{rel_job}/qc/{top_csv.name}",
                 "file_type": "csv",
                 "file_size_bytes": top_csv.stat().st_size,
+                "reaction_id": None,
+            }
+        )
+
+        frip_csv = qc_dir / "frip_scores.csv"
+        _write_frip_csv(all_metrics, frip_csv)
+        outputs.append(
+            {
+                "file_category": "frip",
+                "filename": frip_csv.name,
+                "file_path": f"{rel_job}/qc/{frip_csv.name}",
+                "file_type": "csv",
+                "file_size_bytes": frip_csv.stat().st_size,
                 "reaction_id": None,
             }
         )
