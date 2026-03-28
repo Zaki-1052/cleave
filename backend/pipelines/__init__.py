@@ -9,6 +9,7 @@ from pipelines.custom_heatmap import CustomHeatmapStage
 from pipelines.diffbind import DiffBindStage
 from pipelines.peak_calling import PeakCallingStage
 from pipelines.pearson_correlation import PearsonCorrelationStage
+from pipelines.roman_normalization import RomanNormalizationStage
 from pipelines.trimming import TrimmingStage
 
 # Registry of pipeline stages by job_type
@@ -19,6 +20,7 @@ _STAGES: dict[str, PipelineStage] = {
     "diffbind": DiffBindStage(),
     "custom_heatmap": CustomHeatmapStage(),
     "pearson_correlation": PearsonCorrelationStage(),
+    "roman_normalization": RomanNormalizationStage(),
 }
 
 

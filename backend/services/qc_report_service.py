@@ -21,11 +21,13 @@ from schemas.qc_report import (
     CustomHeatmapReport,
     DiffBindPlotInfo,
     DiffBindReport,
+    NormalizationFactorEntry,
     PeakAnnotationResult,
     PeakCallingQCReport,
     PeakCallingReactionMetrics,
     PearsonCorrelationPlotInfo,
     PearsonCorrelationReport,
+    RomanNormalizationReport,
     SpikeInPTMResult,
     SpikeInReactionResult,
     TopCalledPeak,
@@ -842,5 +844,98 @@ async def get_pearson_coverage_matrix_path(
     if path is None:
         raise FileNotFoundError(
             f"Coverage matrix not found for job {job_id}"
+        )
+    return path
+
+
+# ---------------------------------------------------------------------------
+# Roman Normalization
+# ---------------------------------------------------------------------------
+
+
+async def get_roman_normalization_report(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> RomanNormalizationReport | None:
+    """Return structured report for a completed Roman normalization job."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    if job.job_type != "roman_normalization" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed roman_normalization job "
+            f"(type={job.job_type}, status={job.status})"
+        )
+
+    params = job.params or {}
+    samples = params.get("samples", [])
+
+    # Parse normalization factors from CSV output
+    factors: list[NormalizationFactorEntry] = []
+    factors_csv_output_id = None
+    for output in job.outputs:
+        if output.file_category == "normalization_factors" and output.file_type == "csv":
+            factors_csv_output_id = output.id
+            csv_path = Path(settings.STORAGE_ROOT) / output.file_path
+            if csv_path.exists():
+                with open(csv_path) as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        factors.append(
+                            NormalizationFactorEntry(
+                                sample_name=row["SampleName"],
+                                percentile_99=float(row["Percentile99"]),
+                                normalization_factor=float(row["NormalizationFactor"]),
+                            )
+                        )
+            break
+
+    # Find plot outputs
+    png_id = None
+    svg_id = None
+    for output in job.outputs:
+        if output.file_category == "normalization_plot":
+            if output.file_type == "png":
+                png_id = output.id
+            elif output.file_type == "svg":
+                svg_id = output.id
+
+    # Reference sample is the first in the list
+    sample_labels = [
+        s.get("label", s.get("short_name", "")) for s in samples
+    ]
+    reference_sample = sample_labels[0] if sample_labels else ""
+
+    return RomanNormalizationReport(
+        sample_count=len(samples),
+        sample_labels=sample_labels,
+        reference_genome="mm10",
+        reference_sample=reference_sample,
+        normalization_factors=factors,
+        plot_output_id_png=png_id,
+        plot_output_id_svg=svg_id,
+        factors_csv_output_id=factors_csv_output_id,
+    )
+
+
+async def get_roman_normalization_factors_path(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> Path | None:
+    """Return absolute path to normalization factors CSV for download."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+    if job.job_type != "roman_normalization" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed roman_normalization job"
+        )
+    path = _resolve_output_path(job, "normalization_factors", "csv")
+    if path is None:
+        raise FileNotFoundError(
+            f"Normalization factors not found for job {job_id}"
         )
     return path

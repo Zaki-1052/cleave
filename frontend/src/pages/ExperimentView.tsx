@@ -9,6 +9,7 @@ import { NewPeakCallingWizard } from '@/components/peak-calling/NewPeakCallingWi
 import { NewCustomHeatmapWizard } from '@/components/custom-heatmap/NewCustomHeatmapWizard';
 import { NewDiffBindWizard } from '@/components/diffbind/NewDiffBindWizard';
 import { NewPearsonCorrelationWizard } from '@/components/pearson-correlation/NewPearsonCorrelationWizard';
+import { NewNormalizationWizard } from '@/components/normalization/NewNormalizationWizard';
 import { useExperiment } from '@/hooks/useExperiments';
 import { useJobs } from '@/hooks/useJobs';
 
@@ -19,6 +20,7 @@ const JOB_TYPE_LABELS: Record<string, string> = {
   diffbind: 'DiffBind',
   custom_heatmap: 'Custom Heatmap',
   pearson_correlation: 'Correlation',
+  roman_normalization: 'Normalization',
 };
 
 const TABS = [
@@ -30,6 +32,7 @@ const TABS = [
   { label: 'DiffBind', path: 'diffbind/0' },
   { label: 'Heatmaps', path: 'heatmaps/0' },
   { label: 'Correlation', path: 'correlations/0' },
+  { label: 'Normalization', path: 'normalization/0' },
   { label: 'History', path: 'history' },
   { label: 'All Files', path: 'files' },
 ] as const;
@@ -44,6 +47,7 @@ export default function ExperimentView() {
   const [showDiffBindWizard, setShowDiffBindWizard] = useState(false);
   const [showCustomHeatmapWizard, setShowCustomHeatmapWizard] = useState(false);
   const [showPearsonCorrelationWizard, setShowPearsonCorrelationWizard] = useState(false);
+  const [showNormalizationWizard, setShowNormalizationWizard] = useState(false);
 
   const lastJob = jobsData?.items?.[0] ?? null;
   const lastJobLabel = lastJob
@@ -87,6 +91,7 @@ export default function ExperimentView() {
           onDiffBindClick={() => setShowDiffBindWizard(true)}
           onCustomHeatmapClick={() => setShowCustomHeatmapWizard(true)}
           onPearsonCorrelationClick={() => setShowPearsonCorrelationWizard(true)}
+          onNormalizationClick={() => setShowNormalizationWizard(true)}
         />
       </div>
 
@@ -145,6 +150,12 @@ export default function ExperimentView() {
       <NewPearsonCorrelationWizard
         isOpen={showPearsonCorrelationWizard}
         onClose={() => setShowPearsonCorrelationWizard(false)}
+        experiment={experiment}
+      />
+
+      <NewNormalizationWizard
+        isOpen={showNormalizationWizard}
+        onClose={() => setShowNormalizationWizard(false)}
         experiment={experiment}
       />
     </div>

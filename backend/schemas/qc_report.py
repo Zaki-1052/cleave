@@ -195,3 +195,29 @@ class PearsonCorrelationReport(CamelModel):
     plot_output: PearsonCorrelationPlotInfo
     coverage_matrix_output_id: int | None = None
     correlation_matrix_output_id: int | None = None
+
+
+# ---------------------------------------------------------------------------
+# Roman Normalization Report
+# ---------------------------------------------------------------------------
+
+
+class NormalizationFactorEntry(CamelModel):
+    """Per-sample normalization factor from Roman normalization."""
+
+    sample_name: str
+    percentile_99: float
+    normalization_factor: float
+
+
+class RomanNormalizationReport(CamelModel):
+    """Report for a completed Roman normalization job."""
+
+    sample_count: int
+    sample_labels: list[str]
+    reference_genome: str
+    reference_sample: str
+    normalization_factors: list[NormalizationFactorEntry]
+    plot_output_id_png: int | None = None
+    plot_output_id_svg: int | None = None
+    factors_csv_output_id: int | None = None

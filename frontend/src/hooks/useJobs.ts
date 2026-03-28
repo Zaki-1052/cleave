@@ -106,3 +106,11 @@ export function usePearsonCorrelationReport(jobId: number | null) {
     enabled: jobId !== null,
   });
 }
+
+export function useRomanNormalizationReport(jobId: number | null) {
+  return useQuery({
+    queryKey: ['normalization-report', jobId],
+    queryFn: () => jobsApi.getRomanNormalizationReport(jobId!),
+    enabled: jobId !== null,
+  });
+}

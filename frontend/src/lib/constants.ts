@@ -274,6 +274,34 @@ export const PEARSON_CORRELATION_FILE_CATEGORIES = [
   },
 ] as const;
 
+export const NORMALIZATION_FILE_CATEGORIES = [
+  {
+    value: 'normalization_bigwig',
+    label: 'Normalized bigWig',
+    description: 'Per-sample Roman-normalized bigWig files for IGV visualization.',
+  },
+  {
+    value: 'normalization_factors',
+    label: 'Normalization Factors',
+    description: '99th percentile values and normalization factors for each sample (CSV).',
+  },
+  {
+    value: 'normalization_plot',
+    label: 'Normalization Plot',
+    description: 'Bar chart visualization of normalization factors (PNG + SVG).',
+  },
+  {
+    value: 'normalization_sample_sheet',
+    label: 'Sample Sheet',
+    description: 'The sample sheet CSV used for the analysis.',
+  },
+  {
+    value: 'log',
+    label: 'Logs',
+    description: 'Pipeline execution log files.',
+  },
+] as const;
+
 export const HEATMAP_SORT_ORDERS = [
   { value: 'descend', label: 'Descending (default)' },
   { value: 'ascend', label: 'Ascending' },

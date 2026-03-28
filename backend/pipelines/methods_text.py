@@ -234,3 +234,35 @@ def pearson_correlation_methods(params: dict) -> str:
     )
 
     return text
+
+
+def roman_normalization_methods(params: dict) -> str:
+    """Generate methods text for Roman normalization."""
+    samples = params.get("samples", [])
+    n_samples = len(samples)
+    first_label = (
+        samples[0].get("label", samples[0].get("short_name", "first sample"))
+        if samples
+        else "first sample"
+    )
+
+    text = (
+        f"Sample-to-sample normalization was performed using 99th-percentile "
+        f"quantile normalization (Roman normalization). RPKM-normalized "
+        f"bigWig signal was extracted at 50 bp resolution across mouse "
+        f"autosomes (chr1\u201319) and chrX of the "
+        f"{GENOME_DISPLAY_NAMES.get('mm10', 'Mouse mm10')} reference genome "
+        f"using rtracklayer (R). Genomic bins with zero coverage across all "
+        f"{n_samples} sample{'s' if n_samples != 1 else ''} were removed. "
+        f"Manually curated masked regions (158 entries) were excluded to "
+        f"eliminate loci with artificially extreme signal. The 99th percentile "
+        f"of signal intensity was computed for each sample from the filtered "
+        f"coverage matrix. Normalization factors were calculated by dividing "
+        f"each sample\u2019s 99th percentile by that of the reference sample "
+        f"({first_label}). Original bigWig scores were divided by the "
+        f"corresponding normalization factor and rounded to two decimal "
+        f"places. Normalized bigWig files (*_rnorm.bw) were exported for "
+        f"downstream visualization."
+    )
+
+    return text

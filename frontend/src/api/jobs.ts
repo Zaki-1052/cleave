@@ -10,6 +10,7 @@ import type {
   PeakCallingQCReport,
   PearsonCorrelationReport,
   QueueJob,
+  RomanNormalizationReport,
 } from './types';
 
 export interface JobCreatePayload {
@@ -265,4 +266,20 @@ export async function downloadPearsonCoverage(jobId: number): Promise<void> {
     responseType: 'blob',
   });
   _downloadBlob(response.data as Blob, 'pearson_coverage_matrix.csv');
+}
+
+// ---------------------------------------------------------------------------
+// Roman Normalization
+// ---------------------------------------------------------------------------
+
+export async function getRomanNormalizationReport(jobId: number): Promise<RomanNormalizationReport> {
+  const { data } = await client.get<RomanNormalizationReport>(`/jobs/${jobId}/normalization-report`);
+  return data;
+}
+
+export async function downloadNormalizationFactors(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/normalization-report/download-factors`, {
+    responseType: 'blob',
+  });
+  _downloadBlob(response.data as Blob, 'normalization_factors.csv');
 }

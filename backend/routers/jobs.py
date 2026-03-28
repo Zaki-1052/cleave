@@ -21,6 +21,7 @@ from schemas.qc_report import (
     DiffBindReport,
     PeakCallingQCReport,
     PearsonCorrelationReport,
+    RomanNormalizationReport,
 )
 from services.download_token_service import create_download_token
 from services.job_service import (
@@ -45,6 +46,8 @@ from services.qc_report_service import (
     get_pearson_correlation_report,
     get_pearson_coverage_matrix_path,
     get_qc_csv_path,
+    get_roman_normalization_factors_path,
+    get_roman_normalization_report,
     get_top_peaks_csv_path,
 )
 
@@ -549,4 +552,66 @@ async def download_pearson_coverage(
         csv_path,
         media_type="text/csv",
         filename="pearson_coverage_matrix.csv",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Roman Normalization
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/jobs/{job_id}/normalization-report",
+    response_model=RomanNormalizationReport,
+)
+async def get_normalization_report_endpoint(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        report = await get_roman_normalization_report(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        )
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return report
+
+
+@router.get("/jobs/{job_id}/normalization-report/download-factors")
+async def download_normalization_factors(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        csv_path = await get_roman_normalization_factors_path(
+            db, job_id, user.id
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        )
+    if csv_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return FileResponse(
+        csv_path,
+        media_type="text/csv",
+        filename="normalization_factors.csv",
     )

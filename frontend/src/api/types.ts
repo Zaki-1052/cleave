@@ -289,6 +289,23 @@ export interface PearsonCorrelationReport {
   correlationMatrixOutputId: number | null;
 }
 
+export interface NormalizationFactorEntry {
+  sampleName: string;
+  percentile99: number;
+  normalizationFactor: number;
+}
+
+export interface RomanNormalizationReport {
+  sampleCount: number;
+  sampleLabels: string[];
+  referenceGenome: string;
+  referenceSample: string;
+  normalizationFactors: NormalizationFactorEntry[];
+  plotOutputIdPng: number | null;
+  plotOutputIdSvg: number | null;
+  factorsCsvOutputId: number | null;
+}
+
 export interface Notification {
   id: number;
   userId: number;
