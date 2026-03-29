@@ -9,14 +9,16 @@ import {
   type SortingState,
 } from '@tanstack/react-table';
 import { useState } from 'react';
+import { ChevronUp, ChevronDown, ChevronsUpDown, Inbox } from 'lucide-react';
 
 interface DataTableProps<T> {
   data: T[];
   columns: ColumnDef<T, unknown>[];
   pageSize?: number;
+  emptyMessage?: string;
 }
 
-export function DataTable<T>({ data, columns, pageSize = 25 }: DataTableProps<T>) {
+export function DataTable<T>({ data, columns, pageSize = 25, emptyMessage = 'No data' }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const table = useReactTable({
@@ -30,23 +32,42 @@ export function DataTable<T>({ data, columns, pageSize = 25 }: DataTableProps<T>
     initialState: { pagination: { pageSize } },
   });
 
+  if (data.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+        <Inbox className="mb-2 h-10 w-10" />
+        <p className="text-sm">{emptyMessage}</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
+        <table className="w-full text-left text-sm tabular-nums">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="border-b bg-primary/10">
+              <tr key={headerGroup.id} className="border-b bg-muted/50">
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="cursor-pointer px-4 py-3 font-semibold text-gray-700"
+                    className="cursor-pointer select-none px-4 py-3 font-semibold text-gray-700"
                     onClick={header.column.getToggleSortingHandler()}
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                    {{ asc: ' ▲', desc: ' ▼' }[header.column.getIsSorted() as string] ?? ''}
+                    <span className="inline-flex items-center">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.column.getCanSort() ? (
+                        header.column.getIsSorted() === 'asc' ? (
+                          <ChevronUp className="ml-1 inline h-3.5 w-3.5" />
+                        ) : header.column.getIsSorted() === 'desc' ? (
+                          <ChevronDown className="ml-1 inline h-3.5 w-3.5" />
+                        ) : (
+                          <ChevronsUpDown className="ml-1 inline h-3.5 w-3.5 text-muted-foreground" />
+                        )
+                      ) : null}
+                    </span>
                   </th>
                 ))}
               </tr>

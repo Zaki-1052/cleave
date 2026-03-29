@@ -1,14 +1,15 @@
 // frontend/src/components/layout/Card.tsx
 import type { ReactNode } from 'react';
+import { cn } from '@/lib/cn';
 
 interface CardProps {
   children: ReactNode;
   className?: string;
 }
 
-export function Card({ children, className = '' }: CardProps) {
+export function Card({ children, className }: CardProps) {
   return (
-    <div className={`rounded-lg bg-white p-6 shadow-sm ${className}`}>
+    <div className={cn('rounded-lg border border-border bg-card p-6', className)}>
       {children}
     </div>
   );

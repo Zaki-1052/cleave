@@ -1,6 +1,7 @@
 // frontend/src/components/ui/JobActions.tsx
 import type { AnalysisJob } from '@/api/types';
 import { useTerminateJob, useRetryJob } from '@/hooks/useJobs';
+import { Button } from './Button';
 
 interface Props {
   job: AnalysisJob;
@@ -32,24 +33,24 @@ export default function JobActions({ job, onRetrySuccess }: Props) {
   return (
     <div className="flex items-center gap-2">
       {canTerminate && (
-        <button
-          type="button"
+        <Button
+          variant="destructive"
+          size="sm"
           onClick={handleTerminate}
-          disabled={terminateMutation.isPending}
-          className="rounded-full border border-red-300 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+          loading={terminateMutation.isPending}
         >
-          {terminateMutation.isPending ? 'Terminating...' : 'Terminate'}
-        </button>
+          Terminate
+        </Button>
       )}
       {canRetry && (
-        <button
-          type="button"
+        <Button
+          variant="outline"
+          size="sm"
           onClick={handleRetry}
-          disabled={retryMutation.isPending}
-          className="rounded-full border border-primary px-3 py-1 text-xs font-medium text-primary hover:bg-blue-50 disabled:opacity-50"
+          loading={retryMutation.isPending}
         >
-          {retryMutation.isPending ? 'Retrying...' : 'Retry'}
-        </button>
+          Retry
+        </Button>
       )}
     </div>
   );

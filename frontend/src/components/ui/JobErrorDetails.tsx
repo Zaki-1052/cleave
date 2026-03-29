@@ -1,7 +1,10 @@
 // frontend/src/components/ui/JobErrorDetails.tsx
 import { useState } from 'react';
+import { AlertCircle, ChevronRight, Copy } from 'lucide-react';
 import type { AnalysisJob } from '@/api/types';
 import { useJobLogTail } from '@/hooks/useJobs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './collapsible';
+import { cn } from '@/lib/cn';
 
 interface Props {
   job: AnalysisJob;
@@ -23,7 +26,7 @@ export default function JobErrorDetails({ job }: Props) {
   return (
     <div className="rounded-md border border-red-200 bg-red-50 p-4">
       <div className="mb-2 flex items-center gap-2">
-        <span className="inline-block h-2.5 w-2.5 rounded-full bg-red-500" />
+        <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
         <h4 className="text-sm font-semibold text-red-800">Error Details</h4>
       </div>
 
@@ -36,25 +39,23 @@ export default function JobErrorDetails({ job }: Props) {
             <button
               type="button"
               onClick={() => copyText(job.errorMessage!)}
-              className="shrink-0 rounded px-2 py-1 text-xs text-red-600 hover:bg-red-100"
+              className="inline-flex shrink-0 items-center gap-1 rounded px-2 py-1 text-xs text-red-600 hover:bg-red-100"
               title="Copy error message"
             >
+              <Copy className="h-3 w-3" />
               Copy
             </button>
           </div>
         </div>
       )}
 
-      <div>
-        <button
-          type="button"
-          onClick={() => setShowLog(!showLog)}
-          className="text-xs font-medium text-red-700 hover:text-red-900"
-        >
-          {showLog ? '▾ Hide Pipeline Log' : '▸ Show Pipeline Log (last 50 lines)'}
-        </button>
+      <Collapsible open={showLog} onOpenChange={setShowLog}>
+        <CollapsibleTrigger className="flex items-center gap-1 text-xs font-medium text-red-700 hover:text-red-900">
+          <ChevronRight className={cn('h-3.5 w-3.5 transition-transform', showLog && 'rotate-90')} />
+          {showLog ? 'Hide Pipeline Log' : 'Show Pipeline Log (last 50 lines)'}
+        </CollapsibleTrigger>
 
-        {showLog && (
+        <CollapsibleContent>
           <div className="mt-2">
             {logLoading && (
               <p className="text-xs text-gray-500">Loading log...</p>
@@ -67,9 +68,10 @@ export default function JobErrorDetails({ job }: Props) {
                 <button
                   type="button"
                   onClick={() => copyText(logData.logTail)}
-                  className="shrink-0 rounded px-2 py-1 text-xs text-red-600 hover:bg-red-100"
+                  className="inline-flex shrink-0 items-center gap-1 rounded px-2 py-1 text-xs text-red-600 hover:bg-red-100"
                   title="Copy log"
                 >
+                  <Copy className="h-3 w-3" />
                   Copy
                 </button>
               </div>
@@ -79,8 +81,8 @@ export default function JobErrorDetails({ job }: Props) {
               )
             )}
           </div>
-        )}
-      </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }

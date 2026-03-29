@@ -1,5 +1,13 @@
 // frontend/src/components/ui/Modal.tsx
 import type { ReactNode } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from './dialog';
+import { cn } from '@/lib/cn';
 
 interface ModalProps {
   isOpen: boolean;
@@ -10,20 +18,21 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, title, children, className }: ModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-      <div className={`relative z-10 flex w-full max-h-[90vh] flex-col rounded-lg bg-white shadow-xl ${className ?? 'max-w-2xl'}`}>
-        <div className="flex shrink-0 items-center justify-between border-b bg-primary px-6 py-4">
-          <h2 className="text-lg font-semibold text-white">{title}</h2>
-          <button onClick={onClose} className="text-white hover:text-gray-200">
-            ✕
-          </button>
-        </div>
-        <div className="overflow-y-auto p-6">{children}</div>
-      </div>
-    </div>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent
+        className={cn(
+          'flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 [&>button]:text-white [&>button]:hover:opacity-100',
+          className ?? 'max-w-2xl',
+        )}
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
+        <DialogHeader className="flex shrink-0 flex-row items-center justify-between border-b bg-primary px-6 py-4">
+          <DialogTitle className="text-lg font-semibold text-white">{title}</DialogTitle>
+          <DialogDescription className="sr-only">{title}</DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 overflow-y-auto p-6">{children}</div>
+      </DialogContent>
+    </Dialog>
   );
 }
