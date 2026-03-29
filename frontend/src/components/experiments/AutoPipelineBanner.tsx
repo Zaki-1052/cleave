@@ -1,6 +1,6 @@
 // frontend/src/components/experiments/AutoPipelineBanner.tsx
 import { useMemo, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Check, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cancelAutoPipeline, retryAutoPipeline } from '@/api/autoPipeline';
 import { useJobs } from '@/hooks/useJobs';
@@ -173,11 +173,11 @@ export function AutoPipelineBanner({
                           : 'bg-gray-100 text-gray-500'
                 }`}
               >
-                {step.state === 'complete' && <span>&#10003;</span>}
+                {step.state === 'complete' && <Check className="h-3 w-3" />}
                 {step.state === 'running' && (
                   <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
                 )}
-                {step.state === 'error' && <span>&#10007;</span>}
+                {step.state === 'error' && <X className="h-3 w-3" />}
                 {step.label}
               </div>
             </div>

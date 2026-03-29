@@ -177,7 +177,7 @@ export function ReactionFormModal({
               required
               value={fastqPrefix}
               onChange={(e) => setFastqPrefix(e.target.value)}
-              className={selectClass}
+              className={`${selectClass} font-mono`}
             >
               <option value="" disabled>Select prefix</option>
               {prefixes.map((p) => (

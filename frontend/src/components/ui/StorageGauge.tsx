@@ -14,7 +14,7 @@ export function StorageGauge({ usedBytes, quotaBytes, label = 'Storage' }: Stora
 
   return (
     <div>
-      <p className="text-xs uppercase tracking-wide text-gray-500">{label}</p>
+      <p className="font-display text-xs uppercase tracking-wide text-gray-500">{label}</p>
       {hasQuota ? (
         <>
           <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-gray-200">
@@ -23,12 +23,12 @@ export function StorageGauge({ usedBytes, quotaBytes, label = 'Storage' }: Stora
               style={{ width: `${percent}%` }}
             />
           </div>
-          <p className="mt-1 text-xs text-gray-600">
+          <p className="mt-1 font-mono text-xs text-gray-600">
             {formatBytes(usedBytes)} / {formatBytes(quotaBytes)} ({percent}%)
           </p>
         </>
       ) : (
-        <p className="text-sm text-gray-700">{formatBytes(usedBytes)}</p>
+        <p className="font-mono text-sm text-gray-700">{formatBytes(usedBytes)}</p>
       )}
     </div>
   );

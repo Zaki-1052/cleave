@@ -23,11 +23,11 @@ export default function DescriptionTab() {
   return (
     <div className="flex gap-4">
       <Card className="flex-[2]">
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
           Details
         </h3>
         <div>
-          <DetailRow label="Experiment ID">{experiment.id}</DetailRow>
+          <DetailRow label="Experiment ID"><span className="font-mono">{experiment.id}</span></DetailRow>
           <DetailRow label="Created By">{creatorName}</DetailRow>
           <DetailRow label="Created Date">{formatDate(experiment.createdAt)}</DetailRow>
           <DetailRow label="Status">
@@ -42,7 +42,7 @@ export default function DescriptionTab() {
         </div>
       </Card>
       <Card className="flex-[3]">
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
           Description
         </h3>
         {experiment.description ? (

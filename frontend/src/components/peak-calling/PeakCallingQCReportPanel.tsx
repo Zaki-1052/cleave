@@ -52,14 +52,14 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
       {/* Header controls */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <span className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
             Reference Genome
           </span>
           <span className="rounded-md border border-gray-300 px-3 py-1 text-sm text-gray-700">
             {genome}
           </span>
         </div>
-        <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <span className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
           QC Report
         </span>
       </div>
@@ -85,31 +85,31 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b bg-primary/10">
-                    <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                       Short Name
                     </th>
-                    <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                       Control
                     </th>
-                    <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                       Peak Caller
                     </th>
-                    <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                       Peak Size
                     </th>
-                    <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                       Threshold
                     </th>
-                    <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600 text-right">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600 text-right">
                       Unique Read Pairs
                     </th>
-                    <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600 text-right">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600 text-right">
                       Called Peaks
                     </th>
-                    <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600 text-right">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600 text-right">
                       Reads in Peaks
                     </th>
-                    <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600 text-right">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600 text-right">
                       FRiP
                     </th>
                   </tr>
@@ -121,7 +121,7 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
                       <td className="px-3 py-2 text-gray-700">{m.controlShortName || '—'}</td>
                       <td className="px-3 py-2 text-gray-700">{m.peakCaller}</td>
                       <td className="px-3 py-2 text-gray-700 capitalize">{m.peakSize}</td>
-                      <td className="px-3 py-2 text-gray-700">{m.significanceThreshold}</td>
+                      <td className="px-3 py-2 font-mono text-gray-700">{m.significanceThreshold}</td>
                       <td className="px-3 py-2 text-right font-mono text-gray-700">
                         {formatNumber(m.uniquelyAlignedReadPairs)}
                       </td>

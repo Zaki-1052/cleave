@@ -84,7 +84,7 @@ export function DiffBindInfoPanel({ job }: DiffBindInfoPanelProps) {
             )}
           </div>
           {job.methodsText ? (
-            <p className="whitespace-pre-wrap text-sm text-gray-600">{job.methodsText}</p>
+            <p className="whitespace-pre-wrap font-mono text-sm text-gray-600">{job.methodsText}</p>
           ) : (
             <p className="text-sm text-gray-400">
               Methods text will be available when the DiffBind analysis completes.

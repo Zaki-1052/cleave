@@ -184,13 +184,13 @@ function NormalizationInfoPanel({ job }: { job: AnalysisJob }) {
         <Card>
           <h4 className="mb-3 text-xs font-semibold uppercase text-gray-500">Details</h4>
           <div className="space-y-2">
-            <DetailRow label="Run ID">{String(job.id)}</DetailRow>
+            <DetailRow label="Run ID"><span className="font-mono">{String(job.id)}</span></DetailRow>
             <DetailRow label="Created By">{launcherName}</DetailRow>
             <DetailRow label="Created Date">{formatDate(job.createdAt)}</DetailRow>
             <DetailRow label="Status">
               <StatusBadge status={job.status} />
             </DetailRow>
-            <DetailRow label="Samples">{String(sampleCount)}</DetailRow>
+            <DetailRow label="Samples"><span className="font-mono">{String(sampleCount)}</span></DetailRow>
             <DetailRow label="Reference Sample">{referenceSampleLabel}</DetailRow>
           </div>
         </Card>
