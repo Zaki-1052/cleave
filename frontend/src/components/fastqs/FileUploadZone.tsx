@@ -1,7 +1,7 @@
 // frontend/src/components/fastqs/FileUploadZone.tsx
 import { useCallback, useRef, useState, type DragEvent } from 'react';
 import * as tus from 'tus-js-client';
-import { X, Upload, Loader2 } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { getAccessToken } from '@/api/client';
 import { formatBytes } from '@/lib/utils';

@@ -139,7 +139,7 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
 
       <Card>
         <div className="mb-2 flex items-center justify-between">
-          <h4 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">Correlation Heatmap</h4>
+          <h4 className="font-display text-sm font-semibold text-gray-700">Correlation Heatmap</h4>
           <div className="flex items-center gap-2">
             <button
               type="button"

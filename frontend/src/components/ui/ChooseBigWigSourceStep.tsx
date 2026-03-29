@@ -1,4 +1,5 @@
 // frontend/src/components/ui/ChooseBigWigSourceStep.tsx
+import { Loader2 } from 'lucide-react';
 import { Card } from '@/components/layout/Card';
 import { useJobs, useJobOutputs } from '@/hooks/useJobs';
 import type { AnalysisJob, Experiment, JobOutput } from '@/api/types';
@@ -49,7 +50,7 @@ export function ChooseBigWigSourceStep({
   if (isLoading) {
     return (
       <div className="flex h-40 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }

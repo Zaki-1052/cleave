@@ -1,5 +1,6 @@
 // frontend/src/components/projects/ManageMembersModal.tsx
 import { type FormEvent, useState } from 'react';
+import { UserMinus } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -157,9 +158,7 @@ export function ManageMembersModal({ isOpen, onClose, projectId }: ManageMembers
                     title={isLastAdmin ? 'Cannot remove the last admin' : 'Remove member'}
                     className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <UserMinus className="h-4 w-4" />
                   </button>
                 )}
               </div>

@@ -1,6 +1,7 @@
 // frontend/src/components/layout/NotificationPanel.tsx
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Bell, CheckCircle, UserPlus, XCircle } from 'lucide-react';
 import { useNotifications, useUnreadCount, useMarkNotificationRead, useMarkAllNotificationsRead } from '@/hooks/useNotifications';
 import { formatDateTime } from '@/lib/utils';
 import type { Notification } from '@/api/types';
@@ -12,32 +13,16 @@ interface NotificationPanelProps {
 
 function NotificationIcon({ type }: { type: string }) {
   if (type === 'project_invitation') {
-    return (
-      <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    );
+    return <UserPlus className="h-5 w-5 text-primary" />;
   }
   if (type === 'job_complete') {
-    return (
-      <svg className="h-5 w-5 text-status-complete" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    );
+    return <CheckCircle className="h-5 w-5 text-status-complete" />;
   }
   if (type === 'job_error') {
-    return (
-      <svg className="h-5 w-5 text-status-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    );
+    return <XCircle className="h-5 w-5 text-status-error" />;
   }
   // Default (welcome, etc.)
-  return (
-    <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-    </svg>
-  );
+  return <Bell className="h-5 w-5 text-primary" />;
 }
 
 function NotificationItem({

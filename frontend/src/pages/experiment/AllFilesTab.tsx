@@ -2,6 +2,7 @@
 import { useState, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { type ColumnDef } from '@tanstack/react-table';
+import { ChevronDown, ChevronRight, Download, File, Folder, FolderOpen, Loader2 } from 'lucide-react';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
@@ -62,9 +63,9 @@ function TreeNode({
             onToggle(node.path);
           }}
         >
-          {hasChildren ? (isExpanded ? '▼' : '▶') : ''}
+          {hasChildren ? (isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />) : ''}
         </span>
-        <span className="text-gray-400">📁</span>
+        {isExpanded ? <FolderOpen className="h-4 w-4 text-gray-400" /> : <Folder className="h-4 w-4 text-gray-400" />}
         <span className="truncate">{node.name}</span>
       </button>
       {isExpanded &&
@@ -146,7 +147,7 @@ export default function AllFilesTab() {
     return (
       <Card>
         <div className="flex h-40 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </Card>
     );
@@ -165,7 +166,7 @@ export default function AllFilesTab() {
   if (!data || data.totalFiles === 0) {
     return (
       <Card>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="font-display mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
           All Files
         </h3>
         <p className="text-sm text-gray-400">
@@ -213,15 +214,15 @@ export default function AllFilesTab() {
                 if (!expandedPaths.has(node.path)) handleToggle(node.path);
               }}
             >
-              <span className="text-gray-400">📁</span>
+              <Folder className="h-4 w-4 text-gray-400" />
               {node.name}
             </button>
           );
         }
         return (
           <span className="flex items-center gap-2">
-            <span className="text-gray-400">📄</span>
-            {node.name}
+            <File className="h-4 w-4 text-gray-400" />
+            <span className="font-mono">{node.name}</span>
           </span>
         );
       },
@@ -238,7 +239,7 @@ export default function AllFilesTab() {
       header: 'Size',
       cell: ({ getValue }) => {
         const v = getValue<number | null>();
-        return v != null ? formatBytes(v) : '';
+        return v != null ? <span className="font-mono">{formatBytes(v)}</span> : '';
       },
     },
   ];
@@ -248,7 +249,7 @@ export default function AllFilesTab() {
   return (
     <div className="flex gap-4">
       <Card className="max-h-[600px] w-64 shrink-0 overflow-y-auto p-0">
-        <div className="border-b px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <div className="border-b px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
           Directory Tree
         </div>
         <TreeNode
@@ -263,7 +264,7 @@ export default function AllFilesTab() {
 
       <Card className="min-w-0 flex-1">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
             {folderName}
           </h3>
           <Button
@@ -271,6 +272,7 @@ export default function AllFilesTab() {
             disabled={selectedFiles.size === 0 || downloading}
             onClick={handleDownload}
           >
+            <Download className="mr-1.5 h-3.5 w-3.5" />
             {downloading ? 'Downloading...' : `Download${selectedFiles.size > 0 ? ` (${selectedFiles.size})` : ''}`}
           </Button>
         </div>

@@ -112,7 +112,7 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
 
       {/* Normalization factors table */}
       <Card>
-        <h4 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-gray-500">Normalization Factors</h4>
+        <h4 className="mb-3 font-display text-sm font-semibold text-gray-700">Normalization Factors</h4>
         <p className="mb-3 text-xs text-gray-500">
           99th percentile signal values and normalization factors for each sample.
           All samples are normalized relative to the reference sample (NF = 1.0).
@@ -164,7 +164,7 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
       {/* Bar chart image */}
       <Card>
         <div className="mb-2 flex items-center justify-between">
-          <h4 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">Normalization Factor Plot</h4>
+          <h4 className="font-display text-sm font-semibold text-gray-700">Normalization Factor Plot</h4>
           <div className="flex items-center gap-2">
             <button
               type="button"

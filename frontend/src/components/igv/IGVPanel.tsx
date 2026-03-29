@@ -1,5 +1,6 @@
 // frontend/src/components/igv/IGVPanel.tsx
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Maximize2, Minimize2, RefreshCw } from 'lucide-react';
 import type { AnalysisJob, JobOutput, Reaction } from '@/api/types';
 import { Card } from '@/components/layout/Card';
 import { SelectReactionsModal } from '@/components/igv/SelectReactionsModal';
@@ -289,7 +290,7 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
             className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
             title="Refresh"
           >
-            &#8635;
+            <RefreshCw className="h-4 w-4" />
           </button>
 
           {/* Full Screen */}
@@ -297,9 +298,10 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
             type="button"
             onClick={handleFullScreen}
             disabled={!hasSelections}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+            className="flex items-center rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
             title="Full Screen"
           >
+            {isFullScreen ? <Minimize2 className="mr-1.5 h-4 w-4" /> : <Maximize2 className="mr-1.5 h-4 w-4" />}
             {isFullScreen ? 'Exit Full Screen' : 'Full Screen'}
           </button>
         </div>

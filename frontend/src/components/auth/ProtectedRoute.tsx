@@ -1,5 +1,6 @@
 // frontend/src/components/auth/ProtectedRoute.tsx
 import { Navigate, Outlet } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export function ProtectedRoute() {
@@ -8,7 +9,7 @@ export function ProtectedRoute() {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
