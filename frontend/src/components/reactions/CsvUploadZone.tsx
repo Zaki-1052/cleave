@@ -1,5 +1,6 @@
 // frontend/src/components/reactions/CsvUploadZone.tsx
 import { useRef, useState, type DragEvent } from 'react';
+import { Download, Loader2, Upload } from 'lucide-react';
 import { useImportReactionsCsv } from '@/hooks/useReactions';
 import { downloadTemplate } from '@/api/reactions';
 import type { ApiError, CsvImportResponse } from '@/api/types';
@@ -85,9 +86,7 @@ export function CsvUploadZone({ experimentId, onImportComplete }: CsvUploadZoneP
           onClick={() => void handleDownloadTemplate()}
           className="flex items-center gap-1 text-sm text-primary hover:text-primary/80"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-          </svg>
+          <Download className="h-4 w-4" />
           Download Template
         </button>
       </div>
@@ -126,12 +125,12 @@ export function CsvUploadZone({ experimentId, onImportComplete }: CsvUploadZoneP
       >
         {isImporting ? (
           <div className="flex flex-col items-center gap-2">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
             <p className="text-sm text-gray-500">Importing...</p>
           </div>
         ) : (
           <>
-            <div className="mb-2 text-2xl text-primary/60">+</div>
+            <Upload className="mb-2 h-8 w-8 text-primary/60" />
             <p className="text-sm text-gray-600">
               Drag & Drop or{' '}
               <button

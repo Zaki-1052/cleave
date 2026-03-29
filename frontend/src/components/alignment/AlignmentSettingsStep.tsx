@@ -1,5 +1,6 @@
 // frontend/src/components/alignment/AlignmentSettingsStep.tsx
 import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import type { Reaction } from '@/api/types';
 import { GENOME_DISPLAY_NAMES, REFERENCE_GENOMES } from '@/lib/constants';
 
@@ -132,11 +133,9 @@ export function AlignmentSettingsStep({
           className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           <span>Advanced Settings</span>
-          <span
-            className={`transform transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
-          >
-            ▼
-          </span>
+          <ChevronDown
+            className={`h-4 w-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+          />
         </button>
 
         {showAdvanced && (

@@ -1,5 +1,6 @@
 // frontend/src/components/fastqs/FastqcReportModal.tsx
 import { useEffect, useRef, useState } from 'react';
+import { Download, Maximize2, Minimize2, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { getFastqcSignedUrl } from '@/api/fastqs';
 
@@ -48,39 +49,27 @@ export function FastqcReportModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b bg-primary px-6 py-4">
           <h2 className="text-lg font-semibold text-white">FASTQC Report</h2>
-          <button onClick={onClose} className="text-white hover:text-gray-200">
-            ✕
+          <button onClick={onClose} className="text-white hover:text-gray-200" aria-label="Close">
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Toolbar */}
         <div className="flex items-center gap-3 border-b px-4 py-2">
           <Button variant="outlined" onClick={handleDownload}>
-            <span className="flex items-center gap-1">
-              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Download Report
-            </span>
+            <Download className="mr-1.5 h-4 w-4" />
+            Download Report
           </Button>
           <Button
             variant="outlined"
             onClick={() => setIsFullScreen((prev) => !prev)}
           >
-            <span className="flex items-center gap-1">
-              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 110-2h4a1 1 0 011 1v4a1 1 0 11-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 112 0v1.586l2.293-2.293a1 1 0 011.414 1.414L6.414 15H8a1 1 0 110 2H4a1 1 0 01-1-1v-4zm13 3a1 1 0 01-1 1h-4a1 1 0 110-2h1.586l-2.293-2.293a1 1 0 011.414-1.414L15 13.586V12a1 1 0 112 0v4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              {isFullScreen ? 'Exit Full Screen' : 'Full Screen'}
-            </span>
+            {isFullScreen ? (
+              <Minimize2 className="mr-1.5 h-4 w-4" />
+            ) : (
+              <Maximize2 className="mr-1.5 h-4 w-4" />
+            )}
+            {isFullScreen ? 'Exit Full Screen' : 'Full Screen'}
           </Button>
           <span className="ml-auto text-xs text-gray-400 truncate max-w-xs" title={filename}>
             {filename}
@@ -99,7 +88,7 @@ export function FastqcReportModal({
             />
           ) : (
             <div className="flex h-full items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           )}
         </div>

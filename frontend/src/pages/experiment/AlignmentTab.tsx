@@ -1,6 +1,7 @@
 // frontend/src/pages/experiment/AlignmentTab.tsx
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import type { Experiment } from '@/api/types';
 import { AlignmentFilesPanel } from '@/components/alignment/AlignmentFilesPanel';
 import { AlignmentInfoPanel } from '@/components/alignment/AlignmentInfoPanel';
@@ -49,7 +50,7 @@ export default function AlignmentTab() {
     return (
       <Card>
         <div className="flex h-40 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </Card>
     );

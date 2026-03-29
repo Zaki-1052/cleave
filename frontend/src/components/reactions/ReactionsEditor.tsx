@@ -1,6 +1,7 @@
 // frontend/src/components/reactions/ReactionsEditor.tsx
 import { useMemo, useState } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
+import { Check, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { Modal } from '@/components/ui/Modal';
@@ -23,30 +24,6 @@ const OPTIONAL_COLUMNS: { key: keyof Reaction; label: string }[] = [
   { key: 'cutanaSpikeIn2', label: 'CUTANA Spike in 2' },
   { key: 'cutanaSpikeInTarget2', label: 'CUTANA Spike in Target 2' },
 ];
-
-function CheckIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-    </svg>
-  );
-}
-
-function PencilIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-      <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-    </svg>
-  );
-}
 
 interface ReactionsEditorProps {
   experimentId: number;
@@ -86,7 +63,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
         header: 'R1 File',
         cell: (info) => {
           const p = prefixMap.get(info.row.original.fastqPrefix);
-          return p?.hasR1 ? <CheckIcon /> : <span className="text-gray-300">{'\u2014'}</span>;
+          return p?.hasR1 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-gray-300">{'\u2014'}</span>;
         },
       },
       {
@@ -94,7 +71,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
         header: 'R2 File',
         cell: (info) => {
           const p = prefixMap.get(info.row.original.fastqPrefix);
-          return p?.hasR2 ? <CheckIcon /> : <span className="text-gray-300">{'\u2014'}</span>;
+          return p?.hasR2 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-gray-300">{'\u2014'}</span>;
         },
       },
       { accessorKey: 'shortName', header: 'Short Name' },
@@ -129,7 +106,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
             className="text-gray-400 hover:text-primary"
             title="Edit"
           >
-            <PencilIcon />
+            <Pencil className="h-4 w-4" />
           </button>
           <button
             type="button"
@@ -140,7 +117,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
             className="text-gray-400 hover:text-red-500"
             title="Delete"
           >
-            <TrashIcon />
+            <Trash2 className="h-4 w-4" />
           </button>
         </div>
       ),
@@ -176,7 +153,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
   if (isLoading) {
     return (
       <div className="flex h-40 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -199,7 +176,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
       {/* Manual Reactions Section */}
       <div>
         <div className="mb-4 flex items-center justify-between">
-          <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h4 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
             Reactions
           </h4>
           <div className="flex gap-2">

@@ -1,7 +1,9 @@
 // frontend/src/components/reactions/ReactionFormModal.tsx
 import { useEffect, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { cn } from '@/lib/cn';
 import { useCreateReaction, useUpdateReaction } from '@/hooks/useReactions';
 import { ORGANISMS, CUTANA_SPIKE_IN_OPTIONS, CUTANA_SPIKE_IN_TARGETS } from '@/lib/constants';
 import type { ApiError, PrefixInfo, Reaction } from '@/api/types';
@@ -278,9 +280,10 @@ export function ReactionFormModal({
           <button
             type="button"
             onClick={() => setShowMore(!showMore)}
-            className="text-sm font-medium text-primary hover:text-primary/80"
+            className="flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80"
           >
-            {showMore ? '▲ Less Fields' : '▼ More Fields'}
+            <ChevronDown className={cn('h-4 w-4 transition-transform', showMore && 'rotate-180')} />
+            {showMore ? 'Less Fields' : 'More Fields'}
           </button>
         </div>
 

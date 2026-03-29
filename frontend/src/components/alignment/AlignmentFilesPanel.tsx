@@ -1,6 +1,7 @@
 // frontend/src/components/alignment/AlignmentFilesPanel.tsx
 import { type ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
+import { Download, Loader2 } from 'lucide-react';
 
 import { batchDownloadJobFiles } from '@/api/jobs';
 import type { JobOutput } from '@/api/types';
@@ -102,7 +103,7 @@ export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
         header: 'Size',
         cell: ({ getValue }) => {
           const bytes = getValue() as number | null;
-          return bytes != null ? formatBytes(bytes) : '--';
+          return bytes != null ? <span className="font-mono">{formatBytes(bytes)}</span> : '--';
         },
       },
     ],
@@ -117,7 +118,7 @@ export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
         <div className="shrink-0">
           <label
             htmlFor="alignment-file-category"
-            className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500"
+            className="mb-1 block font-display text-xs font-semibold uppercase tracking-wide text-gray-500"
           >
             Files
           </label>
@@ -147,6 +148,7 @@ export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
           disabled={selectedIds.size === 0 || downloading}
           className="text-xs"
         >
+          <Download className="mr-1.5 h-3.5 w-3.5" />
           {downloading ? 'Downloading...' : `Download (${selectedIds.size})`}
         </Button>
       </div>
@@ -154,7 +156,7 @@ export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
       {/* Files table */}
       {isLoading ? (
         <div className="flex h-20 items-center justify-center">
-          <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       ) : (
         <DataTable data={outputs ?? []} columns={columns} pageSize={25} />

@@ -1,5 +1,6 @@
 // frontend/src/components/alignment/AlignmentQCReportPanel.tsx
 import { type ColumnDef } from '@tanstack/react-table';
+import { ChevronDown, Download, Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { downloadQCCsv, getOutputSignedUrl } from '@/api/jobs';
@@ -8,6 +9,7 @@ import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { useJobOutputs, useQCReport } from '@/hooks/useJobs';
+import { cn } from '@/lib/cn';
 import { GENOME_DISPLAY_NAMES } from '@/lib/constants';
 import { formatNumber } from '@/lib/utils';
 
@@ -21,47 +23,47 @@ const columns: ColumnDef<AlignmentReactionMetrics, unknown>[] = [
   {
     accessorKey: 'totalReadPairs',
     header: 'Total Read Pairs',
-    cell: ({ getValue }) => formatNumber(getValue() as number),
+    cell: ({ getValue }) => <span className="font-mono">{formatNumber(getValue() as number)}</span>,
   },
   {
     accessorKey: 'alignedReadPairs',
     header: 'Aligned Read Pairs',
-    cell: ({ getValue }) => formatNumber(getValue() as number),
+    cell: ({ getValue }) => <span className="font-mono">{formatNumber(getValue() as number)}</span>,
   },
   {
     accessorKey: 'uniquelyAlignedReadPairs',
     header: 'Uniquely Aligned Read Pairs',
-    cell: ({ getValue }) => formatNumber(getValue() as number),
+    cell: ({ getValue }) => <span className="font-mono">{formatNumber(getValue() as number)}</span>,
   },
   {
     accessorKey: 'uniqueAlignmentRate',
     header: 'Unique Alignment Rate (%)',
-    cell: ({ getValue }) => (getValue() as number).toFixed(2),
+    cell: ({ getValue }) => <span className="font-mono">{(getValue() as number).toFixed(2)}</span>,
   },
   {
     accessorKey: 'duplicationRate',
     header: 'Duplication Rate (%)',
-    cell: ({ getValue }) => (getValue() as number).toFixed(2),
+    cell: ({ getValue }) => <span className="font-mono">{(getValue() as number).toFixed(2)}</span>,
   },
   {
     accessorKey: 'chrmBandwidth',
     header: 'chrM Bandwidth (%)',
-    cell: ({ getValue }) => (getValue() as number).toFixed(2),
+    cell: ({ getValue }) => <span className="font-mono">{(getValue() as number).toFixed(2)}</span>,
   },
   {
     accessorKey: 'ecoliReadPairs',
     header: 'E. coli Read Pairs',
-    cell: ({ getValue }) => formatNumber(getValue() as number),
+    cell: ({ getValue }) => <span className="font-mono">{formatNumber(getValue() as number)}</span>,
   },
   {
     accessorKey: 'ecoliAlignmentRate',
     header: 'E. coli Alignment Rate (%)',
-    cell: ({ getValue }) => (getValue() as number).toFixed(2),
+    cell: ({ getValue }) => <span className="font-mono">{(getValue() as number).toFixed(2)}</span>,
   },
   {
     accessorKey: 'ecoliNormalizationFactor',
     header: 'E. coli Norm. Factor',
-    cell: ({ getValue }) => (getValue() as number).toFixed(6),
+    cell: ({ getValue }) => <span className="font-mono">{(getValue() as number).toFixed(6)}</span>,
   },
 ];
 
@@ -88,7 +90,7 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
     return (
       <Card>
         <div className="flex h-40 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </Card>
     );
@@ -119,7 +121,7 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
             </span>
             <span className="text-sm font-medium text-gray-800">{genomeName}</span>
           </div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
             QC Report
           </h3>
         </div>
@@ -132,6 +134,7 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
             disabled={downloading}
             className="text-xs"
           >
+            <Download className="mr-1.5 h-3.5 w-3.5" />
             {downloading ? 'Downloading...' : 'Download Data as CSV'}
           </Button>
         </div>
@@ -147,10 +150,13 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
           className="flex w-full items-center justify-between"
           onClick={() => setInfoOpen((v) => !v)}
         >
-          <h3 className="text-sm font-semibold text-primary">
+          <h3 className="font-display text-sm font-semibold text-primary">
             About Seq Stats & Alignment Metrics
           </h3>
-          <span className="text-xs text-gray-400">{infoOpen ? '▲ Hide' : '▼ Show'}</span>
+          <span className="flex items-center gap-1 text-xs text-gray-400">
+            <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', infoOpen && 'rotate-180')} />
+            {infoOpen ? 'Hide' : 'Show'}
+          </span>
         </button>
         {infoOpen && (
           <div className="mt-3 grid gap-3 text-xs text-gray-600 sm:grid-cols-2 lg:grid-cols-3">
@@ -235,7 +241,7 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
 
       {/* SNAP-CUTANA Spike-in section */}
       <Card>
-        <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="font-display mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
           SNAP-CUTANA K-MetStat Spike-in
         </h3>
         {report.spikeInResults && report.spikeInResults.length > 0 ? (
@@ -288,11 +294,11 @@ function HeatmapSection({ jobId, category, title, description }: HeatmapSectionP
   if (isLoading) {
     return (
       <Card>
-        <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="font-display mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
           {title}
         </h3>
         <div className="flex h-32 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </Card>
     );
@@ -301,7 +307,7 @@ function HeatmapSection({ jobId, category, title, description }: HeatmapSectionP
   if (!outputs || outputs.length === 0) {
     return (
       <Card>
-        <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="font-display mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
           {title}
         </h3>
         <p className="text-sm text-gray-400">No {title.toLowerCase()} data available.</p>
@@ -312,15 +318,16 @@ function HeatmapSection({ jobId, category, title, description }: HeatmapSectionP
   return (
     <Card>
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
           {title}
         </h3>
         <button
           type="button"
-          className="text-xs text-primary hover:text-primary/80"
+          className="flex items-center gap-1 text-xs text-primary hover:text-primary/80"
           onClick={() => setInfoOpen((v) => !v)}
         >
-          {infoOpen ? '▲ Hide' : 'About ' + title}
+          <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', infoOpen && 'rotate-180')} />
+          {infoOpen ? 'Hide' : 'About ' + title}
         </button>
       </div>
 
@@ -382,6 +389,7 @@ function HeatmapImage({ jobId, output }: { jobId: number; output: JobOutput }) {
           className="text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
           title="Download PNG"
         >
+          <Download className="mr-1 h-3 w-3" />
           Download PNG
         </button>
       </div>
@@ -393,7 +401,7 @@ function HeatmapImage({ jobId, output }: { jobId: number; output: JobOutput }) {
         />
       ) : (
         <div className="flex h-48 items-center justify-center">
-          <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       )}
     </div>

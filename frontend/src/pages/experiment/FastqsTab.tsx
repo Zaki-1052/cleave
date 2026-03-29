@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { ColumnDef } from '@tanstack/react-table';
+import { AlertTriangle, FileText, Trash2, Loader2 } from 'lucide-react';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
@@ -42,7 +43,7 @@ const staticColumns: ColumnDef<FastqFile, unknown>[] = [
     header: 'Size',
     cell: (info) => {
       const v = info.getValue<number | null>();
-      return v != null ? formatBytes(v) : '\u2014';
+      return v != null ? <span className="font-mono">{formatBytes(v)}</span> : '\u2014';
     },
   },
   {
@@ -200,18 +201,7 @@ export default function FastqsTab() {
             className="text-primary hover:text-primary/80"
             title="View FastQC Report"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <FileText className="h-5 w-5" />
           </button>
         );
       },
@@ -221,7 +211,7 @@ export default function FastqsTab() {
       header: 'Total Reads',
       cell: (info) => {
         const v = info.getValue<number | null>();
-        return v != null ? v.toLocaleString() : '\u2014';
+        return v != null ? <span className="font-mono">{v.toLocaleString()}</span> : '\u2014';
       },
     },
     {
@@ -237,18 +227,7 @@ export default function FastqsTab() {
           className="text-gray-400 hover:text-red-500"
           title="Delete"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <Trash2 className="h-4 w-4" />
         </button>
       ),
     },
@@ -269,7 +248,7 @@ export default function FastqsTab() {
   if (isLoading) {
     return (
       <div className="flex h-40 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -278,7 +257,7 @@ export default function FastqsTab() {
     <>
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
             FASTQ Files
           </h3>
           <div className="flex gap-2">
@@ -303,9 +282,7 @@ export default function FastqsTab() {
           <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
                 <span>
                   Adapters detected in{' '}
                   <strong>{adapterState.filesWithAdapters.length}</strong> of{' '}
@@ -344,7 +321,7 @@ export default function FastqsTab() {
         {isTrimmingInProgress && (
           <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
             <div className="flex items-center gap-2">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+              <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
               <span>
                 Trimming in progress...{' '}
                 {trimmingJob?.status === 'queued' ? '(queued)' : '(running)'}

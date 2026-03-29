@@ -1,6 +1,7 @@
 // frontend/src/components/fastqs/FileUploadZone.tsx
 import { useCallback, useRef, useState, type DragEvent } from 'react';
 import * as tus from 'tus-js-client';
+import { X, Upload, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { getAccessToken } from '@/api/client';
 import { formatBytes } from '@/lib/utils';
@@ -189,7 +190,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
             : 'border-primary/40'
         }`}
       >
-        <div className="mb-2 text-2xl text-primary/60">+</div>
+        <Upload className="mx-auto mb-2 h-8 w-8 text-gray-400" />
         <p className="text-sm text-gray-600">
           Drag & Drop or{' '}
           <button
@@ -218,7 +219,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
         <div className="mt-3">
           <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
             {fileStates.length} file{fileStates.length !== 1 ? 's' : ''}{' '}
-            {stagedFiles.length > 0 && `(${formatBytes(totalStagedSize)})`}
+            {stagedFiles.length > 0 && <span className="font-mono">({formatBytes(totalStagedSize)})</span>}
           </div>
           <div className="max-h-48 overflow-y-auto rounded border border-gray-200">
             {fileStates.map((fs, i) => (
@@ -228,7 +229,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
               >
                 <div className="min-w-0 flex-1">
                   <span className="truncate text-sm text-gray-700">{fs.file.name}</span>
-                  <span className="ml-2 text-xs text-gray-400">{formatBytes(fs.file.size)}</span>
+                  <span className="ml-2 font-mono text-xs text-gray-400">{formatBytes(fs.file.size)}</span>
                   {fs.status === 'complete' && (
                     <span className="ml-2 text-xs text-green-600">Done</span>
                   )}
@@ -236,7 +237,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
                     <span className="ml-2 text-xs text-red-600">{fs.error || 'Failed'}</span>
                   )}
                   {fs.status === 'uploading' && (
-                    <span className="ml-2 text-xs text-primary">{fs.progress}%</span>
+                    <span className="ml-2 font-mono text-xs text-primary">{fs.progress}%</span>
                   )}
                 </div>
                 {fs.status === 'uploading' && (
@@ -253,7 +254,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
                     onClick={() => removeFile(i)}
                     className="ml-2 text-gray-400 hover:text-red-500"
                   >
-                    ✕
+                    <X className="h-4 w-4" />
                   </button>
                 )}
                 {fs.status === 'uploading' && (
@@ -278,7 +279,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
                   style={{ width: `${overallProgress}%` }}
                 />
               </div>
-              <p className="mt-1 text-xs text-gray-500">{overallProgress}% overall</p>
+              <p className="mt-1 font-mono text-xs text-gray-500">{overallProgress}% overall</p>
             </div>
           )}
 

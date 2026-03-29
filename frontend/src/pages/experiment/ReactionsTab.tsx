@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { ColumnDef } from '@tanstack/react-table';
+import { Check, Loader2 } from 'lucide-react';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
@@ -12,14 +13,6 @@ import type { Experiment, PrefixInfo, Reaction } from '@/api/types';
 
 interface ExperimentContext {
   experiment: Experiment;
-}
-
-function CheckIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-    </svg>
-  );
 }
 
 export default function ReactionsTab() {
@@ -47,7 +40,7 @@ export default function ReactionsTab() {
         header: 'R1 File',
         cell: (info) => {
           const p = prefixMap.get(info.row.original.fastqPrefix);
-          return p?.hasR1 ? <CheckIcon /> : <span className="text-gray-300">{'\u2014'}</span>;
+          return p?.hasR1 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-gray-300">{'\u2014'}</span>;
         },
       },
       {
@@ -55,7 +48,7 @@ export default function ReactionsTab() {
         header: 'R2 File',
         cell: (info) => {
           const p = prefixMap.get(info.row.original.fastqPrefix);
-          return p?.hasR2 ? <CheckIcon /> : <span className="text-gray-300">{'\u2014'}</span>;
+          return p?.hasR2 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-gray-300">{'\u2014'}</span>;
         },
       },
       { accessorKey: 'shortName', header: 'Short Name' },
@@ -68,7 +61,7 @@ export default function ReactionsTab() {
   if (isLoading) {
     return (
       <div className="flex h-40 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -77,7 +70,7 @@ export default function ReactionsTab() {
     <>
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
             Reactions
           </h3>
           <div className="flex gap-2">
