@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import structlog
-from sqlalchemy import func, select, update
+from sqlalchemy import create_engine, func, select, text, update
 
 from config import settings
 from database import async_session_factory
@@ -16,6 +16,7 @@ from models.analysis_job import AnalysisJob
 from models.experiment import Experiment
 from models.notification import Notification
 from pipelines import run as pipeline_run
+from pipelines.base import TerminatedError
 from services.cleanup_service import run_full_cleanup
 from services.event_service import log_event_standalone
 from services.job_output_service import persist_job_outputs
@@ -23,6 +24,29 @@ from services.trimming_service import create_trimmed_fastq_records
 
 setup_logging()
 logger = structlog.get_logger("cleave.worker")
+
+# ---------------------------------------------------------------------------
+# Sync engine for termination checks (pipeline code is synchronous)
+# ---------------------------------------------------------------------------
+_sync_engine = None
+
+
+def _get_sync_engine():
+    global _sync_engine
+    if _sync_engine is None:
+        sync_url = settings.DATABASE_URL.replace("+asyncpg", "")
+        _sync_engine = create_engine(sync_url, pool_size=1)
+    return _sync_engine
+
+
+def _sync_check_terminated(job_id: int) -> bool:
+    """Check if termination was requested for a job (sync, for pipeline threads)."""
+    with _get_sync_engine().connect() as conn:
+        row = conn.execute(
+            text("SELECT termination_requested_at FROM analysis_jobs WHERE id = :id"),
+            {"id": job_id},
+        ).fetchone()
+        return row is not None and row[0] is not None
 
 
 async def _update_experiment_status(experiment_id: int, job_status: str) -> None:
@@ -39,7 +63,7 @@ async def _update_experiment_status(experiment_id: int, job_status: str) -> None
             await db.execute(
                 update(Experiment).where(Experiment.id == experiment_id).values(status="error")
             )
-        elif job_status == "complete":
+        elif job_status in ("complete", "terminated"):
             # Check if any jobs are still pending for this experiment
             result = await db.execute(
                 select(func.count())
@@ -74,6 +98,10 @@ async def _create_job_notification(
         title = "Job Complete"
         message = f'"{job_name}" in experiment "{experiment_name}" has completed successfully.'
         notif_type = "job_complete"
+    elif status == "terminated":
+        title = "Job Terminated"
+        message = f'"{job_name}" in experiment "{experiment_name}" was terminated.'
+        notif_type = "job_terminated"
     else:
         title = "Job Failed"
         message = f'"{job_name}" in experiment "{experiment_name}" has failed.'
@@ -120,6 +148,25 @@ async def poll_and_run() -> None:
         launched_by = job.launched_by
         job_name = job.name
 
+        # Check if termination was requested while queued (race condition)
+        if job.termination_requested_at is not None:
+            logger.info("worker.job_already_terminated", job_id=job_id)
+            await db.execute(
+                update(AnalysisJob)
+                .where(AnalysisJob.id == job_id)
+                .values(
+                    status="terminated",
+                    completed_at=datetime.now(timezone.utc),
+                    duration_seconds=0,
+                )
+            )
+            await db.commit()
+            await _update_experiment_status(experiment_id, "terminated")
+            await _create_job_notification(
+                launched_by, job_name, "terminated", experiment_name, experiment_id
+            )
+            return
+
         logger.info("worker.job_starting", job_id=job_id, job_type=job_type)
         now = datetime.now(timezone.utc)
         await db.execute(
@@ -137,13 +184,18 @@ async def poll_and_run() -> None:
     job_dir = working_dir / str(project_id) / str(experiment_id) / "jobs" / str(job_id)
     job_dir.mkdir(parents=True, exist_ok=True)
 
+    # Build cancellation callback for pipeline stages
+    cancelled = lambda: _sync_check_terminated(job_id)  # noqa: E731
+
     # Run pipeline outside the DB session to avoid long-held connections
     run_params = {**job_params, "job_id": job_id}
     start = time.time()
     final_status = "error"
 
     try:
-        pipeline_result = pipeline_run(job_type, run_params, working_dir, job_dir)
+        pipeline_result = pipeline_run(
+            job_type, run_params, working_dir, job_dir, cancelled=cancelled
+        )
         duration = int(time.time() - start)
 
         async with async_session_factory() as db:
@@ -189,6 +241,31 @@ async def poll_and_run() -> None:
                     project_id=project_id,
                     outputs=pipeline_result["outputs"],
                 )
+
+    except TerminatedError:
+        duration = int(time.time() - start)
+        async with async_session_factory() as db:
+            await db.execute(
+                update(AnalysisJob)
+                .where(AnalysisJob.id == job_id)
+                .values(
+                    status="terminated",
+                    duration_seconds=duration,
+                    completed_at=datetime.now(timezone.utc),
+                )
+            )
+            await db.commit()
+        logger.info("worker.job_terminated", job_id=job_id, duration=duration)
+        final_status = "terminated"
+
+        await log_event_standalone(
+            experiment_id,
+            launched_by,
+            action="job_terminated",
+            resource_type="job",
+            resource_id=job_id,
+            detail=f"Job '{job_name}' terminated by user after {duration}s",
+        )
 
     except Exception as exc:
         duration = int(time.time() - start)

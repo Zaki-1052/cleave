@@ -4,7 +4,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { Card } from '@/components/layout/Card';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { useAllJobs } from '@/hooks/useJobs';
+import { useAllJobs, useTerminateJob, useRetryJob } from '@/hooks/useJobs';
 import { formatDateTime, formatDuration, getDisplayName } from '@/lib/utils';
 import type { QueueJob } from '@/api/types';
 
@@ -23,6 +23,45 @@ const JOB_TYPE_OPTIONS = [
   { value: 'trimming', label: 'Trimming' },
   { value: 'peak_calling', label: 'Peak Calling' },
 ];
+
+function ActionsCell({ job }: { job: QueueJob }) {
+  const terminateMutation = useTerminateJob();
+  const retryMutation = useRetryJob();
+
+  const canTerminate = job.status === 'queued' || job.status === 'running';
+  const canRetry = job.status === 'error' || job.status === 'terminated';
+
+  if (!canTerminate && !canRetry) return null;
+
+  return (
+    <div className="flex gap-1">
+      {canTerminate && (
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm(`Terminate "${job.name}"?`)) {
+              terminateMutation.mutate(job.id);
+            }
+          }}
+          disabled={terminateMutation.isPending}
+          className="rounded px-2 py-0.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+        >
+          Terminate
+        </button>
+      )}
+      {canRetry && (
+        <button
+          type="button"
+          onClick={() => retryMutation.mutate(job.id)}
+          disabled={retryMutation.isPending}
+          className="rounded px-2 py-0.5 text-xs text-primary hover:bg-blue-50 disabled:opacity-50"
+        >
+          Retry
+        </button>
+      )}
+    </div>
+  );
+}
 
 const columns: ColumnDef<QueueJob, unknown>[] = [
   { accessorKey: 'name', header: 'Name' },
@@ -54,6 +93,11 @@ const columns: ColumnDef<QueueJob, unknown>[] = [
     accessorKey: 'status',
     header: 'Status',
     cell: ({ getValue }) => <StatusBadge status={getValue() as string} />,
+  },
+  {
+    id: 'actions',
+    header: '',
+    cell: ({ row }) => <ActionsCell job={row.original} />,
   },
 ];
 

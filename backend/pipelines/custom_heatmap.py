@@ -12,6 +12,7 @@ point) are layered on top of the lab defaults.
 import gzip
 import shutil
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 import structlog
@@ -89,7 +90,14 @@ class CustomHeatmapStage(PipelineStage):
     # Real run
     # ------------------------------------------------------------------
 
-    def run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
+    def run(
+        self,
+        job_id: int,
+        params: dict,
+        working_dir: Path,
+        job_dir: Path,
+        cancelled: Callable[[], bool] | None = None,
+    ) -> dict:
         project_id = params["project_id"]
         experiment_id = params["experiment_id"]
         samples = params["samples"]
@@ -162,6 +170,7 @@ class CustomHeatmapStage(PipelineStage):
             log_path=logs_dir / "computeMatrix.log",
             timeout=7200,
             master_log=master_log,
+            cancelled=cancelled,
         )
 
         if not matrix_path.exists():
@@ -196,6 +205,7 @@ class CustomHeatmapStage(PipelineStage):
             log_path=logs_dir / "plotHeatmap_png.log",
             timeout=3600,
             master_log=master_log,
+            cancelled=cancelled,
         )
 
         # --- plotHeatmap (SVG) — same matrix, vector output ---
@@ -226,6 +236,7 @@ class CustomHeatmapStage(PipelineStage):
             log_path=logs_dir / "plotHeatmap_svg.log",
             timeout=3600,
             master_log=master_log,
+            cancelled=cancelled,
         )
 
         # --- plotProfile (PNG) — mean signal line plot from same matrix ---
@@ -249,6 +260,7 @@ class CustomHeatmapStage(PipelineStage):
             log_path=logs_dir / "plotProfile_png.log",
             timeout=3600,
             master_log=master_log,
+            cancelled=cancelled,
         )
 
         # --- plotProfile (SVG) ---
@@ -274,6 +286,7 @@ class CustomHeatmapStage(PipelineStage):
             log_path=logs_dir / "plotProfile_svg.log",
             timeout=3600,
             master_log=master_log,
+            cancelled=cancelled,
         )
 
         append_to_master_log(master_log, "Custom heatmap complete", f"Outputs in {results_dir}")

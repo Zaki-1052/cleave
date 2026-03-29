@@ -14,7 +14,7 @@ from models.job_output import JobOutput
 from models.project import ProjectMember
 from models.user import User
 from schemas.common import PaginatedResponse
-from schemas.job import JobCreate, JobOutputRead, JobQueueRead, JobRead, JobUpdate
+from schemas.job import JobCreate, JobLogTailRead, JobOutputRead, JobQueueRead, JobRead, JobUpdate
 from schemas.qc_report import (
     AlignmentQCReport,
     CustomHeatmapReport,
@@ -27,9 +27,12 @@ from services.download_token_service import create_download_token
 from services.job_service import (
     create_job,
     get_job,
+    get_job_log_tail,
     get_job_outputs,
     list_all_jobs_for_user,
     list_jobs_for_experiment,
+    retry_job,
+    terminate_job,
     update_job_notes,
 )
 from services.qc_report_service import (
@@ -138,6 +141,66 @@ async def update_job_endpoint(
             detail="Job not found or insufficient permissions",
         )
     return job
+
+
+@router.post("/jobs/{job_id}/terminate", response_model=JobRead)
+async def terminate_job_endpoint(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    result = await terminate_job(db, job_id, user.id)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found or insufficient permissions",
+        )
+    if result == "conflict":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Job is not in a terminable state (must be queued or running)",
+        )
+    return result
+
+
+@router.post(
+    "/jobs/{job_id}/retry",
+    response_model=JobRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def retry_job_endpoint(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    result = await retry_job(db, job_id, user.id)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found or insufficient permissions",
+        )
+    if result == "conflict":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Job is not in a retryable state (must be error or terminated)",
+        )
+    return result
+
+
+@router.get("/jobs/{job_id}/log-tail", response_model=JobLogTailRead)
+async def get_job_log_tail_endpoint(
+    job_id: int,
+    lines: int = Query(50, ge=1, le=500),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    result = await get_job_log_tail(db, job_id, user.id, lines)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found or insufficient permissions",
+        )
+    return result
 
 
 @router.get("/jobs/{job_id}/outputs", response_model=list[JobOutputRead])

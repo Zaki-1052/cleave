@@ -1,6 +1,7 @@
 // frontend/src/App.tsx
 import { Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GradientBackground } from '@/components/layout/GradientBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
@@ -42,7 +43,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route element={<AuthenticatedLayout />}>
+      <Route element={<ErrorBoundary><AuthenticatedLayout /></ErrorBoundary>}>
         <Route path="/" element={<HomePage />} />
         <Route path="/projects/:id" element={<ProjectDetailPage />} />
         <Route path="/experiments/:id" element={<ExperimentView />}>

@@ -2,6 +2,7 @@
 import os
 import subprocess
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -33,6 +34,12 @@ class PipelineError(Exception):
     pass
 
 
+class TerminatedError(Exception):
+    """Raised when a job has been terminated by the user."""
+
+    pass
+
+
 class PipelineStage(ABC):
     """Base class for all pipeline stages."""
 
@@ -42,7 +49,14 @@ class PipelineStage(ABC):
         ...
 
     @abstractmethod
-    def run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
+    def run(
+        self,
+        job_id: int,
+        params: dict,
+        working_dir: Path,
+        job_dir: Path,
+        cancelled: Callable[[], bool] | None = None,
+    ) -> dict:
         """Execute the pipeline stage."""
         ...
 
@@ -80,8 +94,11 @@ def run_cmd(
     check: bool = True,
     cwd: Path | None = None,
     master_log: Path | None = None,
+    cancelled: Callable[[], bool] | None = None,
 ) -> subprocess.CompletedProcess:
     """Run a subprocess, capture output, optionally write to log, raise on failure."""
+    if cancelled and cancelled():
+        raise TerminatedError("Job terminated by user")
     cmd_str = " ".join(cmd)
     logger.info("pipeline.subprocess", cmd=cmd_str)
     proc = subprocess.run(
@@ -111,8 +128,11 @@ def run_piped_cmd(
     log_path: Path | None = None,
     timeout: int = 7200,
     master_log: Path | None = None,
+    cancelled: Callable[[], bool] | None = None,
 ) -> None:
     """Run two commands piped together: cmd1 | cmd2 > output_path."""
+    if cancelled and cancelled():
+        raise TerminatedError("Job terminated by user")
     cmd1_str = " ".join(cmd1)
     cmd2_str = " ".join(cmd2)
     logger.info(

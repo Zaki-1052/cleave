@@ -283,3 +283,28 @@ export async function downloadNormalizationFactors(jobId: number): Promise<void>
   });
   _downloadBlob(response.data as Blob, 'normalization_factors.csv');
 }
+
+// ---------------------------------------------------------------------------
+// Job Management (Terminate / Retry / Log Tail)
+// ---------------------------------------------------------------------------
+
+export async function terminateJob(jobId: number): Promise<AnalysisJob> {
+  const { data } = await client.post<AnalysisJob>(`/jobs/${jobId}/terminate`);
+  return data;
+}
+
+export async function retryJob(jobId: number): Promise<AnalysisJob> {
+  const { data } = await client.post<AnalysisJob>(`/jobs/${jobId}/retry`);
+  return data;
+}
+
+export async function getJobLogTail(
+  jobId: number,
+  lines = 50,
+): Promise<{ logTail: string; totalLines: number }> {
+  const { data } = await client.get<{ logTail: string; totalLines: number }>(
+    `/jobs/${jobId}/log-tail`,
+    { params: { lines } },
+  );
+  return data;
+}

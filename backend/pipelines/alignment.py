@@ -16,6 +16,7 @@ import re
 import shutil
 import subprocess
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 import structlog
@@ -309,7 +310,14 @@ class AlignmentStage(PipelineStage):
 
         return errors
 
-    def run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
+    def run(
+        self,
+        job_id: int,
+        params: dict,
+        working_dir: Path,
+        job_dir: Path,
+        cancelled: Callable[[], bool] | None = None,
+    ) -> dict:
         genome = params["reference_genome"]
         reactions = params["reactions"]
         remove_dups = params.get("remove_duplicates", True)
@@ -369,12 +377,14 @@ class AlignmentStage(PipelineStage):
             f"Bin size: {bin_size}\nSmoothed bin size: {smoothed_bin_size}\nThreads: {threads}",
         )
 
-        # Local helpers that auto-pass master_log to every subprocess call
+        # Local helpers that auto-pass master_log and cancelled to every subprocess call
         def _run(cmd, **kwargs):
-            return run_cmd(cmd, master_log=master_log, **kwargs)
+            return run_cmd(cmd, master_log=master_log, cancelled=cancelled, **kwargs)
 
         def _run_piped(cmd1, cmd2, output_path, **kwargs):
-            return run_piped_cmd(cmd1, cmd2, output_path, master_log=master_log, **kwargs)
+            return run_piped_cmd(
+                cmd1, cmd2, output_path, master_log=master_log, cancelled=cancelled, **kwargs
+            )
 
         eff_genome_size = EFFECTIVE_GENOME_SIZES[genome]
         all_metrics: list[dict] = []

@@ -12,6 +12,7 @@ import csv
 import io
 import shutil
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 import structlog
@@ -86,7 +87,14 @@ class PearsonCorrelationStage(PipelineStage):
     # Real run
     # ------------------------------------------------------------------
 
-    def run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
+    def run(
+        self,
+        job_id: int,
+        params: dict,
+        working_dir: Path,
+        job_dir: Path,
+        cancelled: Callable[[], bool] | None = None,
+    ) -> dict:
         project_id = params["project_id"]
         experiment_id = params["experiment_id"]
         samples = params["samples"]
@@ -166,6 +174,7 @@ class PearsonCorrelationStage(PipelineStage):
             log_path=logs_dir / "pearson_matrix_r.log",
             timeout=14400,  # 4 hours for large bigWig processing
             master_log=master_log,
+            cancelled=cancelled,
         )
 
         if not coverage_csv.exists():
@@ -194,6 +203,7 @@ class PearsonCorrelationStage(PipelineStage):
             log_path=logs_dir / "pearson_heatmap_py.log",
             timeout=3600,
             master_log=master_log,
+            cancelled=cancelled,
         )
 
         if not png_path.exists():

@@ -136,6 +136,7 @@ export interface AnalysisJob {
   durationSeconds: number | null;
   errorMessage: string | null;
   methodsText: string | null;
+  retryOfJobId: number | null;
   createdAt: string;
 }
 

@@ -1,10 +1,14 @@
 # backend/services/job_service.py
-"""Job CRUD service — create, get, and list analysis jobs."""
+"""Job CRUD service — create, get, list, terminate, and retry analysis jobs."""
+
+from datetime import datetime, timezone
+from pathlib import Path
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from config import settings
 from models.analysis_job import AnalysisJob
 from models.experiment import Experiment
 from models.job_output import JobOutput
@@ -185,3 +189,145 @@ async def list_jobs_for_experiment(
         base.order_by(AnalysisJob.created_at.desc()).offset((page - 1) * per_page).limit(per_page)
     )
     return list(result.scalars().all()), total
+
+
+async def terminate_job(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> AnalysisJob | None | str:
+    """Terminate a queued or running job.
+
+    Returns job on success, None if not found, or 'conflict' string.
+    """
+    job = await get_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    # Must have admin or contributor role
+    experiment = await get_experiment_with_permission(
+        db, job.experiment_id, user_id, ["admin", "contributor"]
+    )
+    if experiment is None:
+        return None
+
+    if job.status not in ("queued", "running"):
+        return "conflict"
+
+    now = datetime.now(timezone.utc)
+    job.termination_requested_at = now
+    job.status = "terminated"
+    job.completed_at = now
+    if job.started_at:
+        job.duration_seconds = int((now - job.started_at).total_seconds())
+    else:
+        job.duration_seconds = 0
+
+    await log_event(
+        db,
+        job.experiment_id,
+        user_id,
+        action="job_terminated",
+        resource_type="job",
+        resource_id=job.id,
+        detail=f"Terminated {job.job_type} job '{job.name}'",
+    )
+
+    await db.commit()
+    await db.refresh(job)
+    return job
+
+
+async def retry_job(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> AnalysisJob | None | str:
+    """Retry a failed or terminated job by creating a new one with same params."""
+    job = await get_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    experiment = await get_experiment_with_permission(
+        db, job.experiment_id, user_id, ["admin", "contributor"]
+    )
+    if experiment is None:
+        return None
+
+    if job.status not in ("error", "terminated"):
+        return "conflict"
+
+    new_job = AnalysisJob(
+        experiment_id=job.experiment_id,
+        job_type=job.job_type,
+        name=job.name,
+        params=dict(job.params) if job.params else {},
+        parent_job_id=job.parent_job_id,
+        retry_of_job_id=job.id,
+        launched_by=user_id,
+    )
+    db.add(new_job)
+    await db.commit()
+    await db.refresh(new_job)
+
+    await log_event(
+        db,
+        job.experiment_id,
+        user_id,
+        action="job_retried",
+        resource_type="job",
+        resource_id=new_job.id,
+        detail=f"Retried {job.job_type} job '{job.name}' (original #{job.id})",
+    )
+    await db.commit()
+    return new_job
+
+
+async def get_job_log_tail(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+    lines: int = 50,
+) -> dict | None:
+    """Return the last N lines of a job's pipeline log. None if unauthorized."""
+    job = await get_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    # Resolve project_id from experiment
+    exp_result = await db.execute(
+        select(Experiment.project_id).where(Experiment.id == job.experiment_id)
+    )
+    row = exp_result.one_or_none()
+    if row is None:
+        return {"log_tail": "", "total_lines": 0}
+
+    project_id = row.project_id
+    logs_dir = (
+        Path(settings.STORAGE_ROOT)
+        / "projects"
+        / str(project_id)
+        / str(job.experiment_id)
+        / "jobs"
+        / str(job_id)
+        / "logs"
+    )
+
+    if not logs_dir.exists():
+        return {"log_tail": "", "total_lines": 0}
+
+    # Find any .log file in the logs directory
+    log_files = sorted(logs_dir.glob("*.log"))
+    if not log_files:
+        return {"log_tail": "", "total_lines": 0}
+
+    # Use the first (typically only) log file
+    log_path = log_files[0]
+    try:
+        all_lines = log_path.read_text(errors="replace").splitlines()
+    except OSError:
+        return {"log_tail": "", "total_lines": 0}
+
+    total = len(all_lines)
+    tail = all_lines[-lines:] if len(all_lines) > lines else all_lines
+    return {"log_tail": "\n".join(tail), "total_lines": total}

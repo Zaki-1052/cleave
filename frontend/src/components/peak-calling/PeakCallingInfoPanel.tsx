@@ -4,6 +4,8 @@ import { useState } from 'react';
 import type { AnalysisJob } from '@/api/types';
 import { Card } from '@/components/layout/Card';
 import { DetailRow } from '@/components/ui/DetailRow';
+import JobActions from '@/components/ui/JobActions';
+import JobErrorDetails from '@/components/ui/JobErrorDetails';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useUpdateJobNotes } from '@/hooks/useJobs';
 import { formatDate, getDisplayName } from '@/lib/utils';
@@ -131,9 +133,8 @@ export function PeakCallingInfoPanel({ job }: PeakCallingInfoPanelProps) {
         </Card>
       </div>
 
-      {job.errorMessage && (
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{job.errorMessage}</div>
-      )}
+      <JobActions job={job} />
+      <JobErrorDetails job={job} />
     </div>
   );
 }

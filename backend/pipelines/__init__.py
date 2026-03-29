@@ -1,5 +1,6 @@
 # backend/pipelines/__init__.py
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 from config import settings
@@ -24,7 +25,13 @@ _STAGES: dict[str, PipelineStage] = {
 }
 
 
-def run(job_type: str, params: dict, working_dir: Path, job_dir: Path) -> dict:
+def run(
+    job_type: str,
+    params: dict,
+    working_dir: Path,
+    job_dir: Path,
+    cancelled: Callable[[], bool] | None = None,
+) -> dict:
     """Dispatch pipeline execution by job type.
 
     Registered stages use their own mock_run/run methods.
@@ -40,7 +47,7 @@ def run(job_type: str, params: dict, working_dir: Path, job_dir: Path) -> dict:
         job_id = params.get("job_id", 0)
         if settings.PIPELINE_MODE == "mock":
             return stage.mock_run(job_id, params, working_dir, job_dir)
-        return stage.run(job_id, params, working_dir, job_dir)
+        return stage.run(job_id, params, working_dir, job_dir, cancelled=cancelled)
 
     # Fallback for unregistered pipeline types
     if settings.PIPELINE_MODE == "mock":

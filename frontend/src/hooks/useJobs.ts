@@ -114,3 +114,34 @@ export function useRomanNormalizationReport(jobId: number | null) {
     enabled: jobId !== null,
   });
 }
+
+export function useTerminateJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (jobId: number) => jobsApi.terminateJob(jobId),
+    onSuccess: (job) => {
+      void queryClient.invalidateQueries({ queryKey: ['job', job.id] });
+      void queryClient.invalidateQueries({ queryKey: ['jobs', job.experimentId] });
+      void queryClient.invalidateQueries({ queryKey: ['all-jobs'] });
+    },
+  });
+}
+
+export function useRetryJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (jobId: number) => jobsApi.retryJob(jobId),
+    onSuccess: (job) => {
+      void queryClient.invalidateQueries({ queryKey: ['jobs', job.experimentId] });
+      void queryClient.invalidateQueries({ queryKey: ['all-jobs'] });
+    },
+  });
+}
+
+export function useJobLogTail(jobId: number | null, enabled = false, lines = 50) {
+  return useQuery({
+    queryKey: ['job-log-tail', jobId],
+    queryFn: () => jobsApi.getJobLogTail(jobId!, lines),
+    enabled: enabled && jobId !== null,
+  });
+}

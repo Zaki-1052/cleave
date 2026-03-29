@@ -18,6 +18,7 @@ import re
 import shutil
 import subprocess
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 import structlog
@@ -812,7 +813,14 @@ class PeakCallingStage(PipelineStage):
 
         return errors
 
-    def run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
+    def run(
+        self,
+        job_id: int,
+        params: dict,
+        working_dir: Path,
+        job_dir: Path,
+        cancelled: Callable[[], bool] | None = None,
+    ) -> dict:
         genome = params["reference_genome"]
         peak_caller = params["peak_caller"]
         peak_size = params["peak_size"]
@@ -849,12 +857,14 @@ class PeakCallingStage(PipelineStage):
             f"Reactions: {len(reactions)}\nFragment filter: {fragment_filter}",
         )
 
-        # Local helpers that auto-pass master_log
+        # Local helpers that auto-pass master_log and cancelled
         def _run(cmd, **kwargs):
-            return run_cmd(cmd, master_log=master_log, **kwargs)
+            return run_cmd(cmd, master_log=master_log, cancelled=cancelled, **kwargs)
 
         def _run_piped(cmd1, cmd2, output_path, **kwargs):
-            return run_piped_cmd(cmd1, cmd2, output_path, master_log=master_log, **kwargs)
+            return run_piped_cmd(
+                cmd1, cmd2, output_path, master_log=master_log, cancelled=cancelled, **kwargs
+            )
 
         # Blacklist for post-peak-calling subtraction
         blacklist = resolve_blacklist(genome)

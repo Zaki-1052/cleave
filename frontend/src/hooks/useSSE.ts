@@ -69,7 +69,8 @@ export function useSSE(): void {
               void queryClient.invalidateQueries({
                 queryKey: ['jobs', data.experimentId],
               });
-              if (data.status === 'complete' || data.status === 'error') {
+              void queryClient.invalidateQueries({ queryKey: ['all-jobs'] });
+              if (data.status === 'complete' || data.status === 'error' || data.status === 'terminated') {
                 void queryClient.invalidateQueries({ queryKey: ['experiments'] });
               }
             } catch {

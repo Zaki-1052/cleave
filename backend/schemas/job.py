@@ -38,6 +38,7 @@ class JobRead(CamelModel):
     duration_seconds: int | None = None
     error_message: str | None = None
     methods_text: str | None = None
+    retry_of_job_id: int | None = None
     created_at: datetime
 
 
@@ -84,6 +85,11 @@ class JobQueueRead(CamelModel):
             duration_seconds=job.duration_seconds,
             created_at=job.created_at,
         )
+
+
+class JobLogTailRead(CamelModel):
+    log_tail: str
+    total_lines: int
 
 
 class JobOutputRead(CamelModel):

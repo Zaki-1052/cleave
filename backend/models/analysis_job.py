@@ -26,13 +26,17 @@ class AnalysisJob(Base):
     duration_seconds: Mapped[int | None] = mapped_column(Integer)
     error_message: Mapped[str | None] = mapped_column(String)
     methods_text: Mapped[str | None] = mapped_column(String)
+    termination_requested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    retry_of_job_id: Mapped[int | None] = mapped_column(ForeignKey("analysis_jobs.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     experiment: Mapped["Experiment"] = relationship(  # noqa: F821
         back_populates="analysis_jobs"
     )
     launcher: Mapped["User"] = relationship()  # noqa: F821
-    parent_job: Mapped["AnalysisJob | None"] = relationship(remote_side=[id])
+    parent_job: Mapped["AnalysisJob | None"] = relationship(
+        remote_side=[id], foreign_keys=[parent_job_id]
+    )
     outputs: Mapped[list["JobOutput"]] = relationship(  # noqa: F821
         back_populates="job", cascade="all, delete-orphan"
     )

@@ -573,3 +573,262 @@ async def test_adapter_status_in_fastq_response(client: AsyncClient):
     assert "adapterStatus" in items[0]
     # Before FastQC runs, it should be null
     assert items[0]["adapterStatus"] is None
+
+
+# --- Terminate tests ---
+
+
+async def test_terminate_queued_job_200(client: AsyncClient):
+    """Terminating a queued job sets status to terminated."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+    job_id = await _create_job(client, headers, exp, proj, "To Terminate")
+
+    resp = await client.post(f"/api/v1/jobs/{job_id}/terminate", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "terminated"
+    assert data["completedAt"] is not None
+
+
+async def test_terminate_running_job_200(client: AsyncClient):
+    """Terminating a running job sets terminated status and termination timestamp."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+    job_id = await _create_job(client, headers, exp, proj, "Running Job")
+
+    # Manually set job to running via PATCH (simulate worker pickup)
+    from tests.conftest import test_session_factory
+    from sqlalchemy import update as sa_update
+    from models.analysis_job import AnalysisJob as AJ
+
+    async with test_session_factory() as db:
+        await db.execute(sa_update(AJ).where(AJ.id == job_id).values(status="running"))
+        await db.commit()
+
+    resp = await client.post(f"/api/v1/jobs/{job_id}/terminate", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "terminated"
+
+
+async def test_terminate_completed_job_409(client: AsyncClient):
+    """Cannot terminate a completed job."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+    job_id = await _create_job(client, headers, exp, proj, "Done Job")
+
+    from tests.conftest import test_session_factory
+    from sqlalchemy import update as sa_update
+    from models.analysis_job import AnalysisJob as AJ
+
+    async with test_session_factory() as db:
+        await db.execute(sa_update(AJ).where(AJ.id == job_id).values(status="complete"))
+        await db.commit()
+
+    resp = await client.post(f"/api/v1/jobs/{job_id}/terminate", headers=headers)
+    assert resp.status_code == 409
+
+
+async def test_terminate_unauthorized_404(client: AsyncClient):
+    """Non-member cannot terminate a job."""
+    headers1 = await _register_and_get_headers(client, "owner@example.com")
+    headers2 = await _register_and_get_headers(client, "stranger@example.com")
+    proj = await _create_project(client, headers1)
+    exp = await _create_experiment(client, headers1, proj)
+    job_id = await _create_job(client, headers1, exp, proj, "Private Job")
+
+    resp = await client.post(f"/api/v1/jobs/{job_id}/terminate", headers=headers2)
+    assert resp.status_code == 404
+
+
+# --- Retry tests ---
+
+
+async def test_retry_error_job_201(client: AsyncClient):
+    """Retrying a failed job creates a new queued job with same params."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+    job_id = await _create_job(client, headers, exp, proj, "Failed Job")
+
+    from tests.conftest import test_session_factory
+    from sqlalchemy import update as sa_update
+    from models.analysis_job import AnalysisJob as AJ
+
+    async with test_session_factory() as db:
+        await db.execute(
+            sa_update(AJ).where(AJ.id == job_id).values(status="error", error_message="boom")
+        )
+        await db.commit()
+
+    resp = await client.post(f"/api/v1/jobs/{job_id}/retry", headers=headers)
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["status"] == "queued"
+    assert data["retryOfJobId"] == job_id
+    assert data["jobType"] == "alignment"
+    assert data["id"] != job_id
+
+
+async def test_retry_terminated_job_201(client: AsyncClient):
+    """Can also retry a terminated job."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+    job_id = await _create_job(client, headers, exp, proj, "Killed Job")
+
+    from tests.conftest import test_session_factory
+    from sqlalchemy import update as sa_update
+    from models.analysis_job import AnalysisJob as AJ
+
+    async with test_session_factory() as db:
+        await db.execute(sa_update(AJ).where(AJ.id == job_id).values(status="terminated"))
+        await db.commit()
+
+    resp = await client.post(f"/api/v1/jobs/{job_id}/retry", headers=headers)
+    assert resp.status_code == 201
+    assert resp.json()["status"] == "queued"
+
+
+async def test_retry_queued_job_409(client: AsyncClient):
+    """Cannot retry a job that is still queued."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+    job_id = await _create_job(client, headers, exp, proj, "Active Job")
+
+    resp = await client.post(f"/api/v1/jobs/{job_id}/retry", headers=headers)
+    assert resp.status_code == 409
+
+
+async def test_retry_unauthorized_404(client: AsyncClient):
+    """Non-member cannot retry a job."""
+    headers1 = await _register_and_get_headers(client, "owner@example.com")
+    headers2 = await _register_and_get_headers(client, "stranger@example.com")
+    proj = await _create_project(client, headers1)
+    exp = await _create_experiment(client, headers1, proj)
+    job_id = await _create_job(client, headers1, exp, proj, "Private Job")
+
+    from tests.conftest import test_session_factory
+    from sqlalchemy import update as sa_update
+    from models.analysis_job import AnalysisJob as AJ
+
+    async with test_session_factory() as db:
+        await db.execute(sa_update(AJ).where(AJ.id == job_id).values(status="error"))
+        await db.commit()
+
+    resp = await client.post(f"/api/v1/jobs/{job_id}/retry", headers=headers2)
+    assert resp.status_code == 404
+
+
+# --- Log tail tests ---
+
+
+async def test_log_tail_no_log_200(client: AsyncClient):
+    """Log tail returns empty when no log file exists."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+    job_id = await _create_job(client, headers, exp, proj, "No Log Job")
+
+    resp = await client.get(f"/api/v1/jobs/{job_id}/log-tail", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["logTail"] == ""
+    assert data["totalLines"] == 0
+
+
+async def test_log_tail_with_log_200(client: AsyncClient):
+    """Log tail returns last N lines when a log file exists."""
+    from pathlib import Path
+
+    from config import settings
+
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+    job_id = await _create_job(client, headers, exp, proj, "Logged Job")
+
+    # Create a log file at the expected path
+    logs_dir = (
+        Path(settings.STORAGE_ROOT)
+        / "projects"
+        / str(proj)
+        / str(exp)
+        / "jobs"
+        / str(job_id)
+        / "logs"
+    )
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    log_file = logs_dir / "alignment.log"
+    lines = [f"Line {i}" for i in range(100)]
+    log_file.write_text("\n".join(lines))
+
+    resp = await client.get(
+        f"/api/v1/jobs/{job_id}/log-tail", params={"lines": 10}, headers=headers
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["totalLines"] == 100
+    tail_lines = data["logTail"].split("\n")
+    assert len(tail_lines) == 10
+    assert tail_lines[0] == "Line 90"
+
+
+async def test_log_tail_unauthorized_404(client: AsyncClient):
+    """Non-member cannot access log tail."""
+    headers1 = await _register_and_get_headers(client, "owner@example.com")
+    headers2 = await _register_and_get_headers(client, "stranger@example.com")
+    proj = await _create_project(client, headers1)
+    exp = await _create_experiment(client, headers1, proj)
+    job_id = await _create_job(client, headers1, exp, proj, "Secret Job")
+
+    resp = await client.get(f"/api/v1/jobs/{job_id}/log-tail", headers=headers2)
+    assert resp.status_code == 404
+
+
+# --- Event logging tests ---
+
+
+async def test_terminate_creates_event(client: AsyncClient):
+    """Terminating a job logs an experiment event."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+    job_id = await _create_job(client, headers, exp, proj, "Terminate Event")
+
+    await client.post(f"/api/v1/jobs/{job_id}/terminate", headers=headers)
+
+    resp = await client.get(f"/api/v1/experiments/{exp}/history", headers=headers)
+    assert resp.status_code == 200
+    events = resp.json()["items"]
+    actions = [e["action"] for e in events]
+    assert "job_terminated" in actions
+
+
+async def test_retry_creates_event(client: AsyncClient):
+    """Retrying a job logs an experiment event."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+    job_id = await _create_job(client, headers, exp, proj, "Retry Event")
+
+    from tests.conftest import test_session_factory
+    from sqlalchemy import update as sa_update
+    from models.analysis_job import AnalysisJob as AJ
+
+    async with test_session_factory() as db:
+        await db.execute(sa_update(AJ).where(AJ.id == job_id).values(status="error"))
+        await db.commit()
+
+    await client.post(f"/api/v1/jobs/{job_id}/retry", headers=headers)
+
+    resp = await client.get(f"/api/v1/experiments/{exp}/history", headers=headers)
+    assert resp.status_code == 200
+    events = resp.json()["items"]
+    actions = [e["action"] for e in events]
+    assert "job_retried" in actions

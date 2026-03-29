@@ -5,12 +5,13 @@ import os
 import shutil
 import subprocess
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 import structlog
 
 from config import settings
-from pipelines.base import PipelineError, PipelineStage
+from pipelines.base import PipelineError, PipelineStage, TerminatedError
 
 logger = structlog.get_logger(__name__)
 
@@ -69,7 +70,14 @@ class TrimmingStage(PipelineStage):
 
         return errors
 
-    def run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
+    def run(
+        self,
+        job_id: int,
+        params: dict,
+        working_dir: Path,
+        job_dir: Path,
+        cancelled: Callable[[], bool] | None = None,
+    ) -> dict:
         project_id = params["project_id"]
         experiment_id = params["experiment_id"]
         fastq_pairs = params["fastq_pairs"]
@@ -147,6 +155,8 @@ class TrimmingStage(PipelineStage):
                 f"MINLEN:{minlen}",
             ]
 
+            if cancelled and cancelled():
+                raise TerminatedError("Job terminated by user")
             logger.info("trimming.stage1_start", prefix=prefix, cmd=" ".join(trim_cmd))
             proc = subprocess.run(trim_cmd, capture_output=True, text=True, timeout=3600)
             # Write Trimmomatic log (it outputs stats to stderr)
