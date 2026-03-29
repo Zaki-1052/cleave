@@ -14,6 +14,7 @@
 @docs/cleave-spec-decisions.md
 @docs/PLAN.md
 @docs/todos.md
+docs/ui-improvement.md
 
 ## Tech Stack
 
