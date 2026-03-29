@@ -16,6 +16,13 @@ const STATUS_TINTS: Record<string, string> = {
   terminated: 'bg-muted text-muted-foreground',
 };
 
+const ACTIVE_STATUSES = new Set(['running', 'in_progress']);
+
+const DOT_GLOW: Record<string, string> = {
+  running: '0 0 6px #00BCD4',
+  in_progress: '0 0 6px #00BCD4',
+};
+
 export function StatusBadge({ status }: StatusBadgeProps) {
   const dotColor = STATUS_COLORS[status] ?? 'bg-muted-foreground';
   const label = STATUS_LABELS[status] ?? status;
@@ -23,7 +30,14 @@ export function StatusBadge({ status }: StatusBadgeProps) {
 
   return (
     <span className={cn('inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium', tint)}>
-      <span className={cn('inline-block h-2 w-2 rounded-full', dotColor)} />
+      <span
+        className={cn(
+          'inline-block h-2 w-2 rounded-full',
+          dotColor,
+          ACTIVE_STATUSES.has(status) && 'animate-pulse',
+        )}
+        style={DOT_GLOW[status] ? { boxShadow: DOT_GLOW[status] } : undefined}
+      />
       {label}
     </span>
   );

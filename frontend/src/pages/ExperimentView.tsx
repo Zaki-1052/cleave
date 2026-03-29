@@ -104,8 +104,8 @@ export default function ExperimentView() {
         <div className="flex items-center gap-2">
           {!experiment.autoPipelineStatus && reactions.length > 0 && (
             <Button
+              variant="success"
               onClick={() => setShowAutoPipelineModal(true)}
-              className="bg-green-600 hover:bg-green-700"
             >
               Run Full Pipeline
             </Button>

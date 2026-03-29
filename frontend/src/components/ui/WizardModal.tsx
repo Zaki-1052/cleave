@@ -61,7 +61,7 @@ export function WizardModal({
         <DialogDescription className="sr-only">{title} wizard</DialogDescription>
 
         {/* Primary-colored header */}
-        <div className="flex shrink-0 items-center justify-between border-b bg-primary px-6 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b bg-gradient-to-r from-primary to-accent-teal px-6 py-4">
           <h2 className="text-lg font-semibold text-white">{title}</h2>
         </div>
 

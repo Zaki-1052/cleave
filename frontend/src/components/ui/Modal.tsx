@@ -27,7 +27,7 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
         )}
         onPointerDownOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader className="flex shrink-0 flex-row items-center justify-between border-b bg-primary px-6 py-4">
+        <DialogHeader className="flex shrink-0 flex-row items-center justify-between border-b bg-gradient-to-r from-primary to-accent-teal px-6 py-4">
           <DialogTitle className="text-lg font-semibold text-white">{title}</DialogTitle>
           <DialogDescription className="sr-only">{title}</DialogDescription>
         </DialogHeader>

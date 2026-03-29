@@ -35,7 +35,7 @@ export function DataTable<T>({ data, columns, pageSize = 25, emptyMessage = 'No 
   if (data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-        <Inbox className="mb-2 h-10 w-10" />
+        <Inbox className="mb-3 h-12 w-12 text-muted-foreground/40" />
         <p className="text-sm">{emptyMessage}</p>
       </div>
     );
@@ -47,7 +47,7 @@ export function DataTable<T>({ data, columns, pageSize = 25, emptyMessage = 'No 
         <table className="w-full text-left text-sm tabular-nums">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="border-b bg-muted/50">
+              <tr key={headerGroup.id} className="border-b bg-muted dark:bg-muted/80">
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
@@ -75,7 +75,7 @@ export function DataTable<T>({ data, columns, pageSize = 25, emptyMessage = 'No 
           </thead>
           <tbody>
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="border-b hover:bg-muted/50">
+              <tr key={row.id} className="border-b hover:bg-muted/80 dark:hover:bg-muted/50">
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className="px-4 py-3">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

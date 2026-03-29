@@ -104,7 +104,7 @@ function useInView(threshold = 0.12) {
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect(); } },
+      (entries) => { if (entries[0]?.isIntersecting) { setVis(true); obs.disconnect(); } },
       { threshold }
     );
     obs.observe(el);
@@ -265,7 +265,7 @@ function PeakLandscape() {
       <path d="M0,140 L0,115 C60,112 120,108 180,105 C240,100 300,110 360,112 C420,114 480,108 540,105 C600,102 660,110 720,112 C780,113 840,110 900,112 L900,140Z" fill="url(#pk2)" />
       <path d="M0,140 L0,110 C30,108 60,100 90,85 C110,72 125,45 140,30 C150,22 160,18 170,20 C185,25 200,50 230,78 C260,100 300,110 350,112 C380,113 410,108 430,95 C450,78 460,50 475,32 C485,22 495,18 510,16 C525,14 540,22 555,38 C570,55 590,85 630,105 C660,112 700,115 740,110 C760,106 775,80 790,58 C800,44 810,34 820,32 C835,30 850,42 870,68 C885,88 900,108 900,110 L900,140Z" fill="url(#pk1)" />
       <path d="M0,110 C30,108 60,100 90,85 C110,72 125,45 140,30 C150,22 160,18 170,20 C185,25 200,50 230,78 C260,100 300,110 350,112 C380,113 410,108 430,95 C450,78 460,50 475,32 C485,22 495,18 510,16 C525,14 540,22 555,38 C570,55 590,85 630,105 C660,112 700,115 740,110 C760,106 775,80 790,58 C800,44 810,34 820,32 C835,30 850,42 870,68 C885,88 900,108 900,110" fill="none" stroke={C.blue} strokeWidth="1.8" opacity="0.7" />
-      {[[140, 30], [475, 32], [510, 16], [790, 58]].map(([x, y], i) => (
+      {([[140, 30], [475, 32], [510, 16], [790, 58]] as const).map(([x, y], i) => (
         <g key={i}>
           <line x1={x} y1={y} x2={x} y2={y - 12} stroke={C.gold} strokeWidth="0.8" opacity="0.5" strokeDasharray="2,2" />
           <circle cx={x} cy={y - 14} r="2" fill={C.gold} opacity="0.5" />
@@ -386,8 +386,8 @@ export default function LandingPage() {
   useEffect(() => {
     const el = statsRef.current;
     if (!el) return;
-    const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { setStatsVis(true); obs.disconnect(); }
+    const obs = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting) { setStatsVis(true); obs.disconnect(); }
     }, { threshold: 0.3 });
     obs.observe(el);
     return () => obs.disconnect();
