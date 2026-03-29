@@ -832,6 +832,7 @@ class PeakCallingStage(PipelineStage):
         sicer2_window = params.get("sicer2_window", DEFAULT_SICER2_WINDOW)
         sicer2_gap = params.get("sicer2_gap", DEFAULT_SICER2_GAP)
         sicer2_fdr = params.get("sicer2_fdr", DEFAULT_SICER2_FDR)
+        blacklist_type = params.get("blacklist", "encode_dac")
         reactions = params["reactions"]
         project_id = params["project_id"]
         experiment_id = params["experiment_id"]
@@ -854,7 +855,8 @@ class PeakCallingStage(PipelineStage):
             master_log,
             f"Peak calling job {job_id} started",
             f"Genome: {genome}\nPeak caller: {peak_caller}\nPeak size: {peak_size}\n"
-            f"Reactions: {len(reactions)}\nFragment filter: {fragment_filter}",
+            f"Reactions: {len(reactions)}\nFragment filter: {fragment_filter}\n"
+            f"Blacklist: {blacklist_type}",
         )
 
         # Local helpers that auto-pass master_log and cancelled
@@ -866,8 +868,17 @@ class PeakCallingStage(PipelineStage):
                 cmd1, cmd2, output_path, master_log=master_log, cancelled=cancelled, **kwargs
             )
 
-        # Blacklist for post-peak-calling subtraction
-        blacklist = resolve_blacklist(genome)
+        # Blacklist(s) for post-peak-calling subtraction
+        blacklists: list[Path] = []
+        if blacklist_type == "both":
+            for bl_type in ("encode_dac", "lab_custom"):
+                bl = resolve_blacklist(genome, bl_type)
+                if bl:
+                    blacklists.append(bl)
+        elif blacklist_type != "none":
+            bl = resolve_blacklist(genome, blacklist_type)
+            if bl:
+                blacklists.append(bl)
 
         all_metrics: list[dict] = []
         all_top_peaks: list[dict] = []
@@ -962,9 +973,12 @@ class PeakCallingStage(PipelineStage):
                 raise PipelineError(f"Unsupported caller/size: {peak_caller}/{peak_size}")
 
             # ---- Step 5: Blacklist subtraction ----
-            if blacklist and peak_file.exists():
+            for bl_bed in blacklists:
+                if not peak_file.exists():
+                    break
+                bl_name = bl_bed.stem  # e.g. "mm10.blacklist" or "mm10.lab.blacklist"
                 clean_peak = peaks_dir / f"{peak_file.stem}_clean{peak_file.suffix}"
-                bl_cmd = ["bedtools", "subtract", "-a", str(peak_file), "-b", str(blacklist)]
+                bl_cmd = ["bedtools", "subtract", "-a", str(peak_file), "-b", str(bl_bed)]
                 proc = subprocess.run(
                     bl_cmd,
                     capture_output=True,
@@ -973,7 +987,7 @@ class PeakCallingStage(PipelineStage):
                 )
                 append_to_master_log(
                     master_log,
-                    f"Blacklist subtraction — {short_name} (exit {proc.returncode})",
+                    f"Blacklist subtraction ({bl_name}) — {short_name} (exit {proc.returncode})",
                     proc.stderr,
                 )
                 if proc.returncode == 0:
@@ -983,6 +997,7 @@ class PeakCallingStage(PipelineStage):
                     logger.warning(
                         "peak_calling.blacklist_subtraction_failed",
                         short_name=short_name,
+                        blacklist=bl_name,
                         error=proc.stderr[-200:],
                     )
 

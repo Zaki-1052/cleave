@@ -1,6 +1,7 @@
 // frontend/src/components/peak-calling/PeakCallingSettingsStep.tsx
 import { useState } from 'react';
 import {
+  BLACKLIST_OPTIONS,
   GENOME_DISPLAY_NAMES,
   PEAK_CALLERS,
   PEAK_CALLING_DEFAULTS,
@@ -33,6 +34,8 @@ interface PeakCallingSettingsStepProps {
   setFragmentFilter: (v: boolean) => void;
   fragmentSize: number;
   setFragmentSize: (v: number) => void;
+  blacklist: string;
+  setBlacklist: (v: string) => void;
 }
 
 export function PeakCallingSettingsStep({
@@ -56,6 +59,8 @@ export function PeakCallingSettingsStep({
   setFragmentFilter,
   fragmentSize,
   setFragmentSize,
+  blacklist,
+  setBlacklist,
 }: PeakCallingSettingsStepProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -338,6 +343,34 @@ export function PeakCallingSettingsStep({
                   </p>
                 </div>
               )}
+
+              {/* Blacklist selection */}
+              <div className="col-span-2">
+                <label htmlFor="pc-blacklist" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Blacklist Subtraction
+                </label>
+                <select
+                  id="pc-blacklist"
+                  value={blacklist}
+                  onChange={(e) => setBlacklist(e.target.value)}
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                >
+                  {BLACKLIST_OPTIONS.filter(
+                    (opt) =>
+                      opt.value === 'encode_dac' ||
+                      opt.value === 'none' ||
+                      referenceGenome === 'mm10',
+                  ).map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-400">
+                  Peaks overlapping blacklist regions are removed after calling.
+                  The lab custom blacklist (255 regions) is available for mm10 only.
+                </p>
+              </div>
             </div>
           </div>
         )}

@@ -77,6 +77,17 @@ def peak_calling_methods(params: dict) -> str:
             f"and FDR threshold of {sicer2_fdr}. "
         )
 
+    blacklist_type = params.get("blacklist", "encode_dac")
+    if blacklist_type == "encode_dac":
+        text += "Peaks overlapping ENCODE DAC Exclusion List regions were removed. "
+    elif blacklist_type == "lab_custom":
+        text += "Peaks overlapping lab-curated blacklist regions were removed. "
+    elif blacklist_type == "both":
+        text += (
+            "Peaks overlapping ENCODE DAC Exclusion List regions and "
+            "lab-curated blacklist regions were removed. "
+        )
+
     text += (
         "FRiP scores were calculated by dividing the number of reads in peaks "
         "(determined by BEDTools) by the total number of reads "

@@ -144,6 +144,13 @@ export const PEAK_CALLING_FILE_CATEGORIES = [
   },
 ] as const;
 
+export const BLACKLIST_OPTIONS = [
+  { value: 'encode_dac', label: 'ENCODE DAC Exclusion List' },
+  { value: 'lab_custom', label: 'Lab Custom Blacklist (mm10)' },
+  { value: 'both', label: 'Both (ENCODE DAC + Lab Custom)' },
+  { value: 'none', label: 'None' },
+] as const;
+
 export const PEAK_CALLING_DEFAULTS: {
   q_value: number;
   broad_cutoff: number;
@@ -151,6 +158,7 @@ export const PEAK_CALLING_DEFAULTS: {
   sicer2_fdr: number;
   fragment_filter: boolean;
   fragment_size: number;
+  blacklist: string;
 } = {
   q_value: 0.01,
   broad_cutoff: 0.1,
@@ -158,6 +166,7 @@ export const PEAK_CALLING_DEFAULTS: {
   sicer2_fdr: 0.01,
   fragment_filter: true,
   fragment_size: 120,
+  blacklist: 'encode_dac',
 };
 
 export const DIFFBIND_ANALYSIS_METHODS = [

@@ -70,6 +70,7 @@ export function NewPeakCallingWizard({
   const [sicer2Fdr, setSicer2Fdr] = useState(PEAK_CALLING_DEFAULTS.sicer2_fdr);
   const [fragmentFilter, setFragmentFilter] = useState(PEAK_CALLING_DEFAULTS.fragment_filter);
   const [fragmentSize, setFragmentSize] = useState(PEAK_CALLING_DEFAULTS.fragment_size);
+  const [blacklist, setBlacklist] = useState(PEAK_CALLING_DEFAULTS.blacklist);
 
   // Error
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -104,6 +105,7 @@ export function NewPeakCallingWizard({
     setSicer2Fdr(PEAK_CALLING_DEFAULTS.sicer2_fdr);
     setFragmentFilter(PEAK_CALLING_DEFAULTS.fragment_filter);
     setFragmentSize(PEAK_CALLING_DEFAULTS.fragment_size);
+    setBlacklist(PEAK_CALLING_DEFAULTS.blacklist);
     setSubmitError(null);
     createJobMutation.reset();
   }
@@ -201,6 +203,7 @@ export function NewPeakCallingWizard({
       peak_size: peakSize,
       fragment_filter: fragmentFilter,
       fragment_size: fragmentSize,
+      blacklist,
       reactions: selectedReactions.map((r) => ({
         reaction_id: r.reaction_id,
         short_name: r.short_name,
@@ -315,6 +318,8 @@ export function NewPeakCallingWizard({
           setFragmentFilter={setFragmentFilter}
           fragmentSize={fragmentSize}
           setFragmentSize={setFragmentSize}
+          blacklist={blacklist}
+          setBlacklist={setBlacklist}
         />
       ),
     },

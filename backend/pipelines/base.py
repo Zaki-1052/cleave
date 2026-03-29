@@ -184,7 +184,16 @@ def count_bam_reads(bam_path: Path) -> int:
         return 0
 
 
-def resolve_blacklist(genome: str) -> Path | None:
-    """Find the blacklist BED file for the given genome."""
-    bed = _BLACKLISTS_DIR / f"{genome}.blacklist.bed"
+def resolve_blacklist(genome: str, blacklist_type: str = "encode_dac") -> Path | None:
+    """Find the blacklist BED file for the given genome and type.
+
+    blacklist_type: "encode_dac" (default), "lab_custom", or "none".
+    For "both", callers should resolve each type separately and apply sequentially.
+    """
+    if blacklist_type == "none":
+        return None
+    if blacklist_type == "lab_custom":
+        bed = _BLACKLISTS_DIR / f"{genome}.lab.blacklist.bed"
+    else:
+        bed = _BLACKLISTS_DIR / f"{genome}.blacklist.bed"
     return bed if bed.exists() else None
