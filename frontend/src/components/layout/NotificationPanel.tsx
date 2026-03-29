@@ -1,7 +1,7 @@
 // frontend/src/components/layout/NotificationPanel.tsx
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useNotifications, useMarkNotificationRead } from '@/hooks/useNotifications';
+import { useNotifications, useUnreadCount, useMarkNotificationRead, useMarkAllNotificationsRead } from '@/hooks/useNotifications';
 import { formatDateTime } from '@/lib/utils';
 import type { Notification } from '@/api/types';
 
@@ -76,7 +76,9 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { data: notifications, isLoading } = useNotifications();
+  const unreadCount = useUnreadCount();
   const markRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllNotificationsRead();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -106,8 +108,17 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
       ref={panelRef}
       className="absolute right-0 top-full z-50 mt-2 w-96 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl"
     >
-      <div className="border-b border-gray-200 px-4 py-3">
+      <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
         <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+        {unreadCount > 0 && (
+          <button
+            type="button"
+            onClick={() => markAllRead.mutate()}
+            className="text-xs font-medium text-primary hover:text-primary/80"
+          >
+            Mark all read
+          </button>
+        )}
       </div>
 
       <div className="max-h-96 overflow-y-auto">

@@ -10,3 +10,7 @@ export async function getNotifications(): Promise<Notification[]> {
 export async function markRead(notificationId: number): Promise<void> {
   await client.patch(`/notifications/${notificationId}/read`);
 }
+
+export async function markAllRead(): Promise<void> {
+  await client.patch('/notifications/read-all');
+}

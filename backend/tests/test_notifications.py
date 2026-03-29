@@ -99,6 +99,66 @@ async def test_mark_notification_read(client: AsyncClient):
     assert updated["isRead"] is True
 
 
+async def test_mark_all_notifications_read(client: AsyncClient):
+    headers_admin = await _register_and_get_headers(client, "admin@example.com")
+    headers_invitee = await _register_and_get_headers(client, "invitee@example.com")
+    project_id = await _create_project(client, headers_admin)
+
+    # Create a second project to generate another invitation notification
+    project_id_2 = await _create_project(client, headers_admin, "Project 2")
+
+    # Invite invitee to both projects
+    await client.post(
+        f"/api/v1/projects/{project_id}/members",
+        json={"email": "invitee@example.com", "role": "contributor"},
+        headers=headers_admin,
+    )
+    await client.post(
+        f"/api/v1/projects/{project_id_2}/members",
+        json={"email": "invitee@example.com", "role": "contributor"},
+        headers=headers_admin,
+    )
+
+    # Invitee should have 3 unread: welcome + 2 invitations
+    list_resp = await client.get("/api/v1/notifications", headers=headers_invitee)
+    assert all(n["isRead"] is False for n in list_resp.json())
+    assert len(list_resp.json()) == 3
+
+    # Mark all as read
+    mark_resp = await client.patch("/api/v1/notifications/read-all", headers=headers_invitee)
+    assert mark_resp.status_code == 204
+
+    # Verify all are now read
+    check_resp = await client.get("/api/v1/notifications", headers=headers_invitee)
+    assert all(n["isRead"] is True for n in check_resp.json())
+
+
+async def test_mark_all_read_only_affects_own(client: AsyncClient):
+    headers_admin = await _register_and_get_headers(client, "admin@example.com")
+    headers_invitee = await _register_and_get_headers(client, "invitee@example.com")
+    headers_other = await _register_and_get_headers(client, "other@example.com")
+    project_id = await _create_project(client, headers_admin)
+
+    # Invite both users
+    await client.post(
+        f"/api/v1/projects/{project_id}/members",
+        json={"email": "invitee@example.com", "role": "contributor"},
+        headers=headers_admin,
+    )
+    await client.post(
+        f"/api/v1/projects/{project_id}/members",
+        json={"email": "other@example.com", "role": "contributor"},
+        headers=headers_admin,
+    )
+
+    # Invitee marks all read
+    await client.patch("/api/v1/notifications/read-all", headers=headers_invitee)
+
+    # Other user's notifications should still be unread
+    resp = await client.get("/api/v1/notifications", headers=headers_other)
+    assert all(n["isRead"] is False for n in resp.json())
+
+
 async def test_notification_not_visible_to_other_users(client: AsyncClient):
     headers_admin = await _register_and_get_headers(client, "admin@example.com")
     await _register_and_get_headers(client, "invitee@example.com")  # register so invite works

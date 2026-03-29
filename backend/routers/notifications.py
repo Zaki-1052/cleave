@@ -37,6 +37,14 @@ async def list_notifications(
     return await notification_service.list_notifications(db, current_user.id)
 
 
+@router.patch("/read-all", status_code=status.HTTP_204_NO_CONTENT)
+async def mark_all_notifications_read(
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    await notification_service.mark_all_read(db, current_user.id)
+
+
 @router.patch("/{notification_id}/read", status_code=status.HTTP_204_NO_CONTENT)
 async def mark_notification_read(
     notification_id: int,

@@ -44,3 +44,12 @@ async def mark_read(db: AsyncSession, notification_id: int, user_id: int) -> Non
         .values(is_read=True)
     )
     await db.commit()
+
+
+async def mark_all_read(db: AsyncSession, user_id: int) -> None:
+    await db.execute(
+        update(Notification)
+        .where(Notification.user_id == user_id, Notification.is_read.is_(False))
+        .values(is_read=True)
+    )
+    await db.commit()
