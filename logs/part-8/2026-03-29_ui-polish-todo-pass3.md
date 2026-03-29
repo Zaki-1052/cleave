@@ -9,6 +9,7 @@
 - **HomePage**: Replaced inline empty state with `<EmptyState icon={FolderPlus}>`. Switched project cards from inline hover classes (`hover:border-accent-gold`) to `<Card variant="interactive">` (uses `border-primary/20` hover — consistent brand color).
 - **SettingsPage**: Split single Card into separate Cards per section (Account Information + Email Preferences). Removed Separator import/usage. Added `max-w-2xl mx-auto` container. Moved page title outside Cards and promoted to `text-xl font-bold`. Action buttons and feedback messages sit outside Cards at bottom.
 - **App3.tsx cleanup**: File does not exist at repo root — no action needed.
+- **Login/Register branding**: Fixed poor white-on-gradient contrast. Added CleaveIcon (36px) in a gradient blue-to-teal rounded square above the "Cleave" wordmark (matching landing page nav pattern). Added `drop-shadow` to title and subtitle text for readability against lighter gradient areas. Bumped subtitle opacity from `white/70` to `white/80`.
 
 ## Decisions made
 
@@ -33,3 +34,5 @@
 - `frontend/src/pages/experiment/CustomHeatmapTab.tsx`
 - `frontend/src/pages/experiment/NormalizationTab.tsx`
 - `frontend/src/pages/experiment/PearsonCorrelationTab.tsx`
+- `frontend/src/pages/LoginPage.tsx`
+- `frontend/src/pages/RegisterPage.tsx`
