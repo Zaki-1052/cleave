@@ -1,6 +1,6 @@
 # Phase 7 Summary — Polish & QA
 
-> 10 sessions across 2026-03-28 and 2026-03-29. Phase 7 is **in progress** — 5 of 8 done criteria checked off; 3 remaining (Gold Standard project, EC2 deployment, end-to-end validation with real lab data). **~433 tests passing** (60+ new in Phase 7). Additionally includes pipeline bug fixes for Phase 6 lab extensions, concurrent alignment, auto-pipeline mode, and UI improvement skill creation.
+> 10+ sessions across 2026-03-28 and 2026-03-29. Phase 7 is **in progress** — 5 of 8 done criteria checked off; 3 remaining (Gold Standard project, EC2 deployment, end-to-end validation with real lab data). **~441 tests passing** (68+ new in Phase 7). Additionally includes pipeline bug fixes for Phase 6 lab extensions, concurrent alignment, auto-pipeline mode, UI improvement skill creation, auto-pipeline retry/SSE, and Pearson resolution fix.
 
 ---
 
@@ -157,6 +157,7 @@
 - `PATCH /api/v1/notifications/read-all` — Mark all notifications read (204)
 - `POST /api/v1/experiments/{id}/auto-pipeline` — Start full auto-pipeline
 - `POST /api/v1/experiments/{id}/auto-pipeline/cancel` — Cancel auto-pipeline
+- `POST /api/v1/experiments/{id}/auto-pipeline/retry` — Retry failed auto-pipeline step (resumes chain)
 
 ### Enhanced (Phase 7)
 - `POST /api/v1/auth/refresh` — Now rejects tokens issued before `password_changed_at`
@@ -185,11 +186,11 @@ Total: 8 migrations (4 from Phase 1-2 + 4 from Phase 7).
 | `test_peak_calling_pipeline.py` | 52 | Validation (18), mock run (12), methods text (8), helpers (9), schemas/constants (5) |
 | `test_files.py` | 38 | File tree, downloads, path traversal, batch download, X-Accel, IGV tokens, Range headers |
 | `test_alignment_pipeline.py` | 29 | Validation, mock files, output categories, QC CSV, log parsing, methods text, schema |
-| `test_jobs_api.py` | 34 | Job create, get, list, permissions, outputs, queue, QC endpoints, **terminate, retry, log-tail, events** |
+| `test_jobs_api.py` | 38 | Job create, get, list, permissions, outputs, queue, QC endpoints, **terminate, retry, log-tail, events, auto-pipeline retry** |
 | `test_reactions.py` | 31 | CRUD, validation, permissions, unique constraints, CSV import, prefixes |
 | `test_diffbind_pipeline.py` | 21 | Validation (13), mock run (6), methods text (2) |
 | `test_roman_normalization_pipeline.py` | 19 | Validation (11), mock run (6), methods text (2) |
-| `test_pearson_correlation_pipeline.py` | 19 | Validation (10), mock run (6), methods text (3) |
+| `test_pearson_correlation_pipeline.py` | 23 | Validation (13), mock run (6), methods text (4) |
 | `test_custom_heatmap_pipeline.py` | 18 | Validation (10), mock run (6), methods text (2) |
 | `test_email_service.py` | **17** | SES send, Jinja2 templates, graceful fallback, job/reset email content |
 | `test_projects.py` | 16 | Project CRUD, membership, permissions |
@@ -208,7 +209,7 @@ Total: 8 migrations (4 from Phase 1-2 + 4 from Phase 7).
 | `test_sse.py` | 6 | Auth rejection, generator lifecycle, notification events, job status, user isolation |
 | `test_users.py` | 4 | User profile get/update |
 | `test_job_output_service.py` | 4 | Output persistence, storage update, category assignment, empty outputs |
-| **Total** | **~433** | |
+| **Total** | **~441** | |
 
 All tests run inside Docker (`docker compose exec api pytest tests/`). `ruff check` + `ruff format --check`: clean. `tsc --noEmit` / `npm run build`: clean.
 
@@ -362,6 +363,10 @@ No new npm dependencies.
 - ~~Roman normalization NA propagation~~ → NA replacement + na.rm guards
 - ~~Downstream wizards didn't prefer normalized bigWigs~~ → ChooseBigWigSourceStep with normalization preference
 - ~~No auto-pipeline mode~~ → Full sequential chaining with condition auto-detection
+- ~~No auto-pipeline retry~~ → Retry button on error banner, `POST /experiments/{id}/auto-pipeline/retry`, chain resumes via `auto_pipeline=True` flag
+- ~~No auto-pipeline SSE events~~ → Dedicated `auto_pipeline_status` SSE event type, eliminates race conditions
+- ~~Pearson resolution mismatch~~ → Parameterized `dx` in R script (20bp for alignment, 50bp for rnorm bigWigs)
+- ~~`retry_job()` broke auto-pipeline chain~~ → Now copies `auto_pipeline` flag and resets experiment status
 
 ### Still Open
 - **Gold Standard reference project**: Pre-loaded read-only project not yet created (Phase 7.2).
@@ -369,9 +374,7 @@ No new npm dependencies.
 - **End-to-end validation with real lab data**: Full pipeline tested locally with real tools on Mac but not yet on production EC2 instance (Phase 7.7).
 - **SES sandbox mode**: New AWS accounts need production access request or verified recipient emails.
 - **Subprocess kill for long-running steps**: Termination waits for current subprocess step to finish (e.g., bowtie2). No SIGTERM to running process.
-- **Pearson correlation resolution mismatch**: Alignment bigWigs (20bp) produce near-zero correlations; must use Roman-normalized bigWigs (50bp). Wizard now prefers rnorm bigWigs but full resolution-matching deferred.
 - **Heatmap/Pearson/Normalization tabs lack InfoPanel**: No Terminate/Retry buttons on those tabs (available via AnalysisQueuePage).
-- **Auto-pipeline SSE integration**: Existing SSE works for individual job status but no dedicated auto-pipeline progress stream.
 - **Per-project storage quotas**: Global only; no per-project DB column.
 - **UI improvement skill**: Prompt created but no code changes executed.
 
@@ -400,3 +403,7 @@ No new npm dependencies.
 - [x] Roman normalization crash fixes (bin mismatch + NA propagation)
 - [x] Global React error boundary
 - [x] UI improvement skill prompt authored
+- [x] Auto-pipeline retry mechanism (Retry button on error, `POST /experiments/{id}/auto-pipeline/retry`)
+- [x] Auto-pipeline SSE events (dedicated `auto_pipeline_status` event type)
+- [x] Pearson correlation resolution fix (parameterized `dx` — 20bp for alignment, 50bp for rnorm)
+- [x] Fix: `retry_job()` preserves `auto_pipeline` flag on retried jobs
