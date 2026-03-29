@@ -5,8 +5,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   FileText, Dna, FlaskConical, AlignLeft, Mountain,
   ArrowLeftRight, Grid3x3, ScatterChart, Scale, History,
-  FolderTree, Loader2,
+  FolderTree,
 } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import type { LucideIcon } from 'lucide-react';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
@@ -72,7 +73,7 @@ export default function ExperimentView() {
   if (isLoading) {
     return (
       <div className="flex h-40 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -142,7 +143,7 @@ export default function ExperimentView() {
                 <Link
                   key={tab.path}
                   to={`/experiments/${id}/${tab.path}`}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm transition-colors ${
+                  className={`flex items-center gap-2 px-4 py-3 text-sm transition-all duration-150 ${
                     isActive
                       ? 'bg-white font-semibold text-primary'
                       : 'text-gray-600 hover:bg-white/50'

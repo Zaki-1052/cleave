@@ -2,7 +2,9 @@
 import { useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { ColumnDef } from '@tanstack/react-table';
-import { AlertTriangle, FileText, Trash2, Loader2 } from 'lucide-react';
+import { AlertTriangle, FileText, Trash2 } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
+import { toast } from 'sonner';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
@@ -153,7 +155,11 @@ export default function FastqsTab() {
         },
       },
       {
-        onSuccess: (job) => setTrimmingJobId(job.id),
+        onSuccess: (job) => {
+          setTrimmingJobId(job.id);
+          toast.success('Trimming job queued');
+        },
+        onError: () => toast.error('Failed to start trimming'),
       },
     );
   }
@@ -173,7 +179,9 @@ export default function FastqsTab() {
         onSuccess: (job) => {
           setTrimmingJobId(job.id);
           setShowTrimConfig(false);
+          toast.success('Trimming job queued');
         },
+        onError: () => toast.error('Failed to start trimming'),
       },
     );
   }
@@ -239,7 +247,10 @@ export default function FastqsTab() {
     deleteMutation.mutate(
       { experimentId: experiment.id, fastqId: deleteTarget.id },
       {
-        onSuccess: () => setDeleteTarget(null),
+        onSuccess: () => {
+          setDeleteTarget(null);
+          toast.success('File deleted');
+        },
         onError: () => setDeleteError('Failed to delete file. Please try again.'),
       },
     );
@@ -248,7 +259,7 @@ export default function FastqsTab() {
   if (isLoading) {
     return (
       <div className="flex h-40 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -321,7 +332,7 @@ export default function FastqsTab() {
         {isTrimmingInProgress && (
           <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
             <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+              <Spinner size="sm" className="text-blue-500" />
               <span>
                 Trimming in progress...{' '}
                 {trimmingJob?.status === 'queued' ? '(queued)' : '(running)'}

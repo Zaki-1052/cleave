@@ -1,6 +1,7 @@
 // frontend/src/components/fastqs/FastqcReportModal.tsx
 import { useEffect, useRef, useState } from 'react';
-import { Download, Maximize2, Minimize2, X, Loader2 } from 'lucide-react';
+import { Download, Maximize2, Minimize2, X } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
 import { getFastqcSignedUrl } from '@/api/fastqs';
 
@@ -88,7 +89,7 @@ export function FastqcReportModal({
             />
           ) : (
             <div className="flex h-full items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <Spinner size="lg" />
             </div>
           )}
         </div>

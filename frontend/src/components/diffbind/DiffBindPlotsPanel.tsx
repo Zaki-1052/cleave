@@ -1,5 +1,6 @@
 // frontend/src/components/diffbind/DiffBindPlotsPanel.tsx
-import { Download, Loader2 } from 'lucide-react';
+import { Download } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import { useEffect, useState } from 'react';
 
 import { getOutputSignedUrl } from '@/api/jobs';
@@ -34,7 +35,7 @@ export function DiffBindPlotsPanel({ jobId }: DiffBindPlotsPanelProps) {
     return (
       <Card>
         <div className="flex h-40 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Spinner size="lg" />
         </div>
       </Card>
     );
@@ -172,7 +173,7 @@ function PlotCard({ jobId, plot }: PlotCardProps) {
         />
       ) : (
         <div className="flex h-48 items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <Spinner />
         </div>
       )}
     </Card>

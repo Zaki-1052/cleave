@@ -1,7 +1,8 @@
 // frontend/src/components/alignment/NewAlignmentWizard.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Spinner } from '@/components/ui/Spinner';
 import { WizardModal } from '@/components/ui/WizardModal';
 import { Button } from '@/components/ui/Button';
 import { AlignmentDetailsStep } from './AlignmentDetailsStep';
@@ -184,6 +185,7 @@ export function NewAlignmentWizard({
           params,
         },
       });
+      toast.success('Alignment job queued');
       handleClose();
       navigate(`/experiments/${experiment.id}/alignment/${job.id}`);
     } catch {
@@ -209,7 +211,7 @@ export function NewAlignmentWizard({
       label: 'Choose Reactions',
       content: isDataLoading ? (
         <div className="flex h-40 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Spinner size="lg" />
         </div>
       ) : (
         <ChooseReactionsStep

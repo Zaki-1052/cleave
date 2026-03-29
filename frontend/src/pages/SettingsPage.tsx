@@ -11,6 +11,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import * as authApi from '@/api/auth';
 import { EMAIL_NOTIFICATION_OPTIONS } from '@/lib/constants';
@@ -61,8 +62,10 @@ export default function SettingsPage() {
       });
       await refreshUser();
       setSaveSuccess(true);
+      toast.success('Settings saved');
     } catch {
       setError('Failed to save settings. Please try again.');
+      toast.error('Failed to save settings');
     } finally {
       setIsSaving(false);
     }

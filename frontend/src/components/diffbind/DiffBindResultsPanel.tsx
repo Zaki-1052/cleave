@@ -1,6 +1,7 @@
 // frontend/src/components/diffbind/DiffBindResultsPanel.tsx
 import { type ColumnDef } from '@tanstack/react-table';
-import { Download, Loader2 } from 'lucide-react';
+import { Download } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import { useMemo, useState } from 'react';
 
 import { downloadDiffBindCounts, downloadDiffBindResults } from '@/api/jobs';
@@ -94,7 +95,7 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
     return (
       <Card>
         <div className="flex h-40 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Spinner size="lg" />
         </div>
       </Card>
     );

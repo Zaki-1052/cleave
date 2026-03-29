@@ -2,7 +2,8 @@
 import { useState, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { type ColumnDef } from '@tanstack/react-table';
-import { ChevronDown, ChevronRight, Download, File, Folder, FolderOpen, Loader2 } from 'lucide-react';
+import { ChevronRight, Download, File, Folder, FolderOpen } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
@@ -63,7 +64,7 @@ function TreeNode({
             onToggle(node.path);
           }}
         >
-          {hasChildren ? (isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />) : ''}
+          {hasChildren ? <ChevronRight className={`h-3.5 w-3.5 transition-transform duration-150 ${isExpanded ? 'rotate-90' : ''}`} /> : ''}
         </span>
         {isExpanded ? <FolderOpen className="h-4 w-4 text-gray-400" /> : <Folder className="h-4 w-4 text-gray-400" />}
         <span className="truncate">{node.name}</span>
@@ -147,7 +148,7 @@ export default function AllFilesTab() {
     return (
       <Card>
         <div className="flex h-40 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Spinner size="lg" />
         </div>
       </Card>
     );

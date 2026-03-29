@@ -1,6 +1,7 @@
 // frontend/src/components/alignment/AlignmentQCReportPanel.tsx
 import { type ColumnDef } from '@tanstack/react-table';
-import { ChevronDown, Download, Loader2 } from 'lucide-react';
+import { ChevronDown, Download } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import { useEffect, useMemo, useState } from 'react';
 
 import { downloadQCCsv, getOutputSignedUrl } from '@/api/jobs';
@@ -90,7 +91,7 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
     return (
       <Card>
         <div className="flex h-40 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Spinner size="lg" />
         </div>
       </Card>
     );
@@ -298,7 +299,7 @@ function HeatmapSection({ jobId, category, title, description }: HeatmapSectionP
           {title}
         </h3>
         <div className="flex h-32 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Spinner size="lg" />
         </div>
       </Card>
     );
@@ -401,7 +402,7 @@ function HeatmapImage({ jobId, output }: { jobId: number; output: JobOutput }) {
         />
       ) : (
         <div className="flex h-48 items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <Spinner />
         </div>
       )}
     </div>

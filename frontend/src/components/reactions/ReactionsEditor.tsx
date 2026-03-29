@@ -1,7 +1,9 @@
 // frontend/src/components/reactions/ReactionsEditor.tsx
 import { useMemo, useState } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Check, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Check, Pencil, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { Modal } from '@/components/ui/Modal';
@@ -144,7 +146,10 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
     deleteMutation.mutate(
       { experimentId, reactionId: deleteTarget.id },
       {
-        onSuccess: () => setDeleteTarget(null),
+        onSuccess: () => {
+          toast.success('Reaction deleted');
+          setDeleteTarget(null);
+        },
         onError: () => setDeleteError('Failed to delete reaction. Please try again.'),
       },
     );
@@ -153,7 +158,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
   if (isLoading) {
     return (
       <div className="flex h-40 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Spinner size="lg" />
       </div>
     );
   }

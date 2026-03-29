@@ -1,4 +1,5 @@
 // frontend/src/components/ui/JobActions.tsx
+import { toast } from 'sonner';
 import type { AnalysisJob } from '@/api/types';
 import { useTerminateJob, useRetryJob } from '@/hooks/useJobs';
 import { Button } from './Button';
@@ -19,14 +20,19 @@ export default function JobActions({ job, onRetrySuccess }: Props) {
 
   const handleTerminate = () => {
     if (!window.confirm(`Terminate job "${job.name}"? This cannot be undone.`)) return;
-    terminateMutation.mutate(job.id);
+    terminateMutation.mutate(job.id, {
+      onSuccess: () => toast.success('Job terminated'),
+      onError: () => toast.error('Failed to terminate job'),
+    });
   };
 
   const handleRetry = () => {
     retryMutation.mutate(job.id, {
       onSuccess: (newJob) => {
+        toast.success('Job re-queued');
         onRetrySuccess?.(newJob);
       },
+      onError: () => toast.error('Failed to retry job'),
     });
   };
 

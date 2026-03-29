@@ -1,7 +1,8 @@
 // frontend/src/pages/ProjectDetailPage.tsx
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Loader2, UserPlus } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
@@ -66,7 +67,7 @@ export default function ProjectDetailPage() {
   if (isLoading) {
     return (
       <div className="flex h-40 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Spinner size="lg" />
       </div>
     );
   }

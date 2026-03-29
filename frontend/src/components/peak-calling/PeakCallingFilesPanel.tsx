@@ -1,7 +1,8 @@
 // frontend/src/components/peak-calling/PeakCallingFilesPanel.tsx
 import { type ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { Download, Loader2 } from 'lucide-react';
+import { Download } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 
 import { batchDownloadJobFiles } from '@/api/jobs';
 import type { JobOutput } from '@/api/types';
@@ -153,7 +154,7 @@ export function PeakCallingFilesPanel({ jobId }: PeakCallingFilesPanelProps) {
 
       {isLoading ? (
         <div className="flex h-20 items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <Spinner />
         </div>
       ) : (
         <DataTable data={outputs ?? []} columns={columns} pageSize={25} />

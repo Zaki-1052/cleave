@@ -1,5 +1,6 @@
 // frontend/src/components/peak-calling/PeakCallingQCReportPanel.tsx
-import { Download, Loader2 } from 'lucide-react';
+import { Download } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import type { AnalysisJob } from '@/api/types';
 import { downloadPeakCallingQCCsv, downloadTopPeaksCsv } from '@/api/jobs';
 import { Card } from '@/components/layout/Card';
@@ -31,7 +32,7 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
     return (
       <Card>
         <div className="flex h-40 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Spinner size="lg" />
         </div>
       </Card>
     );

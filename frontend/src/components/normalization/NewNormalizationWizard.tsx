@@ -1,7 +1,8 @@
 // frontend/src/components/normalization/NewNormalizationWizard.tsx
-import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { Spinner } from '@/components/ui/Spinner';
 import { WizardModal } from '@/components/ui/WizardModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/layout/Card';
@@ -172,6 +173,7 @@ export function NewNormalizationWizard({
           parentJobId: selectedAlignmentJobId,
         },
       });
+      toast.success('Normalization job queued');
       handleClose();
       navigate(`/experiments/${experiment.id}/normalization/${job.id}`);
     } catch {
@@ -251,7 +253,7 @@ export function NewNormalizationWizard({
 
   const alignmentStep = jobsLoading ? (
     <div className="flex h-40 items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <Spinner size="lg" />
     </div>
   ) : (
     <Card>

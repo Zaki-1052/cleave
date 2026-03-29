@@ -1,5 +1,5 @@
 // frontend/src/pages/experiment/DiffBindTab.tsx
-import { Loader2 } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import type { Experiment } from '@/api/types';
@@ -48,7 +48,7 @@ export default function DiffBindTab() {
     return (
       <Card>
         <div className="flex h-40 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Spinner size="lg" />
         </div>
       </Card>
     );
@@ -98,7 +98,7 @@ export default function DiffBindTab() {
             <button
               key={tab.key}
               onClick={() => setActiveSubTab(tab.key)}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
+              className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
                 activeSubTab === tab.key
                   ? 'border-b-2 border-primary text-primary'
                   : 'text-gray-500 hover:text-gray-700'

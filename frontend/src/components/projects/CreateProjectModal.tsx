@@ -1,5 +1,6 @@
 // frontend/src/components/projects/CreateProjectModal.tsx
 import { type FormEvent, useState } from 'react';
+import { toast } from 'sonner';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -28,6 +29,7 @@ export function CreateProjectModal({ isOpen, onClose }: CreateProjectModalProps)
       { name: name.trim(), description: description.trim() || undefined },
       {
         onSuccess: () => {
+          toast.success('Project created');
           handleClose();
         },
       },

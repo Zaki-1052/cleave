@@ -1,6 +1,7 @@
 // frontend/src/components/normalization/NormalizationFilesPanel.tsx
 import { type ColumnDef } from '@tanstack/react-table';
-import { Download, Loader2 } from 'lucide-react';
+import { Download } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import { useMemo, useState } from 'react';
 
 import { batchDownloadJobFiles } from '@/api/jobs';
@@ -155,7 +156,7 @@ export function NormalizationFilesPanel({ jobId }: NormalizationFilesPanelProps)
 
       {isLoading ? (
         <div className="flex h-20 items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <Spinner />
         </div>
       ) : (
         <DataTable data={outputs ?? []} columns={columns} pageSize={25} />

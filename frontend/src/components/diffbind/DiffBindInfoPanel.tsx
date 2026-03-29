@@ -1,6 +1,7 @@
 // frontend/src/components/diffbind/DiffBindInfoPanel.tsx
 import { Copy } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import type { AnalysisJob } from '@/api/types';
 import { Card } from '@/components/layout/Card';
@@ -44,7 +45,11 @@ export function DiffBindInfoPanel({ job }: DiffBindInfoPanelProps) {
     updateNotes.mutate(
       { jobId: job.id, notes: draft || null },
       {
-        onSuccess: () => setEditing(false),
+        onSuccess: () => {
+          toast.success('Notes saved');
+          setEditing(false);
+        },
+        onError: () => toast.error('Failed to save notes'),
       },
     );
   }

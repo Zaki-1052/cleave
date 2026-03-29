@@ -1,10 +1,12 @@
 // frontend/src/components/pearson-correlation/NewPearsonCorrelationWizard.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { WizardModal } from '@/components/ui/WizardModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/layout/Card';
-import { ChooseBigWigSourceStep, useBigWigOutputs } from '@/components/ui/ChooseBigWigSourceStep';
+import { ChooseBigWigSourceStep } from '@/components/ui/ChooseBigWigSourceStep';
+import { useBigWigOutputs } from '@/components/ui/useBigWigOutputs';
 import { PearsonSelectSamplesStep } from './PearsonSelectSamplesStep';
 import { PearsonSettingsStep } from './PearsonSettingsStep';
 import { useCreateJob, useJobs } from '@/hooks/useJobs';
@@ -208,6 +210,7 @@ export function NewPearsonCorrelationWizard({
           parentJobId: parentJobId,
         },
       });
+      toast.success('Correlation job queued');
       handleClose();
       navigate(`/experiments/${experiment.id}/correlations/${job.id}`);
     } catch {

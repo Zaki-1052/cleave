@@ -1,10 +1,12 @@
 // frontend/src/components/custom-heatmap/NewCustomHeatmapWizard.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { WizardModal } from '@/components/ui/WizardModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/layout/Card';
-import { ChooseBigWigSourceStep, useBigWigOutputs } from '@/components/ui/ChooseBigWigSourceStep';
+import { ChooseBigWigSourceStep } from '@/components/ui/ChooseBigWigSourceStep';
+import { useBigWigOutputs } from '@/components/ui/useBigWigOutputs';
 import { SelectSamplesStep } from './SelectSamplesStep';
 import { useCreateJob, useJobs } from '@/hooks/useJobs';
 import { uploadBedFile } from '@/api/jobs';
@@ -250,6 +252,7 @@ export function NewCustomHeatmapWizard({
           parentJobId: parentJobId,
         },
       });
+      toast.success('Heatmap job queued');
       handleClose();
       navigate(`/experiments/${experiment.id}/heatmaps/${job.id}`);
     } catch {

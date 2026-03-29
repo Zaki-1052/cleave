@@ -1,6 +1,7 @@
 // frontend/src/components/projects/ManageMembersModal.tsx
 import { type FormEvent, useState } from 'react';
 import { UserMinus } from 'lucide-react';
+import { toast } from 'sonner';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -55,6 +56,7 @@ export function ManageMembersModal({ isOpen, onClose, projectId }: ManageMembers
       { projectId, email: email.trim(), role },
       {
         onSuccess: () => {
+          toast.success('Member invited');
           setEmail('');
           setRole('contributor');
         },
@@ -74,11 +76,23 @@ export function ManageMembersModal({ isOpen, onClose, projectId }: ManageMembers
   }
 
   function handleRoleChange(userId: number, newRole: string) {
-    updateRole.mutate({ projectId, userId, role: newRole });
+    updateRole.mutate(
+      { projectId, userId, role: newRole },
+      {
+        onSuccess: () => toast.success('Role updated'),
+        onError: () => toast.error('Failed to update role'),
+      },
+    );
   }
 
   function handleRemove(userId: number) {
-    removeMember.mutate({ projectId, userId });
+    removeMember.mutate(
+      { projectId, userId },
+      {
+        onSuccess: () => toast.success('Member removed'),
+        onError: () => toast.error('Failed to remove member'),
+      },
+    );
   }
 
   const adminCount = members?.filter((m) => m.role === 'admin').length ?? 0;

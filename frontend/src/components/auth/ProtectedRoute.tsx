@@ -1,6 +1,6 @@
 // frontend/src/components/auth/ProtectedRoute.tsx
 import { Navigate, Outlet } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import { useAuth } from '@/hooks/useAuth';
 
 export function ProtectedRoute() {
@@ -9,7 +9,7 @@ export function ProtectedRoute() {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Spinner size="lg" />
       </div>
     );
   }

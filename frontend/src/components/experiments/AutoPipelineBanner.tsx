@@ -1,6 +1,7 @@
 // frontend/src/components/experiments/AutoPipelineBanner.tsx
 import { useMemo, useState } from 'react';
-import { Check, Loader2, X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
 import { cancelAutoPipeline, retryAutoPipeline } from '@/api/autoPipeline';
 import { useJobs } from '@/hooks/useJobs';
@@ -130,7 +131,7 @@ export function AutoPipelineBanner({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {isRunning && (
-            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            <Spinner size="sm" />
           )}
           <span className="text-sm font-semibold text-gray-800">
             {isPending && 'Auto-Pipeline: Waiting for FastQC...'}
@@ -175,7 +176,7 @@ export function AutoPipelineBanner({
               >
                 {step.state === 'complete' && <Check className="h-3 w-3" />}
                 {step.state === 'running' && (
-                  <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
+                  <Spinner size="sm" className="text-blue-500" />
                 )}
                 {step.state === 'error' && <X className="h-3 w-3" />}
                 {step.label}

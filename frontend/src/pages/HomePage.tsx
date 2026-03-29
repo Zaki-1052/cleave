@@ -1,7 +1,8 @@
 // frontend/src/pages/HomePage.tsx
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2, Clock, FolderPlus } from 'lucide-react';
+import { Clock, FolderPlus } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { CreateProjectModal } from '@/components/projects/CreateProjectModal';
@@ -34,7 +35,7 @@ export default function HomePage() {
 
         {isLoading ? (
           <div className="flex h-40 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <Spinner size="lg" />
           </div>
         ) : data?.items.length === 0 ? (
           <Card>

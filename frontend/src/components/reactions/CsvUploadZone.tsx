@@ -1,6 +1,7 @@
 // frontend/src/components/reactions/CsvUploadZone.tsx
 import { useRef, useState, type DragEvent } from 'react';
-import { Download, Loader2, Upload } from 'lucide-react';
+import { Download, Upload } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import { useImportReactionsCsv } from '@/hooks/useReactions';
 import { downloadTemplate } from '@/api/reactions';
 import type { ApiError, CsvImportResponse } from '@/api/types';
@@ -125,7 +126,7 @@ export function CsvUploadZone({ experimentId, onImportComplete }: CsvUploadZoneP
       >
         {isImporting ? (
           <div className="flex flex-col items-center gap-2">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <Spinner />
             <p className="text-sm text-gray-500">Importing...</p>
           </div>
         ) : (

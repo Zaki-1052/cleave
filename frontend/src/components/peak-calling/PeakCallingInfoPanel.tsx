@@ -1,6 +1,7 @@
 // frontend/src/components/peak-calling/PeakCallingInfoPanel.tsx
 import { useState } from 'react';
 import { Copy } from 'lucide-react';
+import { toast } from 'sonner';
 
 import type { AnalysisJob } from '@/api/types';
 import { Card } from '@/components/layout/Card';
@@ -39,7 +40,11 @@ export function PeakCallingInfoPanel({ job }: PeakCallingInfoPanelProps) {
     updateNotes.mutate(
       { jobId: job.id, notes: draft || null },
       {
-        onSuccess: () => setEditing(false),
+        onSuccess: () => {
+          toast.success('Notes saved');
+          setEditing(false);
+        },
+        onError: () => toast.error('Failed to save notes'),
       },
     );
   }

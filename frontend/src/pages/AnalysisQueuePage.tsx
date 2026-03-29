@@ -1,7 +1,8 @@
 // frontend/src/pages/AnalysisQueuePage.tsx
 import { useState, useEffect } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Search, Loader2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/layout/Card';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -182,7 +183,7 @@ export default function AnalysisQueuePage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Spinner size="lg" />
         </div>
       ) : jobs.length === 0 ? (
         <p className="py-12 text-center text-sm text-gray-400">No jobs found.</p>
