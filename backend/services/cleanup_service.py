@@ -43,10 +43,19 @@ async def cleanup_expired_logs() -> dict:
         # Group freed bytes by (experiment_id, project_id) to batch storage updates
         deltas: dict[tuple[int, int], int] = {}
 
+        storage_root = Path(settings.STORAGE_ROOT).resolve()
+
         for job_output, experiment_id, project_id in rows:
             file_size = job_output.file_size_bytes or 0
 
-            abs_path = Path(settings.STORAGE_ROOT) / job_output.file_path
+            abs_path = (Path(settings.STORAGE_ROOT) / job_output.file_path).resolve()
+            if not str(abs_path).startswith(str(storage_root) + "/"):
+                logger.warning(
+                    "cleanup.path_outside_storage_root",
+                    file_path=job_output.file_path,
+                    resolved=str(abs_path),
+                )
+                continue
             abs_path.unlink(missing_ok=True)
 
             key = (experiment_id, project_id)
