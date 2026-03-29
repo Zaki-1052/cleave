@@ -24,6 +24,8 @@ dependencies = [
     "httpx",
     "structlog",
     "stream-zip>=0.0.83",
+    "boto3",
+    "jinja2",
 ]
 
 [project.optional-dependencies]

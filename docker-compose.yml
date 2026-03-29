@@ -31,6 +31,9 @@ services:
       STORAGE_ROOT: /data/cleave
       GENOME_INDEX_DIR: /data/cleave/genomes
       TEST_DATABASE_URL: postgresql+asyncpg://cleave:dev@db:5432/cleave_test
+      AWS_SES_REGION: ""
+      AWS_SES_FROM_EMAIL: ""
+      APP_URL: http://localhost:5173
     depends_on:
       - db
 
@@ -48,6 +51,9 @@ services:
       STORAGE_ROOT: /data/cleave
       GENOME_INDEX_DIR: /data/cleave/genomes
       WORKER_POLL_INTERVAL_SECONDS: 2
+      AWS_SES_REGION: ""
+      AWS_SES_FROM_EMAIL: ""
+      APP_URL: http://localhost:5173
     depends_on:
       - db
     restart: unless-stopped

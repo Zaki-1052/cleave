@@ -15,6 +15,9 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     first_name: Mapped[str | None] = mapped_column(String)
     last_name: Mapped[str | None] = mapped_column(String)
     email_notifications: Mapped[str] = mapped_column(String, default="always")
+    password_changed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     projects_created: Mapped[list["Project"]] = relationship(  # noqa: F821

@@ -46,6 +46,11 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
             {error && <p className="text-sm text-red-500">{error}</p>}
+            <div className="text-right">
+              <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+                Forgot your password?
+              </Link>
+            </div>
             <Button type="submit">Sign In</Button>
             <p className="text-center text-sm text-gray-500">
               Don&apos;t have an account?{' '}

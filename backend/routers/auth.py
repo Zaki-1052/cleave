@@ -1,4 +1,5 @@
 # backend/routers/auth.py
+import jwt as pyjwt
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi_users.exceptions import InvalidPasswordException, UserAlreadyExists
 from pydantic import EmailStr
@@ -148,6 +149,27 @@ async def refresh(
             detail="Invalid or expired refresh token",
         )
 
+    # Reject refresh if password was changed after this token was issued
+    if user.password_changed_at is not None:
+        try:
+            payload = pyjwt.decode(
+                refresh_token,
+                settings.REFRESH_SECRET_KEY,
+                algorithms=["HS256"],
+                audience=["fastapi-users:auth"],
+            )
+            token_issued_at = payload["exp"] - (settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400)
+            if token_issued_at < user.password_changed_at.timestamp():
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Password was changed. Please log in again.",
+                )
+        except pyjwt.PyJWTError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid refresh token",
+            )
+
     access_strategy = get_access_jwt_strategy()
     access_token = await access_strategy.write_token(user)
 
@@ -165,3 +187,47 @@ async def logout(response: Response):
         samesite="lax",
         secure=settings.COOKIE_SECURE,
     )
+
+
+# --- Password Reset ---
+
+
+class ForgotPasswordRequest(CamelModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(CamelModel):
+    token: str
+    password: str
+
+
+@router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)
+@limiter.limit("3/minute")
+async def forgot_password(
+    body: ForgotPasswordRequest,
+    request: Request,
+    user_manager: UserManager = Depends(get_user_manager),
+):
+    try:
+        user = await user_manager.get_by_email(body.email)
+        await user_manager.forgot_password(user, request)
+    except Exception:
+        pass  # Always 202 to prevent email enumeration
+    return {"status": "ok"}
+
+
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+@limiter.limit("5/minute")
+async def reset_password(
+    body: ResetPasswordRequest,
+    request: Request,
+    user_manager: UserManager = Depends(get_user_manager),
+):
+    try:
+        await user_manager.reset_password(body.token, body.password, request)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="RESET_PASSWORD_BAD_TOKEN",
+        )
+    return {"status": "ok"}

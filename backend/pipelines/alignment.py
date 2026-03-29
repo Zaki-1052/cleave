@@ -952,8 +952,7 @@ class AlignmentStage(PipelineStage):
 
         # Per-reaction log files (each thread writes to its own file)
         reaction_logs = {
-            rxn["short_name"]: logs_dir / f"{rxn['short_name']}_pipeline.log"
-            for rxn in reactions
+            rxn["short_name"]: logs_dir / f"{rxn['short_name']}_pipeline.log" for rxn in reactions
         }
 
         # ---- Concurrent reaction dispatch ----

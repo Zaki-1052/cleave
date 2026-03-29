@@ -1,4 +1,5 @@
 # backend/auth.py
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import Depends, Request
@@ -18,6 +19,7 @@ async def get_user_db(session: AsyncSession = Depends(get_db)):
 
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     reset_password_token_secret = settings.SECRET_KEY
+    reset_password_token_lifetime_seconds = settings.RESET_TOKEN_LIFETIME_SECONDS
     verification_token_secret = settings.SECRET_KEY
 
     async def on_after_register(self, user: User, request: Optional[Request] = None):
@@ -30,6 +32,28 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
             "welcome",
             "Welcome to Cleave",
             f"Welcome {user.first_name or user.email}! Your account is ready.",
+        )
+
+    async def on_after_forgot_password(
+        self, user: User, token: str, request: Optional[Request] = None
+    ):
+        from services.email_service import send_password_reset_email
+
+        await send_password_reset_email(
+            to=user.email,
+            token=token,
+            user_name=user.first_name or user.email,
+        )
+
+    async def on_after_reset_password(self, user: User, request: Optional[Request] = None):
+        from services.email_service import send_password_reset_confirmation_email
+
+        session = self.user_db.session
+        user.password_changed_at = datetime.now(timezone.utc)
+        await session.commit()
+        await send_password_reset_confirmation_email(
+            to=user.email,
+            user_name=user.first_name or user.email,
         )
 
 

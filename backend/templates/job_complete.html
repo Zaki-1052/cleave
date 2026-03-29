@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background-color:#4AAED9;padding:24px 32px;">
+            <span style="color:#ffffff;font-size:22px;font-weight:bold;">{{ app_name }}</span>
+          </td>
+        </tr>
+
+        <!-- Status banner -->
+        <tr>
+          <td style="padding:24px 32px 0;">
+            <span style="display:inline-block;padding:6px 16px;border-radius:20px;background-color:{{ status_color }};color:#ffffff;font-size:14px;font-weight:bold;">
+              {{ status }}
+            </span>
+          </td>
+        </tr>
+
+        <!-- Heading -->
+        <tr>
+          <td style="padding:16px 32px 0;">
+            <h2 style="margin:0;color:#333333;font-size:20px;">Job {{ status }}: {{ job_name }}</h2>
+          </td>
+        </tr>
+
+        <!-- Summary table -->
+        <tr>
+          <td style="padding:16px 32px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;">
+              <tr style="background-color:#f9fafb;">
+                <td style="padding:10px 16px;border-bottom:1px solid #e0e0e0;color:#666;font-size:13px;width:120px;">Job</td>
+                <td style="padding:10px 16px;border-bottom:1px solid #e0e0e0;color:#333;font-size:14px;">{{ job_name }}</td>
+              </tr>
+              <tr>
+                <td style="padding:10px 16px;border-bottom:1px solid #e0e0e0;color:#666;font-size:13px;">Experiment</td>
+                <td style="padding:10px 16px;border-bottom:1px solid #e0e0e0;color:#333;font-size:14px;">{{ experiment_name }}</td>
+              </tr>
+              <tr style="background-color:#f9fafb;">
+                <td style="padding:10px 16px;border-bottom:1px solid #e0e0e0;color:#666;font-size:13px;">Project</td>
+                <td style="padding:10px 16px;border-bottom:1px solid #e0e0e0;color:#333;font-size:14px;">{{ project_name }}</td>
+              </tr>
+              <tr>
+                <td style="padding:10px 16px;color:#666;font-size:13px;">Duration</td>
+                <td style="padding:10px 16px;color:#333;font-size:14px;">{{ duration }}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- CTA button -->
+        <tr>
+          <td style="padding:8px 32px 24px;" align="center">
+            <a href="{{ results_url }}" style="display:inline-block;padding:12px 32px;background-color:#4AAED9;color:#ffffff;text-decoration:none;border-radius:24px;font-size:15px;font-weight:bold;">
+              View Results
+            </a>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:16px 32px;border-top:1px solid #e0e0e0;color:#999;font-size:12px;">
+            You received this because your email notification preference is set to "{{ preference }}".
+            Change it in <a href="{{ settings_url }}" style="color:#4AAED9;text-decoration:none;">Settings</a>.
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>

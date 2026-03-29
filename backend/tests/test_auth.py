@@ -126,3 +126,34 @@ async def test_health_check(client: AsyncClient):
     resp = await client.get("/api/v1/health")
     assert resp.status_code == 200
     assert resp.json() == {"status": "ok"}
+
+
+# --- Password Reset ---
+
+
+async def test_forgot_password_returns_202_for_existing_email(
+    client: AsyncClient, registered_user: dict
+):
+    resp = await client.post(
+        "/api/v1/auth/forgot-password",
+        json={"email": registered_user["email"]},
+    )
+    assert resp.status_code == 202
+
+
+async def test_forgot_password_returns_202_for_nonexistent_email(client: AsyncClient):
+    """Must not reveal whether the email exists — always 202."""
+    resp = await client.post(
+        "/api/v1/auth/forgot-password",
+        json={"email": "nobody@example.com"},
+    )
+    assert resp.status_code == 202
+
+
+async def test_reset_password_bad_token_returns_400(client: AsyncClient):
+    resp = await client.post(
+        "/api/v1/auth/reset-password",
+        json={"token": "invalid-token-here", "password": "newpass123"},
+    )
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "RESET_PASSWORD_BAD_TOKEN"

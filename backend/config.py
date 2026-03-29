@@ -42,12 +42,13 @@ class Settings(BaseSettings):
     # SSE
     SSE_KEEPALIVE_SECONDS: int = 15
 
-    # Email (Phase 3)
-    SMTP_HOST: str = ""
-    SMTP_PORT: str = ""
-    SMTP_USER: str = ""
-    SMTP_PASSWORD: str = ""
-    SMTP_FROM: str = ""
+    # Email (Amazon SES)
+    AWS_SES_REGION: str = ""  # empty = SES disabled (dev/test)
+    AWS_SES_FROM_EMAIL: str = ""  # must be SES-verified address in production
+    APP_URL: str = "http://localhost:5173"  # frontend URL for email links
+
+    # Password reset
+    RESET_TOKEN_LIFETIME_SECONDS: int = 3600  # 1 hour
 
     # Genomes (Phase 3)
     GENOME_INDEX_DIR: str = "/data/cleave/genomes"

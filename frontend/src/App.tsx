@@ -7,6 +7,8 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
+import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import HomePage from '@/pages/HomePage';
 import ProjectDetailPage from '@/pages/ProjectDetailPage';
 import ExperimentView from '@/pages/ExperimentView';
@@ -43,6 +45,8 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route element={<ErrorBoundary><AuthenticatedLayout /></ErrorBoundary>}>
         <Route path="/" element={<HomePage />} />
         <Route path="/projects/:id" element={<ProjectDetailPage />} />

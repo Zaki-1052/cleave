@@ -15,9 +15,12 @@ from logging_config import setup_logging
 from models.analysis_job import AnalysisJob
 from models.experiment import Experiment
 from models.notification import Notification
+from models.project import Project
+from models.user import User
 from pipelines import run as pipeline_run
 from pipelines.base import TerminatedError
 from services.cleanup_service import run_full_cleanup
+from services.email_service import send_job_notification_email
 from services.event_service import log_event_standalone
 from services.job_output_service import persist_job_outputs
 from services.trimming_service import create_trimmed_fastq_records
@@ -89,8 +92,10 @@ async def _create_job_notification(
     status: str,
     experiment_name: str,
     experiment_id: int,
+    project_name: str = "Unknown",
+    duration_seconds: int | None = None,
 ) -> None:
-    """Create a notification for the user who launched the job."""
+    """Create an in-app notification and send email for the user who launched the job."""
     if user_id is None:
         return
 
@@ -118,6 +123,26 @@ async def _create_job_notification(
         db.add(notification)
         await db.commit()
 
+        # Send email notification (best-effort, non-blocking)
+        user_result = await db.execute(
+            select(User.email, User.email_notifications).where(User.id == user_id)
+        )
+        user_row = user_result.one_or_none()
+        if user_row:
+            try:
+                await send_job_notification_email(
+                    to=user_row.email,
+                    job_name=job_name,
+                    experiment_name=experiment_name,
+                    project_name=project_name,
+                    status=status,
+                    duration_seconds=duration_seconds,
+                    experiment_id=experiment_id,
+                    preference=user_row.email_notifications,
+                )
+            except Exception:
+                logger.exception("worker.email_failed", user_id=user_id, job_name=job_name)
+
 
 async def poll_and_run() -> None:
     async with async_session_factory() as db:
@@ -132,13 +157,16 @@ async def poll_and_run() -> None:
         if job is None:
             return
 
-        # Fetch experiment name and project_id for working directory + notifications
+        # Fetch experiment name, project_id, and project name for notifications
         exp_result = await db.execute(
-            select(Experiment.name, Experiment.project_id).where(Experiment.id == job.experiment_id)
+            select(Experiment.name, Experiment.project_id, Project.name.label("project_name"))
+            .join(Project, Project.id == Experiment.project_id)
+            .where(Experiment.id == job.experiment_id)
         )
         exp_row = exp_result.one_or_none()
         experiment_name = exp_row.name if exp_row else "Unknown"
         project_id = exp_row.project_id if exp_row else 0
+        project_name = exp_row.project_name if exp_row else "Unknown"
 
         # Snapshot job attributes before detaching from session
         job_id = job.id
@@ -163,7 +191,13 @@ async def poll_and_run() -> None:
             await db.commit()
             await _update_experiment_status(experiment_id, "terminated")
             await _create_job_notification(
-                launched_by, job_name, "terminated", experiment_name, experiment_id
+                launched_by,
+                job_name,
+                "terminated",
+                experiment_name,
+                experiment_id,
+                project_name=project_name,
+                duration_seconds=0,
             )
             return
 
@@ -295,9 +329,15 @@ async def poll_and_run() -> None:
     # Update experiment status based on final outcome
     await _update_experiment_status(experiment_id, final_status)
 
-    # Create notification for job launcher
+    # Create notification + email for job launcher
     await _create_job_notification(
-        launched_by, job_name, final_status, experiment_name, experiment_id
+        launched_by,
+        job_name,
+        final_status,
+        experiment_name,
+        experiment_id,
+        project_name=project_name,
+        duration_seconds=duration,
     )
 
 

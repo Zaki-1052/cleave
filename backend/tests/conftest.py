@@ -71,6 +71,15 @@ def override_storage_root(tmp_path):
     settings.STORAGE_ROOT = original
 
 
+@pytest.fixture(autouse=True)
+def disable_ses(monkeypatch):
+    """Prevent real SES calls in all tests."""
+    from config import settings
+
+    monkeypatch.setattr(settings, "AWS_SES_REGION", "")
+    monkeypatch.setattr(settings, "AWS_SES_FROM_EMAIL", "")
+
+
 @pytest.fixture
 def patch_worker_sessions(monkeypatch):
     """Patch async_session_factory in modules that import it directly.
