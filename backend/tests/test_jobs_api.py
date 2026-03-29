@@ -838,3 +838,126 @@ async def test_retry_creates_event(client: AsyncClient):
     events = resp.json()["items"]
     actions = [e["action"] for e in events]
     assert "job_retried" in actions
+
+
+# --- Auto-pipeline retry tests ---
+
+
+async def test_retry_auto_pipeline_creates_job_201(client: AsyncClient):
+    """Retrying an errored auto-pipeline creates a new auto_pipeline job."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+    job_id = await _create_job(client, headers, exp, proj, "Auto: Alignment")
+
+    from sqlalchemy import update as sa_update
+
+    from models.analysis_job import AnalysisJob as AJ
+    from models.experiment import Experiment as Exp
+    from tests.conftest import test_session_factory
+
+    async with test_session_factory() as db:
+        # Mark job as auto-pipeline and failed
+        await db.execute(
+            sa_update(AJ)
+            .where(AJ.id == job_id)
+            .values(status="error", auto_pipeline=True, error_message="crash")
+        )
+        # Mark experiment as auto-pipeline in error state
+        await db.execute(
+            sa_update(Exp)
+            .where(Exp.id == exp)
+            .values(auto_pipeline=True, auto_pipeline_status="error")
+        )
+        await db.commit()
+
+    resp = await client.post(f"/api/v1/experiments/{exp}/auto-pipeline/retry", headers=headers)
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["status"] == "queued"
+    assert data["autoPipeline"] is True
+    assert data["retryOfJobId"] == job_id
+
+
+async def test_retry_auto_pipeline_resets_experiment_status(client: AsyncClient):
+    """Retrying auto-pipeline resets experiment status from error to running."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+    job_id = await _create_job(client, headers, exp, proj, "Auto: Peak Calling")
+
+    from sqlalchemy import select
+    from sqlalchemy import update as sa_update
+
+    from models.analysis_job import AnalysisJob as AJ
+    from models.experiment import Experiment as Exp
+    from tests.conftest import test_session_factory
+
+    async with test_session_factory() as db:
+        await db.execute(
+            sa_update(AJ).where(AJ.id == job_id).values(status="error", auto_pipeline=True)
+        )
+        await db.execute(
+            sa_update(Exp)
+            .where(Exp.id == exp)
+            .values(auto_pipeline=True, auto_pipeline_status="error")
+        )
+        await db.commit()
+
+    resp = await client.post(f"/api/v1/experiments/{exp}/auto-pipeline/retry", headers=headers)
+    assert resp.status_code == 201
+
+    # Verify experiment status was reset
+    async with test_session_factory() as db:
+        result = await db.execute(select(Exp).where(Exp.id == exp))
+        experiment = result.scalar_one()
+        assert experiment.auto_pipeline_status == "running"
+
+
+async def test_retry_auto_pipeline_not_in_error_409(client: AsyncClient):
+    """Cannot retry auto-pipeline when experiment is not in error state."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+
+    from sqlalchemy import update as sa_update
+
+    from models.experiment import Experiment as Exp
+    from tests.conftest import test_session_factory
+
+    async with test_session_factory() as db:
+        await db.execute(
+            sa_update(Exp)
+            .where(Exp.id == exp)
+            .values(auto_pipeline=True, auto_pipeline_status="running")
+        )
+        await db.commit()
+
+    resp = await client.post(f"/api/v1/experiments/{exp}/auto-pipeline/retry", headers=headers)
+    assert resp.status_code == 409
+
+
+async def test_retry_job_preserves_auto_pipeline_flag(client: AsyncClient):
+    """Manual retry of an auto-pipeline job copies the auto_pipeline flag."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    proj = await _create_project(client, headers)
+    exp = await _create_experiment(client, headers, proj)
+    job_id = await _create_job(client, headers, exp, proj, "Auto: Alignment")
+
+    from sqlalchemy import update as sa_update
+
+    from models.analysis_job import AnalysisJob as AJ
+    from tests.conftest import test_session_factory
+
+    async with test_session_factory() as db:
+        await db.execute(
+            sa_update(AJ)
+            .where(AJ.id == job_id)
+            .values(status="error", auto_pipeline=True, error_message="fail")
+        )
+        await db.commit()
+
+    resp = await client.post(f"/api/v1/jobs/{job_id}/retry", headers=headers)
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["autoPipeline"] is True

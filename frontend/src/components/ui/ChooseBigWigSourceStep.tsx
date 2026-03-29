@@ -32,7 +32,7 @@ export function ChooseBigWigSourceStep({
   selectedNormalizationJobId,
   onSelectSource,
   showResolutionWarning = true,
-  alignmentWarningText = 'These bigWig files are at 20bp resolution. Pearson will use deepTools multiBigwigSummary to re-bin at 50bp. For best results on mouse, run Roman Normalization first.',
+  alignmentWarningText = 'These bigWig files are at 20bp resolution. The Pearson pipeline will extract signal at native 20bp resolution. For best results on mouse, run Roman Normalization first.',
 }: ChooseBigWigSourceStepProps) {
   const { data: jobsData, isLoading } = useJobs(experiment.id, 1, 100);
 

@@ -1,5 +1,6 @@
 // frontend/src/api/autoPipeline.ts
 import client from './client';
+import type { AnalysisJob } from './types';
 
 export interface AutoPipelineConfig {
   referenceGenome: string;
@@ -29,6 +30,15 @@ export async function cancelAutoPipeline(
 ): Promise<{ status: string }> {
   const { data } = await client.post(
     `/experiments/${experimentId}/auto-pipeline/cancel`,
+  );
+  return data;
+}
+
+export async function retryAutoPipeline(
+  experimentId: number,
+): Promise<AnalysisJob> {
+  const { data } = await client.post(
+    `/experiments/${experimentId}/auto-pipeline/retry`,
   );
   return data;
 }

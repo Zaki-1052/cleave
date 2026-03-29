@@ -6,7 +6,7 @@
 ## Project Documentation
 
 @README.md
-@docs/cutana-cloud-ui.md
+docs/cutana-cloud-ui.md
 @docs/cutana-architecture-plan.md
 @docs/cutana-cloud-info.md
 @docs/cf-lab-pipeline-spec.md

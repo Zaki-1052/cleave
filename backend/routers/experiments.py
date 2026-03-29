@@ -9,6 +9,7 @@ from schemas.auto_pipeline import AutoPipelineConfig
 from schemas.common import PaginatedResponse
 from schemas.experiment import ExperimentCreate, ExperimentRead, ExperimentUpdate
 from schemas.experiment_event import ExperimentEventRead
+from schemas.job import JobRead
 from services.event_service import list_events
 from services.experiment_service import (
     create_experiment,
@@ -141,3 +142,29 @@ async def cancel_auto_pipeline_endpoint(
 
     await auto_pipeline_service.cancel_auto_pipeline(db, experiment_id)
     return {"status": "cancelled"}
+
+
+@router.post(
+    "/{experiment_id}/auto-pipeline/retry",
+    response_model=JobRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def retry_auto_pipeline_endpoint(
+    experiment_id: int,
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Retry the failed auto-pipeline step and resume the chain."""
+    from services import auto_pipeline_service  # noqa: F811
+
+    exp = await get_experiment(db, experiment_id, current_user.id)
+    if not exp:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+
+    new_job = await auto_pipeline_service.retry_auto_pipeline(db, experiment_id, current_user.id)
+    if new_job is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No retryable auto-pipeline job found (experiment must be in error state)",
+        )
+    return new_job

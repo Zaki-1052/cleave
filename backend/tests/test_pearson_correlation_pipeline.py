@@ -102,6 +102,21 @@ def test_validate_valid_human_genome(stage):
     assert errors == []
 
 
+def test_validate_bigwig_resolution_20_accepted(stage):
+    errors = stage.validate(_make_valid_params(bigwig_resolution=20))
+    assert errors == []
+
+
+def test_validate_bigwig_resolution_50_accepted(stage):
+    errors = stage.validate(_make_valid_params(bigwig_resolution=50))
+    assert errors == []
+
+
+def test_validate_bigwig_resolution_invalid_rejected(stage):
+    errors = stage.validate(_make_valid_params(bigwig_resolution=30))
+    assert any("bigwig_resolution" in e for e in errors)
+
+
 # ---------------------------------------------------------------------------
 # Mock run tests
 # ---------------------------------------------------------------------------
@@ -222,3 +237,10 @@ def test_methods_text_with_bed_restriction(stage):
         )
     )
     assert "H3K4me3 peaks" in text
+
+
+def test_methods_text_reflects_resolution(stage):
+    text_20 = stage.generate_methods_text(_make_valid_params(bigwig_resolution=20))
+    assert "20 bp" in text_20
+    text_50 = stage.generate_methods_text(_make_valid_params(bigwig_resolution=50))
+    assert "50 bp" in text_50

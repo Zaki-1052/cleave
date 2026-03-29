@@ -14,7 +14,7 @@ import structlog
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database import get_async_session_factory
+from database import async_session_factory
 from models.analysis_job import AnalysisJob
 from models.experiment import Experiment
 from models.fastq_file import FastqFile
@@ -70,7 +70,6 @@ async def start_auto_pipeline(
 
 async def on_fastqc_complete(experiment_id: int) -> None:
     """Called after all FastQC files are processed. Evaluates adapter status."""
-    async_session_factory = get_async_session_factory()
     async with async_session_factory() as db:
         exp = (
             await db.execute(select(Experiment).where(Experiment.id == experiment_id))
@@ -115,7 +114,6 @@ async def _evaluate_fastqc_and_queue(
 
 async def on_job_complete(experiment_id: int, job_id: int, job_type: str) -> None:
     """Called by the worker after an auto-pipeline job completes successfully."""
-    async_session_factory = get_async_session_factory()
     async with async_session_factory() as db:
         exp = (
             await db.execute(select(Experiment).where(Experiment.id == experiment_id))
@@ -195,7 +193,6 @@ async def _queue_post_normalization(
 
 async def on_job_error(experiment_id: int, job_id: int, job_type: str) -> None:
     """Called by the worker when an auto-pipeline job fails."""
-    async_session_factory = get_async_session_factory()
     async with async_session_factory() as db:
         await db.execute(
             update(Experiment)
@@ -209,6 +206,71 @@ async def on_job_error(experiment_id: int, job_id: int, job_type: str) -> None:
             job_type=job_type,
             job_id=job_id,
         )
+
+
+async def retry_auto_pipeline(
+    db: AsyncSession,
+    experiment_id: int,
+    user_id: int,
+) -> AnalysisJob | None:
+    """Retry the failed auto-pipeline step and resume the chain.
+
+    Returns the newly created job, or None if experiment is not in error state
+    or no failed auto-pipeline job exists.
+    """
+    exp = (
+        await db.execute(select(Experiment).where(Experiment.id == experiment_id))
+    ).scalar_one_or_none()
+
+    if not exp or exp.auto_pipeline_status != "error":
+        return None
+
+    # Find the most recent failed auto-pipeline job
+    failed_job = (
+        await db.execute(
+            select(AnalysisJob)
+            .where(
+                AnalysisJob.experiment_id == experiment_id,
+                AnalysisJob.auto_pipeline.is_(True),
+                AnalysisJob.status == "error",
+            )
+            .order_by(AnalysisJob.created_at.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+
+    if not failed_job:
+        return None
+
+    new_job = AnalysisJob(
+        experiment_id=experiment_id,
+        job_type=failed_job.job_type,
+        name=failed_job.name,
+        params=dict(failed_job.params) if failed_job.params else {},
+        parent_job_id=failed_job.parent_job_id,
+        retry_of_job_id=failed_job.id,
+        launched_by=user_id,
+        auto_pipeline=True,
+    )
+    db.add(new_job)
+
+    await db.execute(
+        update(Experiment)
+        .where(Experiment.id == experiment_id)
+        .values(auto_pipeline_status="running")
+    )
+
+    await db.commit()
+    await db.refresh(new_job)
+
+    logger.info(
+        "auto_pipeline.retry",
+        experiment_id=experiment_id,
+        failed_job_id=failed_job.id,
+        new_job_id=new_job.id,
+        job_type=failed_job.job_type,
+    )
+    return new_job
 
 
 async def cancel_auto_pipeline(db: AsyncSession, experiment_id: int) -> None:
@@ -564,6 +626,7 @@ async def _queue_pearson(db: AsyncSession, experiment_id: int, config: dict) -> 
 
     parent_id = bw_source_job_id
     norm_job = await _find_latest_auto_job(db, experiment_id, "roman_normalization")
+    bigwig_resolution = 50 if bw_category == "normalization_bigwig" else 20
     params: dict = {
         "experiment_id": experiment_id,
         "project_id": config["project_id"],
@@ -573,6 +636,7 @@ async def _queue_pearson(db: AsyncSession, experiment_id: int, config: dict) -> 
         "samples": sample_params,
         "restrict_bed_path": None,
         "restrict_bed_label": None,
+        "bigwig_resolution": bigwig_resolution,
     }
     if norm_job and norm_job.status == "complete":
         params["normalization_job_id"] = norm_job.id

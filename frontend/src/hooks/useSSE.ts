@@ -72,7 +72,21 @@ export function useSSE(): void {
               void queryClient.invalidateQueries({ queryKey: ['all-jobs'] });
               if (data.status === 'complete' || data.status === 'error' || data.status === 'terminated') {
                 void queryClient.invalidateQueries({ queryKey: ['experiments'] });
+                void queryClient.invalidateQueries({ queryKey: ['experiments', data.experimentId] });
               }
+            } catch {
+              // Malformed event data — ignore
+            }
+          }
+
+          if (event.event === 'auto_pipeline_status') {
+            try {
+              const data = JSON.parse(event.data) as {
+                experimentId: number;
+                status: string;
+              };
+              void queryClient.invalidateQueries({ queryKey: ['experiments', data.experimentId] });
+              void queryClient.invalidateQueries({ queryKey: ['experiments'] });
             } catch {
               // Malformed event data — ignore
             }

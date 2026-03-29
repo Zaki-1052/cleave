@@ -216,11 +216,13 @@ def pearson_correlation_methods(params: dict) -> str:
     restrict_bed = params.get("restrict_bed_path")
     bed_label = params.get("restrict_bed_label", "user-provided regions")
 
+    resolution = params.get("bigwig_resolution", 50)
+
     text = (
         f"Pairwise Pearson correlation analysis was performed to assess "
         f"replicate concordance across {n_samples} sample"
         f"{'s' if n_samples != 1 else ''}. "
-        f"RPKM-normalized bigWig signal was extracted at 50 bp resolution "
+        f"RPKM-normalized bigWig signal was extracted at {resolution} bp resolution "
         f"across all autosomes and chrX of the {genome_display} reference "
         f"genome using rtracklayer (R). "
         f"Genomic bins with zero coverage across all samples were removed. "

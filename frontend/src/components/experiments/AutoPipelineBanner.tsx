@@ -1,13 +1,14 @@
 // frontend/src/components/experiments/AutoPipelineBanner.tsx
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { cancelAutoPipeline } from '@/api/autoPipeline';
+import { cancelAutoPipeline, retryAutoPipeline } from '@/api/autoPipeline';
 import { useJobs } from '@/hooks/useJobs';
 import type { AnalysisJob, Experiment } from '@/api/types';
 
 interface AutoPipelineBannerProps {
   experiment: Experiment;
   onCancelled: () => void;
+  onRetried: () => void;
 }
 
 const STEP_ORDER: Record<string, number> = {
@@ -35,9 +36,11 @@ type StepState = 'complete' | 'running' | 'queued' | 'error' | 'pending';
 export function AutoPipelineBanner({
   experiment,
   onCancelled,
+  onRetried,
 }: AutoPipelineBannerProps) {
   const status = experiment.autoPipelineStatus;
   const { data: jobsData } = useJobs(experiment.id, 1, 100);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   const autoJobs = useMemo(() => {
     const jobs: AnalysisJob[] = jobsData?.items ?? [];
@@ -109,6 +112,18 @@ export function AutoPipelineBanner({
     }
   }
 
+  async function handleRetry() {
+    setIsRetrying(true);
+    try {
+      await retryAutoPipeline(experiment.id);
+      onRetried();
+    } catch {
+      // Error handled silently
+    } finally {
+      setIsRetrying(false);
+    }
+  }
+
   return (
     <div className={`mb-4 rounded-lg border p-4 ${bgColor}`}>
       <div className="flex items-center justify-between">
@@ -123,11 +138,18 @@ export function AutoPipelineBanner({
             {isCancelled && 'Auto-Pipeline Cancelled'}
           </span>
         </div>
-        {(isRunning || isPending) && (
-          <Button variant="outlined" onClick={handleCancel}>
-            Cancel
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {isError && (
+            <Button variant="outlined" onClick={handleRetry} disabled={isRetrying}>
+              {isRetrying ? 'Retrying...' : 'Retry'}
+            </Button>
+          )}
+          {(isRunning || isPending) && (
+            <Button variant="outlined" onClick={handleCancel}>
+              Cancel
+            </Button>
+          )}
+        </div>
       </div>
 
       {steps.length > 0 && (

@@ -191,6 +191,7 @@ export function NewPearsonCorrelationWizard({
         })),
         restrict_bed_path: restrictBed ? bedPath : null,
         restrict_bed_label: restrictBed ? bedLabel : null,
+        bigwig_resolution: bigwigSource === 'alignment' ? 20 : 50,
       };
 
       if (bigwigSource === 'normalization' && selectedNormalizationJobId) {

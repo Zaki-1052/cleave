@@ -4,7 +4,7 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -265,8 +265,18 @@ async def retry_job(
         parent_job_id=job.parent_job_id,
         retry_of_job_id=job.id,
         launched_by=user_id,
+        auto_pipeline=job.auto_pipeline,
     )
     db.add(new_job)
+
+    # If this is an auto-pipeline job, reset the experiment status so the chain resumes
+    if job.auto_pipeline:
+        await db.execute(
+            update(Experiment)
+            .where(Experiment.id == job.experiment_id)
+            .values(auto_pipeline_status="running")
+        )
+
     await db.commit()
     await db.refresh(new_job)
 

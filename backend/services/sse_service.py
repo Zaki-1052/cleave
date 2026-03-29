@@ -17,6 +17,7 @@ log = structlog.get_logger("sse_service")
 
 ACTIVE_STATUSES = ("queued", "running")
 TERMINAL_STATUSES = ("complete", "error", "terminated")
+AP_ACTIVE_STATUSES = ("pending_fastqc", "running", "error")
 
 
 def _format_sse(event: str, data: dict) -> str:
@@ -56,6 +57,33 @@ async def _query_active_jobs(
     return {row.id: (row.experiment_id, row.status) for row in result.all()}
 
 
+async def _query_auto_pipeline_experiments(
+    user_id: int, tracked_ids: set[int], session
+) -> dict[int, str]:
+    """Query experiments with active auto-pipelines visible to this user.
+
+    Returns {experiment_id: auto_pipeline_status}.
+    """
+    query = (
+        select(Experiment.id, Experiment.auto_pipeline_status)
+        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
+        .where(
+            ProjectMember.user_id == user_id,
+            Experiment.auto_pipeline.is_(True),
+            Experiment.auto_pipeline_status.isnot(None),
+        )
+    )
+    if tracked_ids:
+        query = query.where(
+            Experiment.auto_pipeline_status.in_(AP_ACTIVE_STATUSES) | Experiment.id.in_(tracked_ids)
+        )
+    else:
+        query = query.where(Experiment.auto_pipeline_status.in_(AP_ACTIVE_STATUSES))
+
+    result = await session.execute(query)
+    return {row.id: row.auto_pipeline_status for row in result.all()}
+
+
 async def sse_event_generator(user_id: int) -> AsyncGenerator[str, None]:
     """Poll notifications and analysis_jobs tables, yield SSE events for changes.
 
@@ -75,6 +103,8 @@ async def sse_event_generator(user_id: int) -> AsyncGenerator[str, None]:
             tracked_jobs: dict[int, str] = {
                 jid: status for jid, (_, status) in current_jobs.items()
             }
+            current_ap = await _query_auto_pipeline_experiments(user_id, set(), session)
+            tracked_ap: dict[int, str] = dict(current_ap)
 
             consecutive_errors = 0
             polls_since_keepalive = 0
@@ -126,6 +156,28 @@ async def sse_event_generator(user_id: int) -> AsyncGenerator[str, None]:
                         jid: status
                         for jid, (_, status) in current_jobs.items()
                         if status not in TERMINAL_STATUSES
+                    }
+
+                    # --- Check for auto-pipeline status changes ---
+                    ap_tracked_ids = set(tracked_ap.keys())
+                    current_ap = await _query_auto_pipeline_experiments(
+                        user_id, ap_tracked_ids, session
+                    )
+                    for exp_id, new_ap_status in current_ap.items():
+                        old_ap_status = tracked_ap.get(exp_id)
+                        if old_ap_status != new_ap_status:
+                            yield _format_sse(
+                                "auto_pipeline_status",
+                                {
+                                    "experimentId": exp_id,
+                                    "status": new_ap_status,
+                                },
+                            )
+                    # Rebuild: keep active, drop terminal
+                    tracked_ap = {
+                        eid: ap_status
+                        for eid, ap_status in current_ap.items()
+                        if ap_status in AP_ACTIVE_STATUSES
                     }
 
                     # Expire cached ORM state so next poll sees fresh DB data

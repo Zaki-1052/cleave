@@ -1,6 +1,7 @@
 // frontend/src/pages/ExperimentView.tsx
 import { useState } from 'react';
 import { Link, Outlet, useParams, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   FileText, Dna, FlaskConical, AlignLeft, Mountain,
   ArrowLeftRight, Grid3x3, ScatterChart, Scale, History,
@@ -50,6 +51,7 @@ const TABS: { label: string; path: string; icon: LucideIcon }[] = [
 export default function ExperimentView() {
   const { id } = useParams<{ id: string }>();
   const { pathname } = useLocation();
+  const queryClient = useQueryClient();
   const { data: experiment, isLoading } = useExperiment(Number(id));
   const { data: jobsData } = useJobs(Number(id), 1, 1);
   const [showAlignmentWizard, setShowAlignmentWizard] = useState(false);
@@ -122,7 +124,10 @@ export default function ExperimentView() {
         <AutoPipelineBanner
           experiment={experiment}
           onCancelled={() => {
-            // Refetch experiment to update status
+            void queryClient.invalidateQueries({ queryKey: ['experiments', experiment.id] });
+          }}
+          onRetried={() => {
+            void queryClient.invalidateQueries({ queryKey: ['experiments', experiment.id] });
           }}
         />
       )}

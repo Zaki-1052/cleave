@@ -6,9 +6,10 @@
 # within a BED region.  Core algorithm preserved verbatim from lab script.
 #
 # Usage:
-#   Rscript pearson_matrix.R <sample_sheet.csv> <output_csv> <genome> [mask_bed] [restrict_bed]
+#   Rscript pearson_matrix.R <sample_sheet.csv> <output_csv> <genome> [mask_bed] [restrict_bed] [resolution]
 #
 # sample_sheet.csv columns: SampleName, BigWigPath
+# resolution: bigWig bin size in bp (default 50, use 20 for alignment bigWigs)
 
 library(rtracklayer)
 
@@ -22,6 +23,7 @@ output_csv        <- args[2]
 genome            <- args[3]
 mask_bed_path     <- if (length(args) >= 4 && nchar(args[4]) > 0) args[4] else NULL
 restrict_bed_path <- if (length(args) >= 5 && nchar(args[5]) > 0) args[5] else NULL
+resolution        <- if (length(args) >= 6 && nchar(args[6]) > 0) as.integer(args[6]) else 50L
 
 # Select chromosomes based on genome — parameterized from lab's hardcoded chr1-19+chrX
 chroms <- switch(genome,
@@ -33,8 +35,8 @@ chroms <- switch(genome,
   stop(paste("Unsupported genome:", genome))
 )
 
-# Resolution of bigWig files in bp — matches lab script dx=50
-dx <- 50
+# Resolution of bigWig files in bp — parameterized (lab default 50 for rnorm, 20 for alignment)
+dx <- resolution
 
 # Read sample sheet
 sheet <- read.csv(sample_sheet_path, stringsAsFactors = FALSE)

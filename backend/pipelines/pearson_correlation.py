@@ -75,6 +75,10 @@ class PearsonCorrelationStage(PipelineStage):
                 if not s.get(field) and s.get(field) != 0:
                     errors.append(f"{prefix} missing {field}")
 
+        bigwig_res = params.get("bigwig_resolution")
+        if bigwig_res is not None and bigwig_res not in (20, 50):
+            errors.append(f"bigwig_resolution must be 20 or 50, got {bigwig_res}")
+
         if settings.PIPELINE_MODE != "mock":
             if not shutil.which("Rscript"):
                 errors.append("Rscript not found in PATH")
@@ -157,6 +161,8 @@ class PearsonCorrelationStage(PipelineStage):
         if not r_script.exists():
             raise PipelineError(f"R script not found: {r_script}")
 
+        bigwig_resolution = str(params.get("bigwig_resolution", 50))
+
         coverage_csv = results_dir / f"{corr_name}_coverage_matrix.csv"
         r_cmd = [
             "Rscript",
@@ -166,6 +172,7 @@ class PearsonCorrelationStage(PipelineStage):
             genome,
             mask_bed_arg,
             restrict_bed_arg,
+            bigwig_resolution,
         ]
 
         append_to_master_log(master_log, "Running pearson_matrix.R", " ".join(r_cmd))
