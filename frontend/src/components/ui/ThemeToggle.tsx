@@ -10,12 +10,12 @@ export function ThemeToggle() {
       type="button"
       aria-label="Toggle theme"
       onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-      className="rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+      className="rounded-md p-2 text-foreground/60 transition-colors hover:text-primary"
     >
       {resolvedTheme === 'dark' ? (
-        <Sun className="h-4.5 w-4.5" />
+        <Sun className="h-5 w-5" />
       ) : (
-        <Moon className="h-4.5 w-4.5" />
+        <Moon className="h-5 w-5" />
       )}
     </button>
   );

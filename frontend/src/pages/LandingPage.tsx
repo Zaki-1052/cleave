@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { CleaveIcon } from "@/components/ui/CleaveIcon";
 
 /* ─────────────── palette ─────────────── */
 const C = {
@@ -184,49 +185,7 @@ function Reveal({ children, className, delay = 0, direction = "up" }: {
   );
 }
 
-/* ─────────────── creative Cleave icon ─────────────── */
-function CleaveIcon({ size = 28 }: { size?: number }) {
-  // A DNA double strand being cleaved — two curves splitting apart
-  // with a diagonal cut line, evoking restriction enzyme activity
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      <defs>
-        <linearGradient id="clvGrad" x1="0" y1="0" x2="32" y2="32">
-          <stop offset="0%" stopColor={C.blue} />
-          <stop offset="100%" stopColor={C.seafoam} />
-        </linearGradient>
-        <linearGradient id="clvGrad2" x1="32" y1="0" x2="0" y2="32">
-          <stop offset="0%" stopColor={C.seafoam} />
-          <stop offset="100%" stopColor={C.lime} />
-        </linearGradient>
-      </defs>
-      {/* Left strand — curves up and away from the cut */}
-      <path
-        d="M6,28 C6,22 8,18 12,16 C8,14 6,10 6,4"
-        stroke="url(#clvGrad)" strokeWidth="2.5" strokeLinecap="round" fill="none"
-      />
-      {/* Right strand — curves up and away from the cut */}
-      <path
-        d="M26,28 C26,22 24,18 20,16 C24,14 26,10 26,4"
-        stroke="url(#clvGrad2)" strokeWidth="2.5" strokeLinecap="round" fill="none"
-      />
-      {/* Rungs / base pairs — broken at the center to show the cleave */}
-      <line x1="10" y1="9" x2="15" y2="9" stroke={C.blue} strokeWidth="1.3" strokeLinecap="round" opacity="0.6" />
-      <line x1="17" y1="9" x2="22" y2="9" stroke={C.seafoam} strokeWidth="1.3" strokeLinecap="round" opacity="0.6" />
-      <line x1="12" y1="14" x2="15.5" y2="14" stroke={C.blue} strokeWidth="1.3" strokeLinecap="round" opacity="0.5" />
-      <line x1="16.5" y1="14" x2="20" y2="14" stroke={C.seafoam} strokeWidth="1.3" strokeLinecap="round" opacity="0.5" />
-      <line x1="12" y1="19" x2="15.5" y2="19" stroke={C.lime} strokeWidth="1.3" strokeLinecap="round" opacity="0.5" />
-      <line x1="16.5" y1="19" x2="20" y2="19" stroke={C.gold} strokeWidth="1.3" strokeLinecap="round" opacity="0.5" />
-      <line x1="10" y1="24" x2="15" y2="24" stroke={C.lime} strokeWidth="1.3" strokeLinecap="round" opacity="0.6" />
-      <line x1="17" y1="24" x2="22" y2="24" stroke={C.gold} strokeWidth="1.3" strokeLinecap="round" opacity="0.6" />
-      {/* The cleave — a diagonal cut through the center gap */}
-      <line x1="13" y1="11" x2="19" y2="22" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />
-      {/* Glow dots at cut endpoints */}
-      <circle cx="13" cy="11" r="1.5" fill="white" opacity="0.6" />
-      <circle cx="19" cy="22" r="1.5" fill="white" opacity="0.6" />
-    </svg>
-  );
-}
+/* CleaveIcon imported from @/components/ui/CleaveIcon */
 
 /* ─────────────── decorative SVGs (v2 upgraded versions) ─────────────── */
 function ChromatinWave({ flip }: { flip?: boolean }) {
@@ -463,9 +422,9 @@ export default function LandingPage() {
               style={{ background: `linear-gradient(135deg, ${C.blue}, ${C.seafoam})` }}>
               <CleaveIcon size={22} />
             </div>
-            <span className="text-lg tracking-tight font-semibold" style={{ fontFamily: serif }}>Cleave</span>
+            <span className="text-xl tracking-tight font-bold" style={{ fontFamily: serif }}>Cleave</span>
           </a>
-          <div className="hidden sm:flex items-center gap-7 text-[13px] text-white/50">
+          <div className="hidden sm:flex items-center gap-8 text-[15px] font-medium text-white/60">
             {[["Pipeline","#pipeline"],["Features","#features"],["Compare","#compare"],["Architecture","#architecture"]].map(([label, href]) => (
               <a key={label} href={href}
                 className="hover:text-white transition-colors duration-200 relative after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-px after:bg-white/40 after:transition-all hover:after:w-full">
@@ -473,8 +432,8 @@ export default function LandingPage() {
               </a>
             ))}
             <Link to="/dashboard"
-              className="ml-2 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-medium text-white transition-all duration-300 hover:scale-[1.03]"
-              style={{ background: `linear-gradient(135deg, ${C.blue}, ${C.seafoam})` }}>
+              className="ml-2 inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-semibold text-white transition-all duration-300 hover:scale-[1.03] hover:shadow-lg"
+              style={{ background: `linear-gradient(135deg, ${C.blue}, ${C.seafoam})`, boxShadow: `0 2px 12px ${C.blue}25` }}>
               Launch Dashboard
             </Link>
           </div>
