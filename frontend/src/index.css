@@ -3,27 +3,90 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --gradient-bg: linear-gradient(
-    180deg,
-    #87ceeb 0%,
-    #7ecfcf 25%,
-    #90d5a0 50%,
-    #c5d94e 75%,
-    #e8b84b 100%
-  );
-}
+@layer base {
+  :root {
+    /* Cleave brand gradient (preserved) */
+    --gradient-bg: linear-gradient(
+      180deg,
+      #87ceeb 0%,
+      #7ecfcf 25%,
+      #90d5a0 50%,
+      #c5d94e 75%,
+      #e8b84b 100%
+    );
 
-body {
-  margin: 0;
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    Arial,
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    /* shadcn theme tokens — light mode */
+    --background: 210 16.7% 97.6%;
+    --foreground: 220 14.3% 15.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 14.3% 15.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 14.3% 15.9%;
+    --primary: 198 65.3% 57.1%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220 14.3% 15.9%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220 14.3% 15.9%;
+    --destructive: 0 73.5% 41.4%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 198 65.3% 57.1%;
+    --radius: 0.5rem;
+    --chart-1: 198 65.3% 57.1%;
+    --chart-2: 183.1 64% 46.9%;
+    --chart-3: 230.8 48.4% 47.8%;
+    --chart-4: 37.4 91.3% 54.9%;
+    --chart-5: 122.4 39.4% 49.2%;
+  }
+
+  .dark {
+    --gradient-bg: linear-gradient(
+      180deg,
+      #1a2332 0%,
+      #1c2d3a 25%,
+      #1a2a2e 50%,
+      #1e2a24 75%,
+      #1f2520 100%
+    );
+
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 224 71.4% 6%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71.4% 6%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 198 65.3% 57.1%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 198 65.3% 57.1%;
+    --chart-1: 198 65.3% 62%;
+    --chart-2: 183.1 64% 52%;
+    --chart-3: 230.8 48.4% 55%;
+    --chart-4: 37.4 91.3% 60%;
+    --chart-5: 122.4 39.4% 55%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
