@@ -145,8 +145,8 @@ export default function ExperimentView() {
                   to={`/experiments/${id}/${tab.path}`}
                   className={`flex items-center gap-2 px-4 py-3 text-sm transition-all duration-150 ${
                     isActive
-                      ? 'bg-card font-semibold text-primary'
-                      : 'text-muted-foreground hover:bg-card/50'
+                      ? 'border-l-2 border-primary bg-primary/5 dark:bg-primary/10 font-semibold text-primary'
+                      : 'border-l-2 border-transparent text-muted-foreground hover:bg-card/50 hover:text-foreground'
                   }`}
                 >
                   <tab.icon className="h-4 w-4" />

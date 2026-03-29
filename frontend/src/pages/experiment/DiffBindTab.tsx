@@ -9,6 +9,7 @@ import { DiffBindInputPanel } from '@/components/diffbind/DiffBindInputPanel';
 import { DiffBindPlotsPanel } from '@/components/diffbind/DiffBindPlotsPanel';
 import { DiffBindResultsPanel } from '@/components/diffbind/DiffBindResultsPanel';
 import { Card } from '@/components/layout/Card';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs } from '@/hooks/useJobs';
 
@@ -39,11 +40,6 @@ export default function DiffBindTab() {
 
   const isLoading = jobsLoading || jobLoading;
 
-  function handleJobChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const selectedId = e.target.value;
-    navigate(`/experiments/${id}/diffbind/${selectedId}`);
-  }
-
   if (isLoading) {
     return (
       <Card>
@@ -72,21 +68,19 @@ export default function DiffBindTab() {
       {/* Job selector + status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <label htmlFor="diffbind-job-select" className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             DiffBind
-          </label>
-          <select
-            id="diffbind-job-select"
-            value={activeJobId ?? ''}
-            onChange={handleJobChange}
-            className="rounded-md border border-border px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-          >
-            {diffBindJobs.map((j) => (
-              <option key={j.id} value={j.id}>
-                {j.name}
-              </option>
-            ))}
-          </select>
+          </span>
+          <Select value={String(activeJobId ?? '')} onValueChange={(val) => navigate(`/experiments/${id}/diffbind/${val}`)}>
+            <SelectTrigger className="w-[220px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {diffBindJobs.map((j) => (
+                <SelectItem key={j.id} value={String(j.id)}>{j.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         {job && <StatusBadge status={job.status} />}
       </div>
@@ -100,8 +94,8 @@ export default function DiffBindTab() {
               onClick={() => setActiveSubTab(tab.key)}
               className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
                 activeSubTab === tab.key
-                  ? 'border-b-2 border-primary text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'border-b-2 border-primary text-primary bg-primary/5 rounded-t-md'
+                  : 'text-muted-foreground hover:text-foreground rounded-t-md hover:bg-muted/50'
               }`}
             >
               {tab.label}

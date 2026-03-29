@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/layout/Card';
 import { DataTable } from '@/components/ui/DataTable';
@@ -150,34 +151,36 @@ export default function AnalysisQueuePage() {
             />
             <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           </div>
-          <select
-            value={jobTypeFilter}
-            onChange={(e) => {
-              setJobTypeFilter(e.target.value);
-              setPage(1);
-            }}
-            className="rounded-md border border-border py-1.5 pl-3 pr-8 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          <Select
+            value={jobTypeFilter || '__all'}
+            onValueChange={(val) => { setJobTypeFilter(val === '__all' ? '' : val); setPage(1); }}
           >
-            {JOB_TYPE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-            }}
-            className="rounded-md border border-border py-1.5 pl-3 pr-8 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            <SelectTrigger className="w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {JOB_TYPE_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value || '__all'} value={opt.value || '__all'}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={statusFilter || '__all'}
+            onValueChange={(val) => { setStatusFilter(val === '__all' ? '' : val); setPage(1); }}
           >
-            {STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value || '__all'} value={opt.value || '__all'}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
