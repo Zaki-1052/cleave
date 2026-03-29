@@ -19,7 +19,7 @@ export function Breadcrumbs() {
   return (
     <div className="bg-primary/20 px-6 py-2">
       <div className="flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-wide">
-        <Link to="/" className="text-primary-dark hover:underline">
+        <Link to="/dashboard" className="text-primary-dark hover:underline">
           Home
         </Link>
         {segments.map((segment, i) => (

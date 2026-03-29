@@ -21,7 +21,7 @@ export default function RegisterPage() {
     setError('');
     try {
       await register(email, password, firstName || undefined, lastName || undefined);
-      navigate('/');
+      navigate('/dashboard');
     } catch {
       setError('Registration failed. Email may already be in use.');
     }
