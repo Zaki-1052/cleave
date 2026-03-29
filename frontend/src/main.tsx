@@ -20,7 +20,7 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeProvider attribute="class" defaultTheme="system" storageKey="cleave-theme">
+    <ThemeProvider attribute="class" defaultTheme="light" storageKey="cleave-theme">
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
