@@ -29,9 +29,13 @@ export default function RegisterPage() {
 
   return (
     <GradientBackground>
-      <div className="flex min-h-screen items-center justify-center">
-        <Card className="w-full max-w-md">
-          <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">Create Account</h1>
+      <div className="flex min-h-screen flex-col items-center justify-center">
+        <div className="mb-8 text-center">
+          <h2 className="font-display text-3xl font-bold text-white">Cleave</h2>
+          <p className="mt-1 text-sm text-white/70">CUT&RUN Analysis Platform</p>
+        </div>
+        <Card className="w-full max-w-md border border-white/50">
+          <h1 className="mb-6 text-center font-display text-2xl font-bold text-gray-800">Create Account</h1>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Input
               label="Email"

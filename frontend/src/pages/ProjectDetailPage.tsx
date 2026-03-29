@@ -1,6 +1,7 @@
 // frontend/src/pages/ProjectDetailPage.tsx
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Loader2, UserPlus } from 'lucide-react';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
@@ -65,7 +66,7 @@ export default function ProjectDetailPage() {
   if (isLoading) {
     return (
       <div className="flex h-40 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -82,7 +83,7 @@ export default function ProjectDetailPage() {
     <div className="flex gap-6">
       <aside className="w-64 shrink-0">
         <Card>
-          <h2 className="text-lg font-bold text-gray-800">{project.name}</h2>
+          <h2 className="font-display text-lg font-bold text-gray-800">{project.name}</h2>
           <div className="mt-2">
             <StorageGauge
               usedBytes={project.storageBytes}
@@ -100,7 +101,7 @@ export default function ProjectDetailPage() {
             {members?.map((member) => (
               <div key={member.userId} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-teal text-xs font-semibold text-white">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-teal text-xs font-semibold text-white ring-2 ring-white shadow-sm">
                     {getInitials(member.user)}
                   </div>
                   <span className="text-sm text-gray-700">{getDisplayName(member.user)}</span>
@@ -114,10 +115,11 @@ export default function ProjectDetailPage() {
 
           {isAdmin && (
             <button
-              className="mt-4 text-sm text-primary hover:underline"
+              className="mt-4 inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
               onClick={() => setIsMembersModalOpen(true)}
             >
-              + Manage Members
+              <UserPlus className="h-4 w-4" />
+              Manage Members
             </button>
           )}
         </Card>
@@ -140,7 +142,7 @@ export default function ProjectDetailPage() {
       <div className="flex-1">
         <Card>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-primary">Experiments</h2>
+            <h2 className="font-display text-lg font-semibold text-primary">Experiments</h2>
             <Button onClick={() => setIsCreateModalOpen(true)}>+ Create Experiment</Button>
           </div>
           {!experimentsData?.items.length ? (

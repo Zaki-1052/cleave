@@ -46,9 +46,13 @@ export default function ResetPasswordPage() {
 
   return (
     <GradientBackground>
-      <div className="flex min-h-screen items-center justify-center">
-        <Card className="w-full max-w-md">
-          <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
+      <div className="flex min-h-screen flex-col items-center justify-center">
+        <div className="mb-8 text-center">
+          <h2 className="font-display text-3xl font-bold text-white">Cleave</h2>
+          <p className="mt-1 text-sm text-white/70">CUT&RUN Analysis Platform</p>
+        </div>
+        <Card className="w-full max-w-md border border-white/50">
+          <h1 className="mb-6 text-center font-display text-2xl font-bold text-gray-800">
             Set New Password
           </h1>
 
@@ -57,12 +61,9 @@ export default function ResetPasswordPage() {
               <p className="text-sm text-gray-600">
                 Your password has been reset successfully.
               </p>
-              <Link
-                to="/login"
-                className="inline-block rounded-full bg-primary px-6 py-2 text-sm font-semibold text-white hover:opacity-90"
-              >
-                Sign In
-              </Link>
+              <Button asChild>
+                <Link to="/login">Sign In</Link>
+              </Button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -90,8 +91,8 @@ export default function ResetPasswordPage() {
                   )}
                 </p>
               )}
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Resetting...' : 'Reset Password'}
+              <Button type="submit" loading={loading}>
+                Reset Password
               </Button>
             </form>
           )}

@@ -1,6 +1,7 @@
 // frontend/src/pages/AnalysisQueuePage.tsx
 import { useState, useEffect } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
+import { Search, Loader2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Card } from '@/components/layout/Card';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -78,7 +79,7 @@ const columns: ColumnDef<QueueJob, unknown>[] = [
     header: 'Started Running',
     cell: ({ getValue }) => {
       const v = getValue<string | null>();
-      return v ? formatDateTime(v) : '\u2014';
+      return v ? <span className="font-mono">{formatDateTime(v)}</span> : '\u2014';
     },
   },
   {
@@ -86,7 +87,7 @@ const columns: ColumnDef<QueueJob, unknown>[] = [
     header: 'Duration',
     cell: ({ getValue }) => {
       const v = getValue<number | null>();
-      return v != null ? formatDuration(v) : '\u2014';
+      return v != null ? <span className="font-mono">{formatDuration(v)}</span> : '\u2014';
     },
   },
   {
@@ -136,7 +137,7 @@ export default function AnalysisQueuePage() {
   return (
     <Card>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-primary">Analysis Queue</h2>
+        <h2 className="font-display text-lg font-semibold text-primary">Analysis Queue</h2>
         <div className="flex items-center gap-3">
           <div className="relative">
             <input
@@ -146,19 +147,7 @@ export default function AnalysisQueuePage() {
               onChange={(e) => setSearchText(e.target.value)}
               className="rounded-md border border-gray-300 py-1.5 pl-8 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
-            <svg
-              className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
           </div>
           <select
             value={jobTypeFilter}
@@ -192,7 +181,9 @@ export default function AnalysisQueuePage() {
       </div>
 
       {isLoading ? (
-        <p className="py-12 text-center text-sm text-gray-400">Loading...</p>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       ) : jobs.length === 0 ? (
         <p className="py-12 text-center text-sm text-gray-400">No jobs found.</p>
       ) : (
@@ -209,30 +200,30 @@ export default function AnalysisQueuePage() {
             <button
               onClick={() => setPage(1)}
               disabled={page === 1}
-              className="rounded px-1 py-0.5 hover:bg-gray-100 disabled:opacity-30"
+              className="rounded p-1 hover:bg-gray-100 disabled:opacity-30"
             >
-              |&lsaquo;
+              <ChevronsLeft className="h-4 w-4" />
             </button>
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="rounded px-1 py-0.5 hover:bg-gray-100 disabled:opacity-30"
+              className="rounded p-1 hover:bg-gray-100 disabled:opacity-30"
             >
-              &lsaquo;
+              <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
-              className="rounded px-1 py-0.5 hover:bg-gray-100 disabled:opacity-30"
+              className="rounded p-1 hover:bg-gray-100 disabled:opacity-30"
             >
-              &rsaquo;
+              <ChevronRight className="h-4 w-4" />
             </button>
             <button
               onClick={() => setPage(totalPages)}
               disabled={page >= totalPages}
-              className="rounded px-1 py-0.5 hover:bg-gray-100 disabled:opacity-30"
+              className="rounded p-1 hover:bg-gray-100 disabled:opacity-30"
             >
-              &rsaquo;|
+              <ChevronsRight className="h-4 w-4" />
             </button>
           </div>
         </div>

@@ -3,6 +3,14 @@ import { type FormEvent, useEffect, useState } from 'react';
 import { Card } from '@/components/layout/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { Separator } from '@/components/ui/separator';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import * as authApi from '@/api/auth';
 import { EMAIL_NOTIFICATION_OPTIONS } from '@/lib/constants';
@@ -65,7 +73,7 @@ export default function SettingsPage() {
   return (
     <Card>
       <form onSubmit={handleSubmit}>
-        <h2 className="mb-6 text-lg font-semibold text-primary">Account Settings</h2>
+        <h2 className="mb-6 font-display text-lg font-semibold text-primary">Account Settings</h2>
 
         {/* Account Information */}
         <div className="mb-8">
@@ -95,6 +103,8 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        <Separator />
+
         {/* Email */}
         <div className="mb-8">
           <h3 className="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -103,27 +113,30 @@ export default function SettingsPage() {
           <div className="flex flex-col gap-4">
             <Input label="Account Email" value={user.email} disabled />
             <div className="flex flex-col gap-1">
-              <label htmlFor="email-notifications" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                 Job Email Notification
               </label>
               <p className="mb-1 text-xs text-gray-400">
                 Get an email notification when a job finishes running.
               </p>
-              <select
-                id="email-notifications"
+              <Select
                 value={emailNotifications}
-                onChange={(e) => {
-                  setEmailNotifications(e.target.value);
+                onValueChange={(value) => {
+                  setEmailNotifications(value);
                   setSaveSuccess(false);
                 }}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
               >
-                {EMAIL_NOTIFICATION_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {EMAIL_NOTIFICATION_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -144,8 +157,8 @@ export default function SettingsPage() {
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={!hasChanges || isSaving}>
-            {isSaving ? 'Saving...' : 'Save'}
+          <Button type="submit" loading={isSaving} disabled={!hasChanges}>
+            Save
           </Button>
         </div>
       </form>
