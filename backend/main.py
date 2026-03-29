@@ -8,6 +8,7 @@ from config import settings
 from logging_config import setup_logging
 from rate_limit import limiter
 from routers import (
+    admin,
     auth,
     experiments,
     fastq_files,
@@ -54,6 +55,7 @@ app.include_router(jobs.router, prefix="/api/v1", tags=["jobs"])
 app.include_router(files.router, prefix="/api/v1", tags=["files"])
 app.include_router(tus_upload.router, prefix="/api/v1", tags=["uploads"])
 app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["notifications"])
+app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
 
 
 @app.get("/api/v1/health")

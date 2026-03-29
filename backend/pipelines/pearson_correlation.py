@@ -58,9 +58,7 @@ class PearsonCorrelationStage(PipelineStage):
             errors.append("Missing required param: reference_genome")
         elif genome not in _VALID_GENOMES:
             valid = sorted(_VALID_GENOMES)
-            errors.append(
-                f"Invalid reference_genome '{genome}'. Must be one of: {valid}"
-            )
+            errors.append(f"Invalid reference_genome '{genome}'. Must be one of: {valid}")
 
         samples = params.get("samples")
         if not samples or not isinstance(samples, list):
@@ -68,9 +66,7 @@ class PearsonCorrelationStage(PipelineStage):
             return errors
 
         if len(samples) < 2:
-            errors.append(
-                f"Pearson correlation requires at least 2 samples, got {len(samples)}"
-            )
+            errors.append(f"Pearson correlation requires at least 2 samples, got {len(samples)}")
 
         for i, s in enumerate(samples):
             prefix = f"samples[{i}]"
@@ -90,9 +86,7 @@ class PearsonCorrelationStage(PipelineStage):
     # Real run
     # ------------------------------------------------------------------
 
-    def run(
-        self, job_id: int, params: dict, working_dir: Path, job_dir: Path
-    ) -> dict:
+    def run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
         project_id = params["project_id"]
         experiment_id = params["experiment_id"]
         samples = params["samples"]
@@ -111,17 +105,14 @@ class PearsonCorrelationStage(PipelineStage):
         append_to_master_log(
             master_log,
             f"Pearson correlation job {job_id} started",
-            f"Genome: {genome}\nSamples: {len(samples)}\n"
-            f"Restrict BED: {restrict_bed or 'none'}",
+            f"Genome: {genome}\nSamples: {len(samples)}\nRestrict BED: {restrict_bed or 'none'}",
         )
 
         # Write sample sheet CSV for R script
         storage = Path(settings.STORAGE_ROOT)
         sample_sheet_path = job_dir / "sample_sheet.csv"
         self._write_sample_sheet(samples, sample_sheet_path, storage)
-        append_to_master_log(
-            master_log, "Sample sheet written", sample_sheet_path.read_text()
-        )
+        append_to_master_log(master_log, "Sample sheet written", sample_sheet_path.read_text())
 
         # Resolve mask BED (mouse only)
         mask_bed_arg = ""
@@ -129,9 +120,7 @@ class PearsonCorrelationStage(PipelineStage):
             mask_path = _MASKS_DIR / "manual.mask.ultimate.bed"
             if mask_path.exists():
                 mask_bed_arg = str(mask_path)
-                append_to_master_log(
-                    master_log, "Masking enabled", f"{mask_path} (158 entries)"
-                )
+                append_to_master_log(master_log, "Masking enabled", f"{mask_path} (158 entries)")
             else:
                 append_to_master_log(
                     master_log,
@@ -151,13 +140,9 @@ class PearsonCorrelationStage(PipelineStage):
             restrict_abs = storage / restrict_bed
             if restrict_abs.exists():
                 restrict_bed_arg = str(restrict_abs)
-                append_to_master_log(
-                    master_log, "BED restriction enabled", str(restrict_abs)
-                )
+                append_to_master_log(master_log, "BED restriction enabled", str(restrict_abs))
             else:
-                raise PipelineError(
-                    f"Restrict BED file not found: {restrict_abs}"
-                )
+                raise PipelineError(f"Restrict BED file not found: {restrict_abs}")
 
         # --- Run R script: bigWig → coverage matrix ---
         r_script = _SCRIPTS_DIR / "pearson_matrix.R"
@@ -184,9 +169,7 @@ class PearsonCorrelationStage(PipelineStage):
         )
 
         if not coverage_csv.exists():
-            raise PipelineError(
-                f"R script did not produce coverage matrix: {coverage_csv}"
-            )
+            raise PipelineError(f"R script did not produce coverage matrix: {coverage_csv}")
 
         # --- Run Python script: coverage matrix → correlation heatmap ---
         py_script = _SCRIPTS_DIR / "pearson_heatmap.py"
@@ -205,9 +188,7 @@ class PearsonCorrelationStage(PipelineStage):
             str(corr_csv),
         ]
 
-        append_to_master_log(
-            master_log, "Running pearson_heatmap.py", " ".join(py_cmd)
-        )
+        append_to_master_log(master_log, "Running pearson_heatmap.py", " ".join(py_cmd))
         run_cmd(
             py_cmd,
             log_path=logs_dir / "pearson_heatmap_py.log",
@@ -291,9 +272,7 @@ class PearsonCorrelationStage(PipelineStage):
         return {
             "job_id": job_id,
             "status": "complete",
-            "message": (
-                f"Pearson correlation complete ({len(samples)} samples, {genome})"
-            ),
+            "message": (f"Pearson correlation complete ({len(samples)} samples, {genome})"),
             "outputs": outputs,
             "methods_text": self.generate_methods_text(params),
         }
@@ -302,9 +281,7 @@ class PearsonCorrelationStage(PipelineStage):
     # Mock run
     # ------------------------------------------------------------------
 
-    def mock_run(
-        self, job_id: int, params: dict, working_dir: Path, job_dir: Path
-    ) -> dict:
+    def mock_run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
         time.sleep(4)
 
         project_id = params["project_id"]
@@ -321,8 +298,7 @@ class PearsonCorrelationStage(PipelineStage):
 
         outputs: list[dict] = []
         sample_labels = [
-            s.get("label", s.get("short_name", f"s{i}"))
-            for i, s in enumerate(samples)
+            s.get("label", s.get("short_name", f"s{i}")) for i, s in enumerate(samples)
         ]
 
         # Write sample sheet (same as real run)
@@ -441,10 +417,7 @@ class PearsonCorrelationStage(PipelineStage):
         return {
             "job_id": job_id,
             "status": "complete",
-            "message": (
-                f"Mock Pearson correlation complete "
-                f"({len(samples)} samples, {genome})"
-            ),
+            "message": (f"Mock Pearson correlation complete ({len(samples)} samples, {genome})"),
             "outputs": outputs,
             "methods_text": self.generate_methods_text(params),
         }

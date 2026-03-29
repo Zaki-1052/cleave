@@ -1,8 +1,12 @@
 # backend/services/project_service.py
+import shutil
+from pathlib import Path
+
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from config import settings
 from models.project import Project, ProjectMember
 from models.user import User
 from schemas.project import ProjectCreate, ProjectUpdate
@@ -70,6 +74,11 @@ async def delete_project(db: AsyncSession, project_id: int) -> None:
     if project:
         await db.delete(project)
         await db.commit()
+
+        # Clean up disk files after successful commit
+        project_dir = Path(settings.STORAGE_ROOT) / "projects" / str(project_id)
+        if project_dir.exists():
+            shutil.rmtree(project_dir, ignore_errors=True)
 
 
 async def list_members(db: AsyncSession, project_id: int) -> list[ProjectMember]:

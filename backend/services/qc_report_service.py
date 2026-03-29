@@ -794,9 +794,7 @@ async def get_pearson_correlation_report(
 
     return PearsonCorrelationReport(
         sample_count=len(samples),
-        sample_labels=[
-            s.get("label", s.get("short_name", "")) for s in samples
-        ],
+        sample_labels=[s.get("label", s.get("short_name", "")) for s in samples],
         reference_genome=genome,
         masking_applied=genome == "mm10",
         restrict_bed_label=params.get("restrict_bed_label"),
@@ -816,14 +814,10 @@ async def get_pearson_correlation_matrix_path(
     if job is None:
         return None
     if job.job_type != "pearson_correlation" or job.status != "complete":
-        raise ValueError(
-            f"Job {job_id} is not a completed pearson_correlation job"
-        )
+        raise ValueError(f"Job {job_id} is not a completed pearson_correlation job")
     path = _resolve_output_path(job, "pearson_correlation", "csv")
     if path is None:
-        raise FileNotFoundError(
-            f"Correlation matrix not found for job {job_id}"
-        )
+        raise FileNotFoundError(f"Correlation matrix not found for job {job_id}")
     return path
 
 
@@ -837,14 +831,10 @@ async def get_pearson_coverage_matrix_path(
     if job is None:
         return None
     if job.job_type != "pearson_correlation" or job.status != "complete":
-        raise ValueError(
-            f"Job {job_id} is not a completed pearson_correlation job"
-        )
+        raise ValueError(f"Job {job_id} is not a completed pearson_correlation job")
     path = _resolve_output_path(job, "pearson_matrix", "csv")
     if path is None:
-        raise FileNotFoundError(
-            f"Coverage matrix not found for job {job_id}"
-        )
+        raise FileNotFoundError(f"Coverage matrix not found for job {job_id}")
     return path
 
 
@@ -903,9 +893,7 @@ async def get_roman_normalization_report(
                 svg_id = output.id
 
     # Reference sample is the first in the list
-    sample_labels = [
-        s.get("label", s.get("short_name", "")) for s in samples
-    ]
+    sample_labels = [s.get("label", s.get("short_name", "")) for s in samples]
     reference_sample = sample_labels[0] if sample_labels else ""
 
     return RomanNormalizationReport(
@@ -930,12 +918,8 @@ async def get_roman_normalization_factors_path(
     if job is None:
         return None
     if job.job_type != "roman_normalization" or job.status != "complete":
-        raise ValueError(
-            f"Job {job_id} is not a completed roman_normalization job"
-        )
+        raise ValueError(f"Job {job_id} is not a completed roman_normalization job")
     path = _resolve_output_path(job, "normalization_factors", "csv")
     if path is None:
-        raise FileNotFoundError(
-            f"Normalization factors not found for job {job_id}"
-        )
+        raise FileNotFoundError(f"Normalization factors not found for job {job_id}")
     return path

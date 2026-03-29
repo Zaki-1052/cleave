@@ -81,6 +81,7 @@ def patch_worker_sessions(monkeypatch):
     Only used by tests that exercise the worker or job_output_service.
     """
     import database
+    import services.cleanup_service
     import services.fastqc_service
     import services.job_output_service
     import services.sse_service
@@ -93,6 +94,7 @@ def patch_worker_sessions(monkeypatch):
     monkeypatch.setattr(services.job_output_service, "async_session_factory", test_session_factory)
     monkeypatch.setattr(services.fastqc_service, "async_session_factory", test_session_factory)
     monkeypatch.setattr(services.sse_service, "async_session_factory", test_session_factory)
+    monkeypatch.setattr(services.cleanup_service, "async_session_factory", test_session_factory)
 
 
 @pytest.fixture

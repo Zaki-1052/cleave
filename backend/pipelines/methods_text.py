@@ -222,10 +222,7 @@ def pearson_correlation_methods(params: dict) -> str:
         )
 
     if restrict_bed:
-        text += (
-            f"Signal was restricted to bins overlapping regions in "
-            f"{bed_label}. "
-        )
+        text += f"Signal was restricted to bins overlapping regions in {bed_label}. "
 
     text += (
         "Pairwise Pearson correlation coefficients were computed using "

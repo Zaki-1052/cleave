@@ -480,13 +480,9 @@ async def get_pearson_report_endpoint(
     try:
         report = await get_pearson_correlation_report(db, job_id, user.id)
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
     except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     if report is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -502,17 +498,11 @@ async def download_pearson_correlation(
     user: User = Depends(current_active_user),
 ):
     try:
-        csv_path = await get_pearson_correlation_matrix_path(
-            db, job_id, user.id
-        )
+        csv_path = await get_pearson_correlation_matrix_path(db, job_id, user.id)
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
     except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     if csv_path is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -532,17 +522,11 @@ async def download_pearson_coverage(
     user: User = Depends(current_active_user),
 ):
     try:
-        csv_path = await get_pearson_coverage_matrix_path(
-            db, job_id, user.id
-        )
+        csv_path = await get_pearson_coverage_matrix_path(db, job_id, user.id)
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
     except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     if csv_path is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -572,13 +556,9 @@ async def get_normalization_report_endpoint(
     try:
         report = await get_roman_normalization_report(db, job_id, user.id)
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
     except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     if report is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -594,17 +574,11 @@ async def download_normalization_factors(
     user: User = Depends(current_active_user),
 ):
     try:
-        csv_path = await get_roman_normalization_factors_path(
-            db, job_id, user.id
-        )
+        csv_path = await get_roman_normalization_factors_path(db, job_id, user.id)
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
     except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     if csv_path is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

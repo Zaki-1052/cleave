@@ -69,3 +69,13 @@ export async function removeMember(
 ): Promise<void> {
   await client.delete(`/projects/${projectId}/members/${userId}`);
 }
+
+export interface StorageInfo {
+  quotaBytes: number;
+  disk: { total: number; used: number; free: number };
+}
+
+export async function getStorageInfo(): Promise<StorageInfo> {
+  const { data } = await client.get<StorageInfo>('/admin/storage-info');
+  return data;
+}

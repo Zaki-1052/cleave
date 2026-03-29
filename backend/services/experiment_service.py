@@ -1,10 +1,14 @@
 # backend/services/experiment_service.py
-from sqlalchemy import func, select
+import shutil
+from pathlib import Path
+
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from config import settings
 from models.experiment import Experiment
-from models.project import ProjectMember
+from models.project import Project, ProjectMember
 from schemas.experiment import ExperimentCreate, ExperimentUpdate
 
 
@@ -113,6 +117,25 @@ async def delete_experiment(db: AsyncSession, experiment_id: int, user_id: int) 
     experiment = result.scalar_one_or_none()
     if experiment is None:
         return False
+
+    project_id = experiment.project_id
+    storage_bytes = experiment.storage_bytes or 0
+
     await db.delete(experiment)
+
+    # Decrement project storage_bytes by the experiment's tracked usage
+    if storage_bytes > 0:
+        await db.execute(
+            update(Project)
+            .where(Project.id == project_id)
+            .values(storage_bytes=Project.storage_bytes - storage_bytes)
+        )
+
     await db.commit()
+
+    # Clean up disk files after successful commit
+    experiment_dir = Path(settings.STORAGE_ROOT) / "projects" / str(project_id) / str(experiment_id)
+    if experiment_dir.exists():
+        shutil.rmtree(experiment_dir, ignore_errors=True)
+
     return True

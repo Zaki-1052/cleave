@@ -16,6 +16,7 @@ from models.analysis_job import AnalysisJob
 from models.experiment import Experiment
 from models.notification import Notification
 from pipelines import run as pipeline_run
+from services.cleanup_service import run_full_cleanup
 from services.job_output_service import persist_job_outputs
 from services.trimming_service import create_trimmed_fastq_records
 
@@ -204,6 +205,29 @@ async def poll_and_run() -> None:
     )
 
 
+_last_cleanup_at: float = 0.0
+
+
+async def _maybe_run_cleanup() -> None:
+    """Run storage cleanup if enabled and enough time has elapsed."""
+    global _last_cleanup_at
+
+    if not settings.CLEANUP_ENABLED:
+        return
+
+    now = time.time()
+    interval_seconds = settings.CLEANUP_INTERVAL_HOURS * 3600
+    if now - _last_cleanup_at < interval_seconds:
+        return
+
+    _last_cleanup_at = now
+    try:
+        result = await run_full_cleanup()
+        logger.info("worker.cleanup_complete", result=result)
+    except Exception as exc:
+        logger.error("worker.cleanup_failed", error=str(exc))
+
+
 async def main() -> None:
     logger.info(
         "worker.started",
@@ -212,6 +236,7 @@ async def main() -> None:
     )
     while True:
         await poll_and_run()
+        await _maybe_run_cleanup()
         await asyncio.sleep(settings.WORKER_POLL_INTERVAL_SECONDS)
 
 

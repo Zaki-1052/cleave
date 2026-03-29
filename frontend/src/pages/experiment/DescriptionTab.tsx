@@ -4,7 +4,9 @@ import type { Experiment } from '@/api/types';
 import { Card } from '@/components/layout/Card';
 import { DetailRow } from '@/components/ui/DetailRow';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { formatBytes, formatDate, getDisplayName } from '@/lib/utils';
+import { StorageGauge } from '@/components/ui/StorageGauge';
+import { useStorageInfo } from '@/hooks/useProjects';
+import { formatDate, getDisplayName } from '@/lib/utils';
 
 interface ExperimentContext {
   experiment: Experiment;
@@ -12,6 +14,7 @@ interface ExperimentContext {
 
 export default function DescriptionTab() {
   const { experiment } = useOutletContext<ExperimentContext>();
+  const { data: storageInfo } = useStorageInfo();
 
   const creatorName = experiment.creator
     ? getDisplayName(experiment.creator)
@@ -30,7 +33,12 @@ export default function DescriptionTab() {
           <DetailRow label="Status">
             <StatusBadge status={experiment.status} />
           </DetailRow>
-          <DetailRow label="Size">{formatBytes(experiment.storageBytes)}</DetailRow>
+          <DetailRow label="Size">
+            <StorageGauge
+              usedBytes={experiment.storageBytes}
+              quotaBytes={storageInfo?.quotaBytes}
+            />
+          </DetailRow>
         </div>
       </Card>
       <Card className="flex-[3]">

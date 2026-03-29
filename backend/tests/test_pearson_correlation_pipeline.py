@@ -78,11 +78,7 @@ def test_validate_empty_samples(stage):
 
 
 def test_validate_too_few_samples(stage):
-    errors = stage.validate(
-        _make_valid_params(
-            samples=[_make_sample(1, "K4me3_ctrl1", "ctrl1")]
-        )
-    )
+    errors = stage.validate(_make_valid_params(samples=[_make_sample(1, "K4me3_ctrl1", "ctrl1")]))
     assert any("at least 2" in e for e in errors)
 
 
@@ -147,9 +143,7 @@ def test_mock_run_png_and_svg(stage, tmp_path):
     working_dir = tmp_path / "working"
     result = stage.mock_run(1, _make_valid_params(), working_dir, job_dir)
 
-    heatmap_outputs = [
-        o for o in result["outputs"] if o["file_category"] == "pearson_heatmap"
-    ]
+    heatmap_outputs = [o for o in result["outputs"] if o["file_category"] == "pearson_heatmap"]
     types = {o["file_type"] for o in heatmap_outputs}
     assert "png" in types
     assert "svg" in types
@@ -161,9 +155,7 @@ def test_mock_run_coverage_csv_has_sample_columns(stage, tmp_path):
     params = _make_valid_params()
     result = stage.mock_run(1, params, working_dir, job_dir)
 
-    cov_outs = [
-        o for o in result["outputs"] if o["file_category"] == "pearson_matrix"
-    ]
+    cov_outs = [o for o in result["outputs"] if o["file_category"] == "pearson_matrix"]
     assert len(cov_outs) == 1
     cov_file = job_dir / "results" / cov_outs[0]["filename"]
     reader = csv.reader(io.StringIO(cov_file.read_text()))
@@ -180,9 +172,7 @@ def test_mock_run_correlation_csv_is_square(stage, tmp_path):
     n_samples = len(params["samples"])
     result = stage.mock_run(1, params, working_dir, job_dir)
 
-    corr_outs = [
-        o for o in result["outputs"] if o["file_category"] == "pearson_correlation"
-    ]
+    corr_outs = [o for o in result["outputs"] if o["file_category"] == "pearson_correlation"]
     assert len(corr_outs) == 1
     corr_file = job_dir / "results" / corr_outs[0]["filename"]
     reader = csv.reader(io.StringIO(corr_file.read_text()))
@@ -218,9 +208,7 @@ def test_methods_text_default_mm10(stage):
 
 
 def test_methods_text_human_no_masking(stage):
-    text = stage.generate_methods_text(
-        _make_valid_params(reference_genome="hg38")
-    )
+    text = stage.generate_methods_text(_make_valid_params(reference_genome="hg38"))
     assert "Pearson" in text
     assert "hg38" in text.lower() or "Human" in text
     assert "masked" not in text.lower()

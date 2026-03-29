@@ -7,10 +7,11 @@ import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { ManageMembersModal } from '@/components/projects/ManageMembersModal';
 import { CreateExperimentWizard } from '@/components/experiments/CreateExperimentWizard';
+import { StorageGauge } from '@/components/ui/StorageGauge';
 import { useAuth } from '@/hooks/useAuth';
-import { useProject, useMembers } from '@/hooks/useProjects';
+import { useProject, useMembers, useStorageInfo } from '@/hooks/useProjects';
 import { useExperiments } from '@/hooks/useExperiments';
-import { formatBytes, formatDate, getDisplayName, getInitials } from '@/lib/utils';
+import { formatDate, getDisplayName, getInitials } from '@/lib/utils';
 import { ROLE_LABELS } from '@/lib/constants';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { Experiment } from '@/api/types';
@@ -53,6 +54,7 @@ export default function ProjectDetailPage() {
   const { data: project, isLoading } = useProject(projectId);
   const { data: members } = useMembers(projectId);
   const { data: experimentsData } = useExperiments(projectId);
+  const { data: storageInfo } = useStorageInfo();
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -81,8 +83,13 @@ export default function ProjectDetailPage() {
       <aside className="w-64 shrink-0">
         <Card>
           <h2 className="text-lg font-bold text-gray-800">{project.name}</h2>
-          <p className="mt-1 text-xs uppercase tracking-wide text-gray-500">Project Size</p>
-          <p className="text-sm text-gray-700">{formatBytes(project.storageBytes)}</p>
+          <div className="mt-2">
+            <StorageGauge
+              usedBytes={project.storageBytes}
+              quotaBytes={storageInfo?.quotaBytes}
+              label="Project Size"
+            />
+          </div>
 
           <hr className="my-4" />
 

@@ -11,6 +11,7 @@
 import sys  # isort:skip_file
 
 import matplotlib
+
 matplotlib.use("Agg")  # non-interactive backend for server use
 import matplotlib.pyplot as plt  # noqa: E402
 import pandas as pd  # noqa: E402
@@ -18,8 +19,7 @@ import seaborn as sns  # noqa: E402
 
 if len(sys.argv) < 5:
     print(
-        "Usage: python3 pearson_heatmap.py "
-        "<input_csv> <output_png> <output_svg> <correlation_csv>",
+        "Usage: python3 pearson_heatmap.py <input_csv> <output_png> <output_svg> <correlation_csv>",
         file=sys.stderr,
     )
     sys.exit(1)

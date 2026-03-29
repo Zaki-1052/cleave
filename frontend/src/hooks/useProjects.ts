@@ -103,3 +103,11 @@ export function useRemoveMember() {
     },
   });
 }
+
+export function useStorageInfo() {
+  return useQuery({
+    queryKey: ['storage-info'],
+    queryFn: () => projectsApi.getStorageInfo(),
+    staleTime: 5 * 60 * 1000,
+  });
+}

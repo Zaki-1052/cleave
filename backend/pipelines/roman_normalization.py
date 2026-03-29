@@ -69,9 +69,7 @@ class RomanNormalizationStage(PipelineStage):
             return errors
 
         if len(samples) < 2:
-            errors.append(
-                f"Roman normalization requires at least 2 samples, got {len(samples)}"
-            )
+            errors.append(f"Roman normalization requires at least 2 samples, got {len(samples)}")
 
         for i, s in enumerate(samples):
             prefix = f"samples[{i}]"
@@ -91,9 +89,7 @@ class RomanNormalizationStage(PipelineStage):
     # Real run
     # ------------------------------------------------------------------
 
-    def run(
-        self, job_id: int, params: dict, working_dir: Path, job_dir: Path
-    ) -> dict:
+    def run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
         project_id = params["project_id"]
         experiment_id = params["experiment_id"]
         samples = params["samples"]
@@ -117,17 +113,13 @@ class RomanNormalizationStage(PipelineStage):
         storage = Path(settings.STORAGE_ROOT)
         sample_sheet_path = job_dir / "sample_sheet.csv"
         self._write_sample_sheet(samples, sample_sheet_path, storage)
-        append_to_master_log(
-            master_log, "Sample sheet written", sample_sheet_path.read_text()
-        )
+        append_to_master_log(master_log, "Sample sheet written", sample_sheet_path.read_text())
 
         # Resolve mask BED (always mm10)
         mask_path = _MASKS_DIR / "manual.mask.ultimate.bed"
         if not mask_path.exists():
             raise PipelineError(f"Mask file not found: {mask_path}")
-        append_to_master_log(
-            master_log, "Masking enabled", f"{mask_path} (158 entries)"
-        )
+        append_to_master_log(master_log, "Masking enabled", f"{mask_path} (158 entries)")
 
         # --- Run R script: bigWig → normalize → _rnorm.bw ---
         r_script = _SCRIPTS_DIR / "roman_normalization.R"
@@ -142,9 +134,7 @@ class RomanNormalizationStage(PipelineStage):
             str(mask_path),
         ]
 
-        append_to_master_log(
-            master_log, "Running roman_normalization.R", " ".join(r_cmd)
-        )
+        append_to_master_log(master_log, "Running roman_normalization.R", " ".join(r_cmd))
         run_cmd(
             r_cmd,
             log_path=logs_dir / "roman_normalization_r.log",
@@ -155,18 +145,14 @@ class RomanNormalizationStage(PipelineStage):
         # Verify normalization factors CSV
         factors_csv = results_dir / "normalization_factors.csv"
         if not factors_csv.exists():
-            raise PipelineError(
-                f"R script did not produce normalization factors: {factors_csv}"
-            )
+            raise PipelineError(f"R script did not produce normalization factors: {factors_csv}")
 
         # Verify each _rnorm.bw exists
         for s in samples:
             bw_name = f"{s['short_name']}_rnorm.bw"
             bw_path = results_dir / bw_name
             if not bw_path.exists():
-                raise PipelineError(
-                    f"R script did not produce normalized bigWig: {bw_path}"
-                )
+                raise PipelineError(f"R script did not produce normalized bigWig: {bw_path}")
 
         # --- Run Python script: factors CSV → bar chart ---
         py_script = _SCRIPTS_DIR / "roman_normalization_plot.py"
@@ -183,9 +169,7 @@ class RomanNormalizationStage(PipelineStage):
             str(svg_path),
         ]
 
-        append_to_master_log(
-            master_log, "Running roman_normalization_plot.py", " ".join(py_cmd)
-        )
+        append_to_master_log(master_log, "Running roman_normalization_plot.py", " ".join(py_cmd))
         run_cmd(
             py_cmd,
             log_path=logs_dir / "roman_normalization_plot_py.log",
@@ -274,9 +258,7 @@ class RomanNormalizationStage(PipelineStage):
         return {
             "job_id": job_id,
             "status": "complete",
-            "message": (
-                f"Roman normalization complete ({len(samples)} samples, mm10)"
-            ),
+            "message": (f"Roman normalization complete ({len(samples)} samples, mm10)"),
             "outputs": outputs,
             "methods_text": self.generate_methods_text(params),
         }
@@ -285,9 +267,7 @@ class RomanNormalizationStage(PipelineStage):
     # Mock run
     # ------------------------------------------------------------------
 
-    def mock_run(
-        self, job_id: int, params: dict, working_dir: Path, job_dir: Path
-    ) -> dict:
+    def mock_run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
         time.sleep(4)
 
         project_id = params["project_id"]
@@ -409,10 +389,7 @@ class RomanNormalizationStage(PipelineStage):
         return {
             "job_id": job_id,
             "status": "complete",
-            "message": (
-                f"Mock Roman normalization complete "
-                f"({len(samples)} samples, mm10)"
-            ),
+            "message": (f"Mock Roman normalization complete ({len(samples)} samples, mm10)"),
             "outputs": outputs,
             "methods_text": self.generate_methods_text(params),
         }

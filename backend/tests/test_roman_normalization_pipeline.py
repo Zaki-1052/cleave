@@ -88,25 +88,19 @@ def test_validate_empty_samples(stage):
 
 
 def test_validate_too_few_samples(stage):
-    errors = stage.validate(
-        _make_valid_params(samples=[_make_sample(1)])
-    )
+    errors = stage.validate(_make_valid_params(samples=[_make_sample(1)]))
     assert any("at least 2" in e for e in errors)
 
 
 def test_validate_missing_sample_fields(stage):
-    errors = stage.validate(
-        _make_valid_params(samples=[{"reaction_id": 1}, {"reaction_id": 2}])
-    )
+    errors = stage.validate(_make_valid_params(samples=[{"reaction_id": 1}, {"reaction_id": 2}]))
     assert any("missing" in e for e in errors)
 
 
 def test_validate_valid_minimum_samples(stage):
     """Exactly 2 samples should be valid."""
     errors = stage.validate(
-        _make_valid_params(
-            samples=[_make_sample(1, "ctrl"), _make_sample(2, "mut")]
-        )
+        _make_valid_params(samples=[_make_sample(1, "ctrl"), _make_sample(2, "mut")])
     )
     assert errors == []
 
@@ -163,9 +157,7 @@ def test_mock_run_per_reaction_bigwigs(stage, tmp_path):
     params = _make_valid_params()
     result = stage.mock_run(1, params, working_dir, job_dir)
 
-    bw_outputs = [
-        o for o in result["outputs"] if o["file_category"] == "normalization_bigwig"
-    ]
+    bw_outputs = [o for o in result["outputs"] if o["file_category"] == "normalization_bigwig"]
     assert len(bw_outputs) == len(params["samples"])
 
     # Each should have a reaction_id
@@ -205,9 +197,7 @@ def test_mock_run_file_sizes_positive(stage, tmp_path):
     result = stage.mock_run(1, _make_valid_params(), working_dir, job_dir)
 
     for output in result["outputs"]:
-        assert output["file_size_bytes"] > 0, (
-            f"{output['filename']} has size 0"
-        )
+        assert output["file_size_bytes"] > 0, f"{output['filename']} has size 0"
 
 
 def test_mock_run_png_and_svg(stage, tmp_path):
@@ -218,9 +208,7 @@ def test_mock_run_png_and_svg(stage, tmp_path):
 
     result = stage.mock_run(1, _make_valid_params(), working_dir, job_dir)
 
-    plot_outputs = [
-        o for o in result["outputs"] if o["file_category"] == "normalization_plot"
-    ]
+    plot_outputs = [o for o in result["outputs"] if o["file_category"] == "normalization_plot"]
     types = {o["file_type"] for o in plot_outputs}
     assert "png" in types
     assert "svg" in types

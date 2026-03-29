@@ -7,14 +7,14 @@
 import sys  # isort:skip_file
 
 import matplotlib
+
 matplotlib.use("Agg")  # non-interactive backend for server use
 import matplotlib.pyplot as plt  # noqa: E402
 import pandas as pd  # noqa: E402
 
 if len(sys.argv) < 4:
     print(
-        "Usage: python3 roman_normalization_plot.py "
-        "<factors_csv> <output_png> <output_svg>",
+        "Usage: python3 roman_normalization_plot.py <factors_csv> <output_png> <output_svg>",
         file=sys.stderr,
     )
     sys.exit(1)
