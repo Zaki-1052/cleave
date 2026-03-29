@@ -12,6 +12,7 @@ from models.analysis_job import AnalysisJob
 from models.experiment import Experiment
 from models.notification import Notification
 from models.project import ProjectMember
+from services.server_import_service import get_active_imports_for_user
 
 log = structlog.get_logger("sse_service")
 
@@ -105,6 +106,7 @@ async def sse_event_generator(user_id: int) -> AsyncGenerator[str, None]:
             }
             current_ap = await _query_auto_pipeline_experiments(user_id, set(), session)
             tracked_ap: dict[int, str] = dict(current_ap)
+            tracked_imports: dict[str, str] = {}  # import_id → status
 
             consecutive_errors = 0
             polls_since_keepalive = 0
@@ -178,6 +180,28 @@ async def sse_event_generator(user_id: int) -> AsyncGenerator[str, None]:
                         eid: ap_status
                         for eid, ap_status in current_ap.items()
                         if ap_status in AP_ACTIVE_STATUSES
+                    }
+
+                    # --- Check for server import progress changes ---
+                    current_imports = get_active_imports_for_user(user_id)
+                    for iid, imp_progress in current_imports.items():
+                        old_status = tracked_imports.get(iid)
+                        if old_status != imp_progress.status:
+                            yield _format_sse(
+                                "server_import_progress",
+                                {
+                                    "importId": iid,
+                                    "experimentId": imp_progress.experiment_id,
+                                    "status": imp_progress.status,
+                                    "completedCount": imp_progress.completed_count,
+                                    "totalCount": imp_progress.total_count,
+                                },
+                            )
+                    # Rebuild: keep active, drop completed
+                    tracked_imports = {
+                        iid: imp.status
+                        for iid, imp in current_imports.items()
+                        if imp.status in ("connecting", "downloading")
                     }
 
                     # Expire cached ORM state so next poll sees fresh DB data

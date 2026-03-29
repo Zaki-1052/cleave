@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { ColumnDef } from '@tanstack/react-table';
-import { AlertTriangle, FileText, Trash2 } from 'lucide-react';
+import { AlertTriangle, FileText, Server, Trash2 } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { toast } from 'sonner';
 import { Card } from '@/components/layout/Card';
@@ -11,6 +11,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { Modal } from '@/components/ui/Modal';
 import { FileUploadZone } from '@/components/fastqs/FileUploadZone';
 import { FastqcReportModal } from '@/components/fastqs/FastqcReportModal';
+import { ServerImportModal } from '@/components/fastqs/ServerImportModal';
 import { TrimConfigModal } from '@/components/fastqs/TrimConfigModal';
 import type { TrimParams } from '@/components/fastqs/TrimConfigModal';
 import { useFastqs, useDeleteFastq } from '@/hooks/useFastqs';
@@ -102,6 +103,7 @@ export default function FastqsTab() {
   const deleteMutation = useDeleteFastq();
   const createJobMutation = useCreateJob();
   const [showUpload, setShowUpload] = useState(false);
+  const [showServerImport, setShowServerImport] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<FastqFile | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [fastqcTarget, setFastqcTarget] = useState<FastqFile | null>(null);
@@ -278,6 +280,13 @@ export default function FastqsTab() {
             >
               {showUpload ? 'Close' : '+ Add FASTQs'}
             </Button>
+            <Button
+              variant="outlined"
+              onClick={() => setShowServerImport(true)}
+            >
+              <Server className="mr-1 h-4 w-4" />
+              Import from Server
+            </Button>
           </div>
         </div>
 
@@ -397,6 +406,12 @@ export default function FastqsTab() {
         onClose={() => setShowTrimConfig(false)}
         onSubmit={handleConfiguredTrim}
         isSubmitting={createJobMutation.isPending}
+      />
+
+      <ServerImportModal
+        experimentId={experiment.id}
+        isOpen={showServerImport}
+        onClose={() => setShowServerImport(false)}
       />
     </>
   );

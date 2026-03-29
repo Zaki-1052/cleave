@@ -91,6 +91,23 @@ export function useSSE(): void {
               // Malformed event data — ignore
             }
           }
+
+          if (event.event === 'server_import_progress') {
+            try {
+              const data = JSON.parse(event.data) as {
+                importId: string;
+                experimentId: number;
+                status: string;
+              };
+              void queryClient.invalidateQueries({ queryKey: ['server-import', data.importId] });
+              if (data.status === 'complete') {
+                void queryClient.invalidateQueries({ queryKey: ['fastqs', data.experimentId] });
+                void queryClient.invalidateQueries({ queryKey: ['experiments'] });
+              }
+            } catch {
+              // Malformed event data — ignore
+            }
+          }
         },
 
         onclose() {

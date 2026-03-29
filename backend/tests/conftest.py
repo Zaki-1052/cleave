@@ -94,6 +94,7 @@ def patch_worker_sessions(monkeypatch):
     import services.event_service
     import services.fastqc_service
     import services.job_output_service
+    import services.server_import_service
     import services.sse_service
     import services.trimming_service
     import worker
@@ -106,6 +107,9 @@ def patch_worker_sessions(monkeypatch):
     monkeypatch.setattr(services.sse_service, "async_session_factory", test_session_factory)
     monkeypatch.setattr(services.cleanup_service, "async_session_factory", test_session_factory)
     monkeypatch.setattr(services.event_service, "async_session_factory", test_session_factory)
+    monkeypatch.setattr(
+        services.server_import_service, "async_session_factory", test_session_factory
+    )
 
 
 @pytest.fixture
