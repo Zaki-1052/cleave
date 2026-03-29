@@ -81,7 +81,7 @@ export default function ExperimentView() {
   if (!experiment) {
     return (
       <Card>
-        <p className="text-gray-500">Experiment not found</p>
+        <p className="text-muted-foreground">Experiment not found</p>
       </Card>
     );
   }
@@ -90,13 +90,13 @@ export default function ExperimentView() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h1 className="font-display text-xl font-bold text-gray-800">{experiment.name}</h1>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <h1 className="font-display text-xl font-bold text-foreground">{experiment.name}</h1>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>Last Job:</span>
             {lastJob ? (
-              <span className="font-medium text-gray-700">{lastJobLabel}</span>
+              <span className="font-medium text-foreground">{lastJobLabel}</span>
             ) : (
-              <span className="text-gray-400">None</span>
+              <span className="text-muted-foreground">None</span>
             )}
           </div>
           <StatusBadge status={experiment.status} />
@@ -145,8 +145,8 @@ export default function ExperimentView() {
                   to={`/experiments/${id}/${tab.path}`}
                   className={`flex items-center gap-2 px-4 py-3 text-sm transition-all duration-150 ${
                     isActive
-                      ? 'bg-white font-semibold text-primary'
-                      : 'text-gray-600 hover:bg-white/50'
+                      ? 'bg-card font-semibold text-primary'
+                      : 'text-muted-foreground hover:bg-card/50'
                   }`}
                 >
                   <tab.icon className="h-4 w-4" />

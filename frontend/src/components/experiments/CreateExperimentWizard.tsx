@@ -152,7 +152,7 @@ export function CreateExperimentWizard({
       maxWidth="max-w-6xl"
       renderFooter={({ currentStep: step, isLastStep, onClose: close, onBack: back }) => (
         <div className="flex items-center justify-between border-t px-6 py-4">
-          <button onClick={close} className="text-sm text-gray-500 hover:text-gray-700">
+          <button onClick={close} className="text-sm text-muted-foreground hover:text-foreground">
             Cancel
           </button>
           <div className="flex gap-3">

@@ -27,12 +27,12 @@ const ACTION_COLORS: Record<string, string> = {
   fastq_deleted: 'text-red-600',
   reaction_created: 'text-green-600',
   reactions_imported: 'text-blue-600',
-  reaction_updated: 'text-gray-600',
+  reaction_updated: 'text-muted-foreground',
   reaction_deleted: 'text-red-600',
   job_launched: 'text-blue-600',
   job_completed: 'text-green-600',
   job_failed: 'text-red-600',
-  metadata_updated: 'text-gray-600',
+  metadata_updated: 'text-muted-foreground',
 };
 
 export default function HistoryTab() {
@@ -51,7 +51,7 @@ export default function HistoryTab() {
         header: 'User',
         cell: (info) => {
           const event = info.row.original;
-          if (!event.user) return <span className="text-gray-400">System</span>;
+          if (!event.user) return <span className="text-muted-foreground">System</span>;
           return getDisplayName(event.user);
         },
       },
@@ -61,7 +61,7 @@ export default function HistoryTab() {
         cell: (info) => {
           const action = info.getValue<string>();
           const label = ACTION_LABELS[action] ?? action;
-          const color = ACTION_COLORS[action] ?? 'text-gray-600';
+          const color = ACTION_COLORS[action] ?? 'text-muted-foreground';
           return <span className={`font-medium ${color}`}>{label}</span>;
         },
       },
@@ -77,7 +77,7 @@ export default function HistoryTab() {
   if (isLoading) {
     return (
       <Card>
-        <p className="py-8 text-center text-sm text-gray-400">Loading history…</p>
+        <p className="py-8 text-center text-sm text-muted-foreground">Loading history...</p>
       </Card>
     );
   }
@@ -86,11 +86,11 @@ export default function HistoryTab() {
 
   return (
     <Card>
-      <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+      <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
         History
       </h3>
       {events.length === 0 ? (
-        <p className="py-8 text-center text-sm text-gray-400">
+        <p className="py-8 text-center text-sm text-muted-foreground">
           No history events yet
         </p>
       ) : (

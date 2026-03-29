@@ -111,14 +111,14 @@ export function ManageMembersModal({ isOpen, onClose, projectId }: ManageMembers
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="invite-role" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="invite-role" className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Access
           </label>
           <select
             id="invite-role"
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+            className="rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
           >
             {ROLES.map((r) => (
               <option key={r} value={r}>
@@ -143,7 +143,7 @@ export function ManageMembersModal({ isOpen, onClose, projectId }: ManageMembers
 
           return (
             <div key={member.userId} className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">
+              <span className="text-sm text-foreground">
                 {getDisplayName(member.user)}
               </span>
               <div className="flex items-center gap-2">
@@ -154,8 +154,8 @@ export function ManageMembersModal({ isOpen, onClose, projectId }: ManageMembers
                   onChange={(e) => handleRoleChange(member.userId, e.target.value)}
                   className={`rounded-md border px-2 py-1 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
                     isSelf
-                      ? 'cursor-not-allowed border-dashed border-gray-300 bg-gray-100 text-gray-400'
-                      : 'border-gray-300'
+                      ? 'cursor-not-allowed border-dashed border-border bg-muted text-muted-foreground'
+                      : 'border-border'
                   }`}
                 >
                   {ROLES.map((r) => (
@@ -170,7 +170,7 @@ export function ManageMembersModal({ isOpen, onClose, projectId }: ManageMembers
                     onClick={() => handleRemove(member.userId)}
                     disabled={isLastAdmin || removeMember.isPending}
                     title={isLastAdmin ? 'Cannot remove the last admin' : 'Remove member'}
-                    className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded p-1 text-muted-foreground hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <UserMinus className="h-4 w-4" />
                   </button>

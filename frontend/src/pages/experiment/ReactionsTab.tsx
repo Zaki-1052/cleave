@@ -41,7 +41,7 @@ export default function ReactionsTab() {
         header: 'R1 File',
         cell: (info) => {
           const p = prefixMap.get(info.row.original.fastqPrefix);
-          return p?.hasR1 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-gray-300">{'\u2014'}</span>;
+          return p?.hasR1 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-muted-foreground/50">{'\u2014'}</span>;
         },
       },
       {
@@ -49,7 +49,7 @@ export default function ReactionsTab() {
         header: 'R2 File',
         cell: (info) => {
           const p = prefixMap.get(info.row.original.fastqPrefix);
-          return p?.hasR2 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-gray-300">{'\u2014'}</span>;
+          return p?.hasR2 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-muted-foreground/50">{'\u2014'}</span>;
         },
       },
       { accessorKey: 'shortName', header: 'Short Name' },
@@ -71,7 +71,7 @@ export default function ReactionsTab() {
     <>
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Reactions
           </h3>
           <div className="flex gap-2">
@@ -84,7 +84,7 @@ export default function ReactionsTab() {
         {reactions.length > 0 ? (
           <DataTable data={reactions} columns={columns} />
         ) : (
-          <p className="py-8 text-center text-sm text-gray-400">
+          <p className="py-8 text-center text-sm text-muted-foreground">
             No reactions defined yet. Click Edit to add reactions.
           </p>
         )}

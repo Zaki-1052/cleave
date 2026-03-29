@@ -48,8 +48,8 @@ function TreeNode({
       <button
         className={`flex w-full items-center gap-1 px-2 py-1.5 text-left text-sm transition-colors ${
           isActive
-            ? 'bg-white font-semibold text-primary'
-            : 'text-gray-600 hover:bg-white/50'
+            ? 'bg-card font-semibold text-primary'
+            : 'text-muted-foreground hover:bg-card/50'
         }`}
         style={{ paddingLeft: depth * 16 + 8 }}
         onClick={() => {
@@ -58,7 +58,7 @@ function TreeNode({
         }}
       >
         <span
-          className="inline-block w-4 text-center text-xs text-gray-400"
+          className="inline-block w-4 text-center text-xs text-muted-foreground"
           onClick={(e) => {
             e.stopPropagation();
             onToggle(node.path);
@@ -66,7 +66,7 @@ function TreeNode({
         >
           {hasChildren ? <ChevronRight className={`h-3.5 w-3.5 transition-transform duration-150 ${isExpanded ? 'rotate-90' : ''}`} /> : ''}
         </span>
-        {isExpanded ? <FolderOpen className="h-4 w-4 text-gray-400" /> : <Folder className="h-4 w-4 text-gray-400" />}
+        {isExpanded ? <FolderOpen className="h-4 w-4 text-muted-foreground" /> : <Folder className="h-4 w-4 text-muted-foreground" />}
         <span className="truncate">{node.name}</span>
       </button>
       {isExpanded &&
@@ -157,7 +157,7 @@ export default function AllFilesTab() {
   if (error) {
     return (
       <Card>
-        <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+        <div className="rounded-md bg-red-50 dark:bg-red-950 p-4 text-sm text-red-700 dark:text-red-300">
           Failed to load file tree.
         </div>
       </Card>
@@ -167,10 +167,10 @@ export default function AllFilesTab() {
   if (!data || data.totalFiles === 0) {
     return (
       <Card>
-        <h3 className="font-display mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="font-display mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           All Files
         </h3>
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-muted-foreground">
           No files found. Upload FASTQs to get started.
         </p>
       </Card>
@@ -190,7 +190,7 @@ export default function AllFilesTab() {
         return (
           <input
             type="checkbox"
-            className="h-4 w-4 rounded border-gray-300"
+            className="h-4 w-4 rounded border-border"
             checked={selectedFiles.has(node.path)}
             onChange={() => handleToggleFile(node.path)}
             aria-label={`Select ${node.name}`}
@@ -215,14 +215,14 @@ export default function AllFilesTab() {
                 if (!expandedPaths.has(node.path)) handleToggle(node.path);
               }}
             >
-              <Folder className="h-4 w-4 text-gray-400" />
+              <Folder className="h-4 w-4 text-muted-foreground" />
               {node.name}
             </button>
           );
         }
         return (
           <span className="flex items-center gap-2">
-            <File className="h-4 w-4 text-gray-400" />
+            <File className="h-4 w-4 text-muted-foreground" />
             <span className="font-mono">{node.name}</span>
           </span>
         );
@@ -232,7 +232,7 @@ export default function AllFilesTab() {
       accessorKey: 'type',
       header: 'Type/Class',
       cell: ({ getValue }) => (
-        <span className="text-gray-500">{getValue<string>()}</span>
+        <span className="text-muted-foreground">{getValue<string>()}</span>
       ),
     },
     {
@@ -250,7 +250,7 @@ export default function AllFilesTab() {
   return (
     <div className="flex gap-4">
       <Card className="max-h-[600px] w-64 shrink-0 overflow-y-auto p-0">
-        <div className="border-b px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <div className="border-b px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Directory Tree
         </div>
         <TreeNode
@@ -265,7 +265,7 @@ export default function AllFilesTab() {
 
       <Card className="min-w-0 flex-1">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             {folderName}
           </h3>
           <Button

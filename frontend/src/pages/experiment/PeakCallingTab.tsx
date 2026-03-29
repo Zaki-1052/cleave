@@ -58,8 +58,8 @@ export default function PeakCallingTab() {
     return (
       <Card>
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <h3 className="text-sm font-medium text-gray-600">No peak calling runs yet</h3>
-          <p className="mt-1 text-sm text-gray-400">
+          <h3 className="text-sm font-medium text-muted-foreground">No peak calling runs yet</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
             Click &ldquo;New Analysis&rdquo; above to create a peak calling run.
           </p>
         </div>
@@ -72,14 +72,14 @@ export default function PeakCallingTab() {
       {/* Job selector + status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <label htmlFor="peak-calling-job-select" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="peak-calling-job-select" className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Peak Calling
           </label>
           <select
             id="peak-calling-job-select"
             value={activeJobId ?? ''}
             onChange={handleJobChange}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            className="rounded-md border border-border px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           >
             {peakCallingJobs.map((j) => (
               <option key={j.id} value={j.id}>
@@ -93,7 +93,7 @@ export default function PeakCallingTab() {
 
       {/* Sub-tab navigation */}
       {job && (
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-border">
           {SUB_TABS.map((tab) => (
             <button
               key={tab.key}
@@ -101,7 +101,7 @@ export default function PeakCallingTab() {
               className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
                 activeSubTab === tab.key
                   ? 'border-b-2 border-primary text-primary'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {tab.label}
@@ -120,7 +120,7 @@ export default function PeakCallingTab() {
           <PeakCallingQCReportPanel jobId={job.id} job={job} />
         ) : (
           <Card>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               QC report will be available when the peak calling completes.
             </p>
           </Card>
@@ -132,7 +132,7 @@ export default function PeakCallingTab() {
           <PeakCallingFilesPanel jobId={job.id} />
         ) : (
           <Card>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               Files will be available when the peak calling completes.
             </p>
           </Card>
@@ -144,7 +144,7 @@ export default function PeakCallingTab() {
           <IGVPanel job={job} experimentId={experiment.id} mode="peak_calling" />
         ) : (
           <Card>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               IGV browser will be available when the peak calling completes.
             </p>
           </Card>

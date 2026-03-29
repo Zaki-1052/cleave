@@ -40,7 +40,7 @@ const experimentColumns: ColumnDef<Experiment, unknown>[] = [
   {
     id: 'lastJob',
     header: 'Last Job',
-    cell: () => <span className="text-gray-400">None</span>,
+    cell: () => <span className="text-muted-foreground">None</span>,
   },
   {
     accessorKey: 'status',
@@ -75,7 +75,7 @@ export default function ProjectDetailPage() {
   if (!project) {
     return (
       <Card>
-        <p className="text-gray-500">Project not found</p>
+        <p className="text-muted-foreground">Project not found</p>
       </Card>
     );
   }
@@ -84,7 +84,7 @@ export default function ProjectDetailPage() {
     <div className="flex gap-6">
       <aside className="w-64 shrink-0">
         <Card>
-          <h2 className="font-display text-lg font-bold text-gray-800">{project.name}</h2>
+          <h2 className="font-display text-lg font-bold text-foreground">{project.name}</h2>
           <div className="mt-2">
             <StorageGauge
               usedBytes={project.storageBytes}
@@ -95,7 +95,7 @@ export default function ProjectDetailPage() {
 
           <hr className="my-4" />
 
-          <h3 className="mb-3 text-sm font-semibold text-gray-600">
+          <h3 className="mb-3 text-sm font-semibold text-muted-foreground">
             {members?.length ?? 0} Members
           </h3>
           <div className="space-y-3">
@@ -105,9 +105,9 @@ export default function ProjectDetailPage() {
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-teal text-xs font-semibold text-white ring-2 ring-white shadow-sm">
                     {getInitials(member.user)}
                   </div>
-                  <span className="text-sm text-gray-700">{getDisplayName(member.user)}</span>
+                  <span className="text-sm text-foreground">{getDisplayName(member.user)}</span>
                 </div>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-muted-foreground">
                   {ROLE_LABELS[member.role] ?? member.role}
                 </span>
               </div>
@@ -147,7 +147,7 @@ export default function ProjectDetailPage() {
             <Button onClick={() => setIsCreateModalOpen(true)}>+ Create Experiment</Button>
           </div>
           {!experimentsData?.items.length ? (
-            <p className="py-8 text-center text-sm text-gray-400">
+            <p className="py-8 text-center text-sm text-muted-foreground">
               No experiments yet. Create one to get started.
             </p>
           ) : (

@@ -23,44 +23,44 @@ export function DiffBindInputPanel({ job }: DiffBindInputPanelProps) {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Sample Sheet
         </h3>
-        <span className="text-xs text-gray-500">
-          Method: <span className="font-medium text-gray-700">{methodLabel}</span>
+        <span className="text-xs text-muted-foreground">
+          Method: <span className="font-medium text-foreground">{methodLabel}</span>
         </span>
       </div>
 
-      <div className="overflow-x-auto rounded-md border border-gray-200">
+      <div className="overflow-x-auto rounded-md border border-border">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b bg-primary/10">
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Short Name
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Condition
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Replicate
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Peak Caller
               </th>
             </tr>
           </thead>
           <tbody>
             {samples.map((s) => (
-              <tr key={s.reaction_id} className="border-b hover:bg-gray-50">
-                <td className="px-3 py-2 font-medium text-gray-800">{s.short_name}</td>
-                <td className="px-3 py-2 text-gray-700">{s.condition}</td>
-                <td className="px-3 py-2 font-mono text-gray-700">{s.replicate}</td>
-                <td className="px-3 py-2 text-gray-700">{s.peak_caller ?? '—'}</td>
+              <tr key={s.reaction_id} className="border-b hover:bg-muted">
+                <td className="px-3 py-2 font-medium text-foreground">{s.short_name}</td>
+                <td className="px-3 py-2 text-foreground">{s.condition}</td>
+                <td className="px-3 py-2 font-mono text-foreground">{s.replicate}</td>
+                <td className="px-3 py-2 text-foreground">{s.peak_caller ?? '—'}</td>
               </tr>
             ))}
             {samples.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-3 py-6 text-center text-sm text-gray-400">
+                <td colSpan={4} className="px-3 py-6 text-center text-sm text-muted-foreground">
                   No sample data available.
                 </td>
               </tr>

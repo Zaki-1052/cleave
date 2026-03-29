@@ -46,7 +46,7 @@ export function FastqcReportModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
 
-      <div className={`relative z-10 flex flex-col bg-white shadow-xl ${modalSizeClasses}`}>
+      <div className={`relative z-10 flex flex-col bg-card shadow-xl ${modalSizeClasses}`}>
         {/* Header */}
         <div className="flex items-center justify-between border-b bg-primary px-6 py-4">
           <h2 className="text-lg font-semibold text-white">FASTQC Report</h2>
@@ -72,7 +72,7 @@ export function FastqcReportModal({
             )}
             {isFullScreen ? 'Exit Full Screen' : 'Full Screen'}
           </Button>
-          <span className="ml-auto text-xs text-gray-400 truncate max-w-xs" title={filename}>
+          <span className="ml-auto text-xs text-muted-foreground truncate max-w-xs" title={filename}>
             {filename}
           </span>
         </div>

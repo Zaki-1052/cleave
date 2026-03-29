@@ -100,10 +100,10 @@ export function AutoPipelineBanner({
   const isPending = status === 'pending_fastqc';
 
   const bgColor = isError
-    ? 'bg-red-50 border-red-200'
+    ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
     : isCancelled
-      ? 'bg-gray-50 border-gray-200'
-      : 'bg-blue-50 border-blue-200';
+      ? 'bg-muted border-border'
+      : 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800';
 
   async function handleCancel() {
     try {
@@ -133,7 +133,7 @@ export function AutoPipelineBanner({
           {isRunning && (
             <Spinner size="sm" />
           )}
-          <span className="text-sm font-semibold text-gray-800">
+          <span className="text-sm font-semibold text-foreground">
             {isPending && 'Auto-Pipeline: Waiting for FastQC...'}
             {isRunning && 'Auto-Pipeline Running'}
             {isError && 'Auto-Pipeline Paused (Error)'}
@@ -159,19 +159,19 @@ export function AutoPipelineBanner({
           {steps.map((step, i) => (
             <div key={step.key} className="flex items-center">
               {i > 0 && (
-                <div className="mx-1 h-px w-4 bg-gray-300" />
+                <div className="mx-1 h-px w-4 bg-border" />
               )}
               <div
                 className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
                   step.state === 'complete'
-                    ? 'bg-green-100 text-green-700'
+                    ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
                     : step.state === 'running'
-                      ? 'bg-blue-100 text-blue-700'
+                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
                       : step.state === 'error'
-                        ? 'bg-red-100 text-red-700'
+                        ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
                         : step.state === 'queued'
-                          ? 'bg-amber-50 text-amber-600'
-                          : 'bg-gray-100 text-gray-500'
+                          ? 'bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400'
+                          : 'bg-muted text-muted-foreground'
                 }`}
               >
                 {step.state === 'complete' && <Check className="h-3 w-3" />}

@@ -186,12 +186,12 @@ export function NewNormalizationWizard({
   const detailsStep = (
     <div className="grid gap-6 md:grid-cols-2">
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500">
+        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
           Normalization Details
         </h3>
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-foreground">
               Normalization Name <span className="text-red-500">*</span>
             </label>
             <div className="flex items-center gap-2">
@@ -199,29 +199,29 @@ export function NewNormalizationWizard({
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value.slice(0, 30))}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 placeholder="e.g., H3K4me3 Roman normalization"
               />
-              <span className="text-xs text-gray-400">{name.length}/30</span>
+              <span className="text-xs text-muted-foreground">{name.length}/30</span>
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Notes</label>
+            <label className="mb-1 block text-sm font-medium text-foreground">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="Optional notes about this analysis..."
             />
           </div>
         </div>
       </Card>
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500">About</h3>
-        <div className="space-y-3 text-sm text-gray-600">
+        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">About</h3>
+        <div className="space-y-3 text-sm text-muted-foreground">
           <div>
-            <h4 className="font-medium text-gray-800">What is Roman Normalization?</h4>
+            <h4 className="font-medium text-foreground">What is Roman Normalization?</h4>
             <p>
               Roman normalization is a 99th-percentile quantile normalization method for
               sample-to-sample bigWig signal comparison. It removes technical variation
@@ -229,7 +229,7 @@ export function NewNormalizationWizard({
             </p>
           </div>
           <div>
-            <h4 className="font-medium text-gray-800">What Does the Pipeline Do?</h4>
+            <h4 className="font-medium text-foreground">What Does the Pipeline Do?</h4>
             <p>
               BigWig signal is extracted at 50 bp resolution across all mouse autosomes
               (chr1{'\u2013'}19) and chrX. Genomic bins with zero coverage and manually curated
@@ -240,7 +240,7 @@ export function NewNormalizationWizard({
             </p>
           </div>
           <div>
-            <h4 className="font-medium text-gray-800">Outputs</h4>
+            <h4 className="font-medium text-foreground">Outputs</h4>
             <p>
               Per-sample normalized bigWig files (*_rnorm.bw), normalization factors CSV,
               normalization factors visualization, and pipeline logs.
@@ -257,11 +257,11 @@ export function NewNormalizationWizard({
     </div>
   ) : (
     <Card>
-      <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500">
+      <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
         Select an Alignment Run
       </h3>
       {alignmentJobs.length === 0 ? (
-        <p className="py-8 text-center text-sm text-gray-500">
+        <p className="py-8 text-center text-sm text-muted-foreground">
           No completed mouse (mm10) alignment runs available. Roman normalization requires
           mouse data.
         </p>
@@ -273,7 +273,7 @@ export function NewNormalizationWizard({
               className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${
                 selectedAlignmentJobId === job.id
                   ? 'border-primary bg-primary/5'
-                  : 'border-gray-200 hover:border-gray-300'
+                  : 'border-border hover:border-border'
               }`}
             >
               <input
@@ -284,8 +284,8 @@ export function NewNormalizationWizard({
                 className="text-primary"
               />
               <div className="flex-1">
-                <span className="font-medium text-gray-800">{job.name}</span>
-                <span className="ml-3 text-xs text-gray-400">
+                <span className="font-medium text-foreground">{job.name}</span>
+                <span className="ml-3 text-xs text-muted-foreground">
                   {new Date(job.createdAt).toLocaleDateString()}
                 </span>
               </div>
@@ -336,10 +336,10 @@ export function NewNormalizationWizard({
       renderFooter={({ currentStep: step, onClose: close, onBack: back }) => (
         <div className="flex flex-col border-t">
           {submitError && (
-            <div className="bg-red-50 px-6 py-2 text-sm text-red-600">{submitError}</div>
+            <div className="bg-red-50 dark:bg-red-950 px-6 py-2 text-sm text-red-600 dark:text-red-400">{submitError}</div>
           )}
           <div className="flex items-center justify-between px-6 py-4">
-            <button onClick={close} className="text-sm text-gray-500 hover:text-gray-700">
+            <button onClick={close} className="text-sm text-muted-foreground hover:text-foreground">
               Cancel
             </button>
             <div className="flex gap-3">

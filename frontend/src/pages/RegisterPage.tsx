@@ -34,8 +34,8 @@ export default function RegisterPage() {
           <h2 className="font-display text-3xl font-bold text-white">Cleave</h2>
           <p className="mt-1 text-sm text-white/70">CUT&RUN Analysis Platform</p>
         </div>
-        <Card className="w-full max-w-md border border-white/50">
-          <h1 className="mb-6 text-center font-display text-2xl font-bold text-gray-800">Create Account</h1>
+        <Card className="w-full max-w-md border border-white/50 dark:border-white/10">
+          <h1 className="mb-6 text-center font-display text-2xl font-bold text-foreground">Create Account</h1>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Input
               label="Email"
@@ -63,7 +63,7 @@ export default function RegisterPage() {
             />
             {error && <p className="text-sm text-red-500">{error}</p>}
             <Button type="submit">Register</Button>
-            <p className="text-center text-sm text-gray-500">
+            <p className="text-center text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link to="/login" className="text-primary hover:underline">
                 Sign In

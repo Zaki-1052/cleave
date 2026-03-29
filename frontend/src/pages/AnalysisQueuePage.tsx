@@ -46,7 +46,7 @@ function ActionsCell({ job }: { job: QueueJob }) {
             }
           }}
           disabled={terminateMutation.isPending}
-          className="rounded px-2 py-0.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+          className="rounded px-2 py-0.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50"
         >
           Terminate
         </button>
@@ -56,7 +56,7 @@ function ActionsCell({ job }: { job: QueueJob }) {
           type="button"
           onClick={() => retryMutation.mutate(job.id)}
           disabled={retryMutation.isPending}
-          className="rounded px-2 py-0.5 text-xs text-primary hover:bg-blue-50 disabled:opacity-50"
+          className="rounded px-2 py-0.5 text-xs text-primary hover:bg-blue-50 dark:hover:bg-blue-950 disabled:opacity-50"
         >
           Retry
         </button>
@@ -146,9 +146,9 @@ export default function AnalysisQueuePage() {
               placeholder="Search..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className="rounded-md border border-gray-300 py-1.5 pl-8 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="rounded-md border border-border py-1.5 pl-8 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
-            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           </div>
           <select
             value={jobTypeFilter}
@@ -156,7 +156,7 @@ export default function AnalysisQueuePage() {
               setJobTypeFilter(e.target.value);
               setPage(1);
             }}
-            className="rounded-md border border-gray-300 py-1.5 pl-3 pr-8 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="rounded-md border border-border py-1.5 pl-3 pr-8 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           >
             {JOB_TYPE_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -170,7 +170,7 @@ export default function AnalysisQueuePage() {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            className="rounded-md border border-gray-300 py-1.5 pl-3 pr-8 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="rounded-md border border-border py-1.5 pl-3 pr-8 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           >
             {STATUS_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -186,13 +186,13 @@ export default function AnalysisQueuePage() {
           <Spinner size="lg" />
         </div>
       ) : jobs.length === 0 ? (
-        <p className="py-12 text-center text-sm text-gray-400">No jobs found.</p>
+        <p className="py-12 text-center text-sm text-muted-foreground">No jobs found.</p>
       ) : (
         <DataTable data={jobs} columns={columns} pageSize={jobs.length} />
       )}
 
       {total > 0 && (
-        <div className="flex items-center justify-between border-t px-4 py-3 text-sm text-gray-600">
+        <div className="flex items-center justify-between border-t px-4 py-3 text-sm text-muted-foreground">
           <span>Records per page: {PER_PAGE}</span>
           <div className="flex items-center gap-2">
             <span>
@@ -201,28 +201,28 @@ export default function AnalysisQueuePage() {
             <button
               onClick={() => setPage(1)}
               disabled={page === 1}
-              className="rounded p-1 hover:bg-gray-100 disabled:opacity-30"
+              className="rounded p-1 hover:bg-muted disabled:opacity-30"
             >
               <ChevronsLeft className="h-4 w-4" />
             </button>
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="rounded p-1 hover:bg-gray-100 disabled:opacity-30"
+              className="rounded p-1 hover:bg-muted disabled:opacity-30"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
-              className="rounded p-1 hover:bg-gray-100 disabled:opacity-30"
+              className="rounded p-1 hover:bg-muted disabled:opacity-30"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
             <button
               onClick={() => setPage(totalPages)}
               disabled={page >= totalPages}
-              className="rounded p-1 hover:bg-gray-100 disabled:opacity-30"
+              className="rounded p-1 hover:bg-muted disabled:opacity-30"
             >
               <ChevronsRight className="h-4 w-4" />
             </button>

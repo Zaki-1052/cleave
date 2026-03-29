@@ -116,15 +116,15 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-4">
         <Card>
-          <p className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <p className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Total Peaks
           </p>
-          <p className="mt-1 font-mono text-2xl font-bold text-gray-800">
+          <p className="mt-1 font-mono text-2xl font-bold text-foreground">
             {formatNumber(report.totalPeaks)}
           </p>
         </Card>
         <Card>
-          <p className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <p className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Significant (FDR &lt; 0.05)
           </p>
           <p className="mt-1 font-mono text-2xl font-bold text-green-700">
@@ -132,7 +132,7 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
           </p>
         </Card>
         <Card>
-          <p className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <p className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Significant (FDR &lt; 0.01)
           </p>
           <p className="mt-1 font-mono text-2xl font-bold text-green-800">
@@ -144,7 +144,7 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
       {/* Results table */}
       <Card>
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Differential Binding Results
           </h3>
           <div className="flex items-center gap-2">
@@ -172,7 +172,7 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
         {report.resultsPreview.length > 0 ? (
           <DataTable data={report.resultsPreview} columns={columns} pageSize={25} />
         ) : (
-          <p className="py-6 text-center text-sm text-gray-400">
+          <p className="py-6 text-center text-sm text-muted-foreground">
             No differential binding results available.
           </p>
         )}
@@ -180,32 +180,32 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
 
       {/* Info panel */}
       <Card>
-        <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           About DiffBind Results
         </h3>
-        <div className="space-y-3 text-xs text-gray-600">
+        <div className="space-y-3 text-xs text-muted-foreground">
           <div>
-            <h4 className="font-semibold text-gray-700">Conditions</h4>
+            <h4 className="font-semibold text-foreground">Conditions</h4>
             <p>
               Comparing: {report.conditions.join(' vs. ')}
             </p>
           </div>
           <div>
-            <h4 className="font-semibold text-gray-700">Fold Change</h4>
+            <h4 className="font-semibold text-foreground">Fold Change</h4>
             <p>
               Log2 fold change between conditions. Positive values indicate enrichment in the first
               condition; negative values indicate enrichment in the second condition.
             </p>
           </div>
           <div>
-            <h4 className="font-semibold text-gray-700">FDR (False Discovery Rate)</h4>
+            <h4 className="font-semibold text-foreground">FDR (False Discovery Rate)</h4>
             <p>
               Adjusted p-value controlling for multiple testing. Peaks with FDR &lt; 0.05 are
               considered statistically significant.
             </p>
           </div>
           <div className="border-t pt-3">
-            <h4 className="font-semibold text-gray-700">FDR Color Coding</h4>
+            <h4 className="font-semibold text-foreground">FDR Color Coding</h4>
             <div className="mt-1 space-y-1">
               <div className="flex items-center gap-2">
                 <span className="inline-block h-3 w-3 rounded bg-green-500" />

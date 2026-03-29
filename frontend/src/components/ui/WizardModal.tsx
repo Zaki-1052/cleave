@@ -76,7 +76,7 @@ export function WizardModal({
                     ? 'bg-primary text-white'
                     : i < currentStep
                       ? 'bg-status-complete text-white'
-                      : 'bg-gray-200 text-gray-500',
+                      : 'bg-muted text-muted-foreground',
                 )}
               >
                 {i < currentStep ? (
@@ -85,10 +85,10 @@ export function WizardModal({
                   i + 1
                 )}
               </span>
-              <span className={cn('text-sm', i === currentStep ? 'font-semibold' : 'text-gray-500')}>
+              <span className={cn('text-sm', i === currentStep ? 'font-semibold text-foreground' : 'text-muted-foreground')}>
                 {step.label}
               </span>
-              {i < steps.length - 1 && <div className="h-px w-8 bg-gray-300" />}
+              {i < steps.length - 1 && <div className="h-px w-8 bg-border" />}
             </div>
           ))}
         </div>
@@ -101,7 +101,7 @@ export function WizardModal({
           renderFooter({ currentStep, isLastStep, onClose, onBack, onNext, onSubmit })
         ) : (
           <div className="flex shrink-0 items-center justify-between border-t px-6 py-4">
-            <button onClick={onClose} className="text-sm text-gray-500 hover:text-gray-700">
+            <button onClick={onClose} className="text-sm text-muted-foreground hover:text-foreground">
               Cancel
             </button>
             <div className="flex gap-3">

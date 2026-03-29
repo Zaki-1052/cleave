@@ -77,12 +77,12 @@ export function PearsonSelectSamplesStep({
 
   return (
     <Card>
-      <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500">
+      <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
         Select Samples ({samples.length} selected)
       </h3>
 
       {!minSamplesValid && samples.length > 0 && (
-        <div className="mb-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
+        <div className="mb-3 rounded-md bg-amber-50 dark:bg-amber-950 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
           At least 2 samples are required for correlation analysis.
         </div>
       )}
@@ -90,7 +90,7 @@ export function PearsonSelectSamplesStep({
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b text-xs font-medium uppercase text-gray-500">
+            <tr className="border-b text-xs font-medium uppercase text-muted-foreground">
               <th className="px-3 py-2">
                 <input
                   type="checkbox"
@@ -112,7 +112,7 @@ export function PearsonSelectSamplesStep({
               const selected = samples.find((s) => s.reactionId === r.reaction_id);
               const idx = samples.findIndex((s) => s.reactionId === r.reaction_id);
               return (
-                <tr key={r.reaction_id} className="border-b last:border-b-0 hover:bg-gray-50">
+                <tr key={r.reaction_id} className="border-b last:border-b-0 hover:bg-muted">
                   <td className="px-3 py-2">
                     <input
                       type="checkbox"
@@ -121,17 +121,17 @@ export function PearsonSelectSamplesStep({
                       className="rounded text-primary"
                     />
                   </td>
-                  <td className="px-3 py-2 font-medium text-gray-800">{r.short_name}</td>
+                  <td className="px-3 py-2 font-medium text-foreground">{r.short_name}</td>
                   <td className="px-3 py-2">
                     {selected ? (
                       <input
                         type="text"
                         value={selected.label}
                         onChange={(e) => updateLabel(r.reaction_id, e.target.value)}
-                        className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-primary focus:outline-none"
+                        className="w-full rounded border border-border px-2 py-1 text-sm focus:border-primary focus:outline-none"
                       />
                     ) : (
-                      <span className="text-gray-400">-</span>
+                      <span className="text-muted-foreground">-</span>
                     )}
                   </td>
                   <td className="px-3 py-2">
@@ -141,7 +141,7 @@ export function PearsonSelectSamplesStep({
                           type="button"
                           onClick={() => moveSample(idx, -1)}
                           disabled={idx <= 0}
-                          className="rounded px-1 text-gray-400 hover:text-gray-700 disabled:opacity-30"
+                          className="rounded px-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
                           title="Move up"
                         >
                           <ChevronUp className="h-4 w-4" />
@@ -150,7 +150,7 @@ export function PearsonSelectSamplesStep({
                           type="button"
                           onClick={() => moveSample(idx, 1)}
                           disabled={idx >= samples.length - 1}
-                          className="rounded px-1 text-gray-400 hover:text-gray-700 disabled:opacity-30"
+                          className="rounded px-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
                           title="Move down"
                         >
                           <ChevronDown className="h-4 w-4" />

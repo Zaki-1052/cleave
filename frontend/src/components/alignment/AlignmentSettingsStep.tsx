@@ -53,7 +53,7 @@ export function AlignmentSettingsStep({
       <div>
         <label
           htmlFor="alignment-reference-genome"
-          className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500"
+          className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground"
         >
           Reference Genome <span className="text-red-500">*</span>
         </label>
@@ -67,7 +67,7 @@ export function AlignmentSettingsStep({
           id="alignment-reference-genome"
           value={referenceGenome}
           onChange={(e) => setReferenceGenome(e.target.value)}
-          className="mt-1 w-full max-w-sm rounded-md border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+          className="mt-1 w-full max-w-sm rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
         >
           <option value="" disabled>
             Select reference genome
@@ -92,30 +92,30 @@ export function AlignmentSettingsStep({
 
       {/* Reactions table */}
       <div>
-        <h4 className="mb-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <h4 className="mb-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Reactions
         </h4>
-        <div className="overflow-x-auto rounded-md border border-gray-200">
+        <div className="overflow-x-auto rounded-md border border-border">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b bg-primary/10">
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Short Name
                 </th>
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Organism
                 </th>
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Reference Genome
                 </th>
               </tr>
             </thead>
             <tbody>
               {selectedReactions.map((r) => (
-                <tr key={r.id} className="border-b hover:bg-gray-50">
-                  <td className="px-3 py-2 font-medium text-gray-800">{r.shortName}</td>
-                  <td className="px-3 py-2 text-gray-700">{r.organism}</td>
-                  <td className="px-3 py-2 text-gray-700">
+                <tr key={r.id} className="border-b hover:bg-muted">
+                  <td className="px-3 py-2 font-medium text-foreground">{r.shortName}</td>
+                  <td className="px-3 py-2 text-foreground">{r.organism}</td>
+                  <td className="px-3 py-2 text-foreground">
                     {referenceGenome ? (GENOME_DISPLAY_NAMES[referenceGenome] ?? referenceGenome) : '—'}
                   </td>
                 </tr>
@@ -126,11 +126,11 @@ export function AlignmentSettingsStep({
       </div>
 
       {/* Advanced Settings */}
-      <div className="rounded-md border border-gray-200">
+      <div className="rounded-md border border-border">
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
         >
           <span>Advanced Settings</span>
           <ChevronDown
@@ -141,22 +141,22 @@ export function AlignmentSettingsStep({
         {showAdvanced && (
           <div className="border-t px-4 py-4">
             <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2 text-sm text-foreground">
                 <input
                   type="checkbox"
                   checked={removeDuplicates}
                   onChange={(e) => setRemoveDuplicates(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
                 Remove Duplicate Reads
               </label>
 
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2 text-sm text-foreground">
                 <input
                   type="checkbox"
                   checked={removeDacExclusion}
                   onChange={(e) => setRemoveDacExclusion(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
                 Remove ENCODE DAC Exclusion List Regions
               </label>
@@ -164,7 +164,7 @@ export function AlignmentSettingsStep({
               <div>
                 <label
                   htmlFor="bam-coverage-bin-size"
-                  className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500"
+                  className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground"
                 >
                   BAM Coverage Bin Size <span className="text-red-500">*</span>
                 </label>
@@ -174,14 +174,14 @@ export function AlignmentSettingsStep({
                   min={1}
                   value={bamCoverageBinSize}
                   onChange={(e) => setBamCoverageBinSize(Number(e.target.value) || 20)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="smoothed-bin-size"
-                  className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500"
+                  className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground"
                 >
                   Smoothed BAM Coverage Bin Size <span className="text-red-500">*</span>
                 </label>
@@ -191,7 +191,7 @@ export function AlignmentSettingsStep({
                   min={1}
                   value={smoothedBinSize}
                   onChange={(e) => setSmoothedBinSize(Number(e.target.value) || 100)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                 />
               </div>
             </div>

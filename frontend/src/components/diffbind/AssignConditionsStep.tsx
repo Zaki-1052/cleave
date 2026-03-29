@@ -133,8 +133,8 @@ export function AssignConditionsStep({
   if (reactions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <h3 className="text-sm font-medium text-gray-600">No reactions available</h3>
-        <p className="mt-1 text-sm text-gray-400">
+        <h3 className="text-sm font-medium text-muted-foreground">No reactions available</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
           The selected peak calling run has no reactions.
         </p>
       </div>
@@ -143,12 +143,12 @@ export function AssignConditionsStep({
 
   return (
     <div>
-      <p className="mb-4 text-sm text-gray-600">
+      <p className="mb-4 text-sm text-muted-foreground">
         Select reactions and assign experimental conditions and replicate numbers for DiffBind
         analysis. Each condition needs at least 2 biological replicates.
       </p>
 
-      <div className="overflow-x-auto rounded-md border border-gray-200">
+      <div className="overflow-x-auto rounded-md border border-border">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b bg-primary/10">
@@ -159,16 +159,16 @@ export function AssignConditionsStep({
                   checked={allChecked}
                   onChange={onToggleAll}
                   aria-label="Select all reactions"
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Short Name
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Condition <span className="text-red-500">*</span>
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Replicate <span className="text-red-500">*</span>
               </th>
             </tr>
@@ -181,7 +181,7 @@ export function AssignConditionsStep({
                 <tr
                   key={rxn.reaction_id}
                   className={`border-b transition-colors ${
-                    isSelected ? 'bg-primary/5' : 'hover:bg-gray-50'
+                    isSelected ? 'bg-primary/5' : 'hover:bg-muted'
                   }`}
                 >
                   <td className="px-3 py-2">
@@ -190,10 +190,10 @@ export function AssignConditionsStep({
                       checked={isSelected}
                       onChange={() => onToggle(rxn.reaction_id)}
                       aria-label={`Select ${rxn.short_name}`}
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                     />
                   </td>
-                  <td className="px-3 py-2 font-medium text-gray-800">{rxn.short_name}</td>
+                  <td className="px-3 py-2 font-medium text-foreground">{rxn.short_name}</td>
                   <td className="px-3 py-2">
                     <input
                       type="text"
@@ -201,7 +201,7 @@ export function AssignConditionsStep({
                       onChange={(e) => handleConditionChange(rxn.reaction_id, e.target.value)}
                       disabled={!isSelected}
                       placeholder="e.g. ctrl, mut"
-                      className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:bg-gray-100 disabled:text-gray-400"
+                      className="w-full rounded-md border border-border px-2 py-1 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:bg-muted disabled:text-muted-foreground"
                     />
                   </td>
                   <td className="w-24 px-3 py-2">
@@ -213,7 +213,7 @@ export function AssignConditionsStep({
                         handleReplicateChange(rxn.reaction_id, Number(e.target.value) || 1)
                       }
                       disabled={!isSelected}
-                      className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:bg-gray-100 disabled:text-gray-400"
+                      className="w-full rounded-md border border-border px-2 py-1 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:bg-muted disabled:text-muted-foreground"
                     />
                   </td>
                 </tr>
@@ -224,7 +224,7 @@ export function AssignConditionsStep({
       </div>
 
       <div className="mt-3 flex items-start justify-between">
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-muted-foreground">
           {selectedIds.size} of {reactions.length} reaction{reactions.length !== 1 ? 's' : ''}{' '}
           selected
         </p>

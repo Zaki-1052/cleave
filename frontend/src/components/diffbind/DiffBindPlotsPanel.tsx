@@ -57,7 +57,7 @@ export function DiffBindPlotsPanel({ jobId }: DiffBindPlotsPanelProps) {
   if (availablePlots.length === 0) {
     return (
       <Card>
-        <p className="py-6 text-center text-sm text-gray-400">
+        <p className="py-6 text-center text-sm text-muted-foreground">
           No plots available for this DiffBind analysis.
         </p>
       </Card>
@@ -131,13 +131,13 @@ function PlotCard({ jobId, plot }: PlotCardProps) {
   return (
     <Card>
       <div className="mb-2 flex items-center justify-between">
-        <h4 className="font-display text-sm font-semibold text-gray-700">{label}</h4>
+        <h4 className="font-display text-sm font-semibold text-foreground">{label}</h4>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleDownloadPng}
             disabled={!pngUrl}
-            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:opacity-40"
           >
             <Download className="h-3 w-3" />
             PNG
@@ -147,7 +147,7 @@ function PlotCard({ jobId, plot }: PlotCardProps) {
               type="button"
               onClick={handleDownloadSvg}
               disabled={!svgUrl}
-              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:opacity-40"
             >
               <Download className="h-3 w-3" />
               SVG
@@ -157,18 +157,18 @@ function PlotCard({ jobId, plot }: PlotCardProps) {
       </div>
 
       {description && (
-        <p className="mb-3 text-xs text-gray-500">{description}</p>
+        <p className="mb-3 text-xs text-muted-foreground">{description}</p>
       )}
 
       {imgError ? (
-        <div className="flex h-48 items-center justify-center rounded border border-gray-200 bg-gray-50">
+        <div className="flex h-48 items-center justify-center rounded border border-border bg-muted">
           <p className="text-xs text-red-500">Failed to load plot.</p>
         </div>
       ) : pngUrl ? (
         <img
           src={`${pngUrl}&display=inline`}
           alt={`${label}`}
-          className="w-full rounded border border-gray-100"
+          className="w-full rounded border border-border"
           onError={() => setImgError(true)}
         />
       ) : (

@@ -49,7 +49,7 @@ export function CustomHeatmapPlotsPanel({ jobId }: CustomHeatmapPlotsPanelProps)
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-muted-foreground">
           Signal around the {report.referencePoint} of reference regions in{' '}
           <strong>{report.bedLabel}</strong>, with a <span className="font-mono">{report.flankingUpstream}</span> bp upstream and{' '}
           <span className="font-mono">{report.flankingDownstream}</span> bp downstream flanking window.{' '}
@@ -148,13 +148,13 @@ function PlotCard({ jobId, plotInfo, label, description, filenameBase }: PlotCar
   return (
     <Card>
       <div className="mb-2 flex items-center justify-between">
-        <h4 className="font-display text-sm font-semibold text-gray-700">{label}</h4>
+        <h4 className="font-display text-sm font-semibold text-foreground">{label}</h4>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleDownloadPng}
             disabled={!pngUrl}
-            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:opacity-40"
           >
             <Download className="h-3 w-3" />
             PNG
@@ -164,7 +164,7 @@ function PlotCard({ jobId, plotInfo, label, description, filenameBase }: PlotCar
               type="button"
               onClick={handleDownloadSvg}
               disabled={!svgUrl}
-              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:opacity-40"
             >
               <Download className="h-3 w-3" />
               SVG
@@ -173,17 +173,17 @@ function PlotCard({ jobId, plotInfo, label, description, filenameBase }: PlotCar
         </div>
       </div>
 
-      <p className="mb-3 text-xs text-gray-500">{description}</p>
+      <p className="mb-3 text-xs text-muted-foreground">{description}</p>
 
       {imgError ? (
-        <div className="flex h-48 items-center justify-center rounded border border-gray-200 bg-gray-50">
+        <div className="flex h-48 items-center justify-center rounded border border-border bg-muted">
           <p className="text-xs text-red-500">Failed to load plot.</p>
         </div>
       ) : pngUrl ? (
         <img
           src={`${pngUrl}&display=inline`}
           alt={label}
-          className="w-full rounded border border-gray-100"
+          className="w-full rounded border border-border"
           onError={() => setImgError(true)}
         />
       ) : (

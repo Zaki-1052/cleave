@@ -7,19 +7,19 @@ interface StatusBadgeProps {
 }
 
 const STATUS_TINTS: Record<string, string> = {
-  new: 'bg-blue-50 text-blue-700',
-  queued: 'bg-blue-50 text-blue-700',
-  in_progress: 'bg-cyan-50 text-cyan-700',
-  running: 'bg-cyan-50 text-cyan-700',
-  complete: 'bg-green-50 text-green-700',
-  error: 'bg-red-50 text-red-700',
-  terminated: 'bg-gray-100 text-gray-600',
+  new: 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
+  queued: 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
+  in_progress: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300',
+  running: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300',
+  complete: 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300',
+  error: 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300',
+  terminated: 'bg-muted text-muted-foreground',
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {
-  const dotColor = STATUS_COLORS[status] ?? 'bg-gray-400';
+  const dotColor = STATUS_COLORS[status] ?? 'bg-muted-foreground';
   const label = STATUS_LABELS[status] ?? status;
-  const tint = STATUS_TINTS[status] ?? 'bg-gray-100 text-gray-600';
+  const tint = STATUS_TINTS[status] ?? 'bg-muted text-muted-foreground';
 
   return (
     <span className={cn('inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium', tint)}>

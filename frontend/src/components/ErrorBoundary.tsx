@@ -29,13 +29,13 @@ export class ErrorBoundary extends React.Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sky-100 via-emerald-50 to-amber-50 p-4">
-          <div className="w-full max-w-lg rounded-xl bg-white p-8 shadow-lg">
-            <h1 className="mb-2 text-xl font-bold text-gray-800">Something went wrong</h1>
-            <p className="mb-4 text-sm text-gray-500">
+          <div className="w-full max-w-lg rounded-xl bg-card p-8 shadow-lg">
+            <h1 className="mb-2 text-xl font-bold text-foreground">Something went wrong</h1>
+            <p className="mb-4 text-sm text-muted-foreground">
               An unexpected error occurred. You can try again or return to the home page.
             </p>
             {this.state.error && (
-              <pre className="mb-4 max-h-32 overflow-auto rounded bg-red-50 p-3 font-mono text-xs text-red-700">
+              <pre className="mb-4 max-h-32 overflow-auto rounded bg-red-50 dark:bg-red-950 p-3 font-mono text-xs text-red-700 dark:text-red-300">
                 {this.state.error.message}
               </pre>
             )}
@@ -49,7 +49,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
               </button>
               <a
                 href="/"
-                className="rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                className="rounded-full border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
               >
                 Return to Home
               </a>

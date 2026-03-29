@@ -32,8 +32,8 @@ export function ChooseReactionsStep({
   if (reactions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <h3 className="text-sm font-medium text-gray-600">No reactions available</h3>
-        <p className="mt-1 text-sm text-gray-400">
+        <h3 className="text-sm font-medium text-muted-foreground">No reactions available</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
           The selected alignment has no reactions.
         </p>
       </div>
@@ -42,11 +42,11 @@ export function ChooseReactionsStep({
 
   return (
     <div>
-      <p className="mb-4 text-sm text-gray-600">
+      <p className="mb-4 text-sm text-muted-foreground">
         Select which reactions from the alignment to include in peak calling.
       </p>
 
-      <div className="overflow-x-auto rounded-md border border-gray-200">
+      <div className="overflow-x-auto rounded-md border border-border">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b bg-primary/10">
@@ -57,10 +57,10 @@ export function ChooseReactionsStep({
                   checked={allChecked}
                   onChange={onToggleAll}
                   aria-label="Select all reactions"
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Short Name
               </th>
             </tr>
@@ -73,7 +73,7 @@ export function ChooseReactionsStep({
                   key={rxn.reaction_id}
                   onClick={() => onToggle(rxn.reaction_id)}
                   className={`cursor-pointer border-b transition-colors ${
-                    isSelected ? 'bg-primary/5' : 'hover:bg-gray-50'
+                    isSelected ? 'bg-primary/5' : 'hover:bg-muted'
                   }`}
                 >
                   <td className="px-3 py-2">
@@ -82,10 +82,10 @@ export function ChooseReactionsStep({
                       checked={isSelected}
                       onChange={() => onToggle(rxn.reaction_id)}
                       aria-label={`Select ${rxn.short_name}`}
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                     />
                   </td>
-                  <td className="px-3 py-2 font-medium text-gray-800">{rxn.short_name}</td>
+                  <td className="px-3 py-2 font-medium text-foreground">{rxn.short_name}</td>
                 </tr>
               );
             })}
@@ -93,7 +93,7 @@ export function ChooseReactionsStep({
         </table>
       </div>
 
-      <p className="mt-3 text-xs text-gray-400">
+      <p className="mt-3 text-xs text-muted-foreground">
         {selectedIds.size} of {reactions.length} reaction{reactions.length !== 1 ? 's' : ''}{' '}
         selected
       </p>

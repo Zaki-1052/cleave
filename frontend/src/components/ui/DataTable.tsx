@@ -51,7 +51,7 @@ export function DataTable<T>({ data, columns, pageSize = 25, emptyMessage = 'No 
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="cursor-pointer select-none px-4 py-3 font-semibold text-gray-700"
+                    className="cursor-pointer select-none px-4 py-3 font-semibold text-foreground"
                     onClick={header.column.getToggleSortingHandler()}
                   >
                     <span className="inline-flex items-center">
@@ -75,7 +75,7 @@ export function DataTable<T>({ data, columns, pageSize = 25, emptyMessage = 'No 
           </thead>
           <tbody>
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="border-b hover:bg-gray-50">
+              <tr key={row.id} className="border-b hover:bg-muted/50">
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className="px-4 py-3">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -86,7 +86,7 @@ export function DataTable<T>({ data, columns, pageSize = 25, emptyMessage = 'No 
           </tbody>
         </table>
       </div>
-      <div className="flex items-center justify-between px-4 py-3 text-sm text-gray-600">
+      <div className="flex items-center justify-between px-4 py-3 text-sm text-muted-foreground">
         <span>
           Records per page: {table.getState().pagination.pageSize}
         </span>

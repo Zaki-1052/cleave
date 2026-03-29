@@ -88,21 +88,21 @@ export function PearsonSettingsStep({
     <div className="space-y-6">
       {/* Settings card */}
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500">
+        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
           Correlation Settings
         </h3>
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-foreground">
               Reference Genome
             </label>
             <input
               type="text"
               value={genomeLabel}
               readOnly
-              className="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600"
+              className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground"
             />
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-muted-foreground">
               Inherited from the selected alignment run.
             </p>
           </div>
@@ -116,17 +116,17 @@ export function PearsonSettingsStep({
                 onChange={(e) => handleToggleRestrict(e.target.checked)}
                 className="rounded text-primary"
               />
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-foreground">
                 Restrict to specific genomic regions (BED file)
               </span>
             </label>
-            <p className="ml-6 mt-1 text-xs text-gray-400">
+            <p className="ml-6 mt-1 text-xs text-muted-foreground">
               Optionally restrict the correlation matrix to signal within specific peak regions.
             </p>
           </div>
 
           {restrictBed && (
-            <div className="ml-6 space-y-3 rounded-md border border-gray-200 p-3">
+            <div className="ml-6 space-y-3 rounded-md border border-border p-3">
               <div className="flex gap-4">
                 <label className="flex cursor-pointer items-center gap-2">
                   <input
@@ -157,13 +157,13 @@ export function PearsonSettingsStep({
               {bedSource === 'peak_calling' && (
                 <div className="space-y-3">
                   {peakCallingJobs.length === 0 ? (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       No completed peak calling runs available.
                     </p>
                   ) : (
                     <>
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-500">
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground">
                           Peak Calling Run
                         </label>
                         <select
@@ -174,7 +174,7 @@ export function PearsonSettingsStep({
                             setBedPath('');
                             setBedLabel('');
                           }}
-                          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                          className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                         >
                           <option value="">Select a peak calling run...</option>
                           {peakCallingJobs.map((j: AnalysisJob) => (
@@ -186,7 +186,7 @@ export function PearsonSettingsStep({
                       </div>
                       {selectedPeakJobId && bedOutputs.length > 0 && (
                         <div>
-                          <label className="mb-1 block text-xs font-medium text-gray-500">
+                          <label className="mb-1 block text-xs font-medium text-muted-foreground">
                             BED File
                           </label>
                           <select
@@ -194,7 +194,7 @@ export function PearsonSettingsStep({
                             onChange={(e) =>
                               e.target.value ? handleSelectBedOutput(Number(e.target.value)) : null
                             }
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                           >
                             <option value="">Select a BED file...</option>
                             {bedOutputs.map((o) => (
@@ -219,7 +219,7 @@ export function PearsonSettingsStep({
                       const file = e.target.files?.[0];
                       if (file) handleBedUpload(file);
                     }}
-                    className="text-sm text-gray-600"
+                    className="text-sm text-muted-foreground"
                     disabled={bedUploading}
                   />
                   {bedUploading && (
@@ -229,7 +229,7 @@ export function PearsonSettingsStep({
               )}
 
               {bedPath && (
-                <div className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
+                <div className="rounded-md bg-green-50 dark:bg-green-950 px-3 py-2 text-sm text-green-700 dark:text-green-300">
                   Selected: <strong>{bedLabel}</strong>
                 </div>
               )}
@@ -240,8 +240,8 @@ export function PearsonSettingsStep({
 
       {/* Summary card */}
       <Card>
-        <h3 className="mb-3 text-sm font-semibold uppercase text-gray-500">Summary</h3>
-        <div className="space-y-1 text-sm text-gray-600">
+        <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">Summary</h3>
+        <div className="space-y-1 text-sm text-muted-foreground">
           <p>
             <strong>Genome:</strong> {genomeLabel}
           </p>

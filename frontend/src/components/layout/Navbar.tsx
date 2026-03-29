@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useUnreadCount } from '@/hooks/useNotifications';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { NotificationPanel } from './NotificationPanel';
 
 export function Navbar() {
@@ -24,7 +25,7 @@ export function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-border bg-white px-6 py-3">
+    <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-border bg-card px-6 py-3">
       <div className="flex items-center gap-8">
         <Link to="/" className="font-display text-xl font-bold text-primary">
           Cleave
@@ -33,7 +34,7 @@ export function Navbar() {
           <Link
             to="/"
             className={`text-sm font-medium ${
-              pathname === '/' ? 'border-b-2 border-primary text-primary' : 'text-gray-600 hover:text-primary'
+              pathname === '/' ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground hover:text-primary'
             }`}
           >
             Home
@@ -43,7 +44,7 @@ export function Navbar() {
             className={`text-sm font-medium ${
               pathname === '/queue'
                 ? 'border-b-2 border-status-complete text-status-complete'
-                : 'text-gray-600 hover:text-primary'
+                : 'text-muted-foreground hover:text-primary'
             }`}
           >
             Analysis Queue
@@ -54,7 +55,7 @@ export function Navbar() {
         {/* Notification bell + dropdown */}
         <div className="relative">
           <button
-            className="text-gray-500 hover:text-primary"
+            className="text-muted-foreground hover:text-primary"
             aria-label="Notifications"
             onClick={toggleNotifications}
           >
@@ -68,11 +69,14 @@ export function Navbar() {
           <NotificationPanel isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
         </div>
 
+        {/* Theme toggle */}
+        <ThemeToggle />
+
         {/* User menu dropdown */}
         {user && (
           <DropdownMenu onOpenChange={(open) => { if (open) setNotifOpen(false); }}>
             <DropdownMenuTrigger asChild>
-              <button className="inline-flex items-center gap-1 text-sm text-gray-700 hover:text-primary">
+              <button className="inline-flex items-center gap-1 text-sm text-foreground hover:text-primary">
                 {user.firstName ?? user.email}
                 <ChevronDown className="h-3.5 w-3.5" />
               </button>

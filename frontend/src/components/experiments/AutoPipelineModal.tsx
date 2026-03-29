@@ -93,18 +93,18 @@ export function AutoPipelineModal({
     <Modal isOpen={isOpen} onClose={onClose} title="Run Full Pipeline" className="max-w-2xl">
       <div className="space-y-5 p-6">
         <Card>
-          <h3 className="mb-3 text-sm font-semibold uppercase text-gray-500">
+          <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
             Pipeline Configuration
           </h3>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="mb-1 block text-sm font-medium text-foreground">
                 Reference Genome
               </label>
               <select
                 value={referenceGenome}
                 onChange={(e) => setReferenceGenome(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 <option value="">Select...</option>
                 <option value="mm10">Mouse mm10</option>
@@ -115,7 +115,7 @@ export function AutoPipelineModal({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="mb-1 block text-sm font-medium text-foreground">
                 Peak Caller
               </label>
               <select
@@ -125,7 +125,7 @@ export function AutoPipelineModal({
                   setPeakCaller(caller!);
                   setPeakSize(size!);
                 }}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 <option value="macs2-narrow">MACS2 Narrow (q=0.01)</option>
                 <option value="macs2-broad">MACS2 Broad</option>
@@ -138,7 +138,7 @@ export function AutoPipelineModal({
         </Card>
 
         <Card>
-          <h3 className="mb-3 text-sm font-semibold uppercase text-gray-500">
+          <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
             Optional Analysis Steps
           </h3>
           <div className="space-y-2">
@@ -151,11 +151,11 @@ export function AutoPipelineModal({
                 className="rounded text-primary disabled:opacity-50"
               />
               <div>
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium text-foreground">
                   Roman Normalization
                 </span>
                 {!isMouse && (
-                  <span className="ml-2 text-xs text-gray-400">(mouse only)</span>
+                  <span className="ml-2 text-xs text-muted-foreground">(mouse only)</span>
                 )}
               </div>
             </label>
@@ -167,8 +167,8 @@ export function AutoPipelineModal({
                 className="rounded text-primary"
               />
               <div>
-                <span className="text-sm font-medium text-gray-700">DiffBind</span>
-                <span className="ml-2 text-xs text-gray-400">
+                <span className="text-sm font-medium text-foreground">DiffBind</span>
+                <span className="ml-2 text-xs text-muted-foreground">
                   (auto-detects ctrl/mut from reaction names)
                 </span>
               </div>
@@ -180,7 +180,7 @@ export function AutoPipelineModal({
                 onChange={(e) => setIncludeHeatmap(e.target.checked)}
                 className="rounded text-primary"
               />
-              <span className="text-sm font-medium text-gray-700">Custom Heatmaps</span>
+              <span className="text-sm font-medium text-foreground">Custom Heatmaps</span>
             </label>
             <label className="flex items-center gap-3">
               <input
@@ -189,7 +189,7 @@ export function AutoPipelineModal({
                 onChange={(e) => setIncludePearson(e.target.checked)}
                 className="rounded text-primary"
               />
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-foreground">
                 Pearson Correlation
               </span>
             </label>
@@ -197,7 +197,7 @@ export function AutoPipelineModal({
         </Card>
 
         <Card>
-          <h3 className="mb-3 text-sm font-semibold uppercase text-gray-500">
+          <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
             Pipeline Summary
           </h3>
           <div className="space-y-1">
@@ -205,25 +205,25 @@ export function AutoPipelineModal({
               <div
                 key={step.name}
                 className={`flex items-center gap-2 text-sm ${
-                  step.included ? 'text-gray-700' : 'text-gray-400 line-through'
+                  step.included ? 'text-foreground' : 'text-muted-foreground line-through'
                 }`}
               >
-                <span className="w-5 text-center text-xs text-gray-400">
+                <span className="w-5 text-center text-xs text-muted-foreground">
                   {step.included ? i + 1 : '-'}
                 </span>
                 <span className={step.included ? 'font-medium' : ''}>{step.name}</span>
-                <span className="text-xs text-gray-400">{step.note}</span>
+                <span className="text-xs text-muted-foreground">{step.note}</span>
               </div>
             ))}
           </div>
-          <p className="mt-3 text-xs text-gray-500">
+          <p className="mt-3 text-xs text-muted-foreground">
             {nonIggReactions.length} reaction(s) will be processed. IgG controls are
             auto-assigned for peak calling.
           </p>
         </Card>
 
         {error && (
-          <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">
+          <div className="rounded-md bg-red-50 dark:bg-red-950 px-3 py-2 text-sm text-red-600 dark:text-red-400">
             {error}
           </div>
         )}

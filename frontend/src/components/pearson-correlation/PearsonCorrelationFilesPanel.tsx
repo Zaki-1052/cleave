@@ -84,7 +84,7 @@ export function PearsonCorrelationFilesPanel({ jobId }: PearsonCorrelationFilesP
             checked={outputs != null && outputs.length > 0 && selectedIds.size === outputs.length}
             onChange={toggleAll}
             aria-label="Select all files"
-            className="h-4 w-4 rounded border-gray-300"
+            className="h-4 w-4 rounded border-border"
           />
         ),
         cell: ({ row }) => (
@@ -93,7 +93,7 @@ export function PearsonCorrelationFilesPanel({ jobId }: PearsonCorrelationFilesP
             checked={selectedIds.has(row.original.id)}
             onChange={() => toggleSelection(row.original.id)}
             aria-label={`Select ${row.original.filename}`}
-            className="h-4 w-4 rounded border-gray-300"
+            className="h-4 w-4 rounded border-border"
           />
         ),
         size: 40,
@@ -120,7 +120,7 @@ export function PearsonCorrelationFilesPanel({ jobId }: PearsonCorrelationFilesP
         <div className="shrink-0">
           <label
             htmlFor="pearson-file-category"
-            className="mb-1 block font-display text-xs font-semibold uppercase tracking-wide text-gray-500"
+            className="mb-1 block font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground"
           >
             Files
           </label>
@@ -128,7 +128,7 @@ export function PearsonCorrelationFilesPanel({ jobId }: PearsonCorrelationFilesP
             id="pearson-file-category"
             value={selectedCategory}
             onChange={handleCategoryChange}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            className="rounded-md border border-border px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           >
             {PEARSON_CORRELATION_FILE_CATEGORIES.map((cat) => (
               <option key={cat.value} value={cat.value}>
@@ -138,7 +138,7 @@ export function PearsonCorrelationFilesPanel({ jobId }: PearsonCorrelationFilesP
           </select>
         </div>
         {categoryInfo && (
-          <p className="mt-5 text-xs text-gray-500">{categoryInfo.description}</p>
+          <p className="mt-5 text-xs text-muted-foreground">{categoryInfo.description}</p>
         )}
       </div>
 

@@ -80,7 +80,7 @@ export default function SettingsPage() {
 
         {/* Account Information */}
         <div className="mb-8">
-          <h3 className="mb-4 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="mb-4 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Account Information
           </h3>
           <div className="flex flex-col gap-4">
@@ -110,16 +110,16 @@ export default function SettingsPage() {
 
         {/* Email */}
         <div className="mb-8">
-          <h3 className="mb-4 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="mb-4 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Email
           </h3>
           <div className="flex flex-col gap-4">
             <Input label="Account Email" value={user.email} disabled />
             <div className="flex flex-col gap-1">
-              <label className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+              <label className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Job Email Notification
               </label>
-              <p className="mb-1 text-xs text-gray-400">
+              <p className="mb-1 text-xs text-muted-foreground">
                 Get an email notification when a job finishes running.
               </p>
               <Select

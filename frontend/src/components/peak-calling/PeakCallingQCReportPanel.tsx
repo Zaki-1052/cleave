@@ -53,14 +53,14 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
       {/* Header controls */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Reference Genome
           </span>
-          <span className="rounded-md border border-gray-300 px-3 py-1 text-sm text-gray-700">
+          <span className="rounded-md border border-border px-3 py-1 text-sm text-foreground">
             {genome}
           </span>
         </div>
-        <span className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           QC Report
         </span>
       </div>
@@ -70,7 +70,7 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
         <div className="flex-1">
           <Card>
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+              <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Peak Calling Stats and Metrics
               </h3>
               <button
@@ -86,50 +86,50 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b bg-primary/10">
-                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Short Name
                     </th>
-                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Control
                     </th>
-                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Peak Caller
                     </th>
-                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Peak Size
                     </th>
-                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Threshold
                     </th>
-                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600 text-right">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right">
                       Unique Read Pairs
                     </th>
-                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600 text-right">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right">
                       Called Peaks
                     </th>
-                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600 text-right">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right">
                       Reads in Peaks
                     </th>
-                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600 text-right">
+                    <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right">
                       FRiP
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {report.metrics.map((m) => (
-                    <tr key={m.shortName} className="border-b hover:bg-gray-50">
-                      <td className="px-3 py-2 font-medium text-gray-800">{m.shortName}</td>
-                      <td className="px-3 py-2 text-gray-700">{m.controlShortName || '—'}</td>
-                      <td className="px-3 py-2 text-gray-700">{m.peakCaller}</td>
-                      <td className="px-3 py-2 text-gray-700 capitalize">{m.peakSize}</td>
-                      <td className="px-3 py-2 font-mono text-gray-700">{m.significanceThreshold}</td>
-                      <td className="px-3 py-2 text-right font-mono text-gray-700">
+                    <tr key={m.shortName} className="border-b hover:bg-muted">
+                      <td className="px-3 py-2 font-medium text-foreground">{m.shortName}</td>
+                      <td className="px-3 py-2 text-foreground">{m.controlShortName || '—'}</td>
+                      <td className="px-3 py-2 text-foreground">{m.peakCaller}</td>
+                      <td className="px-3 py-2 text-foreground capitalize">{m.peakSize}</td>
+                      <td className="px-3 py-2 font-mono text-foreground">{m.significanceThreshold}</td>
+                      <td className="px-3 py-2 text-right font-mono text-foreground">
                         {formatNumber(m.uniquelyAlignedReadPairs)}
                       </td>
-                      <td className="px-3 py-2 text-right font-mono text-gray-700">
+                      <td className="px-3 py-2 text-right font-mono text-foreground">
                         {formatNumber(m.calledPeaks)}
                       </td>
-                      <td className="px-3 py-2 text-right font-mono text-gray-700">
+                      <td className="px-3 py-2 text-right font-mono text-foreground">
                         {formatNumber(m.readsInPeaks)}
                       </td>
                       <td className="px-3 py-2 text-right">
@@ -148,7 +148,7 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
           {report.topPeaks && report.topPeaks.length > 0 && (
             <Card className="mt-4">
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+                <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   Top Called Peaks
                 </h3>
                 <button
@@ -162,18 +162,18 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
               <div className="space-y-3">
                 {report.topPeaks.map((tp) => (
                   <div key={tp.shortName}>
-                    <h4 className="mb-1 text-xs font-medium text-gray-600">{tp.shortName}</h4>
+                    <h4 className="mb-1 text-xs font-medium text-muted-foreground">{tp.shortName}</h4>
                     <div className="flex flex-wrap gap-1">
                       {tp.topPeaks.map((peak, i) => (
                         <span
                           key={i}
-                          className="rounded bg-gray-100 px-2 py-0.5 text-xs font-mono text-gray-700"
+                          className="rounded bg-muted px-2 py-0.5 text-xs font-mono text-foreground"
                         >
                           {peak}
                         </span>
                       ))}
                       {tp.topPeaks.length === 0 && (
-                        <span className="text-xs text-gray-400">No peaks called</span>
+                        <span className="text-xs text-muted-foreground">No peaks called</span>
                       )}
                     </div>
                   </div>
@@ -196,30 +196,30 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
         {/* Info panel */}
         <div className="w-80 shrink-0">
           <Card>
-            <h3 className="font-display mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+            <h3 className="font-display mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               About Peak Calling Stats
             </h3>
-            <div className="space-y-3 text-xs text-gray-600">
+            <div className="space-y-3 text-xs text-muted-foreground">
               <div>
-                <h4 className="font-semibold text-gray-700">FRiP (Fraction of Reads in Peaks)</h4>
+                <h4 className="font-semibold text-foreground">FRiP (Fraction of Reads in Peaks)</h4>
                 <p>
                   The ratio of unique reads associated with statistically significant peaks. High-quality FRiP is &gt;0.2, indicating robust enrichment at peak regions.
                 </p>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-700">Called Peaks</h4>
+                <h4 className="font-semibold text-foreground">Called Peaks</h4>
                 <p>
                   Number of statistically significant peaks identified. More peaks does not necessarily mean better quality — trustworthiness is multifactorial.
                 </p>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-700">Reads in Peaks</h4>
+                <h4 className="font-semibold text-foreground">Reads in Peaks</h4>
                 <p>
                   Total unique reads overlapping called peaks, used to compute FRiP.
                 </p>
               </div>
               <div className="border-t pt-3">
-                <h4 className="font-semibold text-gray-700">FRiP Color Coding</h4>
+                <h4 className="font-semibold text-foreground">FRiP Color Coding</h4>
                 <div className="mt-1 space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="inline-block h-3 w-3 rounded bg-green-500" />
@@ -236,7 +236,7 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
                 </div>
               </div>
               <div className="border-t pt-3">
-                <h4 className="font-semibold text-gray-700">About Peak Annotation Plots</h4>
+                <h4 className="font-semibold text-foreground">About Peak Annotation Plots</h4>
                 <p>
                   Visual breakdown of where peaks fall relative to genomic features
                   (e.g., promoters, exons, intergenic). Helps contextualize your peaks

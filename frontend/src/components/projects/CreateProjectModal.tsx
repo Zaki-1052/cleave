@@ -47,11 +47,11 @@ export function CreateProjectModal({ isOpen, onClose }: CreateProjectModalProps)
           placeholder="Enter project name"
         />
         <div className="flex flex-col gap-1">
-          <label className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Description
           </label>
           <textarea
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+            className="rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}

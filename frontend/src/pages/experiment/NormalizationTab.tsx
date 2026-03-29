@@ -58,8 +58,8 @@ export default function NormalizationTab() {
     return (
       <Card>
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <h3 className="text-sm font-medium text-gray-600">No normalization runs yet</h3>
-          <p className="mt-1 text-sm text-gray-400">
+          <h3 className="text-sm font-medium text-muted-foreground">No normalization runs yet</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
             Click &ldquo;New Analysis&rdquo; above to create a Roman normalization.
           </p>
         </div>
@@ -74,7 +74,7 @@ export default function NormalizationTab() {
         <div className="flex items-center gap-3">
           <label
             htmlFor="normalization-job-select"
-            className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500"
+            className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground"
           >
             Normalizations
           </label>
@@ -82,7 +82,7 @@ export default function NormalizationTab() {
             id="normalization-job-select"
             value={activeJobId ?? ''}
             onChange={handleJobChange}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            className="rounded-md border border-border px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           >
             {normalizationJobs.map((j: AnalysisJob) => (
               <option key={j.id} value={j.id}>
@@ -96,7 +96,7 @@ export default function NormalizationTab() {
 
       {/* Sub-tab navigation */}
       {job && (
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-border">
           {SUB_TABS.map((tab) => (
             <button
               key={tab.key}
@@ -104,7 +104,7 @@ export default function NormalizationTab() {
               className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
                 activeSubTab === tab.key
                   ? 'border-b-2 border-primary text-primary'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {tab.label}
@@ -121,7 +121,7 @@ export default function NormalizationTab() {
           <NormalizationResultsPanel jobId={job.id} />
         ) : (
           <Card>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               Normalization results will be available when the analysis completes.
             </p>
           </Card>
@@ -133,7 +133,7 @@ export default function NormalizationTab() {
           <NormalizationFilesPanel jobId={job.id} />
         ) : (
           <Card>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               Files will be available when the analysis completes.
             </p>
           </Card>
@@ -189,7 +189,7 @@ function NormalizationInfoPanel({ job }: { job: AnalysisJob }) {
       <div className="grid gap-4 md:grid-cols-3">
         {/* Details */}
         <Card>
-          <h4 className="mb-3 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">Details</h4>
+          <h4 className="mb-3 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">Details</h4>
           <div className="space-y-2">
             <DetailRow label="Run ID"><span className="font-mono">{String(job.id)}</span></DetailRow>
             <DetailRow label="Created By">{launcherName}</DetailRow>
@@ -205,7 +205,7 @@ function NormalizationInfoPanel({ job }: { job: AnalysisJob }) {
         {/* Methods Text */}
         <Card>
           <div className="mb-3 flex items-center justify-between">
-            <h4 className="text-xs font-semibold uppercase text-gray-500">Run Methods</h4>
+            <h4 className="text-xs font-semibold uppercase text-muted-foreground">Run Methods</h4>
             {job.methodsText && (
               <button
                 onClick={handleCopyMethods}
@@ -216,16 +216,16 @@ function NormalizationInfoPanel({ job }: { job: AnalysisJob }) {
             )}
           </div>
           {job.methodsText ? (
-            <p className="text-sm leading-relaxed text-gray-700">{job.methodsText}</p>
+            <p className="text-sm leading-relaxed text-foreground">{job.methodsText}</p>
           ) : (
-            <p className="text-sm text-gray-400">No methods text available.</p>
+            <p className="text-sm text-muted-foreground">No methods text available.</p>
           )}
         </Card>
 
         {/* Notes */}
         <Card>
           <div className="mb-3 flex items-center justify-between">
-            <h4 className="text-xs font-semibold uppercase text-gray-500">Notes</h4>
+            <h4 className="text-xs font-semibold uppercase text-muted-foreground">Notes</h4>
             {!editing && (
               <button
                 onClick={handleEditStart}
@@ -241,7 +241,7 @@ function NormalizationInfoPanel({ job }: { job: AnalysisJob }) {
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 rows={4}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
               <div className="flex gap-2">
                 <button
@@ -253,15 +253,15 @@ function NormalizationInfoPanel({ job }: { job: AnalysisJob }) {
                 </button>
                 <button
                   onClick={() => setEditing(false)}
-                  className="text-xs text-gray-500 hover:text-gray-700"
+                  className="text-xs text-muted-foreground hover:text-foreground"
                 >
                   Cancel
                 </button>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-600">
-              {job.notes || <span className="text-gray-400">No notes.</span>}
+            <p className="text-sm text-muted-foreground">
+              {job.notes || <span className="text-muted-foreground">No notes.</span>}
             </p>
           )}
         </Card>

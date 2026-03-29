@@ -113,7 +113,7 @@ export function PeakAnnotationChart({
   return (
     <Card className="mt-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           {referenceGenome} Feature Distribution
         </h3>
         <div className="flex items-center gap-2">
@@ -145,8 +145,8 @@ export function PeakAnnotationChart({
                 const m = metricsMap.get(shortName);
                 const hoveredEntry = payload.find((p) => p.value && (p.value as number) > 0);
                 return (
-                  <div className="rounded border border-gray-300 bg-white px-3 py-2 text-xs shadow-lg">
-                    <p className="mb-1 font-semibold text-gray-800">{shortName}</p>
+                  <div className="rounded border border-border bg-card px-3 py-2 text-xs shadow-lg">
+                    <p className="mb-1 font-semibold text-foreground">{shortName}</p>
                     {hoveredEntry && (
                       <>
                         <p>Annotation={hoveredEntry.name}</p>

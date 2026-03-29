@@ -65,7 +65,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
         header: 'R1 File',
         cell: (info) => {
           const p = prefixMap.get(info.row.original.fastqPrefix);
-          return p?.hasR1 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-gray-300">{'\u2014'}</span>;
+          return p?.hasR1 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-muted-foreground/50">{'\u2014'}</span>;
         },
       },
       {
@@ -73,7 +73,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
         header: 'R2 File',
         cell: (info) => {
           const p = prefixMap.get(info.row.original.fastqPrefix);
-          return p?.hasR2 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-gray-300">{'\u2014'}</span>;
+          return p?.hasR2 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-muted-foreground/50">{'\u2014'}</span>;
         },
       },
       { accessorKey: 'shortName', header: 'Short Name' },
@@ -105,7 +105,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
           <button
             type="button"
             onClick={() => setEditTarget(info.row.original)}
-            className="text-gray-400 hover:text-primary"
+            className="text-muted-foreground hover:text-primary"
             title="Edit"
           >
             <Pencil className="h-4 w-4" />
@@ -116,7 +116,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
               setDeleteError(null);
               setDeleteTarget(info.row.original);
             }}
-            className="text-gray-400 hover:text-red-500"
+            className="text-muted-foreground hover:text-red-500"
             title="Delete"
           >
             <Trash2 className="h-4 w-4" />
@@ -171,17 +171,17 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
       {/* OR Divider */}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300" />
+          <div className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-white px-4 text-sm text-gray-500">OR</span>
+          <span className="bg-card px-4 text-sm text-muted-foreground">OR</span>
         </div>
       </div>
 
       {/* Manual Reactions Section */}
       <div>
         <div className="mb-4 flex items-center justify-between">
-          <h4 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h4 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Reactions
           </h4>
           <div className="flex gap-2">
@@ -193,20 +193,20 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
                 Customize Columns
               </Button>
               {showColumnPicker && (
-                <div className="absolute right-0 top-full z-20 mt-1 w-64 rounded-lg border bg-white p-3 shadow-lg">
-                  <div className="mb-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <div className="absolute right-0 top-full z-20 mt-1 w-64 rounded-lg border bg-card p-3 shadow-lg">
+                  <div className="mb-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Optional Columns
                   </div>
                   {OPTIONAL_COLUMNS.map((col) => (
                     <label
                       key={col.key}
-                      className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-gray-50"
+                      className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
                     >
                       <input
                         type="checkbox"
                         checked={visibleOptional.has(col.key)}
                         onChange={() => toggleColumn(col.key)}
-                        className="rounded border-gray-300 text-primary focus:ring-primary"
+                        className="rounded border-border text-primary focus:ring-primary"
                       />
                       {col.label}
                     </label>
@@ -223,7 +223,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
         {reactions.length > 0 ? (
           <DataTable data={reactions} columns={columns} />
         ) : (
-          <p className="py-8 text-center text-sm text-gray-400">
+          <p className="py-8 text-center text-sm text-muted-foreground">
             No reactions defined yet. Add reactions manually or upload a CSV above.
           </p>
         )}
@@ -254,7 +254,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
         onClose={() => setDeleteTarget(null)}
         title="Delete Reaction"
       >
-        <p className="mb-4 text-sm text-gray-700">
+        <p className="mb-4 text-sm text-foreground">
           Are you sure you want to delete reaction{' '}
           <span className="font-medium">{deleteTarget?.shortName}</span>? This
           action cannot be undone.

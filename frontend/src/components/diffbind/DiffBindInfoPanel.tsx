@@ -58,7 +58,7 @@ export function DiffBindInfoPanel({ job }: DiffBindInfoPanelProps) {
     <div className="space-y-4">
       <div className="flex gap-4">
         <Card className="flex-[2]">
-          <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Details
           </h3>
           <div>
@@ -74,7 +74,7 @@ export function DiffBindInfoPanel({ job }: DiffBindInfoPanelProps) {
 
         <Card className="flex-[3]">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+            <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Run Methods
             </h3>
             {job.methodsText && (
@@ -89,9 +89,9 @@ export function DiffBindInfoPanel({ job }: DiffBindInfoPanelProps) {
             )}
           </div>
           {job.methodsText ? (
-            <p className="whitespace-pre-wrap font-mono text-sm text-gray-600">{job.methodsText}</p>
+            <p className="whitespace-pre-wrap font-mono text-sm text-muted-foreground">{job.methodsText}</p>
           ) : (
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               Methods text will be available when the DiffBind analysis completes.
             </p>
           )}
@@ -99,7 +99,7 @@ export function DiffBindInfoPanel({ job }: DiffBindInfoPanelProps) {
 
         <Card className="flex-[2]">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">Notes</h3>
+            <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">Notes</h3>
             {!editing && (
               <button
                 type="button"
@@ -117,7 +117,7 @@ export function DiffBindInfoPanel({ job }: DiffBindInfoPanelProps) {
                 onChange={(e) => setDraft(e.target.value)}
                 rows={4}
                 aria-label="Job notes"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               />
               <div className="flex gap-2">
                 <button
@@ -132,16 +132,16 @@ export function DiffBindInfoPanel({ job }: DiffBindInfoPanelProps) {
                   type="button"
                   onClick={() => setEditing(false)}
                   disabled={updateNotes.isPending}
-                  className="rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                  className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted"
                 >
                   Cancel
                 </button>
               </div>
             </div>
           ) : job.notes ? (
-            <p className="text-sm text-gray-600">{job.notes}</p>
+            <p className="text-sm text-muted-foreground">{job.notes}</p>
           ) : (
-            <p className="text-sm text-gray-400">No notes</p>
+            <p className="text-sm text-muted-foreground">No notes</p>
           )}
         </Card>
       </div>

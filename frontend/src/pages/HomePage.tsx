@@ -17,7 +17,7 @@ export default function HomePage() {
     <div className="flex gap-6">
       <aside className="w-64 shrink-0">
         <Card>
-          <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Projects Filters
           </h2>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -29,7 +29,7 @@ export default function HomePage() {
 
       <div className="flex-1">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="font-display text-xl font-bold text-gray-800">Projects</h1>
+          <h1 className="font-display text-xl font-bold text-foreground">Projects</h1>
           <Button onClick={() => setIsCreateModalOpen(true)}>+ Create Project</Button>
         </div>
 
@@ -49,13 +49,13 @@ export default function HomePage() {
             {data?.items.map((project) => (
               <Link key={project.id} to={`/projects/${project.id}`}>
                 <Card className="cursor-pointer border border-transparent transition-all duration-150 hover:-translate-y-0.5 hover:border-accent-gold hover:shadow-md">
-                  <h3 className="text-lg font-semibold text-gray-800">{project.name}</h3>
-                  <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
+                  <h3 className="text-lg font-semibold text-foreground">{project.name}</h3>
+                  <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
                     <span>Modified {formatDate(project.updatedAt)}</span>
                     <span className="font-mono">{formatBytes(project.storageBytes)}</span>
                   </div>
                   {project.description && (
-                    <p className="mt-2 line-clamp-2 text-sm text-gray-600">
+                    <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
                       {project.description}
                     </p>
                   )}

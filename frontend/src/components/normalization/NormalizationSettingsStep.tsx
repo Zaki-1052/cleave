@@ -17,50 +17,50 @@ export function NormalizationSettingsStep({
     <div className="space-y-6">
       {/* Settings card */}
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500">
+        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
           Normalization Settings
         </h3>
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-foreground">
               Reference Genome
             </label>
             <input
               type="text"
               value={genome === 'mm10' ? 'Mouse mm10' : genome}
               readOnly
-              className="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600"
+              className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground"
             />
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-muted-foreground">
               Roman normalization is restricted to mouse (mm10) data.
             </p>
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Masking</label>
+            <label className="mb-1 block text-sm font-medium text-foreground">Masking</label>
             <input
               type="text"
               value="Applied (158 masked regions)"
               readOnly
-              className="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600"
+              className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground"
             />
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-muted-foreground">
               Manually curated regions with artificially high/low signal are excluded from
               percentile calculation.
             </p>
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-foreground">
               Reference Sample
             </label>
             <input
               type="text"
               value={referenceSampleLabel}
               readOnly
-              className="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600"
+              className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground"
             />
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-muted-foreground">
               All samples are normalized relative to the first sample (NF = 1.0). Reorder
               samples in the previous step to change the reference.
             </p>
@@ -70,8 +70,8 @@ export function NormalizationSettingsStep({
 
       {/* Summary card */}
       <Card>
-        <h3 className="mb-3 text-sm font-semibold uppercase text-gray-500">Summary</h3>
-        <div className="space-y-1 text-sm text-gray-600">
+        <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">Summary</h3>
+        <div className="space-y-1 text-sm text-muted-foreground">
           <p>
             <strong>Genome:</strong> Mouse mm10
           </p>

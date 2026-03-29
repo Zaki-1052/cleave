@@ -65,10 +65,10 @@ export function SelectReactionsModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Select Reactions" className="max-w-3xl">
       <div>
-        <p className="mb-3 text-sm text-gray-600">
+        <p className="mb-3 text-sm text-muted-foreground">
           Select reactions to display in the genome browser.
         </p>
-        <div className="max-h-80 overflow-y-auto rounded-md border border-gray-200">
+        <div className="max-h-80 overflow-y-auto rounded-md border border-border">
           <table className="w-full text-left text-sm">
             <thead className="sticky top-0">
               <tr className="border-b bg-primary/10">
@@ -79,16 +79,16 @@ export function SelectReactionsModal({
                     checked={allChecked}
                     onChange={handleToggleAll}
                     aria-label="Select all reactions"
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                   />
                 </th>
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Short Name
                 </th>
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Organism
                 </th>
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Assay Type
                 </th>
               </tr>
@@ -99,7 +99,7 @@ export function SelectReactionsModal({
                 return (
                   <tr
                     key={r.id}
-                    className={`border-b transition-colors ${isSelected ? 'bg-primary/5' : 'hover:bg-gray-50'}`}
+                    className={`border-b transition-colors ${isSelected ? 'bg-primary/5' : 'hover:bg-muted'}`}
                     onClick={() => handleToggle(r.id)}
                     style={{ cursor: 'pointer' }}
                   >
@@ -110,19 +110,19 @@ export function SelectReactionsModal({
                         onChange={() => handleToggle(r.id)}
                         onClick={(e) => e.stopPropagation()}
                         aria-label={`Select ${r.shortName}`}
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                       />
                     </td>
-                    <td className="px-3 py-2 font-medium text-gray-800">{r.shortName}</td>
-                    <td className="px-3 py-2 text-gray-700">{r.organism}</td>
-                    <td className="px-3 py-2 text-gray-700">{r.assayType}</td>
+                    <td className="px-3 py-2 font-medium text-foreground">{r.shortName}</td>
+                    <td className="px-3 py-2 text-foreground">{r.organism}</td>
+                    <td className="px-3 py-2 text-foreground">{r.assayType}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-xs text-gray-400">
+        <p className="mt-2 text-xs text-muted-foreground">
           {localIds.size} of {reactions.length} reaction{reactions.length !== 1 ? 's' : ''}{' '}
           selected
         </p>
@@ -130,7 +130,7 @@ export function SelectReactionsModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-gray-300 px-5 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+            className="rounded-full border border-border px-5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
           >
             Cancel
           </button>

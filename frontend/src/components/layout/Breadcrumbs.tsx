@@ -24,7 +24,7 @@ export function Breadcrumbs() {
         </Link>
         {segments.map((segment, i) => (
           <span key={i} className="flex items-center gap-2">
-            <ChevronRight className="h-3 w-3 text-gray-400" />
+            <ChevronRight className="h-3 w-3 text-muted-foreground" />
             {i < segments.length - 1 ? (
               <Link
                 to={`/${segments.slice(0, i + 1).join('/')}`}
@@ -33,7 +33,7 @@ export function Breadcrumbs() {
                 {decodeURIComponent(segment)}
               </Link>
             ) : (
-              <span className="text-gray-700">{decodeURIComponent(segment)}</span>
+              <span className="text-foreground">{decodeURIComponent(segment)}</span>
             )}
           </span>
         ))}

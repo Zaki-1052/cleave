@@ -21,40 +21,40 @@ export function PeakCallingInputPanel({ job }: PeakCallingInputPanelProps) {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">Reactions</h3>
+        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">Reactions</h3>
       </div>
 
-      <div className="overflow-x-auto rounded-md border border-gray-200">
+      <div className="overflow-x-auto rounded-md border border-border">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b bg-primary/10">
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Short Name
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 IgG Control
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Reference Genome
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Peak Caller
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Peak Size
               </th>
             </tr>
           </thead>
           <tbody>
             {reactions.map((r) => (
-              <tr key={r.reaction_id} className="border-b hover:bg-gray-50">
-                <td className="px-3 py-2 font-medium text-gray-800">{r.short_name}</td>
-                <td className="px-3 py-2 text-gray-700">{r.igg_short_name ?? '—'}</td>
-                <td className="px-3 py-2 text-gray-700">
+              <tr key={r.reaction_id} className="border-b hover:bg-muted">
+                <td className="px-3 py-2 font-medium text-foreground">{r.short_name}</td>
+                <td className="px-3 py-2 text-foreground">{r.igg_short_name ?? '—'}</td>
+                <td className="px-3 py-2 text-foreground">
                   {GENOME_DISPLAY_NAMES[genome] ?? genome}
                 </td>
-                <td className="px-3 py-2 text-gray-700">{peakCaller}</td>
-                <td className="px-3 py-2 text-gray-700 capitalize">{peakSize}</td>
+                <td className="px-3 py-2 text-foreground">{peakCaller}</td>
+                <td className="px-3 py-2 text-foreground capitalize">{peakSize}</td>
               </tr>
             ))}
           </tbody>

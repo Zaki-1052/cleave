@@ -62,7 +62,7 @@ export function AlignmentInputPanel({ job, experimentId }: AlignmentInputPanelPr
 
   return (
     <Card>
-      <h3 className="font-display mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
+      <h3 className="font-display mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
         Reactions
       </h3>
       <DataTable data={rows} columns={columns} pageSize={25} />

@@ -58,7 +58,7 @@ export function ChooseBigWigSourceStep({
   if (alignmentJobs.length === 0 && normalizationJobs.length === 0) {
     return (
       <Card>
-        <p className="py-8 text-center text-sm text-gray-500">
+        <p className="py-8 text-center text-sm text-muted-foreground">
           No completed alignment or normalization runs available. Run an alignment first.
         </p>
       </Card>
@@ -71,14 +71,14 @@ export function ChooseBigWigSourceStep({
       {hasNormalization && (
         <Card>
           <div className="mb-3 flex items-center gap-2">
-            <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+            <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Normalized BigWigs
             </h3>
-            <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+            <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900 dark:text-green-300">
               Recommended
             </span>
           </div>
-          <p className="mb-3 text-xs text-gray-500">
+          <p className="mb-3 text-xs text-muted-foreground">
             Roman-normalized bigWigs at 50bp resolution. Preferred for accurate
             correlation and heatmap analysis.
           </p>
@@ -93,7 +93,7 @@ export function ChooseBigWigSourceStep({
                     bigwigSource === 'normalization' &&
                     selectedNormalizationJobId === job.id
                       ? 'border-primary bg-primary/5'
-                      : 'border-gray-200 hover:border-gray-300'
+                      : 'border-border hover:border-primary/50'
                   }`}
                 >
                   <input
@@ -109,8 +109,8 @@ export function ChooseBigWigSourceStep({
                     className="text-primary"
                   />
                   <div className="flex-1">
-                    <span className="font-medium text-gray-800">{job.name}</span>
-                    <span className="ml-3 text-xs text-gray-400">
+                    <span className="font-medium text-foreground">{job.name}</span>
+                    <span className="ml-3 text-xs text-muted-foreground">
                       {new Date(job.createdAt).toLocaleDateString()}
                     </span>
                     <span className="ml-2 text-xs text-green-600">50bp rnorm</span>
@@ -124,12 +124,12 @@ export function ChooseBigWigSourceStep({
 
       {/* Alignment jobs (fallback) */}
       <Card>
-        <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           {hasNormalization ? 'Alignment BigWigs (Fallback)' : 'Select an Alignment Run'}
         </h3>
 
         {showResolutionWarning && hasNormalization && bigwigSource === 'alignment' && (
-          <div className="mb-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
+          <div className="mb-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-950 dark:text-amber-300">
             {alignmentWarningText}
           </div>
         )}
@@ -141,7 +141,7 @@ export function ChooseBigWigSourceStep({
               className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${
                 bigwigSource === 'alignment' && selectedAlignmentJobId === job.id
                   ? 'border-primary bg-primary/5'
-                  : 'border-gray-200 hover:border-gray-300'
+                  : 'border-border hover:border-primary/50'
               }`}
             >
               <input
@@ -154,11 +154,11 @@ export function ChooseBigWigSourceStep({
                 className="text-primary"
               />
               <div className="flex-1">
-                <span className="font-medium text-gray-800">{job.name}</span>
-                <span className="ml-3 text-xs text-gray-400">
+                <span className="font-medium text-foreground">{job.name}</span>
+                <span className="ml-3 text-xs text-muted-foreground">
                   {new Date(job.createdAt).toLocaleDateString()}
                 </span>
-                <span className="ml-2 text-xs text-gray-400">20bp raw</span>
+                <span className="ml-2 text-xs text-muted-foreground">20bp raw</span>
               </div>
             </label>
           ))}

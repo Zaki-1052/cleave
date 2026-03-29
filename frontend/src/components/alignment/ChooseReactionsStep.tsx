@@ -29,8 +29,8 @@ export function ChooseReactionsStep({
   if (reactions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <p className="text-sm font-medium text-gray-600">No reactions found for this experiment.</p>
-        <p className="mt-1 text-sm text-gray-400">
+        <p className="text-sm font-medium text-muted-foreground">No reactions found for this experiment.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
           Please add reactions before creating an alignment.
         </p>
       </div>
@@ -39,10 +39,10 @@ export function ChooseReactionsStep({
 
   return (
     <div>
-      <p className="mb-3 text-sm text-gray-600">
+      <p className="mb-3 text-sm text-muted-foreground">
         Select the reactions to include in this alignment run.
       </p>
-      <div className="overflow-x-auto rounded-md border border-gray-200">
+      <div className="overflow-x-auto rounded-md border border-border">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b bg-primary/10">
@@ -53,19 +53,19 @@ export function ChooseReactionsStep({
                   checked={allChecked}
                   onChange={onToggleAll}
                   aria-label="Select all reactions"
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 FASTQ Prefix
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Short Name
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Organism
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Assay Type
               </th>
             </tr>
@@ -76,7 +76,7 @@ export function ChooseReactionsStep({
               return (
                 <tr
                   key={r.id}
-                  className={`border-b transition-colors ${isSelected ? 'bg-primary/5' : 'hover:bg-gray-50'}`}
+                  className={`border-b transition-colors ${isSelected ? 'bg-primary/5' : 'hover:bg-muted'}`}
                   onClick={() => onToggle(r.id)}
                   style={{ cursor: 'pointer' }}
                 >
@@ -87,20 +87,20 @@ export function ChooseReactionsStep({
                       onChange={() => onToggle(r.id)}
                       onClick={(e) => e.stopPropagation()}
                       aria-label={`Select ${r.shortName}`}
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                     />
                   </td>
-                  <td className="px-3 py-2 text-gray-700">{r.fastqPrefix}</td>
-                  <td className="px-3 py-2 font-medium text-gray-800">{r.shortName}</td>
-                  <td className="px-3 py-2 text-gray-700">{r.organism}</td>
-                  <td className="px-3 py-2 text-gray-700">{r.assayType}</td>
+                  <td className="px-3 py-2 text-foreground">{r.fastqPrefix}</td>
+                  <td className="px-3 py-2 font-medium text-foreground">{r.shortName}</td>
+                  <td className="px-3 py-2 text-foreground">{r.organism}</td>
+                  <td className="px-3 py-2 text-foreground">{r.assayType}</td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
-      <p className="mt-2 text-xs text-gray-400">
+      <p className="mt-2 text-xs text-muted-foreground">
         {selectedIds.size} of {reactions.length} reaction{reactions.length !== 1 ? 's' : ''} selected
       </p>
     </div>

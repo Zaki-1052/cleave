@@ -257,10 +257,10 @@ export function NewAlignmentWizard({
       renderFooter={({ currentStep: step, onClose: close, onBack: back }) => (
         <div className="flex flex-col border-t">
           {submitError && (
-            <div className="bg-red-50 px-6 py-2 text-sm text-red-600">{submitError}</div>
+            <div className="bg-red-50 dark:bg-red-950 px-6 py-2 text-sm text-red-600 dark:text-red-400">{submitError}</div>
           )}
           <div className="flex items-center justify-between px-6 py-4">
-            <button onClick={close} className="text-sm text-gray-500 hover:text-gray-700">
+            <button onClick={close} className="text-sm text-muted-foreground hover:text-foreground">
               Cancel
             </button>
             <div className="flex gap-3">

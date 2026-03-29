@@ -252,16 +252,16 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
   const hasSelections = selectedReactionIds.size > 0;
 
   return (
-    <div ref={wrapperRef} className={isFullScreen ? 'bg-white p-4' : ''}>
+    <div ref={wrapperRef} className={isFullScreen ? 'bg-card p-4' : ''}>
       <Card>
         {/* Toolbar */}
         <div className="mb-4 flex flex-wrap items-center gap-3">
           {/* Reference Genome (read-only) */}
           <div className="flex items-center gap-2">
-            <label className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <label className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Reference Genome
             </label>
-            <span className="rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-700">
+            <span className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-foreground">
               {genomeLabel}
             </span>
           </div>
@@ -287,7 +287,7 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
             type="button"
             onClick={handleRefresh}
             disabled={!hasSelections}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-foreground hover:bg-muted disabled:opacity-50"
             title="Refresh"
           >
             <RefreshCw className="h-4 w-4" />
@@ -298,7 +298,7 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
             type="button"
             onClick={handleFullScreen}
             disabled={!hasSelections}
-            className="flex items-center rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+            className="flex items-center rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-foreground hover:bg-muted disabled:opacity-50"
             title="Full Screen"
           >
             {isFullScreen ? <Minimize2 className="mr-1.5 h-4 w-4" /> : <Maximize2 className="mr-1.5 h-4 w-4" />}
@@ -308,10 +308,10 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
 
         {/* IGV Browser or Placeholder */}
         {hasSelections ? (
-          <div ref={containerRef} className="min-h-[400px] rounded border border-gray-200" />
+          <div ref={containerRef} className="min-h-[400px] rounded border border-border" />
         ) : (
-          <div className="flex items-center justify-center rounded border border-dashed border-gray-300 py-20">
-            <p className="text-sm text-gray-400">
+          <div className="flex items-center justify-center rounded border border-dashed border-border py-20">
+            <p className="text-sm text-muted-foreground">
               Please select Reference Genome and Reactions to render IGV...
             </p>
           </div>

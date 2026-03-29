@@ -104,7 +104,7 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-muted-foreground">
           Pairwise Pearson correlation of <span className="font-mono">{report.sampleCount}</span> sample
           {report.sampleCount !== 1 ? 's' : ''} on {report.referenceGenome}.
           {report.maskingApplied ? ' Masked regions excluded.' : ''}
@@ -140,13 +140,13 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
 
       <Card>
         <div className="mb-2 flex items-center justify-between">
-          <h4 className="font-display text-sm font-semibold text-gray-700">Correlation Heatmap</h4>
+          <h4 className="font-display text-sm font-semibold text-foreground">Correlation Heatmap</h4>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleDownloadPng}
               disabled={!pngUrl}
-              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:opacity-40"
             >
               <Download className="h-3 w-3" />
               PNG
@@ -156,7 +156,7 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
                 type="button"
                 onClick={handleDownloadSvg}
                 disabled={!svgUrl}
-                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:opacity-40"
               >
                 <Download className="h-3 w-3" />
                 SVG
@@ -165,21 +165,21 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
           </div>
         </div>
 
-        <p className="mb-3 text-xs text-gray-500">
+        <p className="mb-3 text-xs text-muted-foreground">
           Pairwise Pearson correlation coefficients displayed as a color-coded heatmap.
           Values range from -1 (inverse correlation) to +1 (perfect correlation).
           Replicates of the same condition should show high correlation (&gt;0.9).
         </p>
 
         {imgError ? (
-          <div className="flex h-48 items-center justify-center rounded border border-gray-200 bg-gray-50">
+          <div className="flex h-48 items-center justify-center rounded border border-border bg-muted">
             <p className="text-xs text-red-500">Failed to load plot.</p>
           </div>
         ) : pngUrl ? (
           <img
             src={`${pngUrl}&display=inline`}
             alt="Pearson Correlation Heatmap"
-            className="w-full rounded border border-gray-100"
+            className="w-full rounded border border-border"
             onError={() => setImgError(true)}
           />
         ) : (

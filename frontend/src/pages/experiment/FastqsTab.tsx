@@ -195,11 +195,11 @@ export default function FastqsTab() {
         const row = info.row.original;
         if (!row.fastqcReportPath) {
           return row.totalReads == null ? (
-            <span className="text-gray-400 animate-pulse" title="FastQC running...">
+            <span className="text-muted-foreground animate-pulse" title="FastQC running...">
               ...
             </span>
           ) : (
-            <span className="text-gray-300">{'\u2014'}</span>
+            <span className="text-muted-foreground/50">{'\u2014'}</span>
           );
         }
         return (
@@ -232,7 +232,7 @@ export default function FastqsTab() {
             setDeleteError(null);
             setDeleteTarget(info.row.original);
           }}
-          className="text-gray-400 hover:text-red-500"
+          className="text-muted-foreground hover:text-red-500"
           title="Delete"
         >
           <Trash2 className="h-4 w-4" />
@@ -268,7 +268,7 @@ export default function FastqsTab() {
     <>
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             FASTQ Files
           </h3>
           <div className="flex gap-2">
@@ -290,7 +290,7 @@ export default function FastqsTab() {
 
         {/* Adapter detection banner */}
         {showAdapterBanner && (
-          <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="mb-4 rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-amber-500" />
@@ -330,7 +330,7 @@ export default function FastqsTab() {
 
         {/* Trimming in progress banner */}
         {isTrimmingInProgress && (
-          <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+          <div className="mb-4 rounded-md border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950 px-4 py-3 text-sm text-blue-700 dark:text-blue-300">
             <div className="flex items-center gap-2">
               <Spinner size="sm" className="text-blue-500" />
               <span>
@@ -343,7 +343,7 @@ export default function FastqsTab() {
 
         {/* Trimming error banner */}
         {trimmingJob?.status === 'error' && (
-          <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mb-4 rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300">
             Trimming failed: {trimmingJob.errorMessage ?? 'Unknown error'}
           </div>
         )}
@@ -351,7 +351,7 @@ export default function FastqsTab() {
         {fastqs.length > 0 ? (
           <DataTable data={fastqs} columns={columnsWithActions} />
         ) : (
-          <p className="py-8 text-center text-sm text-gray-400">
+          <p className="py-8 text-center text-sm text-muted-foreground">
             No FASTQ files uploaded yet. Click + Add FASTQs to get started.
           </p>
         )}
@@ -362,7 +362,7 @@ export default function FastqsTab() {
         onClose={() => setDeleteTarget(null)}
         title="Delete FASTQ File"
       >
-        <p className="mb-4 text-sm text-gray-700">
+        <p className="mb-4 text-sm text-foreground">
           Are you sure you want to delete{' '}
           <span className="font-medium">{deleteTarget?.filename}</span>? This
           action cannot be undone.

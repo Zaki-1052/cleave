@@ -60,8 +60,8 @@ export default function AlignmentTab() {
     return (
       <Card>
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <h3 className="text-sm font-medium text-gray-600">No alignment runs yet</h3>
-          <p className="mt-1 text-sm text-gray-400">
+          <h3 className="text-sm font-medium text-muted-foreground">No alignment runs yet</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
             Click &ldquo;New Analysis&rdquo; above to create an alignment run.
           </p>
         </div>
@@ -74,14 +74,14 @@ export default function AlignmentTab() {
       {/* Job selector + status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <label htmlFor="alignment-job-select" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="alignment-job-select" className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Alignments
           </label>
           <select
             id="alignment-job-select"
             value={activeJobId ?? ''}
             onChange={handleJobChange}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            className="rounded-md border border-border px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           >
             {alignmentJobs.map((j) => (
               <option key={j.id} value={j.id}>
@@ -95,7 +95,7 @@ export default function AlignmentTab() {
 
       {/* Sub-tab navigation */}
       {job && (
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-border">
           {SUB_TABS.map((tab) => (
             <button
               key={tab.key}
@@ -103,7 +103,7 @@ export default function AlignmentTab() {
               className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
                 activeSubTab === tab.key
                   ? 'border-b-2 border-primary text-primary'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {tab.label}
@@ -120,7 +120,7 @@ export default function AlignmentTab() {
           <AlignmentQCReportPanel jobId={job.id} job={job} />
         ) : (
           <Card>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               QC report will be available when the alignment completes.
             </p>
           </Card>
@@ -136,7 +136,7 @@ export default function AlignmentTab() {
           <AlignmentFilesPanel jobId={job.id} />
         ) : (
           <Card>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               Files will be available when the alignment completes.
             </p>
           </Card>
@@ -148,7 +148,7 @@ export default function AlignmentTab() {
           <IGVPanel job={job} experimentId={experiment.id} mode="alignment" />
         ) : (
           <Card>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               IGV browser will be available when the alignment completes.
             </p>
           </Card>

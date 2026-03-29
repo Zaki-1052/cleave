@@ -116,7 +116,7 @@ export function SelectSamplesStep({
     <div className="space-y-6">
       {/* BED file source */}
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500">
+        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
           Reference Points (BED File)
         </h3>
         <div className="mb-4 flex gap-4">
@@ -154,13 +154,13 @@ export function SelectSamplesStep({
         {bedSource === 'peak_calling' && (
           <div className="space-y-3">
             {peakCallingJobs.length === 0 ? (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 No completed peak calling runs available.
               </p>
             ) : (
               <>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-500">
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
                     Peak Calling Run
                   </label>
                   <select
@@ -172,7 +172,7 @@ export function SelectSamplesStep({
                       setBedLabel('');
                       setBedOutputId(null);
                     }}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   >
                     <option value="">Select a peak calling run...</option>
                     {peakCallingJobs.map((j: AnalysisJob) => (
@@ -184,7 +184,7 @@ export function SelectSamplesStep({
                 </div>
                 {selectedPeakJobId && bedOutputs.length > 0 && (
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-500">
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">
                       BED File
                     </label>
                     <select
@@ -192,7 +192,7 @@ export function SelectSamplesStep({
                       onChange={(e) =>
                         e.target.value ? handleSelectBedOutput(Number(e.target.value)) : null
                       }
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                     >
                       <option value="">Select a BED file...</option>
                       {bedOutputs.map((o) => (
@@ -218,7 +218,7 @@ export function SelectSamplesStep({
                   const file = e.target.files?.[0];
                   if (file) onBedUpload(file);
                 }}
-                className="text-sm text-gray-600"
+                className="text-sm text-muted-foreground"
                 disabled={bedUploading}
               />
               {bedUploading && (
@@ -229,7 +229,7 @@ export function SelectSamplesStep({
         )}
 
         {bedPath && (
-          <div className="mt-3 rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
+          <div className="mt-3 rounded-md bg-green-50 dark:bg-green-950 px-3 py-2 text-sm text-green-700 dark:text-green-300">
             Selected: <strong>{bedLabel}</strong>
           </div>
         )}
@@ -237,13 +237,13 @@ export function SelectSamplesStep({
 
       {/* Sample selection */}
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500">
+        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
           Select Samples ({samples.length} selected)
         </h3>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b text-xs font-medium uppercase text-gray-500">
+              <tr className="border-b text-xs font-medium uppercase text-muted-foreground">
                 <th className="px-3 py-2">
                   <input
                     type="checkbox"
@@ -265,7 +265,7 @@ export function SelectSamplesStep({
                 const selected = samples.find((s) => s.reactionId === r.reaction_id);
                 const idx = samples.findIndex((s) => s.reactionId === r.reaction_id);
                 return (
-                  <tr key={r.reaction_id} className="border-b last:border-b-0 hover:bg-gray-50">
+                  <tr key={r.reaction_id} className="border-b last:border-b-0 hover:bg-muted">
                     <td className="px-3 py-2">
                       <input
                         type="checkbox"
@@ -274,17 +274,17 @@ export function SelectSamplesStep({
                         className="rounded text-primary"
                       />
                     </td>
-                    <td className="px-3 py-2 font-medium text-gray-800">{r.short_name}</td>
+                    <td className="px-3 py-2 font-medium text-foreground">{r.short_name}</td>
                     <td className="px-3 py-2">
                       {selected ? (
                         <input
                           type="text"
                           value={selected.label}
                           onChange={(e) => updateLabel(r.reaction_id, e.target.value)}
-                          className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-primary focus:outline-none"
+                          className="w-full rounded border border-border px-2 py-1 text-sm focus:border-primary focus:outline-none"
                         />
                       ) : (
-                        <span className="text-gray-400">-</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </td>
                     <td className="px-3 py-2">
@@ -294,7 +294,7 @@ export function SelectSamplesStep({
                             type="button"
                             onClick={() => moveSample(idx, -1)}
                             disabled={idx <= 0}
-                            className="rounded px-1 text-gray-400 hover:text-gray-700 disabled:opacity-30"
+                            className="rounded px-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
                             title="Move up"
                           >
                             <ChevronUp className="h-4 w-4" />
@@ -303,7 +303,7 @@ export function SelectSamplesStep({
                             type="button"
                             onClick={() => moveSample(idx, 1)}
                             disabled={idx >= samples.length - 1}
-                            className="rounded px-1 text-gray-400 hover:text-gray-700 disabled:opacity-30"
+                            className="rounded px-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
                             title="Move down"
                           >
                             <ChevronDown className="h-4 w-4" />

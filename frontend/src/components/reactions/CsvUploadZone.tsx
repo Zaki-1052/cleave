@@ -77,10 +77,10 @@ export function CsvUploadZone({ experimentId, onImportComplete }: CsvUploadZoneP
     <div>
       <div className="mb-2 flex items-center justify-between">
         <div>
-          <span className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <span className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Upload Reaction Sheet
           </span>
-          <span className="ml-2 text-xs text-gray-400">Supported formats: .csv</span>
+          <span className="ml-2 text-xs text-muted-foreground">Supported formats: .csv</span>
         </div>
         <button
           type="button"
@@ -93,18 +93,18 @@ export function CsvUploadZone({ experimentId, onImportComplete }: CsvUploadZoneP
       </div>
 
       {importError && (
-        <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-3 rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300">
           {importError}
         </div>
       )}
 
       {importResult && (
         <div className="mb-3 space-y-2">
-          <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          <div className="rounded-md border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950 px-4 py-3 text-sm text-green-700 dark:text-green-300">
             Successfully imported {importResult.created} reaction{importResult.created !== 1 ? 's' : ''}.
           </div>
           {importResult.warnings.length > 0 && (
-            <div className="rounded-md border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-700">
+            <div className="rounded-md border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950 px-4 py-3 text-sm text-yellow-700 dark:text-yellow-300">
               <ul className="list-inside list-disc">
                 {importResult.warnings.map((w, i) => (
                   <li key={i}>{w}</li>
@@ -127,12 +127,12 @@ export function CsvUploadZone({ experimentId, onImportComplete }: CsvUploadZoneP
         {isImporting ? (
           <div className="flex flex-col items-center gap-2">
             <Spinner />
-            <p className="text-sm text-gray-500">Importing...</p>
+            <p className="text-sm text-muted-foreground">Importing...</p>
           </div>
         ) : (
           <>
             <Upload className="mb-2 h-8 w-8 text-primary/60" />
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Drag & Drop or{' '}
               <button
                 type="button"
@@ -142,7 +142,7 @@ export function CsvUploadZone({ experimentId, onImportComplete }: CsvUploadZoneP
                 Browse
               </button>
             </p>
-            <p className="mt-1 text-xs text-gray-400">.csv files only</p>
+            <p className="mt-1 text-xs text-muted-foreground">.csv files only</p>
           </>
         )}
         <input

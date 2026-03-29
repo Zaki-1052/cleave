@@ -19,10 +19,10 @@ export function ChooseAlignmentStep({
   if (completedJobs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <h3 className="text-sm font-medium text-gray-600">
+        <h3 className="text-sm font-medium text-muted-foreground">
           No completed alignment runs available
         </h3>
-        <p className="mt-1 text-sm text-gray-400">
+        <p className="mt-1 text-sm text-muted-foreground">
           Run an alignment first before creating a peak calling analysis.
         </p>
       </div>
@@ -31,25 +31,25 @@ export function ChooseAlignmentStep({
 
   return (
     <div>
-      <p className="mb-4 text-sm text-gray-600">
+      <p className="mb-4 text-sm text-muted-foreground">
         Select a completed alignment run to use as input for peak calling.
       </p>
 
-      <div className="overflow-x-auto rounded-md border border-gray-200">
+      <div className="overflow-x-auto rounded-md border border-border">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b bg-primary/10">
               <th className="w-10 px-3 py-2" />
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Name
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Reference Genome
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Reactions
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Created
               </th>
             </tr>
@@ -64,7 +64,7 @@ export function ChooseAlignmentStep({
                   key={job.id}
                   onClick={() => onSelect(job.id)}
                   className={`cursor-pointer border-b transition-colors ${
-                    isSelected ? 'bg-primary/5' : 'hover:bg-gray-50'
+                    isSelected ? 'bg-primary/5' : 'hover:bg-muted'
                   }`}
                 >
                   <td className="px-3 py-2 text-center">
@@ -77,12 +77,12 @@ export function ChooseAlignmentStep({
                       className="h-4 w-4 text-primary focus:ring-primary"
                     />
                   </td>
-                  <td className="px-3 py-2 font-medium text-gray-800">{job.name}</td>
-                  <td className="px-3 py-2 text-gray-700">
+                  <td className="px-3 py-2 font-medium text-foreground">{job.name}</td>
+                  <td className="px-3 py-2 text-foreground">
                     {GENOME_DISPLAY_NAMES[genome] ?? genome}
                   </td>
-                  <td className="px-3 py-2 text-gray-700">{reactions.length}</td>
-                  <td className="px-3 py-2 text-gray-700">{formatDate(job.createdAt)}</td>
+                  <td className="px-3 py-2 text-foreground">{reactions.length}</td>
+                  <td className="px-3 py-2 text-foreground">{formatDate(job.createdAt)}</td>
                 </tr>
               );
             })}
@@ -90,7 +90,7 @@ export function ChooseAlignmentStep({
         </table>
       </div>
 
-      <p className="mt-3 text-xs text-gray-400">
+      <p className="mt-3 text-xs text-muted-foreground">
         {completedJobs.length} completed alignment{completedJobs.length !== 1 ? 's' : ''} available
       </p>
     </div>

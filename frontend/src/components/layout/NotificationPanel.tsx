@@ -36,7 +36,7 @@ function NotificationItem({
     <button
       type="button"
       onClick={() => onClick(notification)}
-      className={`flex w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
+      className={`flex w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-muted ${
         !notification.isRead ? 'bg-primary/5' : ''
       }`}
     >
@@ -44,9 +44,9 @@ function NotificationItem({
         <NotificationIcon type={notification.type} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-gray-900">{notification.title}</p>
-        <p className="mt-0.5 text-sm text-gray-600">{notification.message}</p>
-        <p className="mt-1 text-xs text-gray-400">{formatDateTime(notification.createdAt)}</p>
+        <p className="text-sm font-semibold text-foreground">{notification.title}</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">{notification.message}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(notification.createdAt)}</p>
       </div>
       {!notification.isRead && (
         <div className="mt-2 flex-shrink-0">
@@ -91,10 +91,10 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
   return (
     <div
       ref={panelRef}
-      className="absolute right-0 top-full z-50 mt-2 w-96 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl"
+      className="absolute right-0 top-full z-50 mt-2 w-96 overflow-hidden rounded-lg border border-border bg-card shadow-xl"
     >
-      <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-        <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
         {unreadCount > 0 && (
           <button
             type="button"
@@ -108,16 +108,16 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
 
       <div className="max-h-96 overflow-y-auto">
         {isLoading && (
-          <p className="px-4 py-8 text-center text-sm text-gray-400">Loading...</p>
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">Loading...</p>
         )}
 
         {!isLoading && (!notifications || notifications.length === 0) && (
-          <p className="px-4 py-8 text-center text-sm text-gray-400">No notifications yet</p>
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">No notifications yet</p>
         )}
 
         {notifications && notifications.length > 0 && (
           <>
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-border">
               {notifications.map((n) => (
                 <NotificationItem
                   key={n.id}
@@ -126,7 +126,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                 />
               ))}
             </div>
-            <p className="border-t border-gray-200 px-4 py-3 text-center text-xs text-gray-400">
+            <p className="border-t border-border px-4 py-3 text-center text-xs text-muted-foreground">
               No more recent notifications to show
             </p>
           </>

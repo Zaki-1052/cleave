@@ -265,10 +265,10 @@ export function NewCustomHeatmapWizard({
   const detailsStep = (
     <div className="grid gap-6 md:grid-cols-2">
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500">Heatmap Details</h3>
+        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">Heatmap Details</h3>
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-foreground">
               Heatmap Name <span className="text-red-500">*</span>
             </label>
             <div className="flex items-center gap-2">
@@ -276,43 +276,43 @@ export function NewCustomHeatmapWizard({
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value.slice(0, 30))}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 placeholder="e.g., H3K4me3 summits heatmap"
               />
-              <span className="text-xs text-gray-400">{name.length}/30</span>
+              <span className="text-xs text-muted-foreground">{name.length}/30</span>
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Notes</label>
+            <label className="mb-1 block text-sm font-medium text-foreground">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="Optional notes about this heatmap..."
             />
           </div>
         </div>
       </Card>
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500">About</h3>
-        <div className="space-y-3 text-sm text-gray-600">
+        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">About</h3>
+        <div className="space-y-3 text-sm text-muted-foreground">
           <div>
-            <h4 className="font-medium text-gray-800">What are Custom Heatmaps?</h4>
+            <h4 className="font-medium text-foreground">What are Custom Heatmaps?</h4>
             <p>
               Reference-point heatmaps show how signal from bigWig files is distributed around
               specific genomic regions (e.g., peak summits, enhancers, or custom regions of interest).
             </p>
           </div>
           <div>
-            <h4 className="font-medium text-gray-800">What Does the Pipeline Do?</h4>
+            <h4 className="font-medium text-foreground">What Does the Pipeline Do?</h4>
             <p>
               deepTools computeMatrix computes signal around reference points in the BED file,
               and plotHeatmap visualizes the result as a heatmap with one column per sample.
             </p>
           </div>
           <div>
-            <h4 className="font-medium text-gray-800">Outputs</h4>
+            <h4 className="font-medium text-foreground">Outputs</h4>
             <p>
               Heatmap images (PNG + SVG), a deepTools matrix file (.gz) for recomputation,
               and a copy of the reference BED file used.
@@ -338,12 +338,12 @@ export function NewCustomHeatmapWizard({
   const settingsStep = (
     <div className="space-y-6">
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500">
+        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
           deepTools Settings
         </h3>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-foreground">
               Upstream Flanking (bp)
             </label>
             <input
@@ -353,12 +353,12 @@ export function NewCustomHeatmapWizard({
               step={100}
               value={flankingUpstream}
               onChange={(e) => setFlankingUpstream(Number(e.target.value))}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
-            <p className="mt-1 text-xs text-gray-400">Default: 1500 bp (lab standard)</p>
+            <p className="mt-1 text-xs text-muted-foreground">Default: 1500 bp (lab standard)</p>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-foreground">
               Downstream Flanking (bp)
             </label>
             <input
@@ -368,16 +368,16 @@ export function NewCustomHeatmapWizard({
               step={100}
               value={flankingDownstream}
               onChange={(e) => setFlankingDownstream(Number(e.target.value))}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
-            <p className="mt-1 text-xs text-gray-400">Default: 1500 bp (lab standard)</p>
+            <p className="mt-1 text-xs text-muted-foreground">Default: 1500 bp (lab standard)</p>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Reference Point</label>
+            <label className="mb-1 block text-sm font-medium text-foreground">Reference Point</label>
             <select
               value={referencePoint}
               onChange={(e) => setReferencePoint(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             >
               {HEATMAP_REFERENCE_POINTS.map((rp) => (
                 <option key={rp.value} value={rp.value}>
@@ -387,11 +387,11 @@ export function NewCustomHeatmapWizard({
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Sort Order</label>
+            <label className="mb-1 block text-sm font-medium text-foreground">Sort Order</label>
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             >
               {HEATMAP_SORT_ORDERS.map((so) => (
                 <option key={so.value} value={so.value}>
@@ -401,11 +401,11 @@ export function NewCustomHeatmapWizard({
             </select>
           </div>
           <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-gray-700">Color Map</label>
+            <label className="mb-1 block text-sm font-medium text-foreground">Color Map</label>
             <select
               value={colorMap}
               onChange={(e) => setColorMap(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             >
               {HEATMAP_COLOR_MAPS.map((cm) => (
                 <option key={cm.value} value={cm.value}>
@@ -417,8 +417,8 @@ export function NewCustomHeatmapWizard({
         </div>
       </Card>
       <Card>
-        <h3 className="mb-3 text-sm font-semibold uppercase text-gray-500">Summary</h3>
-        <div className="space-y-1 text-sm text-gray-600">
+        <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">Summary</h3>
+        <div className="space-y-1 text-sm text-muted-foreground">
           <p><strong>BED:</strong> {bedLabel || '(none)'}</p>
           <p><strong>Samples:</strong> {samples.length}</p>
           <p>
@@ -478,10 +478,10 @@ export function NewCustomHeatmapWizard({
       renderFooter={({ currentStep: step, onClose: close, onBack: back }) => (
         <div className="flex flex-col border-t">
           {submitError && (
-            <div className="bg-red-50 px-6 py-2 text-sm text-red-600">{submitError}</div>
+            <div className="bg-red-50 dark:bg-red-950 px-6 py-2 text-sm text-red-600 dark:text-red-400">{submitError}</div>
           )}
           <div className="flex items-center justify-between px-6 py-4">
-            <button onClick={close} className="text-sm text-gray-500 hover:text-gray-700">
+            <button onClick={close} className="text-sm text-muted-foreground hover:text-foreground">
               Cancel
             </button>
             <div className="flex gap-3">

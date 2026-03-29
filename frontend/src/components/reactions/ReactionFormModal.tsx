@@ -18,9 +18,9 @@ interface ReactionFormModalProps {
 }
 
 const selectClass =
-  'mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary';
+  'mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary';
 const inputClass = selectClass;
-const labelClass = 'block text-sm font-medium text-gray-700';
+const labelClass = 'block text-sm font-medium text-foreground';
 
 export function ReactionFormModal({
   isOpen,
@@ -162,7 +162,7 @@ export function ReactionFormModal({
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300">
             {error}
           </div>
         )}
@@ -187,7 +187,7 @@ export function ReactionFormModal({
               ))}
             </select>
           ) : (
-            <p className="mt-1 text-sm text-gray-400">
+            <p className="mt-1 text-sm text-muted-foreground">
               Upload FASTQ files first to populate prefix options.
             </p>
           )}
@@ -206,7 +206,7 @@ export function ReactionFormModal({
             placeholder="e.g., K4me3_ctrl1"
             className={inputClass}
           />
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-xs text-muted-foreground">
             Reactions with the same Organism must have unique Short Names.
           </p>
         </div>
@@ -253,7 +253,7 @@ export function ReactionFormModal({
               value={cutanaSpikeInTarget}
               onChange={(e) => setCutanaSpikeInTarget(e.target.value)}
               disabled={cutanaSpikeIn === 'None'}
-              className={`${selectClass} ${cutanaSpikeIn === 'None' ? 'bg-gray-100 text-gray-400' : ''}`}
+              className={`${selectClass} ${cutanaSpikeIn === 'None' ? 'bg-muted text-muted-foreground' : ''}`}
             >
               <option value="">Select target</option>
               {CUTANA_SPIKE_IN_TARGETS.map((t) => (

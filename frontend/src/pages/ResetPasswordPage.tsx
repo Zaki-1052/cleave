@@ -51,14 +51,14 @@ export default function ResetPasswordPage() {
           <h2 className="font-display text-3xl font-bold text-white">Cleave</h2>
           <p className="mt-1 text-sm text-white/70">CUT&RUN Analysis Platform</p>
         </div>
-        <Card className="w-full max-w-md border border-white/50">
-          <h1 className="mb-6 text-center font-display text-2xl font-bold text-gray-800">
+        <Card className="w-full max-w-md border border-white/50 dark:border-white/10">
+          <h1 className="mb-6 text-center font-display text-2xl font-bold text-foreground">
             Set New Password
           </h1>
 
           {success ? (
             <div className="flex flex-col gap-4 text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Your password has been reset successfully.
               </p>
               <Button asChild>

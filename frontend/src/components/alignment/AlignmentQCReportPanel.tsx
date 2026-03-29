@@ -117,12 +117,12 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
         {/* Header row */}
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Reference Genome
             </span>
-            <span className="text-sm font-medium text-gray-800">{genomeName}</span>
+            <span className="text-sm font-medium text-foreground">{genomeName}</span>
           </div>
-          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             QC Report
           </h3>
         </div>
@@ -154,15 +154,15 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
           <h3 className="font-display text-sm font-semibold text-primary">
             About Seq Stats & Alignment Metrics
           </h3>
-          <span className="flex items-center gap-1 text-xs text-gray-400">
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', infoOpen && 'rotate-180')} />
             {infoOpen ? 'Hide' : 'Show'}
           </span>
         </button>
         {infoOpen && (
-          <div className="mt-3 grid gap-3 text-xs text-gray-600 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-3 grid gap-3 text-xs text-muted-foreground sm:grid-cols-2 lg:grid-cols-3">
             <div>
-              <span className="font-semibold text-gray-700">Total Read Pairs</span>
+              <span className="font-semibold text-foreground">Total Read Pairs</span>
               <p>
                 Total sequencing reads/read pairs generated after merging R1 and R2
                 files from paired-end data. These are aligned to the selected reference
@@ -170,14 +170,14 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
               </p>
             </div>
             <div>
-              <span className="font-semibold text-gray-700">Aligned Read Pairs</span>
+              <span className="font-semibold text-foreground">Aligned Read Pairs</span>
               <p>
                 Number of read pairs that successfully mapped to the reference genome at
                 any mapping quality.
               </p>
             </div>
             <div>
-              <span className="font-semibold text-gray-700">
+              <span className="font-semibold text-foreground">
                 Uniquely Aligned Read Pairs
               </span>
               <p>
@@ -186,7 +186,7 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
               </p>
             </div>
             <div>
-              <span className="font-semibold text-gray-700">
+              <span className="font-semibold text-foreground">
                 Unique Alignment Rate (%)
               </span>
               <p>
@@ -196,28 +196,28 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
               </p>
             </div>
             <div>
-              <span className="font-semibold text-gray-700">Duplication Rate (%)</span>
+              <span className="font-semibold text-foreground">Duplication Rate (%)</span>
               <p>
                 Percentage of aligned reads that are PCR or optical duplicates. Rates
                 above 30% may indicate low library complexity or over-amplification.
               </p>
             </div>
             <div>
-              <span className="font-semibold text-gray-700">chrM Bandwidth (%)</span>
+              <span className="font-semibold text-foreground">chrM Bandwidth (%)</span>
               <p>
                 Percentage of reads mapping to the mitochondrial genome. High values may
                 indicate poor nuclear enrichment.
               </p>
             </div>
             <div>
-              <span className="font-semibold text-gray-700">E. coli Read Pairs</span>
+              <span className="font-semibold text-foreground">E. coli Read Pairs</span>
               <p>
                 Number of reads aligning to the E. coli K12 MG1655 genome. IgG samples
                 will have the highest counts. Used for spike-in normalization.
               </p>
             </div>
             <div>
-              <span className="font-semibold text-gray-700">
+              <span className="font-semibold text-foreground">
                 E. coli Alignment Rate (%)
               </span>
               <p>
@@ -227,7 +227,7 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
               </p>
             </div>
             <div>
-              <span className="font-semibold text-gray-700">
+              <span className="font-semibold text-foreground">
                 E. coli Norm. Factor
               </span>
               <p>
@@ -242,17 +242,17 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
 
       {/* SNAP-CUTANA Spike-in section */}
       <Card>
-        <h3 className="font-display mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="font-display mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           SNAP-CUTANA K-MetStat Spike-in
         </h3>
         {report.spikeInResults && report.spikeInResults.length > 0 ? (
           <SpikeInHeatmap results={report.spikeInResults} />
         ) : hasSpikeIn ? (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Spike-in barcode data is being processed...
           </p>
         ) : (
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-muted-foreground">
             No SNAP-CUTANA spike-in data available for this alignment.
           </p>
         )}
@@ -295,7 +295,7 @@ function HeatmapSection({ jobId, category, title, description }: HeatmapSectionP
   if (isLoading) {
     return (
       <Card>
-        <h3 className="font-display mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="font-display mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           {title}
         </h3>
         <div className="flex h-32 items-center justify-center">
@@ -308,10 +308,10 @@ function HeatmapSection({ jobId, category, title, description }: HeatmapSectionP
   if (!outputs || outputs.length === 0) {
     return (
       <Card>
-        <h3 className="font-display mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="font-display mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           {title}
         </h3>
-        <p className="text-sm text-gray-400">No {title.toLowerCase()} data available.</p>
+        <p className="text-sm text-muted-foreground">No {title.toLowerCase()} data available.</p>
       </Card>
     );
   }
@@ -319,7 +319,7 @@ function HeatmapSection({ jobId, category, title, description }: HeatmapSectionP
   return (
     <Card>
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           {title}
         </h3>
         <button
@@ -333,7 +333,7 @@ function HeatmapSection({ jobId, category, title, description }: HeatmapSectionP
       </div>
 
       {infoOpen && (
-        <p className="mb-4 rounded bg-gray-50 p-3 text-xs text-gray-600">
+        <p className="mb-4 rounded bg-muted p-3 text-xs text-muted-foreground">
           {description}
         </p>
       )}
@@ -372,22 +372,22 @@ function HeatmapImage({ jobId, output }: { jobId: number; output: JobOutput }) {
 
   if (error) {
     return (
-      <div className="rounded border border-gray-200 p-3">
-        <p className="text-xs text-gray-500">{label}</p>
+      <div className="rounded border border-border p-3">
+        <p className="text-xs text-muted-foreground">{label}</p>
         <p className="mt-2 text-xs text-red-500">Failed to load heatmap.</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded border border-gray-200 p-3">
+    <div className="rounded border border-border p-3">
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-xs font-medium text-gray-700">{label}</p>
+        <p className="text-xs font-medium text-foreground">{label}</p>
         <button
           type="button"
           onClick={handleDownload}
           disabled={!signedUrl}
-          className="text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+          className="text-xs text-primary hover:text-primary/80 disabled:text-muted-foreground/50"
           title="Download PNG"
         >
           <Download className="mr-1 h-3 w-3" />
@@ -430,13 +430,13 @@ function SpikeInHeatmap({ results }: { results: SpikeInReactionResult[] }) {
         <table className="w-full border-collapse text-xs">
           <thead>
             <tr>
-              <th className="border border-gray-200 bg-gray-50 px-2 py-1.5 text-left font-semibold text-gray-600">
+              <th className="border border-border bg-muted px-2 py-1.5 text-left font-semibold text-muted-foreground">
                 Reaction
               </th>
               {ptmNames.map((ptm) => (
                 <th
                   key={ptm}
-                  className="border border-gray-200 bg-gray-50 px-1.5 py-1.5 text-center font-semibold text-gray-600"
+                  className="border border-border bg-muted px-1.5 py-1.5 text-center font-semibold text-muted-foreground"
                   style={{ writingMode: 'vertical-lr', minWidth: 32, height: 100 }}
                 >
                   {ptm}
@@ -447,7 +447,7 @@ function SpikeInHeatmap({ results }: { results: SpikeInReactionResult[] }) {
           <tbody>
             {results.map((rxn) => (
               <tr key={rxn.shortName}>
-                <td className="border border-gray-200 px-2 py-1.5 font-medium text-gray-700 whitespace-nowrap">
+                <td className="border border-border px-2 py-1.5 font-medium text-foreground whitespace-nowrap">
                   {rxn.shortName}
                 </td>
                 {rxn.ptmResults.map((ptmRes) => {
@@ -455,7 +455,7 @@ function SpikeInHeatmap({ results }: { results: SpikeInReactionResult[] }) {
                   return (
                     <td
                       key={ptmRes.ptmName}
-                      className="border border-gray-200 px-1 py-1 text-center font-mono"
+                      className="border border-border px-1 py-1 text-center font-mono"
                       style={{
                         backgroundColor: spikeInCellColor(ptmRes.pctRecovery, isOnTarget),
                         color: isOnTarget || ptmRes.pctRecovery > 50 ? 'white' : 'inherit',
@@ -471,7 +471,7 @@ function SpikeInHeatmap({ results }: { results: SpikeInReactionResult[] }) {
           </tbody>
         </table>
       </div>
-      <div className="flex items-center gap-4 text-xs text-gray-500">
+      <div className="flex items-center gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-1">
           <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: 'rgba(34, 197, 94, 0.4)' }} />
           <span>Pass (&lt;20%)</span>
@@ -489,7 +489,7 @@ function SpikeInHeatmap({ results }: { results: SpikeInReactionResult[] }) {
           <span>On-target</span>
         </div>
       </div>
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-muted-foreground">
         Values show % recovery relative to the on-target PTM. Off-target recovery &lt;20% indicates assay success per CUTANA QC criteria.
       </p>
     </div>

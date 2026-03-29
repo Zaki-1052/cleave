@@ -174,7 +174,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
   return (
     <div className="mb-4">
       {uploadError && (
-        <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-3 rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300">
           {uploadError}
         </div>
       )}
@@ -190,8 +190,8 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
             : 'border-primary/40'
         }`}
       >
-        <Upload className="mx-auto mb-2 h-8 w-8 text-gray-400" />
-        <p className="text-sm text-gray-600">
+        <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">
           Drag & Drop or{' '}
           <button
             type="button"
@@ -201,7 +201,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
             Browse
           </button>
         </p>
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-1 text-xs text-muted-foreground">
           .fastq.gz, .fastq, .fq.gz, .fq
         </p>
         <input
@@ -217,19 +217,19 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
 
       {fileStates.length > 0 && (
         <div className="mt-3">
-          <div className="mb-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div className="mb-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {fileStates.length} file{fileStates.length !== 1 ? 's' : ''}{' '}
             {stagedFiles.length > 0 && <span className="font-mono">({formatBytes(totalStagedSize)})</span>}
           </div>
-          <div className="max-h-48 overflow-y-auto rounded border border-gray-200">
+          <div className="max-h-48 overflow-y-auto rounded border border-border">
             {fileStates.map((fs, i) => (
               <div
                 key={`${fs.file.name}-${i}`}
-                className="flex items-center justify-between border-b border-gray-100 px-3 py-2 last:border-0"
+                className="flex items-center justify-between border-b border-border px-3 py-2 last:border-0"
               >
                 <div className="min-w-0 flex-1">
-                  <span className="truncate text-sm text-gray-700">{fs.file.name}</span>
-                  <span className="ml-2 font-mono text-xs text-gray-400">{formatBytes(fs.file.size)}</span>
+                  <span className="truncate text-sm text-foreground">{fs.file.name}</span>
+                  <span className="ml-2 font-mono text-xs text-muted-foreground">{formatBytes(fs.file.size)}</span>
                   {fs.status === 'complete' && (
                     <span className="ml-2 text-xs text-green-600">Done</span>
                   )}
@@ -241,7 +241,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
                   )}
                 </div>
                 {fs.status === 'uploading' && (
-                  <div className="mx-2 h-1.5 w-24 overflow-hidden rounded-full bg-gray-200">
+                  <div className="mx-2 h-1.5 w-24 overflow-hidden rounded-full bg-muted">
                     <div
                       className="h-full rounded-full bg-primary transition-all duration-300"
                       style={{ width: `${fs.progress}%` }}
@@ -252,7 +252,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
                   <button
                     type="button"
                     onClick={() => removeFile(i)}
-                    className="ml-2 text-gray-400 hover:text-red-500"
+                    className="ml-2 text-muted-foreground hover:text-red-500"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -261,7 +261,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
                   <button
                     type="button"
                     onClick={() => removeFile(i)}
-                    className="ml-2 text-xs text-gray-400 hover:text-red-500"
+                    className="ml-2 text-xs text-muted-foreground hover:text-red-500"
                     title="Cancel upload"
                   >
                     Cancel
@@ -273,13 +273,13 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
 
           {isUploading && (
             <div className="mt-2">
-              <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
                 <div
                   className="h-full rounded-full bg-primary transition-all duration-300"
                   style={{ width: `${overallProgress}%` }}
                 />
               </div>
-              <p className="mt-1 font-mono text-xs text-gray-500">{overallProgress}% overall</p>
+              <p className="mt-1 font-mono text-xs text-muted-foreground">{overallProgress}% overall</p>
             </div>
           )}
 

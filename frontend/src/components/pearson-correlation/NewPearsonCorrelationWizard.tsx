@@ -223,12 +223,12 @@ export function NewPearsonCorrelationWizard({
   const detailsStep = (
     <div className="grid gap-6 md:grid-cols-2">
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500">
+        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
           Correlation Details
         </h3>
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-foreground">
               Correlation Name <span className="text-red-500">*</span>
             </label>
             <div className="flex items-center gap-2">
@@ -236,29 +236,29 @@ export function NewPearsonCorrelationWizard({
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value.slice(0, 30))}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 placeholder="e.g., H3K4me3 replicate correlation"
               />
-              <span className="text-xs text-gray-400">{name.length}/30</span>
+              <span className="text-xs text-muted-foreground">{name.length}/30</span>
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Notes</label>
+            <label className="mb-1 block text-sm font-medium text-foreground">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="Optional notes about this analysis..."
             />
           </div>
         </div>
       </Card>
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500">About</h3>
-        <div className="space-y-3 text-sm text-gray-600">
+        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">About</h3>
+        <div className="space-y-3 text-sm text-muted-foreground">
           <div>
-            <h4 className="font-medium text-gray-800">What is Pearson Correlation?</h4>
+            <h4 className="font-medium text-foreground">What is Pearson Correlation?</h4>
             <p>
               Pairwise Pearson correlation measures the linear relationship between
               bigWig signal profiles across the genome, producing a correlation
@@ -267,7 +267,7 @@ export function NewPearsonCorrelationWizard({
             </p>
           </div>
           <div>
-            <h4 className="font-medium text-gray-800">What Does the Pipeline Do?</h4>
+            <h4 className="font-medium text-foreground">What Does the Pipeline Do?</h4>
             <p>
               BigWig files are read at 50bp resolution across all genomic bins.
               Zero-coverage bins are removed, and optionally a masking BED is applied.
@@ -276,7 +276,7 @@ export function NewPearsonCorrelationWizard({
             </p>
           </div>
           <div>
-            <h4 className="font-medium text-gray-800">Outputs</h4>
+            <h4 className="font-medium text-foreground">Outputs</h4>
             <p>
               Correlation heatmap (PNG + SVG), a pairwise correlation matrix CSV,
               and the raw coverage matrix CSV used for computation.
@@ -349,10 +349,10 @@ export function NewPearsonCorrelationWizard({
       renderFooter={({ currentStep: step, onClose: close, onBack: back }) => (
         <div className="flex flex-col border-t">
           {submitError && (
-            <div className="bg-red-50 px-6 py-2 text-sm text-red-600">{submitError}</div>
+            <div className="bg-red-50 dark:bg-red-950 px-6 py-2 text-sm text-red-600 dark:text-red-400">{submitError}</div>
           )}
           <div className="flex items-center justify-between px-6 py-4">
-            <button onClick={close} className="text-sm text-gray-500 hover:text-gray-700">
+            <button onClick={close} className="text-sm text-muted-foreground hover:text-foreground">
               Cancel
             </button>
             <div className="flex gap-3">
