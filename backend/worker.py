@@ -17,6 +17,7 @@ from models.experiment import Experiment
 from models.notification import Notification
 from pipelines import run as pipeline_run
 from services.cleanup_service import run_full_cleanup
+from services.event_service import log_event_standalone
 from services.job_output_service import persist_job_outputs
 from services.trimming_service import create_trimmed_fastq_records
 
@@ -161,6 +162,15 @@ async def poll_and_run() -> None:
         logger.info("worker.job_completed", job_id=job_id, duration=duration)
         final_status = "complete"
 
+        await log_event_standalone(
+            experiment_id,
+            launched_by,
+            action="job_completed",
+            resource_type="job",
+            resource_id=job_id,
+            detail=f"Job '{job_name}' completed in {duration}s",
+        )
+
         # Post-pipeline output persistence
         if pipeline_result and pipeline_result.get("outputs"):
             if job_type == "trimming":
@@ -195,6 +205,15 @@ async def poll_and_run() -> None:
             )
             await db.commit()
         logger.error("worker.job_failed", job_id=job_id, error=str(exc))
+
+        await log_event_standalone(
+            experiment_id,
+            launched_by,
+            action="job_failed",
+            resource_type="job",
+            resource_id=job_id,
+            detail=f"Job '{job_name}' failed: {str(exc)[:200]}",
+        )
 
     # Update experiment status based on final outcome
     await _update_experiment_status(experiment_id, final_status)

@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.fastq_file import FastqFile
 from models.reaction import Reaction
 from schemas.reaction import ReactionCreate, ReactionUpdate
+from services.event_service import log_event
 from services.permission_helpers import get_experiment_with_permission
 
 
@@ -69,6 +70,16 @@ async def create_reaction(
         )
 
     await db.refresh(reaction)
+    await log_event(
+        db,
+        experiment_id,
+        user_id,
+        action="reaction_created",
+        resource_type="reaction",
+        resource_id=reaction.id,
+        detail=f"Created reaction '{data.short_name}'",
+    )
+    await db.commit()
     return reaction
 
 
@@ -131,6 +142,15 @@ async def bulk_create_reactions(
     for reaction in reactions:
         await db.refresh(reaction)
 
+    await log_event(
+        db,
+        experiment_id,
+        user_id,
+        action="reactions_imported",
+        resource_type="reaction",
+        detail=f"Imported {len(reactions)} reaction(s)",
+    )
+    await db.commit()
     return reactions
 
 
@@ -164,6 +184,16 @@ async def update_reaction(
     update_data = data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(reaction, field, value)
+
+    await log_event(
+        db,
+        experiment_id,
+        user_id,
+        action="reaction_updated",
+        resource_type="reaction",
+        resource_id=reaction_id,
+        detail=f"Updated reaction '{reaction.short_name}'",
+    )
 
     try:
         await db.commit()
@@ -200,7 +230,17 @@ async def delete_reaction(
     if reaction is None:
         return False
 
+    short_name = reaction.short_name
     await db.delete(reaction)
+    await log_event(
+        db,
+        experiment_id,
+        user_id,
+        action="reaction_deleted",
+        resource_type="reaction",
+        resource_id=reaction_id,
+        detail=f"Deleted reaction '{short_name}'",
+    )
     await db.commit()
     return True
 

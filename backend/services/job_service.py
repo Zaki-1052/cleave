@@ -10,6 +10,7 @@ from models.experiment import Experiment
 from models.job_output import JobOutput
 from models.project import ProjectMember
 from schemas.job import JobCreate
+from services.event_service import log_event
 from services.permission_helpers import get_experiment_with_permission
 
 
@@ -38,6 +39,17 @@ async def create_job(
     db.add(job)
     await db.commit()
     await db.refresh(job)
+
+    await log_event(
+        db,
+        experiment_id,
+        user_id,
+        action="job_launched",
+        resource_type="job",
+        resource_id=job.id,
+        detail=f"Launched {job_create.job_type} job '{job_create.name}'",
+    )
+    await db.commit()
     return job
 
 

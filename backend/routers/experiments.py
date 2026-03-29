@@ -7,6 +7,8 @@ from database import get_db
 from models.user import User
 from schemas.common import PaginatedResponse
 from schemas.experiment import ExperimentCreate, ExperimentRead, ExperimentUpdate
+from schemas.experiment_event import ExperimentEventRead
+from services.event_service import list_events
 from services.experiment_service import (
     create_experiment,
     delete_experiment,
@@ -80,3 +82,21 @@ async def delete_experiment_endpoint(
     deleted = await delete_experiment(db, experiment_id, current_user.id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Experiment not found")
+
+
+@router.get(
+    "/{experiment_id}/history",
+    response_model=PaginatedResponse[ExperimentEventRead],
+)
+async def list_experiment_history(
+    experiment_id: int,
+    page: int = Query(1, ge=1),
+    per_page: int = Query(25, ge=1, le=100, alias="perPage"),
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await list_events(db, experiment_id, current_user.id, page, per_page)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+    events, total = result
+    return PaginatedResponse(items=events, total=total, page=page, per_page=per_page)

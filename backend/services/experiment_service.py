@@ -10,6 +10,7 @@ from config import settings
 from models.experiment import Experiment
 from models.project import Project, ProjectMember
 from schemas.experiment import ExperimentCreate, ExperimentUpdate
+from services.event_service import log_event
 
 
 async def create_experiment(
@@ -99,6 +100,16 @@ async def update_experiment(
     update_data = data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(experiment, field, value)
+
+    changed_fields = list(update_data.keys())
+    await log_event(
+        db,
+        experiment_id,
+        user_id,
+        action="metadata_updated",
+        resource_type="experiment",
+        detail=f"Updated {', '.join(changed_fields)}",
+    )
     await db.commit()
     await db.refresh(experiment)
     return experiment

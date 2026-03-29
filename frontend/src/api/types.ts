@@ -324,6 +324,18 @@ export interface MemberUser {
   lastName: string | null;
 }
 
+export interface ExperimentEvent {
+  id: number;
+  experimentId: number;
+  userId: number | null;
+  user: MemberUser | null;
+  action: string;
+  resourceType: string | null;
+  resourceId: number | null;
+  detail: string | null;
+  createdAt: string;
+}
+
 export interface Member {
   userId: number;
   projectId: number;

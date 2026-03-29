@@ -15,6 +15,7 @@ from auth import current_active_user
 from config import settings
 from database import get_db
 from models.user import User
+from services.event_service import log_event
 from services.fastq_service import validate_fastq_filename
 from services.job_output_service import update_storage_bytes
 from services.permission_helpers import get_experiment_with_permission
@@ -167,6 +168,15 @@ def on_fastq_upload_complete(
         await db.commit()
         await db.refresh(record)
 
+        await log_event(
+            db,
+            experiment_id,
+            current_user.id,
+            action="fastq_uploaded",
+            resource_type="fastq",
+            resource_id=record.id,
+            detail=f"Uploaded {filename} ({file_size:,} bytes)",
+        )
         await update_storage_bytes(db, experiment_id, project_id, file_size)
         await db.commit()
 

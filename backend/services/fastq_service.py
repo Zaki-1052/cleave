@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import settings
 from models.fastq_file import FastqFile
+from services.event_service import log_event
 from services.job_output_service import update_storage_bytes
 from services.permission_helpers import get_experiment_with_permission
 
@@ -218,6 +219,17 @@ async def upload_fastqs(
                 path.unlink()
         raise
 
+    await db.flush()
+    for record in created_records:
+        await log_event(
+            db,
+            experiment_id,
+            user_id,
+            action="fastq_uploaded",
+            resource_type="fastq",
+            resource_id=record.id,
+            detail=f"Uploaded {record.filename}",
+        )
     await update_storage_bytes(db, experiment_id, project_id, total_bytes)
     await db.commit()
 
@@ -291,7 +303,17 @@ async def delete_fastq(
             file_size += fastqc_abs.stat().st_size
             fastqc_abs.unlink()
 
+    fastq_filename = fastq.filename
     await db.delete(fastq)
+    await log_event(
+        db,
+        experiment_id,
+        user_id,
+        action="fastq_deleted",
+        resource_type="fastq",
+        resource_id=fastq_id,
+        detail=f"Deleted {fastq_filename}",
+    )
     if file_size > 0:
         await update_storage_bytes(db, experiment_id, experiment.project_id, -file_size)
     await db.commit()
