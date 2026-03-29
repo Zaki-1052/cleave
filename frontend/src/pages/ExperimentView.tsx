@@ -1,7 +1,14 @@
 // frontend/src/pages/ExperimentView.tsx
 import { useState } from 'react';
 import { Link, Outlet, useParams, useLocation } from 'react-router-dom';
+import {
+  FileText, Dna, FlaskConical, AlignLeft, Mountain,
+  ArrowLeftRight, Grid3x3, ScatterChart, Scale, History,
+  FolderTree, Loader2,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Card } from '@/components/layout/Card';
+import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { NewAnalysisDropdown } from '@/components/experiments/NewAnalysisDropdown';
 import { NewAlignmentWizard } from '@/components/alignment/NewAlignmentWizard';
@@ -26,19 +33,19 @@ const JOB_TYPE_LABELS: Record<string, string> = {
   roman_normalization: 'Normalization',
 };
 
-const TABS = [
-  { label: 'Description', path: 'description' },
-  { label: 'FASTQs', path: 'fastqs' },
-  { label: 'Reactions', path: 'reactions' },
-  { label: 'Alignment', path: 'alignment/0' },
-  { label: 'Peak Calling', path: 'peaks/0' },
-  { label: 'DiffBind', path: 'diffbind/0' },
-  { label: 'Heatmaps', path: 'heatmaps/0' },
-  { label: 'Correlation', path: 'correlations/0' },
-  { label: 'Normalization', path: 'normalization/0' },
-  { label: 'History', path: 'history' },
-  { label: 'All Files', path: 'files' },
-] as const;
+const TABS: { label: string; path: string; icon: LucideIcon }[] = [
+  { label: 'Description', path: 'description', icon: FileText },
+  { label: 'FASTQs', path: 'fastqs', icon: Dna },
+  { label: 'Reactions', path: 'reactions', icon: FlaskConical },
+  { label: 'Alignment', path: 'alignment/0', icon: AlignLeft },
+  { label: 'Peak Calling', path: 'peaks/0', icon: Mountain },
+  { label: 'DiffBind', path: 'diffbind/0', icon: ArrowLeftRight },
+  { label: 'Heatmaps', path: 'heatmaps/0', icon: Grid3x3 },
+  { label: 'Correlation', path: 'correlations/0', icon: ScatterChart },
+  { label: 'Normalization', path: 'normalization/0', icon: Scale },
+  { label: 'History', path: 'history', icon: History },
+  { label: 'All Files', path: 'files', icon: FolderTree },
+];
 
 export default function ExperimentView() {
   const { id } = useParams<{ id: string }>();
@@ -63,7 +70,7 @@ export default function ExperimentView() {
   if (isLoading) {
     return (
       <div className="flex h-40 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -80,7 +87,7 @@ export default function ExperimentView() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold text-gray-800">{experiment.name}</h1>
+          <h1 className="font-display text-xl font-bold text-gray-800">{experiment.name}</h1>
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <span>Last Job:</span>
             {lastJob ? (
@@ -93,12 +100,12 @@ export default function ExperimentView() {
         </div>
         <div className="flex items-center gap-2">
           {!experiment.autoPipelineStatus && reactions.length > 0 && (
-            <button
+            <Button
               onClick={() => setShowAutoPipelineModal(true)}
-              className="rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700"
             >
               Run Full Pipeline
-            </button>
+            </Button>
           )}
           <NewAnalysisDropdown
             onAlignmentClick={() => setShowAlignmentWizard(true)}
@@ -130,12 +137,13 @@ export default function ExperimentView() {
                 <Link
                   key={tab.path}
                   to={`/experiments/${id}/${tab.path}`}
-                  className={`block px-4 py-3 text-sm transition-colors ${
+                  className={`flex items-center gap-2 px-4 py-3 text-sm transition-colors ${
                     isActive
                       ? 'bg-white font-semibold text-primary'
                       : 'text-gray-600 hover:bg-white/50'
                   }`}
                 >
+                  <tab.icon className="h-4 w-4" />
                   {tab.label}
                 </Link>
               );

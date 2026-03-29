@@ -1,5 +1,6 @@
 // frontend/src/components/layout/Breadcrumbs.tsx
 import { Link, useLocation } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 
 export function Breadcrumbs() {
   const { pathname } = useLocation();
@@ -23,7 +24,7 @@ export function Breadcrumbs() {
         </Link>
         {segments.map((segment, i) => (
           <span key={i} className="flex items-center gap-2">
-            <span className="text-gray-400">&gt;</span>
+            <ChevronRight className="h-3 w-3 text-gray-400" />
             {i < segments.length - 1 ? (
               <Link
                 to={`/${segments.slice(0, i + 1).join('/')}`}

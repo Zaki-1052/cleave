@@ -41,27 +41,22 @@ interface ButtonProps
   children: React.ReactNode;
 }
 
-function Button({
-  className,
-  variant,
-  size,
-  asChild = false,
-  loading = false,
-  children,
-  disabled,
-  ...props
-}: ButtonProps) {
-  const Comp = asChild ? Slot : 'button';
-  return (
-    <Comp
-      className={cn(buttonVariants({ variant, size, className }))}
-      disabled={disabled || loading}
-      {...props}
-    >
-      {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-      {children}
-    </Comp>
-  );
-}
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, loading = false, children, disabled, ...props }, ref) => {
+    const Comp = asChild ? Slot : 'button';
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        disabled={disabled || loading}
+        ref={ref}
+        {...props}
+      >
+        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+        {children}
+      </Comp>
+    );
+  },
+);
+Button.displayName = 'Button';
 
 export { Button, buttonVariants };

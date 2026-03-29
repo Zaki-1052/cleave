@@ -1,6 +1,20 @@
 // frontend/src/components/experiments/NewAnalysisDropdown.tsx
-import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import {
+  ChevronDown,
+  Dna,
+  Mountain,
+  ArrowLeftRight,
+  Grid3x3,
+  ScatterChart,
+  Scale,
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 
 interface NewAnalysisDropdownProps {
   onAlignmentClick: () => void;
@@ -19,91 +33,40 @@ export function NewAnalysisDropdown({
   onPearsonCorrelationClick,
   onNormalizationClick,
 }: NewAnalysisDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
-
   return (
-    <div ref={containerRef} className="relative">
-      <Button onClick={() => setIsOpen(!isOpen)}>
-        New Analysis ▼
-      </Button>
-
-      {isOpen && (
-        <div className="absolute right-0 top-full z-20 mt-1 w-48 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              onAlignmentClick();
-            }}
-            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-primary/10"
-          >
-            Alignment
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              onPeakCallingClick();
-            }}
-            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-primary/10"
-          >
-            Peak Calling
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              onDiffBindClick();
-            }}
-            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-primary/10"
-          >
-            DiffBind
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              onCustomHeatmapClick();
-            }}
-            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-primary/10"
-          >
-            Custom Heatmap
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              onPearsonCorrelationClick();
-            }}
-            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-primary/10"
-          >
-            Correlation
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              onNormalizationClick();
-            }}
-            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-primary/10"
-          >
-            Normalization
-          </button>
-        </div>
-      )}
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button>
+          New Analysis
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuItem onSelect={onAlignmentClick}>
+          <Dna className="h-4 w-4" />
+          Alignment
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onPeakCallingClick}>
+          <Mountain className="h-4 w-4" />
+          Peak Calling
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onDiffBindClick}>
+          <ArrowLeftRight className="h-4 w-4" />
+          DiffBind
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onCustomHeatmapClick}>
+          <Grid3x3 className="h-4 w-4" />
+          Custom Heatmap
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onPearsonCorrelationClick}>
+          <ScatterChart className="h-4 w-4" />
+          Correlation
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onNormalizationClick}>
+          <Scale className="h-4 w-4" />
+          Normalization
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
