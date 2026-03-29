@@ -116,7 +116,7 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
         {/* Header row */}
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <span className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
               Reference Genome
             </span>
             <span className="text-sm font-medium text-gray-800">{genomeName}</span>

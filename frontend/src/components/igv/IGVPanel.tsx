@@ -258,7 +258,7 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
         <div className="mb-4 flex flex-wrap items-center gap-3">
           {/* Reference Genome (read-only) */}
           <div className="flex items-center gap-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <label className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
               Reference Genome
             </label>
             <span className="rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-700">

@@ -121,13 +121,13 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <th className="px-4 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Sample Name
                 </th>
-                <th className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <th className="px-4 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
                   99th Percentile
                 </th>
-                <th className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <th className="px-4 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Normalization Factor
                 </th>
               </tr>

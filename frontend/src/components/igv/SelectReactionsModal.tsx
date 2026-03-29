@@ -82,13 +82,13 @@ export function SelectReactionsModal({
                     className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                   />
                 </th>
-                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                   Short Name
                 </th>
-                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                   Organism
                 </th>
-                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                   Assay Type
                 </th>
               </tr>

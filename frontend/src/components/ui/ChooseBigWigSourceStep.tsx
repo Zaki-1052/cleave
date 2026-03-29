@@ -71,7 +71,7 @@ export function ChooseBigWigSourceStep({
       {hasNormalization && (
         <Card>
           <div className="mb-3 flex items-center gap-2">
-            <h3 className="text-sm font-semibold uppercase text-gray-500">
+            <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
               Normalized BigWigs
             </h3>
             <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
@@ -124,7 +124,7 @@ export function ChooseBigWigSourceStep({
 
       {/* Alignment jobs (fallback) */}
       <Card>
-        <h3 className="mb-3 text-sm font-semibold uppercase text-gray-500">
+        <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
           {hasNormalization ? 'Alignment BigWigs (Fallback)' : 'Select an Alignment Run'}
         </h3>
 

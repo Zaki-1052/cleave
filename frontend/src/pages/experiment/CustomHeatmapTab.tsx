@@ -73,7 +73,7 @@ export default function CustomHeatmapTab() {
         <div className="flex items-center gap-3">
           <label
             htmlFor="heatmap-job-select"
-            className="text-xs font-semibold uppercase tracking-wide text-gray-500"
+            className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500"
           >
             Heatmaps
           </label>
@@ -181,7 +181,7 @@ function HeatmapInfoPanel({ job }: { job: AnalysisJob }) {
       <div className="grid gap-4 md:grid-cols-3">
         {/* Details */}
         <Card>
-          <h4 className="mb-3 text-xs font-semibold uppercase text-gray-500">Details</h4>
+          <h4 className="mb-3 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">Details</h4>
           <div className="space-y-2">
             <DetailRow label="Run ID"><span className="font-mono">{String(job.id)}</span></DetailRow>
             <DetailRow label="Created By">{launcherName}</DetailRow>

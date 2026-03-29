@@ -76,7 +76,7 @@ export function CsvUploadZone({ experimentId, onImportComplete }: CsvUploadZoneP
     <div>
       <div className="mb-2 flex items-center justify-between">
         <div>
-          <span className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <span className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
             Upload Reaction Sheet
           </span>
           <span className="ml-2 text-xs text-gray-400">Supported formats: .csv</span>

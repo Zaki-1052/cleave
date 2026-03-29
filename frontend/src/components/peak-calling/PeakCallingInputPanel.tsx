@@ -28,19 +28,19 @@ export function PeakCallingInputPanel({ job }: PeakCallingInputPanelProps) {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b bg-primary/10">
-              <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                 Short Name
               </th>
-              <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                 IgG Control
               </th>
-              <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                 Reference Genome
               </th>
-              <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                 Peak Caller
               </th>
-              <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                 Peak Size
               </th>
             </tr>

@@ -35,16 +35,16 @@ export function DiffBindInputPanel({ job }: DiffBindInputPanelProps) {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b bg-primary/10">
-              <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                 Short Name
               </th>
-              <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                 Condition
               </th>
-              <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                 Replicate
               </th>
-              <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                 Peak Caller
               </th>
             </tr>

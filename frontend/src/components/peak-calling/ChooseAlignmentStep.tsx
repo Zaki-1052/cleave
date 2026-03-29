@@ -40,16 +40,16 @@ export function ChooseAlignmentStep({
           <thead>
             <tr className="border-b bg-primary/10">
               <th className="w-10 px-3 py-2" />
-              <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                 Name
               </th>
-              <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                 Reference Genome
               </th>
-              <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                 Reactions
               </th>
-              <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                 Created
               </th>
             </tr>

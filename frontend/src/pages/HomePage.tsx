@@ -16,7 +16,7 @@ export default function HomePage() {
     <div className="flex gap-6">
       <aside className="w-64 shrink-0">
         <Card>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
             Projects Filters
           </h2>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -17,13 +17,13 @@ export function AlignmentDetailsStep({
   return (
     <div className="flex gap-6">
       <Card className="flex-[2]">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
           Alignment Details
         </h3>
 
         <div className="mb-4">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <label className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
               Alignment Name <span className="text-red-500">*</span>
             </label>
             <span className="text-xs text-gray-400">{name.length} / 30</span>
@@ -40,7 +40,7 @@ export function AlignmentDetailsStep({
         </div>
 
         <div>
-          <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
             Notes
           </label>
           <textarea
@@ -54,13 +54,13 @@ export function AlignmentDetailsStep({
       </Card>
 
       <Card className="flex-[3]">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
           About
         </h3>
 
         <div className="space-y-4 text-sm text-gray-700">
           <div>
-            <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <h4 className="mb-1 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
               What is Alignment?
             </h4>
             <p>
@@ -70,7 +70,7 @@ export function AlignmentDetailsStep({
           </div>
 
           <div>
-            <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <h4 className="mb-1 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
               What does the pipeline do?
             </h4>
             <p>
@@ -84,7 +84,7 @@ export function AlignmentDetailsStep({
           </div>
 
           <div>
-            <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <h4 className="mb-1 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
               Outputs
             </h4>
             <p>

@@ -53,7 +53,7 @@ export function AlignmentSettingsStep({
       <div>
         <label
           htmlFor="alignment-reference-genome"
-          className="text-xs font-semibold uppercase tracking-wide text-gray-500"
+          className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500"
         >
           Reference Genome <span className="text-red-500">*</span>
         </label>
@@ -92,20 +92,20 @@ export function AlignmentSettingsStep({
 
       {/* Reactions table */}
       <div>
-        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <h4 className="mb-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
           Reactions
         </h4>
         <div className="overflow-x-auto rounded-md border border-gray-200">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b bg-primary/10">
-                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                   Short Name
                 </th>
-                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                   Organism
                 </th>
-                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                   Reference Genome
                 </th>
               </tr>
@@ -164,7 +164,7 @@ export function AlignmentSettingsStep({
               <div>
                 <label
                   htmlFor="bam-coverage-bin-size"
-                  className="text-xs font-semibold uppercase tracking-wide text-gray-500"
+                  className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500"
                 >
                   BAM Coverage Bin Size <span className="text-red-500">*</span>
                 </label>
@@ -181,7 +181,7 @@ export function AlignmentSettingsStep({
               <div>
                 <label
                   htmlFor="smoothed-bin-size"
-                  className="text-xs font-semibold uppercase tracking-wide text-gray-500"
+                  className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500"
                 >
                   Smoothed BAM Coverage Bin Size <span className="text-red-500">*</span>
                 </label>

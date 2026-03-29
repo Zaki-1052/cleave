@@ -24,7 +24,7 @@ export function ExperimentDetailsStep({
     <div className="flex flex-col gap-4">
       <div>
         <div className="flex items-center justify-between">
-          <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
             Experiment Name <span className="text-red-500">*</span>
           </label>
           <span className="text-xs text-gray-400">{name.length} / 100</span>
@@ -41,7 +41,7 @@ export function ExperimentDetailsStep({
       </div>
 
       <div>
-        <label htmlFor="wizard-assay-type" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <label htmlFor="wizard-assay-type" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
           Assay Type <span className="text-red-500">*</span>
         </label>
         <select
@@ -63,7 +63,7 @@ export function ExperimentDetailsStep({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <label className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
           Description
         </label>
         <textarea

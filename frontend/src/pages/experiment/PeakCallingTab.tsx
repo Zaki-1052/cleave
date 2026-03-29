@@ -72,7 +72,7 @@ export default function PeakCallingTab() {
       {/* Job selector + status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <label htmlFor="peak-calling-job-select" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="peak-calling-job-select" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
             Peak Calling
           </label>
           <select

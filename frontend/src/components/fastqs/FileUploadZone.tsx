@@ -217,7 +217,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
 
       {fileStates.length > 0 && (
         <div className="mt-3">
-          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div className="mb-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
             {fileStates.length} file{fileStates.length !== 1 ? 's' : ''}{' '}
             {stagedFiles.length > 0 && <span className="font-mono">({formatBytes(totalStagedSize)})</span>}
           </div>

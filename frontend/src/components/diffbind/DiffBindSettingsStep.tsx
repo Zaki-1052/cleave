@@ -52,7 +52,7 @@ export function DiffBindSettingsStep({
     <div className="space-y-6">
       {/* Analysis method selection */}
       <div>
-        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <h4 className="mb-3 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
           Analysis Method <span className="text-red-500">*</span>
         </h4>
         <div className="space-y-2">
@@ -103,7 +103,7 @@ export function DiffBindSettingsStep({
         <div>
           <label
             htmlFor="db-custom-peakset"
-            className="text-xs font-semibold uppercase tracking-wide text-gray-500"
+            className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500"
           >
             Custom Peakset (BED) <span className="text-red-500">*</span>
           </label>
@@ -137,7 +137,7 @@ export function DiffBindSettingsStep({
 
       {/* Summary */}
       <div className="rounded-md border border-gray-200 p-4">
-        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <h4 className="mb-3 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
           Analysis Summary
         </h4>
 
@@ -157,10 +157,10 @@ export function DiffBindSettingsStep({
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <th className="px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Condition
                   </th>
-                  <th className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <th className="px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Replicates
                   </th>
                 </tr>

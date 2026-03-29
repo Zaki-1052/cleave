@@ -189,7 +189,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
               </Button>
               {showColumnPicker && (
                 <div className="absolute right-0 top-full z-20 mt-1 w-64 rounded-lg border bg-white p-3 shadow-lg">
-                  <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <div className="mb-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Optional Columns
                   </div>
                   {OPTIONAL_COLUMNS.map((col) => (

@@ -97,7 +97,7 @@ export function ManageMembersModal({ isOpen, onClose, projectId }: ManageMembers
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="invite-role" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="invite-role" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
             Access
           </label>
           <select

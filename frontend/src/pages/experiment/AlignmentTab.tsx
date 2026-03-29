@@ -74,7 +74,7 @@ export default function AlignmentTab() {
       {/* Job selector + status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <label htmlFor="alignment-job-select" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="alignment-job-select" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
             Alignments
           </label>
           <select

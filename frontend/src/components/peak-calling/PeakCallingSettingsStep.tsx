@@ -86,7 +86,7 @@ export function PeakCallingSettingsStep({
       {/* Peak caller + peak size global controls */}
       <div className="flex gap-4">
         <div className="flex-1">
-          <label htmlFor="pc-peak-caller" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="pc-peak-caller" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
             Peak Caller <span className="text-red-500">*</span>
           </label>
           <select
@@ -104,7 +104,7 @@ export function PeakCallingSettingsStep({
         </div>
 
         <div className="flex-1">
-          <label htmlFor="pc-peak-size" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="pc-peak-size" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
             Peak Size <span className="text-red-500">*</span>
           </label>
           <select
@@ -122,7 +122,7 @@ export function PeakCallingSettingsStep({
         </div>
 
         <div className="flex-1">
-          <label htmlFor="pc-igg-control" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="pc-igg-control" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
             IgG Control
           </label>
           <select
@@ -149,26 +149,26 @@ export function PeakCallingSettingsStep({
 
       {/* Reactions table */}
       <div>
-        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <h4 className="mb-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
           Reactions
         </h4>
         <div className="overflow-x-auto rounded-md border border-gray-200">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b bg-primary/10">
-                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                   Short Name
                 </th>
-                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                   IgG Control
                 </th>
-                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                   Reference Genome
                 </th>
-                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                   Peak Caller
                 </th>
-                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-gray-600">
                   Peak Size
                 </th>
               </tr>
@@ -216,7 +216,7 @@ export function PeakCallingSettingsStep({
               {/* Threshold — conditional on peak caller + size */}
               {peakCaller === 'MACS2' && peakSize === 'narrow' && (
                 <div>
-                  <label htmlFor="pc-q-value" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <label htmlFor="pc-q-value" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Q-Value Threshold
                   </label>
                   <input
@@ -239,7 +239,7 @@ export function PeakCallingSettingsStep({
 
               {peakCaller === 'MACS2' && peakSize === 'broad' && (
                 <div>
-                  <label htmlFor="pc-broad-cutoff" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <label htmlFor="pc-broad-cutoff" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Broad Cutoff
                   </label>
                   <input
@@ -262,7 +262,7 @@ export function PeakCallingSettingsStep({
 
               {peakCaller === 'SEACR' && (
                 <div>
-                  <label htmlFor="pc-seacr-threshold" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <label htmlFor="pc-seacr-threshold" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
                     SEACR Threshold
                   </label>
                   <input
@@ -287,7 +287,7 @@ export function PeakCallingSettingsStep({
 
               {peakCaller === 'SICER2' && (
                 <div>
-                  <label htmlFor="pc-sicer2-fdr" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <label htmlFor="pc-sicer2-fdr" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
                     SICER2 FDR
                   </label>
                   <input
@@ -321,7 +321,7 @@ export function PeakCallingSettingsStep({
 
               {fragmentFilter && (
                 <div>
-                  <label htmlFor="pc-fragment-size" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <label htmlFor="pc-fragment-size" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Fragment Size (bp)
                   </label>
                   <input
@@ -345,7 +345,7 @@ export function PeakCallingSettingsStep({
 
               {/* Blacklist selection */}
               <div className="col-span-2">
-                <label htmlFor="pc-blacklist" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <label htmlFor="pc-blacklist" className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Blacklist Subtraction
                 </label>
                 <select

@@ -9,7 +9,7 @@ export function Breadcrumbs() {
   if (segments.length === 0) {
     return (
       <div className="bg-primary/20 px-6 py-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-primary-dark">
+        <span className="font-display text-xs font-semibold uppercase tracking-wide text-primary-dark">
           Home
         </span>
       </div>
@@ -18,7 +18,7 @@ export function Breadcrumbs() {
 
   return (
     <div className="bg-primary/20 px-6 py-2">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
+      <div className="flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-wide">
         <Link to="/" className="text-primary-dark hover:underline">
           Home
         </Link>

@@ -45,7 +45,7 @@ export function CreateProjectModal({ isOpen, onClose }: CreateProjectModalProps)
           placeholder="Enter project name"
         />
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
             Description
           </label>
           <textarea
