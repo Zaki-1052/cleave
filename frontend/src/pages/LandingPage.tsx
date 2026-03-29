@@ -86,7 +86,7 @@ const COMPARISON = [
 ];
 
 const STATS = [
-  { value: 463, label: "Backend Tests Passing" },
+  { value: 466, label: "Backend Tests Passing" },
   { value: 17, label: "Pipeline Capabilities" },
   { value: 8, label: "New vs CUTANA Cloud" },
   { value: 6, label: "Implementation Phases" },
@@ -682,7 +682,7 @@ export default function LandingPage() {
 
           <Reveal delay={300}>
             <p className="mt-6 text-center text-xs text-white/25" style={{ fontFamily: mono }}>
-              8 new features · 16 total capabilities · 463 backend tests passing
+              8 new features · 16 total capabilities · 466 backend tests passing
             </p>
           </Reveal>
         </div>

@@ -54,6 +54,7 @@ _BLOCKED_NETWORKS = [
     ipaddress.ip_network("192.168.0.0/16"),
     ipaddress.ip_network("127.0.0.0/8"),
     ipaddress.ip_network("169.254.0.0/16"),
+    ipaddress.ip_network("0.0.0.0/8"),
     ipaddress.ip_network("::1/128"),
     ipaddress.ip_network("fc00::/7"),
 ]
@@ -72,6 +73,9 @@ def _validate_host(host: str) -> None:
 
     for _, _, _, _, sockaddr in resolved:
         ip = ipaddress.ip_address(sockaddr[0])
+        # Unwrap IPv6-mapped IPv4 (e.g. ::ffff:127.0.0.1 -> 127.0.0.1)
+        if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped:
+            ip = ip.ipv4_mapped
         for network in _BLOCKED_NETWORKS:
             if ip in network:
                 raise ValueError(f"Connection to private/reserved address is not allowed: {host}")

@@ -1,6 +1,7 @@
 # backend/tests/test_server_import.py
 """Tests for FTP/SFTP server import — SSRF validation, browse, import, saved servers."""
 
+import socket
 from unittest.mock import patch
 
 import pytest
@@ -76,6 +77,32 @@ class TestSSRFValidation:
 
         with pytest.raises(ValueError, match="private/reserved"):
             _validate_host("169.254.169.254")
+
+    def test_block_zero_address(self):
+        from services.server_import_service import _validate_host
+
+        with pytest.raises(ValueError, match="private/reserved"):
+            _validate_host("0.0.0.0")
+
+    @patch("services.server_import_service.socket.getaddrinfo")
+    def test_block_ipv6_mapped_loopback(self, mock_getaddrinfo):
+        from services.server_import_service import _validate_host
+
+        mock_getaddrinfo.return_value = [
+            (socket.AF_INET6, socket.SOCK_STREAM, 0, "", ("::ffff:127.0.0.1", 0, 0, 0))
+        ]
+        with pytest.raises(ValueError, match="private/reserved"):
+            _validate_host("evil.example.com")
+
+    @patch("services.server_import_service.socket.getaddrinfo")
+    def test_block_ipv6_mapped_metadata(self, mock_getaddrinfo):
+        from services.server_import_service import _validate_host
+
+        mock_getaddrinfo.return_value = [
+            (socket.AF_INET6, socket.SOCK_STREAM, 0, "", ("::ffff:169.254.169.254", 0, 0, 0))
+        ]
+        with pytest.raises(ValueError, match="private/reserved"):
+            _validate_host("evil.example.com")
 
 
 # ---------------------------------------------------------------------------
