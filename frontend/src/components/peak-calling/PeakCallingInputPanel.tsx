@@ -21,7 +21,7 @@ export function PeakCallingInputPanel({ job }: PeakCallingInputPanelProps) {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Reactions</h3>
+        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">Reactions</h3>
       </div>
 
       <div className="overflow-x-auto rounded-md border border-gray-200">

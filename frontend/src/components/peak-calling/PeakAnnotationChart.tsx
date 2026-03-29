@@ -1,5 +1,6 @@
 // frontend/src/components/peak-calling/PeakAnnotationChart.tsx
 import { useCallback, useMemo, useRef } from 'react';
+import { Download } from 'lucide-react';
 import {
   Bar,
   BarChart,
@@ -112,21 +113,23 @@ export function PeakAnnotationChart({
   return (
     <Card className="mt-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
           {referenceGenome} Feature Distribution
         </h3>
         <div className="flex items-center gap-2">
           <button
             onClick={handleDownloadPng}
-            className="text-xs font-medium text-primary hover:text-primary-dark"
+            className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-dark"
           >
-            Download Image as PNG
+            <Download className="h-3 w-3" />
+            Download PNG
           </button>
           <button
             onClick={handleDownloadCsv}
-            className="text-xs font-medium text-primary hover:text-primary-dark"
+            className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-dark"
           >
-            Download Data as CSV
+            <Download className="h-3 w-3" />
+            Download CSV
           </button>
         </div>
       </div>
@@ -147,7 +150,7 @@ export function PeakAnnotationChart({
                     {hoveredEntry && (
                       <>
                         <p>Annotation={hoveredEntry.name}</p>
-                        <p>Percentage (%)={(hoveredEntry.value as number).toFixed(5)}</p>
+                        <p>Percentage (%)=<span className="font-mono">{(hoveredEntry.value as number).toFixed(5)}</span></p>
                       </>
                     )}
                     {m && (

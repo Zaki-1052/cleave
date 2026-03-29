@@ -1,5 +1,6 @@
 // frontend/src/components/peak-calling/PeakCallingInfoPanel.tsx
 import { useState } from 'react';
+import { Copy } from 'lucide-react';
 
 import type { AnalysisJob } from '@/api/types';
 import { Card } from '@/components/layout/Card';
@@ -47,11 +48,11 @@ export function PeakCallingInfoPanel({ job }: PeakCallingInfoPanelProps) {
     <div className="space-y-4">
       <div className="flex gap-4">
         <Card className="flex-[2]">
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="font-display mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
             Details
           </h3>
           <div>
-            <DetailRow label="Run ID">{job.id}</DetailRow>
+            <DetailRow label="Run ID"><span className="font-mono">{job.id}</span></DetailRow>
             <DetailRow label="Created By">{launcherName}</DetailRow>
             <DetailRow label="Created Date">{formatDate(job.createdAt)}</DetailRow>
             <DetailRow label="Status">
@@ -62,15 +63,16 @@ export function PeakCallingInfoPanel({ job }: PeakCallingInfoPanelProps) {
 
         <Card className="flex-[3]">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+            <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
               Run Methods
             </h3>
             {job.methodsText && (
               <button
                 type="button"
                 onClick={handleCopyMethods}
-                className="text-xs font-medium text-primary hover:text-primary-dark"
+                className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-dark"
               >
+                <Copy className="h-3 w-3" />
                 {copied ? 'Copied!' : 'Copy'}
               </button>
             )}
@@ -86,7 +88,7 @@ export function PeakCallingInfoPanel({ job }: PeakCallingInfoPanelProps) {
 
         <Card className="flex-[2]">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Notes</h3>
+            <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">Notes</h3>
             {!editing && (
               <button
                 type="button"

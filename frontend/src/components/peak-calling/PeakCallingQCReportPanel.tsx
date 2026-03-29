@@ -1,4 +1,5 @@
 // frontend/src/components/peak-calling/PeakCallingQCReportPanel.tsx
+import { Download, Loader2 } from 'lucide-react';
 import type { AnalysisJob } from '@/api/types';
 import { downloadPeakCallingQCCsv, downloadTopPeaksCsv } from '@/api/jobs';
 import { Card } from '@/components/layout/Card';
@@ -30,7 +31,7 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
     return (
       <Card>
         <div className="flex h-40 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </Card>
     );
@@ -68,13 +69,14 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
         <div className="flex-1">
           <Card>
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+              <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
                 Peak Calling Stats and Metrics
               </h3>
               <button
                 onClick={handleDownloadCsv}
-                className="text-xs font-medium text-primary hover:text-primary-dark"
+                className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-dark"
               >
+                <Download className="h-3.5 w-3.5" />
                 Download Data as CSV
               </button>
             </div>
@@ -120,17 +122,17 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
                       <td className="px-3 py-2 text-gray-700">{m.peakCaller}</td>
                       <td className="px-3 py-2 text-gray-700 capitalize">{m.peakSize}</td>
                       <td className="px-3 py-2 text-gray-700">{m.significanceThreshold}</td>
-                      <td className="px-3 py-2 text-right text-gray-700">
+                      <td className="px-3 py-2 text-right font-mono text-gray-700">
                         {formatNumber(m.uniquelyAlignedReadPairs)}
                       </td>
-                      <td className="px-3 py-2 text-right text-gray-700">
+                      <td className="px-3 py-2 text-right font-mono text-gray-700">
                         {formatNumber(m.calledPeaks)}
                       </td>
-                      <td className="px-3 py-2 text-right text-gray-700">
+                      <td className="px-3 py-2 text-right font-mono text-gray-700">
                         {formatNumber(m.readsInPeaks)}
                       </td>
                       <td className="px-3 py-2 text-right">
-                        <span className={`rounded px-2 py-0.5 text-xs font-medium ${fripColor(m.frip)}`}>
+                        <span className={`rounded px-2 py-0.5 font-mono text-xs font-medium ${fripColor(m.frip)}`}>
                           {m.frip.toFixed(4)}
                         </span>
                       </td>
@@ -145,13 +147,14 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
           {report.topPeaks && report.topPeaks.length > 0 && (
             <Card className="mt-4">
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
                   Top Called Peaks
                 </h3>
                 <button
                   onClick={() => void downloadTopPeaksCsv(jobId)}
-                  className="text-xs font-medium text-primary hover:text-primary-dark"
+                  className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-dark"
                 >
+                  <Download className="h-3.5 w-3.5" />
                   Download Data as CSV
                 </button>
               </div>
@@ -192,7 +195,7 @@ export function PeakCallingQCReportPanel({ jobId, job }: PeakCallingQCReportPane
         {/* Info panel */}
         <div className="w-80 shrink-0">
           <Card>
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+            <h3 className="font-display mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
               About Peak Calling Stats
             </h3>
             <div className="space-y-3 text-xs text-gray-600">

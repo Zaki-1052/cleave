@@ -1,6 +1,7 @@
 // frontend/src/components/peak-calling/NewPeakCallingWizard.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { WizardModal } from '@/components/ui/WizardModal';
 import { Button } from '@/components/ui/Button';
 import { PeakCallingDetailsStep } from './PeakCallingDetailsStep';
@@ -273,7 +274,7 @@ export function NewPeakCallingWizard({
       label: 'Choose Alignment',
       content: jobsLoading ? (
         <div className="flex h-40 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : (
         <ChooseAlignmentStep
