@@ -1,6 +1,7 @@
 // frontend/src/pages/experiment/AlignmentTab.tsx
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
+import { Dna } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import type { Experiment } from '@/api/types';
 import { AlignmentFilesPanel } from '@/components/alignment/AlignmentFilesPanel';
@@ -9,6 +10,7 @@ import { AlignmentInputPanel } from '@/components/alignment/AlignmentInputPanel'
 import { AlignmentQCReportPanel } from '@/components/alignment/AlignmentQCReportPanel';
 import { IGVPanel } from '@/components/igv/IGVPanel';
 import { Card } from '@/components/layout/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs } from '@/hooks/useJobs';
@@ -55,12 +57,11 @@ export default function AlignmentTab() {
   if (alignmentJobs.length === 0) {
     return (
       <Card>
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <h3 className="text-sm font-medium text-muted-foreground">No alignment runs yet</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Click &ldquo;New Analysis&rdquo; above to create an alignment run.
-          </p>
-        </div>
+        <EmptyState
+          icon={Dna}
+          title="No alignment runs yet"
+          description='Click "New Analysis" above to create an alignment run.'
+        />
       </Card>
     );
   }

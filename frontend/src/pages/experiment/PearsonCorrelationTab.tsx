@@ -1,4 +1,5 @@
 // frontend/src/pages/experiment/PearsonCorrelationTab.tsx
+import { ScatterChart } from 'lucide-react';
 import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/Spinner';
 import { useState } from 'react';
@@ -8,6 +9,7 @@ import { PearsonCorrelationFilesPanel } from '@/components/pearson-correlation/P
 import { PearsonCorrelationPlotsPanel } from '@/components/pearson-correlation/PearsonCorrelationPlotsPanel';
 import { Card } from '@/components/layout/Card';
 import { DetailRow } from '@/components/ui/DetailRow';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs, useUpdateJobNotes } from '@/hooks/useJobs';
@@ -53,12 +55,11 @@ export default function PearsonCorrelationTab() {
   if (correlationJobs.length === 0) {
     return (
       <Card>
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <h3 className="text-sm font-medium text-muted-foreground">No correlation runs yet</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Click &ldquo;New Analysis&rdquo; above to create a Pearson correlation matrix.
-          </p>
-        </div>
+        <EmptyState
+          icon={ScatterChart}
+          title="No correlation runs yet"
+          description='Click "New Analysis" above to create a Pearson correlation matrix.'
+        />
       </Card>
     );
   }

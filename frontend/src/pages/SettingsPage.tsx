@@ -3,7 +3,6 @@ import { type FormEvent, useEffect, useState } from 'react';
 import { Card } from '@/components/layout/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Separator } from '@/components/ui/separator';
 import {
   Select,
   SelectTrigger,
@@ -74,97 +73,93 @@ export default function SettingsPage() {
   if (!user) return null;
 
   return (
-    <Card>
-      <form onSubmit={handleSubmit}>
-        <h2 className="mb-6 font-display text-lg font-semibold text-primary">Account Settings</h2>
+    <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-6">
+      <h2 className="font-display text-xl font-bold text-foreground">Account Settings</h2>
 
-        {/* Account Information */}
-        <div className="mb-8">
-          <h3 className="mb-4 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Account Information
-          </h3>
-          <div className="flex flex-col gap-4">
-            <Input label="User Name" value={user.email} disabled />
-            <Input
-              label="First Name"
-              value={firstName}
-              onChange={(e) => {
-                setFirstName(e.target.value);
+      {/* Account Information */}
+      <Card>
+        <h3 className="mb-4 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Account Information
+        </h3>
+        <div className="flex flex-col gap-4">
+          <Input label="User Name" value={user.email} disabled />
+          <Input
+            label="First Name"
+            value={firstName}
+            onChange={(e) => {
+              setFirstName(e.target.value);
+              setSaveSuccess(false);
+            }}
+            placeholder="Enter first name"
+          />
+          <Input
+            label="Last Name"
+            value={lastName}
+            onChange={(e) => {
+              setLastName(e.target.value);
+              setSaveSuccess(false);
+            }}
+            placeholder="Enter last name"
+          />
+        </div>
+      </Card>
+
+      {/* Email Preferences */}
+      <Card>
+        <h3 className="mb-4 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Email Preferences
+        </h3>
+        <div className="flex flex-col gap-4">
+          <Input label="Account Email" value={user.email} disabled />
+          <div className="flex flex-col gap-1">
+            <label className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Job Email Notification
+            </label>
+            <p className="mb-1 text-xs text-muted-foreground">
+              Get an email notification when a job finishes running.
+            </p>
+            <Select
+              value={emailNotifications}
+              onValueChange={(value) => {
+                setEmailNotifications(value);
                 setSaveSuccess(false);
               }}
-              placeholder="Enter first name"
-            />
-            <Input
-              label="Last Name"
-              value={lastName}
-              onChange={(e) => {
-                setLastName(e.target.value);
-                setSaveSuccess(false);
-              }}
-              placeholder="Enter last name"
-            />
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EMAIL_NOTIFICATION_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
+      </Card>
 
-        <Separator />
+      {/* Feedback messages */}
+      {saveSuccess && (
+        <p className="text-sm text-status-complete">Settings saved successfully.</p>
+      )}
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
-        {/* Email */}
-        <div className="mb-8">
-          <h3 className="mb-4 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Email
-          </h3>
-          <div className="flex flex-col gap-4">
-            <Input label="Account Email" value={user.email} disabled />
-            <div className="flex flex-col gap-1">
-              <label className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Job Email Notification
-              </label>
-              <p className="mb-1 text-xs text-muted-foreground">
-                Get an email notification when a job finishes running.
-              </p>
-              <Select
-                value={emailNotifications}
-                onValueChange={(value) => {
-                  setEmailNotifications(value);
-                  setSaveSuccess(false);
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {EMAIL_NOTIFICATION_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-
-        {/* Feedback messages */}
-        {saveSuccess && (
-          <p className="mb-4 text-sm text-status-complete">Settings saved successfully.</p>
-        )}
-        {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
-
-        {/* Actions */}
-        <div className="flex gap-3">
-          <Button
-            type="button"
-            variant="outlined"
-            onClick={handleCancel}
-            disabled={!hasChanges && !saveSuccess}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" loading={isSaving} disabled={!hasChanges}>
-            Save
-          </Button>
-        </div>
-      </form>
-    </Card>
+      {/* Actions */}
+      <div className="flex gap-3">
+        <Button
+          type="button"
+          variant="outlined"
+          onClick={handleCancel}
+          disabled={!hasChanges && !saveSuccess}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" loading={isSaving} disabled={!hasChanges}>
+          Save
+        </Button>
+      </div>
+    </form>
   );
 }

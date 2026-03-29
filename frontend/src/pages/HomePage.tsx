@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Clock, FolderPlus } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/layout/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { CreateProjectModal } from '@/components/projects/CreateProjectModal';
 import { useProjects } from '@/hooks/useProjects';
@@ -38,17 +39,16 @@ export default function HomePage() {
             <Spinner size="lg" />
           </div>
         ) : data?.items.length === 0 ? (
-          <Card>
-            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-              <FolderPlus className="mb-2 h-10 w-10" />
-              <p className="text-sm">No projects yet. Create one to get started.</p>
-            </div>
-          </Card>
+          <EmptyState
+            icon={FolderPlus}
+            title="No projects yet"
+            description="Create one to get started."
+          />
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {data?.items.map((project) => (
               <Link key={project.id} to={`/projects/${project.id}`}>
-                <Card className="cursor-pointer border border-transparent transition-all duration-150 hover:-translate-y-0.5 hover:border-accent-gold hover:shadow-md">
+                <Card variant="interactive" className="cursor-pointer">
                   <h3 className="text-lg font-semibold text-foreground">{project.name}</h3>
                   <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
                     <span>Modified {formatDate(project.updatedAt)}</span>

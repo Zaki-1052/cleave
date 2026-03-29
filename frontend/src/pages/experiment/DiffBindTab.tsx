@@ -1,4 +1,5 @@
 // frontend/src/pages/experiment/DiffBindTab.tsx
+import { ArrowLeftRight } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
@@ -9,6 +10,7 @@ import { DiffBindInputPanel } from '@/components/diffbind/DiffBindInputPanel';
 import { DiffBindPlotsPanel } from '@/components/diffbind/DiffBindPlotsPanel';
 import { DiffBindResultsPanel } from '@/components/diffbind/DiffBindResultsPanel';
 import { Card } from '@/components/layout/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs } from '@/hooks/useJobs';
@@ -53,12 +55,11 @@ export default function DiffBindTab() {
   if (diffBindJobs.length === 0) {
     return (
       <Card>
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <h3 className="text-sm font-medium text-muted-foreground">No DiffBind runs yet</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Click &ldquo;New Analysis&rdquo; above to create a DiffBind differential analysis.
-          </p>
-        </div>
+        <EmptyState
+          icon={ArrowLeftRight}
+          title="No DiffBind runs yet"
+          description='Click "New Analysis" above to create a DiffBind differential analysis.'
+        />
       </Card>
     );
   }
