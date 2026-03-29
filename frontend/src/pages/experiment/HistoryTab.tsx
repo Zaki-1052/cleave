@@ -37,7 +37,7 @@ const ACTION_COLORS: Record<string, string> = {
 
 export default function HistoryTab() {
   const { experiment } = useOutletContext<{ experiment: Experiment }>();
-  const { data, isLoading } = useExperimentHistory(experiment.id, 1, 200);
+  const { data, isLoading } = useExperimentHistory(experiment.id, 1, 100);
 
   const columns = useMemo<ColumnDef<ExperimentEvent, unknown>[]>(
     () => [

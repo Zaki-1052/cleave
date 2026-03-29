@@ -11,6 +11,7 @@ library(DiffBind)
 library(tidyverse)
 library(rtracklayer)
 library(GenomicRanges)
+library(BiocParallel)
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 2) {
@@ -30,7 +31,13 @@ samples <- read_csv(sample_table_file)
 
 # Create DiffBind object and count reads in consensus peakset
 dbObj <- dba(sampleSheet = samples)
-dbObj <- dba.count(dbObj)
+dbObj <- tryCatch({
+  dba.count(dbObj)
+}, error = function(e) {
+  cat(paste0("Warning: parallel dba.count() failed (", conditionMessage(e), "), retrying with serial backend\n"))
+  register(SerialParam())
+  dba.count(dbObj)
+})
 
 # Differential analysis via DESeq2 (default)
 dbObj <- dba.contrast(dbObj, categories = DBA_CONDITION, minMembers = 2)
@@ -42,57 +49,67 @@ out <- as.data.frame(diffResults)
 out_file <- file.path(results_dir, paste0(experiment_name, "_diffbind_results.txt"))
 write.table(out, file = out_file, sep = "\t", quote=F, row.names=F)
 
-# --- Plots (Bug 3 fixed: dev.off() after each PNG before each SVG) ---
+# --- Plots (wrapped in tryCatch to handle zero significant sites gracefully) ---
+
+# Helper: save a plot as both PNG and SVG, skipping gracefully on error
+safe_plot <- function(png_path, svg_path, plot_expr, plot_name) {
+  tryCatch({
+    png(png_path)
+    eval(plot_expr)
+    dev.off()
+    svg(svg_path, width=10, height=10)
+    eval(plot_expr)
+    dev.off()
+  }, error = function(e) {
+    # Close any open graphics devices from failed attempts
+    tryCatch(dev.off(), error = function(x) NULL)
+    tryCatch(dev.off(), error = function(x) NULL)
+    # Remove partial files
+    if (file.exists(png_path)) file.remove(png_path)
+    if (file.exists(svg_path)) file.remove(svg_path)
+    cat(paste0("Warning: ", plot_name, " skipped — ", conditionMessage(e), "\n"))
+  })
+}
 
 # PCA plot
-pca_plot_file <- file.path(results_dir, paste0(experiment_name, "_PCA_plot.png"))
-pca_plot_svg <- file.path(results_dir, paste0(experiment_name, "_PCA_plot.svg"))
-png(pca_plot_file)
-dba.plotPCA(dbAnalyze, contrast = 1)
-dev.off()
-svg(pca_plot_svg, width=10, height=10)
-dba.plotPCA(dbAnalyze, contrast = 1)
-dev.off()
+safe_plot(
+  file.path(results_dir, paste0(experiment_name, "_PCA_plot.png")),
+  file.path(results_dir, paste0(experiment_name, "_PCA_plot.svg")),
+  quote(dba.plotPCA(dbAnalyze, contrast = 1)),
+  "PCA plot"
+)
 
 # Heatmap (group correlation)
-HMg_plot_file <- file.path(results_dir, paste0(experiment_name, "_heatmapgroup_plot.png"))
-HMg_plot_svg <- file.path(results_dir, paste0(experiment_name, "_heatmapgroup_plot.svg"))
-png(HMg_plot_file)
-dba.plotHeatmap(dbAnalyze, contrast=1)
-dev.off()
-svg(HMg_plot_svg, width=10, height=10)
-dba.plotHeatmap(dbAnalyze, contrast=1)
-dev.off()
+safe_plot(
+  file.path(results_dir, paste0(experiment_name, "_heatmapgroup_plot.png")),
+  file.path(results_dir, paste0(experiment_name, "_heatmapgroup_plot.svg")),
+  quote(dba.plotHeatmap(dbAnalyze, contrast=1)),
+  "Group heatmap"
+)
 
 # Heatmap (condition)
-HMc_plot_file <- file.path(results_dir, paste0(experiment_name, "_heatmapcondition_plot.png"))
-HMc_plot_svg <- file.path(results_dir, paste0(experiment_name, "_heatmapcondition_plot.svg"))
-png(HMc_plot_file)
-dba.plotHeatmap(dbAnalyze, ColAttributes = DBA_CONDITION, contrast=1, correlations=FALSE)
-dev.off()
-svg(HMc_plot_svg, width=10, height=10)
-dba.plotHeatmap(dbAnalyze, ColAttributes = DBA_CONDITION, contrast=1, correlations=FALSE)
-dev.off()
+safe_plot(
+  file.path(results_dir, paste0(experiment_name, "_heatmapcondition_plot.png")),
+  file.path(results_dir, paste0(experiment_name, "_heatmapcondition_plot.svg")),
+  quote(dba.plotHeatmap(dbAnalyze, ColAttributes = DBA_CONDITION, contrast=1, correlations=FALSE)),
+  "Condition heatmap"
+)
 
 # MA plot
-ma_plot_file <- file.path(results_dir, paste0(experiment_name, "_MA_plot.png"))
-ma_plot_svg <- file.path(results_dir, paste0(experiment_name, "_MA_plot.svg"))
-png(ma_plot_file)
-dba.plotMA(dbAnalyze)
-dev.off()
-svg(ma_plot_svg, width=10, height=10)
-dba.plotMA(dbAnalyze)
-dev.off()
+safe_plot(
+  file.path(results_dir, paste0(experiment_name, "_MA_plot.png")),
+  file.path(results_dir, paste0(experiment_name, "_MA_plot.svg")),
+  quote(dba.plotMA(dbAnalyze)),
+  "MA plot"
+)
 
 # Volcano plot
-volcano_plot_file <- file.path(results_dir, paste0(experiment_name, "_volcano_plot.png"))
-volcano_plot_svg <- file.path(results_dir, paste0(experiment_name, "_volcano_plot.svg"))
-png(volcano_plot_file)
-dba.plotVolcano(dbAnalyze)
-dev.off()
-svg(volcano_plot_svg, width=10, height=10)
-dba.plotVolcano(dbAnalyze)
-dev.off()
+safe_plot(
+  file.path(results_dir, paste0(experiment_name, "_volcano_plot.png")),
+  file.path(results_dir, paste0(experiment_name, "_volcano_plot.svg")),
+  quote(dba.plotVolcano(dbAnalyze)),
+  "Volcano plot"
+)
 
 # Save normalized counts (Bug 1 fixed: closing parenthesis)
 normalized_counts <- file.path(results_dir, paste0(experiment_name, "_normalized_counts.csv"))

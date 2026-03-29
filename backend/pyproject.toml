@@ -26,6 +26,9 @@ dependencies = [
     "stream-zip>=0.0.83",
     "boto3",
     "jinja2",
+    "pandas",
+    "matplotlib",
+    "seaborn",
 ]
 
 [project.optional-dependencies]

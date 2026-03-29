@@ -158,7 +158,7 @@ Activate: `conda activate cleave-pipeline`
 
 ### Consider supplementing
 
-- [ ] **hg38 blacklist** -- The lab's `references/cutruntools/hg38.blacklist.bed` has only 38 entries (unusually small). Consider downloading Boyle Lab v2 (`hg38-blacklist.v2.bed.gz`, ~910 entries) from https://github.com/Boyle-Lab/Blacklist as a more comprehensive alternative.
+- [x] **hg38 blacklist** -- Replaced 38-entry ENCODE DAC v1 with Boyle Lab v2 (636 entries). All original entries were fully contained in v2 (verified via `bedtools intersect -f 1.0`). File: `backend/pipelines/reference/blacklists/hg38.blacklist.bed`.
 
 ---
 

@@ -166,7 +166,7 @@ export const PEAK_CALLING_DEFAULTS: {
   sicer2_fdr: 0.01,
   fragment_filter: true,
   fragment_size: 120,
-  blacklist: 'encode_dac',
+  blacklist: 'both',
 };
 
 export const DIFFBIND_ANALYSIS_METHODS = [
