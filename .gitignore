@@ -61,3 +61,5 @@ dev-data/
 # Large reference indices
 *.bt2
 *.bt2l
+
+cutana/fastqc/

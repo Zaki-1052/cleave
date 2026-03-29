@@ -600,9 +600,10 @@ async def test_terminate_running_job_200(client: AsyncClient):
     job_id = await _create_job(client, headers, exp, proj, "Running Job")
 
     # Manually set job to running via PATCH (simulate worker pickup)
-    from tests.conftest import test_session_factory
     from sqlalchemy import update as sa_update
+
     from models.analysis_job import AnalysisJob as AJ
+    from tests.conftest import test_session_factory
 
     async with test_session_factory() as db:
         await db.execute(sa_update(AJ).where(AJ.id == job_id).values(status="running"))
@@ -621,9 +622,10 @@ async def test_terminate_completed_job_409(client: AsyncClient):
     exp = await _create_experiment(client, headers, proj)
     job_id = await _create_job(client, headers, exp, proj, "Done Job")
 
-    from tests.conftest import test_session_factory
     from sqlalchemy import update as sa_update
+
     from models.analysis_job import AnalysisJob as AJ
+    from tests.conftest import test_session_factory
 
     async with test_session_factory() as db:
         await db.execute(sa_update(AJ).where(AJ.id == job_id).values(status="complete"))
@@ -655,9 +657,10 @@ async def test_retry_error_job_201(client: AsyncClient):
     exp = await _create_experiment(client, headers, proj)
     job_id = await _create_job(client, headers, exp, proj, "Failed Job")
 
-    from tests.conftest import test_session_factory
     from sqlalchemy import update as sa_update
+
     from models.analysis_job import AnalysisJob as AJ
+    from tests.conftest import test_session_factory
 
     async with test_session_factory() as db:
         await db.execute(
@@ -681,9 +684,10 @@ async def test_retry_terminated_job_201(client: AsyncClient):
     exp = await _create_experiment(client, headers, proj)
     job_id = await _create_job(client, headers, exp, proj, "Killed Job")
 
-    from tests.conftest import test_session_factory
     from sqlalchemy import update as sa_update
+
     from models.analysis_job import AnalysisJob as AJ
+    from tests.conftest import test_session_factory
 
     async with test_session_factory() as db:
         await db.execute(sa_update(AJ).where(AJ.id == job_id).values(status="terminated"))
@@ -713,9 +717,10 @@ async def test_retry_unauthorized_404(client: AsyncClient):
     exp = await _create_experiment(client, headers1, proj)
     job_id = await _create_job(client, headers1, exp, proj, "Private Job")
 
-    from tests.conftest import test_session_factory
     from sqlalchemy import update as sa_update
+
     from models.analysis_job import AnalysisJob as AJ
+    from tests.conftest import test_session_factory
 
     async with test_session_factory() as db:
         await db.execute(sa_update(AJ).where(AJ.id == job_id).values(status="error"))
@@ -817,9 +822,10 @@ async def test_retry_creates_event(client: AsyncClient):
     exp = await _create_experiment(client, headers, proj)
     job_id = await _create_job(client, headers, exp, proj, "Retry Event")
 
-    from tests.conftest import test_session_factory
     from sqlalchemy import update as sa_update
+
     from models.analysis_job import AnalysisJob as AJ
+    from tests.conftest import test_session_factory
 
     async with test_session_factory() as db:
         await db.execute(sa_update(AJ).where(AJ.id == job_id).values(status="error"))
