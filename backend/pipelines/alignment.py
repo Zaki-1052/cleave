@@ -17,6 +17,8 @@ import shutil
 import subprocess
 import time
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
 from pathlib import Path
 
 import structlog
@@ -25,6 +27,7 @@ from config import settings
 from pipelines.base import (
     PipelineError,
     PipelineStage,
+    TerminatedError,
     append_to_master_log,
     count_bam_reads,
     get_threads,
@@ -233,6 +236,531 @@ def _resolve_annotation(genome: str) -> Path | None:
 
 
 # ---------------------------------------------------------------------------
+# Concurrent reaction processing — shared immutable context
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class _AlignmentContext:
+    """Immutable config shared across all concurrent reaction threads."""
+
+    bowtie2: str
+    samtools: str
+    bedtools: str | None
+    picard: str
+    bam_coverage: str | None
+    compute_matrix: str | None
+    plot_heatmap: str | None
+    genome: str
+    bt2_index: str
+    ecoli_bt2_index: str
+    blacklist_bed: Path | None
+    annotation_bed: Path | None
+    eff_genome_size: int
+    threads: int
+    remove_dups: bool
+    remove_dac: bool
+    bin_size: int
+    smoothed_bin_size: int
+    bams_dir: Path
+    bigwigs_dir: Path
+    heatmaps_dir: Path
+    logs_dir: Path
+    job_dir: Path
+    rel_job: str
+    cancelled: Callable[[], bool] | None
+    job_id: int
+
+
+def _process_reaction(rxn: dict, ctx: _AlignmentContext, reaction_log: Path) -> dict:
+    """Process a single reaction through the full alignment pipeline.
+
+    Thread-safe: writes only to reaction-specific files and its own log.
+    Returns {"metrics": dict, "spike_in_entry": dict|None, "outputs": list[dict]}.
+    """
+    short_name = rxn["short_name"]
+    reaction_id = rxn["reaction_id"]
+    r1_abs = Path(settings.STORAGE_ROOT) / rxn["r1_path"]
+    r2_abs = Path(settings.STORAGE_ROOT) / rxn["r2_path"]
+
+    if not r1_abs.exists():
+        raise PipelineError(f"R1 FASTQ not found: {r1_abs}")
+    if not r2_abs.exists():
+        raise PipelineError(f"R2 FASTQ not found: {r2_abs}")
+
+    logger.info(
+        "alignment.reaction_start",
+        job_id=ctx.job_id,
+        short_name=short_name,
+    )
+
+    # Per-reaction helpers that write to this reaction's own log file
+    def _run(cmd, **kwargs):
+        return run_cmd(cmd, master_log=reaction_log, cancelled=ctx.cancelled, **kwargs)
+
+    def _run_piped(cmd1, cmd2, output_path, **kwargs):
+        return run_piped_cmd(
+            cmd1, cmd2, output_path, master_log=reaction_log, cancelled=ctx.cancelled, **kwargs
+        )
+
+    outputs: list[dict] = []
+
+    def _add_output(path: Path, category: str, ftype: str, rid: int | None = reaction_id) -> None:
+        if path.exists():
+            outputs.append(
+                {
+                    "file_category": category,
+                    "filename": path.name,
+                    "file_path": f"{ctx.rel_job}/{path.relative_to(ctx.job_dir)}",
+                    "file_type": ftype,
+                    "file_size_bytes": path.stat().st_size,
+                    "reaction_id": rid,
+                }
+            )
+
+    # ---- Step 1: Bowtie2 alignment → SAM ----
+    # Flags from integrated.sh line 62: --dovetail --phred33 -p 16
+    sam_path = ctx.bams_dir / f"{short_name}_aligned_reads.sam"
+    bt2_log = ctx.logs_dir / f"{short_name}.bowtie2"
+    bt2_cmd = [
+        ctx.bowtie2,
+        "-p",
+        str(ctx.threads),
+        "--dovetail",
+        "--phred33",
+        "--rg-id",
+        short_name,
+        "--rg",
+        f"SM:{short_name}",
+        "--rg",
+        f"LB:{short_name}",
+        "--rg",
+        "PL:ILLUMINA",
+        "-x",
+        ctx.bt2_index,
+        "-1",
+        str(r1_abs),
+        "-2",
+        str(r2_abs),
+    ]
+    # Bowtie2 writes SAM to stdout, stats to stderr
+    logger.info("alignment.bowtie2_start", short_name=short_name)
+    with open(sam_path, "w") as sam_f:
+        proc = subprocess.run(
+            bt2_cmd,
+            stdout=sam_f,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=43200,  # 12 hours max (from SLURM config)
+        )
+    bt2_log.write_text(proc.stderr)
+    append_to_master_log(reaction_log, f"Bowtie2 alignment — {short_name}", proc.stderr)
+    if proc.returncode != 0:
+        raise PipelineError(f"Bowtie2 failed for {short_name}: {proc.stderr.strip()[-500:]}")
+
+    # ---- Step 2: SAM → BAM conversion ----
+    # From integrated.sh line 63: samtools view -bS -@ 16
+    raw_bam = ctx.bams_dir / f"{short_name}_aligned_reads.bam"
+    with open(raw_bam, "wb") as bam_f:
+        proc = subprocess.run(
+            [ctx.samtools, "view", "-bS", "-@", str(ctx.threads), str(sam_path)],
+            stdout=bam_f,
+            stderr=subprocess.PIPE,
+            timeout=3600,
+        )
+    stderr_text = proc.stderr.decode("utf-8", errors="replace") if proc.stderr else ""
+    append_to_master_log(reaction_log, f"SAM→BAM conversion — {short_name}", stderr_text)
+    if proc.returncode != 0:
+        raise PipelineError(
+            f"SAM→BAM failed for {short_name}: "
+            f"{proc.stderr.decode('utf-8', errors='replace').strip()[-500:]}"
+        )
+    # Delete SAM to save space (integrated.sh line 64)
+    sam_path.unlink(missing_ok=True)
+
+    # ---- Step 3: Filter unmapped/unpaired + multi-mapper removal ----
+    # -f 3: properly paired (integrated.step2.sh line 58)
+    # -F 4 -F 8: both mates mapped (integrated.step2.sh line 58)
+    # -q 10: MAPQ >= 10, removes multi-mappers (CUTANA Cloud/PLAN.md)
+    uniq_bam = ctx.bams_dir / f"{short_name}_uniq.bam"
+    with open(uniq_bam, "wb") as out_f:
+        proc = subprocess.run(
+            [
+                ctx.samtools,
+                "view",
+                "-bh",
+                "-f",
+                "3",
+                "-F",
+                "4",
+                "-F",
+                "8",
+                "-q",
+                "10",
+                str(raw_bam),
+            ],
+            stdout=out_f,
+            stderr=subprocess.PIPE,
+            timeout=3600,
+        )
+    stderr_text = proc.stderr.decode("utf-8", errors="replace") if proc.stderr else ""
+    append_to_master_log(
+        reaction_log,
+        f"Filter unmapped + multi-mapper removal — {short_name}",
+        stderr_text,
+    )
+    if proc.returncode != 0:
+        raise PipelineError(f"Filter/multi-mapper removal failed for {short_name}")
+    # Remove raw BAM (intermediate)
+    raw_bam.unlink(missing_ok=True)
+
+    # ---- Step 4: DAC Exclusion List filtering ----
+    if ctx.remove_dac and ctx.blacklist_bed and ctx.bedtools:
+        filtered_bam = ctx.bams_dir / (f"{short_name}_exclusion_list_filtered_uniq.bam")
+        with open(filtered_bam, "wb") as out_f:
+            proc = subprocess.run(
+                [
+                    ctx.bedtools,
+                    "intersect",
+                    "-v",
+                    "-abam",
+                    str(uniq_bam),
+                    "-b",
+                    str(ctx.blacklist_bed),
+                ],
+                stdout=out_f,
+                stderr=subprocess.PIPE,
+                timeout=3600,
+            )
+        stderr_text = proc.stderr.decode("utf-8", errors="replace") if proc.stderr else ""
+        append_to_master_log(
+            reaction_log,
+            f"DAC exclusion list filtering — {short_name}",
+            stderr_text,
+        )
+        if proc.returncode != 0:
+            raise PipelineError(f"DAC exclusion list filtering failed for {short_name}")
+        # Use filtered BAM going forward, remove uniq
+        input_for_sort = filtered_bam
+        uniq_bam.unlink(missing_ok=True)
+    else:
+        input_for_sort = uniq_bam
+
+    # ---- Step 5: Coordinate sort ----
+    # From integrated.step2.sh line 62:
+    # picard SortSam INPUT=... OUTPUT=... SORT_ORDER=coordinate
+    #   VALIDATION_STRINGENCY=SILENT
+    sorted_bam = ctx.bams_dir / f"{short_name}_sorted.bam"
+    _run(
+        [
+            ctx.picard,
+            "SortSam",
+            f"INPUT={input_for_sort}",
+            f"OUTPUT={sorted_bam}",
+            "SORT_ORDER=coordinate",
+            "VALIDATION_STRINGENCY=SILENT",
+        ],
+        timeout=7200,
+    )
+    input_for_sort.unlink(missing_ok=True)
+
+    # ---- Step 6: Mark duplicates ----
+    # From integrated.step2.sh line 67:
+    # picard MarkDuplicates INPUT=... OUTPUT=... VALIDATION_STRINGENCY=SILENT
+    #   METRICS_FILE=metrics.txt
+    dup_marked_bam = ctx.bams_dir / f"{short_name}_dup_marked.bam"
+    picard_metrics = ctx.logs_dir / f"{short_name}_picard_metrics.txt"
+    _run(
+        [
+            ctx.picard,
+            "MarkDuplicates",
+            f"INPUT={sorted_bam}",
+            f"OUTPUT={dup_marked_bam}",
+            "VALIDATION_STRINGENCY=SILENT",
+            f"METRICS_FILE={picard_metrics}",
+        ],
+        timeout=7200,
+    )
+    sorted_bam.unlink(missing_ok=True)
+
+    # Parse duplication rate from Picard metrics
+    dup_rate = _parse_picard_metrics(picard_metrics)
+
+    # ---- Step 7: Remove duplicates ----
+    # From integrated.step2.sh line 71: samtools view -bh -F 1024
+    final_bam = ctx.bams_dir / f"{short_name}_final.bam"
+    if ctx.remove_dups:
+        with open(final_bam, "wb") as out_f:
+            proc = subprocess.run(
+                [ctx.samtools, "view", "-bh", "-F", "1024", str(dup_marked_bam)],
+                stdout=out_f,
+                stderr=subprocess.PIPE,
+                timeout=3600,
+            )
+        stderr_text = proc.stderr.decode("utf-8", errors="replace") if proc.stderr else ""
+        append_to_master_log(reaction_log, f"Duplicate removal — {short_name}", stderr_text)
+        if proc.returncode != 0:
+            raise PipelineError(f"Duplicate removal failed for {short_name}")
+        dup_marked_bam.unlink(missing_ok=True)
+    else:
+        shutil.move(str(dup_marked_bam), str(final_bam))
+
+    # ---- Step 8: Index final BAM ----
+    _run([ctx.samtools, "index", str(final_bam)], timeout=1800)
+    final_bai = ctx.bams_dir / f"{short_name}_final.bam.bai"
+
+    # ---- Step 9: Unsmoothed bigWig (20bp bins) ----
+    # From create_bams.sh line 36: bamCoverage --effectiveGenomeSize
+    #   --normalizeUsing RPKM
+    # Uses CORRECT per-genome size (fixes lab bug per
+    #   cleave-spec-decisions.md §7)
+    unsmoothed_bw = ctx.bigwigs_dir / f"{short_name}.bw"
+    if ctx.bam_coverage:
+        _run(
+            [
+                ctx.bam_coverage,
+                "-b",
+                str(final_bam),
+                "--effectiveGenomeSize",
+                str(ctx.eff_genome_size),
+                "--normalizeUsing",
+                "RPKM",
+                "--binSize",
+                str(ctx.bin_size),
+                "-o",
+                str(unsmoothed_bw),
+            ],
+            timeout=7200,
+        )
+    else:
+        logger.warning("alignment.no_bamCoverage", short_name=short_name)
+        unsmoothed_bw.write_bytes(b"")
+
+    # ---- Step 10: Smoothed bigWig (100bp bins) ----
+    smoothed_bw = ctx.bigwigs_dir / f"{short_name}_smoothed.bw"
+    if ctx.bam_coverage:
+        _run(
+            [
+                ctx.bam_coverage,
+                "-b",
+                str(final_bam),
+                "--effectiveGenomeSize",
+                str(ctx.eff_genome_size),
+                "--normalizeUsing",
+                "RPKM",
+                "--binSize",
+                str(ctx.smoothed_bin_size),
+                "-o",
+                str(smoothed_bw),
+            ],
+            timeout=7200,
+        )
+    else:
+        smoothed_bw.write_bytes(b"")
+
+    # ---- Step 11 & 12: TSS + Gene body heatmaps ----
+    tss_heatmap = ctx.heatmaps_dir / f"{short_name}_tss_heatmap.png"
+    genebody_heatmap = ctx.heatmaps_dir / f"{short_name}_genebody_heatmap.png"
+
+    if ctx.annotation_bed and ctx.compute_matrix and ctx.plot_heatmap:
+        # TSS heatmap (reference-point mode)
+        # Flanking from lab's heatmaps.sh line 74: -a 1500 -b 1500
+        tss_matrix = ctx.heatmaps_dir / f"{short_name}_tss_matrix.gz"
+        _run(
+            [
+                ctx.compute_matrix,
+                "reference-point",
+                "--referencePoint",
+                "TSS",
+                "-R",
+                str(ctx.annotation_bed),
+                "-S",
+                str(unsmoothed_bw),
+                "-a",
+                "1500",
+                "-b",
+                "1500",
+                "-o",
+                str(tss_matrix),
+                "--skipZeros",
+            ],
+            timeout=7200,
+        )
+        _run(
+            [
+                ctx.plot_heatmap,
+                "-m",
+                str(tss_matrix),
+                "-o",
+                str(tss_heatmap),
+                "--colorMap",
+                "RdYlBu_r",
+            ],
+            timeout=3600,
+        )
+        tss_matrix.unlink(missing_ok=True)
+
+        # Gene body heatmap (scale-regions mode)
+        genebody_matrix = ctx.heatmaps_dir / (f"{short_name}_genebody_matrix.gz")
+        _run(
+            [
+                ctx.compute_matrix,
+                "scale-regions",
+                "-R",
+                str(ctx.annotation_bed),
+                "-S",
+                str(unsmoothed_bw),
+                "-a",
+                "1500",
+                "-b",
+                "1500",
+                "-o",
+                str(genebody_matrix),
+                "--skipZeros",
+            ],
+            timeout=7200,
+        )
+        _run(
+            [
+                ctx.plot_heatmap,
+                "-m",
+                str(genebody_matrix),
+                "-o",
+                str(genebody_heatmap),
+                "--colorMap",
+                "RdYlBu_r",
+            ],
+            timeout=3600,
+        )
+        genebody_matrix.unlink(missing_ok=True)
+    else:
+        if not ctx.annotation_bed:
+            logger.warning(
+                "alignment.no_annotation_bed",
+                genome=ctx.genome,
+            )
+        tss_heatmap.write_bytes(_STUB_PNG)
+        genebody_heatmap.write_bytes(_STUB_PNG)
+
+    # ---- Step 13: E. coli spike-in alignment (if applicable) ----
+    ecoli_reads = 0
+    ecoli_rate = 0.0
+    if rxn.get("ecoli_spike_in"):
+        ecoli_log = ctx.logs_dir / f"{short_name}.ecoli.bowtie2"
+        ecoli_bam = ctx.bams_dir / f"{short_name}_ecoli.bam"
+
+        ecoli_idx_dir = Path(settings.GENOME_INDEX_DIR) / "ecoli"
+        if ecoli_idx_dir.exists():
+            # Pipe bowtie2 directly into samtools (Harvard pattern)
+            ecoli_bt2_cmd = [
+                ctx.bowtie2,
+                "-p",
+                str(ctx.threads),
+                "--dovetail",
+                "--phred33",
+                "-x",
+                ctx.ecoli_bt2_index,
+                "-1",
+                str(r1_abs),
+                "-2",
+                str(r2_abs),
+            ]
+            ecoli_sam_cmd = [
+                ctx.samtools,
+                "view",
+                "-bS",
+                "-@",
+                str(ctx.threads),
+                "-",
+            ]
+            _run_piped(
+                ecoli_bt2_cmd,
+                ecoli_sam_cmd,
+                ecoli_bam,
+                log_path=ecoli_log,
+                timeout=43200,
+            )
+
+            ecoli_stats = _parse_bowtie2_log(ecoli_log)
+            ecoli_reads = ecoli_stats.get("aligned_reads", 0)
+        else:
+            logger.warning("alignment.no_ecoli_index")
+
+    # ---- Step 14: K-MetStat spike-in barcode count (if applicable) ----
+    spike_in_entry = None
+    spike_in_type = rxn.get("cutana_spike_in")
+    if spike_in_type and spike_in_type != "None":
+        logger.info(
+            "alignment.spike_in_barcode_count",
+            short_name=short_name,
+            spike_in_type=spike_in_type,
+        )
+        ptm_counts = count_barcodes(r1_abs, r2_abs)
+        on_target = rxn.get("cutana_spike_in_target")
+        pct_recovery = normalize_counts(ptm_counts, on_target)
+        spike_in_entry = {
+            "short_name": short_name,
+            "on_target_ptm": on_target,
+            "total_barcode_reads": sum(ptm_counts.values()),
+            "ptm_counts": ptm_counts,
+            "pct_recovery": pct_recovery,
+        }
+
+    # ---- Collect QC metrics ----
+    bt2_stats = _parse_bowtie2_log(bt2_log)
+    total_reads = rxn.get("total_reads") or bt2_stats["total_reads"]
+    uniq_reads = count_bam_reads(final_bam)
+    chrm_reads = _count_chrm_reads(final_bam)
+
+    if total_reads > 0:
+        unique_rate = round(uniq_reads / total_reads * 100, 2)
+        chrm_pct = round(chrm_reads / total_reads * 100, 2)
+        ecoli_rate = round(ecoli_reads / total_reads * 100, 2)
+    else:
+        unique_rate = 0.0
+        chrm_pct = 0.0
+        ecoli_rate = 0.0
+
+    ecoli_norm_factor = round(ecoli_reads / uniq_reads, 6) if uniq_reads > 0 else 0.0
+
+    metrics = {
+        "short_name": short_name,
+        "total_read_pairs": total_reads,
+        "aligned_read_pairs": bt2_stats["aligned_reads"],
+        "uniquely_aligned_read_pairs": uniq_reads,
+        "unique_alignment_rate": unique_rate,
+        "duplication_rate": round(dup_rate, 2),
+        "chrm_bandwidth": chrm_pct,
+        "ecoli_read_pairs": ecoli_reads,
+        "ecoli_alignment_rate": ecoli_rate,
+        "ecoli_normalization_factor": ecoli_norm_factor,
+    }
+
+    # ---- Build outputs for this reaction ----
+    _add_output(final_bam, "unique_bam", "bam")
+    _add_output(final_bai, "unique_bam", "bai")
+    _add_output(unsmoothed_bw, "bigwig", "bw")
+    _add_output(smoothed_bw, "smoothed_bigwig", "bw")
+    _add_output(tss_heatmap, "tss_heatmap", "png")
+    _add_output(genebody_heatmap, "genebody_heatmap", "png")
+    _add_output(picard_metrics, "log", "txt")
+    _add_output(bt2_log, "log", "txt")
+
+    logger.info(
+        "alignment.reaction_complete",
+        job_id=ctx.job_id,
+        short_name=short_name,
+        unique_alignment_rate=unique_rate,
+    )
+
+    return {
+        "metrics": metrics,
+        "spike_in_entry": spike_in_entry,
+        "outputs": outputs,
+    }
+
+
+# ---------------------------------------------------------------------------
 # AlignmentStage
 # ---------------------------------------------------------------------------
 
@@ -253,6 +781,9 @@ class AlignmentStage(PipelineStage):
      10. Smoothed bigWig (bamCoverage, 100bp bins)
      11. TSS heatmap (computeMatrix reference-point + plotHeatmap)
      12. Gene body heatmap (computeMatrix scale-regions + plotHeatmap)
+
+    Reactions are processed concurrently via ThreadPoolExecutor.
+    Concurrency is controlled by MAX_CONCURRENT_REACTIONS (default 8).
     """
 
     def validate(self, params: dict) -> list[str]:
@@ -324,7 +855,7 @@ class AlignmentStage(PipelineStage):
         remove_dac = params.get("remove_dac_exclusion", True)
         bin_size = params.get("bam_coverage_bin_size", 20)
         smoothed_bin_size = params.get("smoothed_bin_size", 100)
-        threads = get_threads()
+        total_threads = get_threads()
 
         # Resolve tool paths
         bowtie2 = shutil.which("bowtie2")
@@ -369,501 +900,124 @@ class AlignmentStage(PipelineStage):
 
         # Master log: consolidated output from all pipeline steps
         master_log = logs_dir / "alignment.log"
+
+        # Compute concurrency: divide threads among concurrent reactions
+        concurrent_count = min(settings.MAX_CONCURRENT_REACTIONS, len(reactions))
+        threads_per_reaction = max(2, total_threads // concurrent_count)
+
         append_to_master_log(
             master_log,
             f"Alignment job {job_id} started",
             f"Genome: {genome}\nReactions: {len(reactions)}\n"
             f"Remove duplicates: {remove_dups}\nRemove DAC exclusion: {remove_dac}\n"
-            f"Bin size: {bin_size}\nSmoothed bin size: {smoothed_bin_size}\nThreads: {threads}",
+            f"Bin size: {bin_size}\nSmoothed bin size: {smoothed_bin_size}\n"
+            f"Threads: {total_threads} ({concurrent_count} concurrent × "
+            f"{threads_per_reaction} threads/reaction)",
         )
 
-        # Local helpers that auto-pass master_log and cancelled to every subprocess call
-        def _run(cmd, **kwargs):
-            return run_cmd(cmd, master_log=master_log, cancelled=cancelled, **kwargs)
-
-        def _run_piped(cmd1, cmd2, output_path, **kwargs):
-            return run_piped_cmd(
-                cmd1, cmd2, output_path, master_log=master_log, cancelled=cancelled, **kwargs
-            )
-
         eff_genome_size = EFFECTIVE_GENOME_SIZES[genome]
-        all_metrics: list[dict] = []
-        spike_in_data: list[dict] = []
-        outputs: list[dict] = []
         project_id = params["project_id"]
         experiment_id = params["experiment_id"]
         rel_job = f"projects/{project_id}/{experiment_id}/jobs/{job_id}"
 
+        # Build shared immutable context for all reaction threads
+        ctx = _AlignmentContext(
+            bowtie2=bowtie2,
+            samtools=samtools,
+            bedtools=bedtools,
+            picard=picard,
+            bam_coverage=bam_coverage,
+            compute_matrix=compute_matrix,
+            plot_heatmap=plot_heatmap,
+            genome=genome,
+            bt2_index=bt2_index,
+            ecoli_bt2_index=ecoli_bt2_index,
+            blacklist_bed=blacklist_bed,
+            annotation_bed=annotation_bed,
+            eff_genome_size=eff_genome_size,
+            threads=threads_per_reaction,
+            remove_dups=remove_dups,
+            remove_dac=remove_dac,
+            bin_size=bin_size,
+            smoothed_bin_size=smoothed_bin_size,
+            bams_dir=bams_dir,
+            bigwigs_dir=bigwigs_dir,
+            heatmaps_dir=heatmaps_dir,
+            logs_dir=logs_dir,
+            job_dir=job_dir,
+            rel_job=rel_job,
+            cancelled=cancelled,
+            job_id=job_id,
+        )
+
+        # Per-reaction log files (each thread writes to its own file)
+        reaction_logs = {
+            rxn["short_name"]: logs_dir / f"{rxn['short_name']}_pipeline.log"
+            for rxn in reactions
+        }
+
+        # ---- Concurrent reaction dispatch ----
+        results: dict[str, dict] = {}
+        errors: dict[str, str] = {}
+
+        with ThreadPoolExecutor(max_workers=concurrent_count) as executor:
+            future_to_name = {
+                executor.submit(
+                    _process_reaction,
+                    rxn,
+                    ctx,
+                    reaction_logs[rxn["short_name"]],
+                ): rxn["short_name"]
+                for rxn in reactions
+            }
+            for future in as_completed(future_to_name):
+                name = future_to_name[future]
+                try:
+                    results[name] = future.result()
+                except TerminatedError:
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    raise
+                except Exception as exc:
+                    errors[name] = str(exc)
+                    logger.error("alignment.reaction_failed", short_name=name, error=str(exc))
+
+        # ---- Merge per-reaction logs into master log (sequential, original order) ----
         for rxn in reactions:
-            short_name = rxn["short_name"]
-            reaction_id = rxn["reaction_id"]
-            r1_abs = Path(settings.STORAGE_ROOT) / rxn["r1_path"]
-            r2_abs = Path(settings.STORAGE_ROOT) / rxn["r2_path"]
+            name = rxn["short_name"]
+            rxn_log = reaction_logs[name]
+            if rxn_log.exists():
+                content = rxn_log.read_text()
+                if content.strip():
+                    with open(master_log, "a") as f:
+                        f.write(content)
 
-            if not r1_abs.exists():
-                raise PipelineError(f"R1 FASTQ not found: {r1_abs}")
-            if not r2_abs.exists():
-                raise PipelineError(f"R2 FASTQ not found: {r2_abs}")
+        # ---- Aggregate results in original reaction order ----
+        all_metrics: list[dict] = []
+        spike_in_data: list[dict] = []
+        outputs: list[dict] = []
+        for rxn in reactions:
+            name = rxn["short_name"]
+            if name in results:
+                r = results[name]
+                all_metrics.append(r["metrics"])
+                if r.get("spike_in_entry"):
+                    spike_in_data.append(r["spike_in_entry"])
+                outputs.extend(r["outputs"])
 
-            logger.info(
-                "alignment.reaction_start",
-                job_id=job_id,
-                short_name=short_name,
-            )
-
-            # ---- Step 1: Bowtie2 alignment → SAM ----
-            # Flags from integrated.sh line 62: --dovetail --phred33 -p 16
-            sam_path = bams_dir / f"{short_name}_aligned_reads.sam"
-            bt2_log = logs_dir / f"{short_name}.bowtie2"
-            bt2_cmd = [
-                bowtie2,
-                "-p",
-                str(threads),
-                "--dovetail",
-                "--phred33",
-                "--rg-id",
-                short_name,
-                "--rg",
-                f"SM:{short_name}",
-                "--rg",
-                f"LB:{short_name}",
-                "--rg",
-                "PL:ILLUMINA",
-                "-x",
-                bt2_index,
-                "-1",
-                str(r1_abs),
-                "-2",
-                str(r2_abs),
-            ]
-            # Bowtie2 writes SAM to stdout, stats to stderr
-            logger.info("alignment.bowtie2_start", short_name=short_name)
-            with open(sam_path, "w") as sam_f:
-                proc = subprocess.run(
-                    bt2_cmd,
-                    stdout=sam_f,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    timeout=43200,  # 12 hours max (from SLURM config)
-                )
-            bt2_log.write_text(proc.stderr)
-            append_to_master_log(master_log, f"Bowtie2 alignment — {short_name}", proc.stderr)
-            if proc.returncode != 0:
-                raise PipelineError(
-                    f"Bowtie2 failed for {short_name}: {proc.stderr.strip()[-500:]}"
-                )
-
-            # ---- Step 2: SAM → BAM conversion ----
-            # From integrated.sh line 63: samtools view -bS -@ 16
-            raw_bam = bams_dir / f"{short_name}_aligned_reads.bam"
-            with open(raw_bam, "wb") as bam_f:
-                proc = subprocess.run(
-                    [samtools, "view", "-bS", "-@", str(threads), str(sam_path)],
-                    stdout=bam_f,
-                    stderr=subprocess.PIPE,
-                    timeout=3600,
-                )
-            stderr_text = proc.stderr.decode("utf-8", errors="replace") if proc.stderr else ""
-            append_to_master_log(master_log, f"SAM→BAM conversion — {short_name}", stderr_text)
-            if proc.returncode != 0:
-                raise PipelineError(
-                    f"SAM→BAM failed for {short_name}: "
-                    f"{proc.stderr.decode('utf-8', errors='replace').strip()[-500:]}"
-                )
-            # Delete SAM to save space (integrated.sh line 64)
-            sam_path.unlink(missing_ok=True)
-
-            # ---- Step 3: Filter unmapped/unpaired + multi-mapper removal ----
-            # -f 3: properly paired (integrated.step2.sh line 58)
-            # -F 4 -F 8: both mates mapped (integrated.step2.sh line 58)
-            # -q 10: MAPQ >= 10, removes multi-mappers (CUTANA Cloud/PLAN.md)
-            uniq_bam = bams_dir / f"{short_name}_uniq.bam"
-            with open(uniq_bam, "wb") as out_f:
-                proc = subprocess.run(
-                    [
-                        samtools,
-                        "view",
-                        "-bh",
-                        "-f",
-                        "3",
-                        "-F",
-                        "4",
-                        "-F",
-                        "8",
-                        "-q",
-                        "10",
-                        str(raw_bam),
-                    ],
-                    stdout=out_f,
-                    stderr=subprocess.PIPE,
-                    timeout=3600,
-                )
-            stderr_text = proc.stderr.decode("utf-8", errors="replace") if proc.stderr else ""
+        # ---- Handle partial failures ----
+        if errors:
+            error_summary = "; ".join(f"{k}: {v[:100]}" for k, v in errors.items())
             append_to_master_log(
                 master_log,
-                f"Filter unmapped + multi-mapper removal — {short_name}",
-                stderr_text,
+                "Reaction failures",
+                error_summary,
             )
-            if proc.returncode != 0:
-                raise PipelineError(f"Filter/multi-mapper removal failed for {short_name}")
-            # Remove raw BAM (intermediate)
-            raw_bam.unlink(missing_ok=True)
-
-            # ---- Step 4: DAC Exclusion List filtering ----
-            if remove_dac and blacklist_bed and bedtools:
-                filtered_bam = bams_dir / (f"{short_name}_exclusion_list_filtered_uniq.bam")
-                with open(filtered_bam, "wb") as out_f:
-                    proc = subprocess.run(
-                        [
-                            bedtools,
-                            "intersect",
-                            "-v",
-                            "-abam",
-                            str(uniq_bam),
-                            "-b",
-                            str(blacklist_bed),
-                        ],
-                        stdout=out_f,
-                        stderr=subprocess.PIPE,
-                        timeout=3600,
-                    )
-                stderr_text = proc.stderr.decode("utf-8", errors="replace") if proc.stderr else ""
-                append_to_master_log(
-                    master_log,
-                    f"DAC exclusion list filtering — {short_name}",
-                    stderr_text,
-                )
-                if proc.returncode != 0:
-                    raise PipelineError(f"DAC exclusion list filtering failed for {short_name}")
-                # Use filtered BAM going forward, remove uniq
-                input_for_sort = filtered_bam
-                uniq_bam.unlink(missing_ok=True)
-            else:
-                input_for_sort = uniq_bam
-
-            # ---- Step 5: Coordinate sort ----
-            # From integrated.step2.sh line 62:
-            # picard SortSam INPUT=... OUTPUT=... SORT_ORDER=coordinate
-            #   VALIDATION_STRINGENCY=SILENT
-            sorted_bam = bams_dir / f"{short_name}_sorted.bam"
-            _run(
-                [
-                    picard,
-                    "SortSam",
-                    f"INPUT={input_for_sort}",
-                    f"OUTPUT={sorted_bam}",
-                    "SORT_ORDER=coordinate",
-                    "VALIDATION_STRINGENCY=SILENT",
-                ],
-                timeout=7200,
-            )
-            input_for_sort.unlink(missing_ok=True)
-
-            # ---- Step 6: Mark duplicates ----
-            # From integrated.step2.sh line 67:
-            # picard MarkDuplicates INPUT=... OUTPUT=... VALIDATION_STRINGENCY=SILENT
-            #   METRICS_FILE=metrics.txt
-            dup_marked_bam = bams_dir / f"{short_name}_dup_marked.bam"
-            picard_metrics = logs_dir / f"{short_name}_picard_metrics.txt"
-            _run(
-                [
-                    picard,
-                    "MarkDuplicates",
-                    f"INPUT={sorted_bam}",
-                    f"OUTPUT={dup_marked_bam}",
-                    "VALIDATION_STRINGENCY=SILENT",
-                    f"METRICS_FILE={picard_metrics}",
-                ],
-                timeout=7200,
-            )
-            sorted_bam.unlink(missing_ok=True)
-
-            # Parse duplication rate from Picard metrics
-            dup_rate = _parse_picard_metrics(picard_metrics)
-
-            # ---- Step 7: Remove duplicates ----
-            # From integrated.step2.sh line 71: samtools view -bh -F 1024
-            final_bam = bams_dir / f"{short_name}_final.bam"
-            if remove_dups:
-                with open(final_bam, "wb") as out_f:
-                    proc = subprocess.run(
-                        [samtools, "view", "-bh", "-F", "1024", str(dup_marked_bam)],
-                        stdout=out_f,
-                        stderr=subprocess.PIPE,
-                        timeout=3600,
-                    )
-                stderr_text = proc.stderr.decode("utf-8", errors="replace") if proc.stderr else ""
-                append_to_master_log(master_log, f"Duplicate removal — {short_name}", stderr_text)
-                if proc.returncode != 0:
-                    raise PipelineError(f"Duplicate removal failed for {short_name}")
-                dup_marked_bam.unlink(missing_ok=True)
-            else:
-                shutil.move(str(dup_marked_bam), str(final_bam))
-
-            # ---- Step 8: Index final BAM ----
-            _run([samtools, "index", str(final_bam)], timeout=1800)
-            final_bai = bams_dir / f"{short_name}_final.bam.bai"
-
-            # ---- Step 9: Unsmoothed bigWig (20bp bins) ----
-            # From create_bams.sh line 36: bamCoverage --effectiveGenomeSize
-            #   --normalizeUsing RPKM
-            # Uses CORRECT per-genome size (fixes lab bug per
-            #   cleave-spec-decisions.md §7)
-            unsmoothed_bw = bigwigs_dir / f"{short_name}.bw"
-            if bam_coverage:
-                _run(
-                    [
-                        bam_coverage,
-                        "-b",
-                        str(final_bam),
-                        "--effectiveGenomeSize",
-                        str(eff_genome_size),
-                        "--normalizeUsing",
-                        "RPKM",
-                        "--binSize",
-                        str(bin_size),
-                        "-o",
-                        str(unsmoothed_bw),
-                    ],
-                    timeout=7200,
-                )
-            else:
-                logger.warning("alignment.no_bamCoverage", short_name=short_name)
-                unsmoothed_bw.write_bytes(b"")
-
-            # ---- Step 10: Smoothed bigWig (100bp bins) ----
-            smoothed_bw = bigwigs_dir / f"{short_name}_smoothed.bw"
-            if bam_coverage:
-                _run(
-                    [
-                        bam_coverage,
-                        "-b",
-                        str(final_bam),
-                        "--effectiveGenomeSize",
-                        str(eff_genome_size),
-                        "--normalizeUsing",
-                        "RPKM",
-                        "--binSize",
-                        str(smoothed_bin_size),
-                        "-o",
-                        str(smoothed_bw),
-                    ],
-                    timeout=7200,
-                )
-            else:
-                smoothed_bw.write_bytes(b"")
-
-            # ---- Step 11 & 12: TSS + Gene body heatmaps ----
-            tss_heatmap = heatmaps_dir / f"{short_name}_tss_heatmap.png"
-            genebody_heatmap = heatmaps_dir / f"{short_name}_genebody_heatmap.png"
-
-            if annotation_bed and compute_matrix and plot_heatmap:
-                # TSS heatmap (reference-point mode)
-                # Flanking from lab's heatmaps.sh line 74: -a 1500 -b 1500
-                tss_matrix = heatmaps_dir / f"{short_name}_tss_matrix.gz"
-                _run(
-                    [
-                        compute_matrix,
-                        "reference-point",
-                        "--referencePoint",
-                        "TSS",
-                        "-R",
-                        str(annotation_bed),
-                        "-S",
-                        str(unsmoothed_bw),
-                        "-a",
-                        "1500",
-                        "-b",
-                        "1500",
-                        "-o",
-                        str(tss_matrix),
-                        "--skipZeros",
-                    ],
-                    timeout=7200,
-                )
-                _run(
-                    [
-                        plot_heatmap,
-                        "-m",
-                        str(tss_matrix),
-                        "-o",
-                        str(tss_heatmap),
-                        "--colorMap",
-                        "RdYlBu_r",
-                    ],
-                    timeout=3600,
-                )
-                tss_matrix.unlink(missing_ok=True)
-
-                # Gene body heatmap (scale-regions mode)
-                genebody_matrix = heatmaps_dir / (f"{short_name}_genebody_matrix.gz")
-                _run(
-                    [
-                        compute_matrix,
-                        "scale-regions",
-                        "-R",
-                        str(annotation_bed),
-                        "-S",
-                        str(unsmoothed_bw),
-                        "-a",
-                        "1500",
-                        "-b",
-                        "1500",
-                        "-o",
-                        str(genebody_matrix),
-                        "--skipZeros",
-                    ],
-                    timeout=7200,
-                )
-                _run(
-                    [
-                        plot_heatmap,
-                        "-m",
-                        str(genebody_matrix),
-                        "-o",
-                        str(genebody_heatmap),
-                        "--colorMap",
-                        "RdYlBu_r",
-                    ],
-                    timeout=3600,
-                )
-                genebody_matrix.unlink(missing_ok=True)
-            else:
-                if not annotation_bed:
-                    logger.warning(
-                        "alignment.no_annotation_bed",
-                        genome=genome,
-                    )
-                tss_heatmap.write_bytes(_STUB_PNG)
-                genebody_heatmap.write_bytes(_STUB_PNG)
-
-            # ---- Step 13: E. coli spike-in alignment (if applicable) ----
-            ecoli_reads = 0
-            ecoli_rate = 0.0
-            if rxn.get("ecoli_spike_in"):
-                ecoli_log = logs_dir / f"{short_name}.ecoli.bowtie2"
-                ecoli_bam = bams_dir / f"{short_name}_ecoli.bam"
-
-                ecoli_idx_dir = Path(settings.GENOME_INDEX_DIR) / "ecoli"
-                if ecoli_idx_dir.exists():
-                    # Pipe bowtie2 directly into samtools (Harvard pattern)
-                    ecoli_bt2_cmd = [
-                        bowtie2,
-                        "-p",
-                        str(threads),
-                        "--dovetail",
-                        "--phred33",
-                        "-x",
-                        ecoli_bt2_index,
-                        "-1",
-                        str(r1_abs),
-                        "-2",
-                        str(r2_abs),
-                    ]
-                    ecoli_sam_cmd = [
-                        samtools,
-                        "view",
-                        "-bS",
-                        "-@",
-                        str(threads),
-                        "-",
-                    ]
-                    _run_piped(
-                        ecoli_bt2_cmd,
-                        ecoli_sam_cmd,
-                        ecoli_bam,
-                        log_path=ecoli_log,
-                        timeout=43200,
-                    )
-
-                    ecoli_stats = _parse_bowtie2_log(ecoli_log)
-                    ecoli_reads = ecoli_stats.get("aligned_reads", 0)
-                else:
-                    logger.warning("alignment.no_ecoli_index")
-
-            # ---- Step 14: K-MetStat spike-in barcode count (if applicable) ----
-            spike_in_type = rxn.get("cutana_spike_in")
-            if spike_in_type and spike_in_type != "None":
-                logger.info(
-                    "alignment.spike_in_barcode_count",
-                    short_name=short_name,
-                    spike_in_type=spike_in_type,
-                )
-                ptm_counts = count_barcodes(r1_abs, r2_abs)
-                on_target = rxn.get("cutana_spike_in_target")
-                pct_recovery = normalize_counts(ptm_counts, on_target)
-                spike_in_data.append(
-                    {
-                        "short_name": short_name,
-                        "on_target_ptm": on_target,
-                        "total_barcode_reads": sum(ptm_counts.values()),
-                        "ptm_counts": ptm_counts,
-                        "pct_recovery": pct_recovery,
-                    }
-                )
-
-            # ---- Collect QC metrics ----
-            bt2_stats = _parse_bowtie2_log(bt2_log)
-            total_reads = rxn.get("total_reads") or bt2_stats["total_reads"]
-            uniq_reads = count_bam_reads(final_bam)
-            chrm_reads = _count_chrm_reads(final_bam)
-
-            if total_reads > 0:
-                unique_rate = round(uniq_reads / total_reads * 100, 2)
-                chrm_pct = round(chrm_reads / total_reads * 100, 2)
-                ecoli_rate = round(ecoli_reads / total_reads * 100, 2)
-            else:
-                unique_rate = 0.0
-                chrm_pct = 0.0
-                ecoli_rate = 0.0
-
-            ecoli_norm_factor = round(ecoli_reads / uniq_reads, 6) if uniq_reads > 0 else 0.0
-
-            all_metrics.append(
-                {
-                    "short_name": short_name,
-                    "total_read_pairs": total_reads,
-                    "aligned_read_pairs": bt2_stats["aligned_reads"],
-                    "uniquely_aligned_read_pairs": uniq_reads,
-                    "unique_alignment_rate": unique_rate,
-                    "duplication_rate": round(dup_rate, 2),
-                    "chrm_bandwidth": chrm_pct,
-                    "ecoli_read_pairs": ecoli_reads,
-                    "ecoli_alignment_rate": ecoli_rate,
-                    "ecoli_normalization_factor": ecoli_norm_factor,
-                }
-            )
-
-            # ---- Build outputs for this reaction ----
-            def _add_output(
-                path: Path, category: str, ftype: str, rid: int | None = reaction_id
-            ) -> None:
-                if path.exists():
-                    outputs.append(
-                        {
-                            "file_category": category,
-                            "filename": path.name,
-                            "file_path": f"{rel_job}/{path.relative_to(job_dir)}",
-                            "file_type": ftype,
-                            "file_size_bytes": path.stat().st_size,
-                            "reaction_id": rid,
-                        }
-                    )
-
-            _add_output(final_bam, "unique_bam", "bam")
-            _add_output(final_bai, "unique_bam", "bai")
-            _add_output(unsmoothed_bw, "bigwig", "bw")
-            _add_output(smoothed_bw, "smoothed_bigwig", "bw")
-            _add_output(tss_heatmap, "tss_heatmap", "png")
-            _add_output(genebody_heatmap, "genebody_heatmap", "png")
-            _add_output(picard_metrics, "log", "txt")
-            _add_output(bt2_log, "log", "txt")
-
-            logger.info(
-                "alignment.reaction_complete",
-                job_id=job_id,
-                short_name=short_name,
-                unique_alignment_rate=unique_rate,
+            if len(errors) == len(reactions):
+                raise PipelineError(f"All reactions failed: {error_summary}")
+            logger.warning(
+                "alignment.partial_failure",
+                failed=list(errors.keys()),
+                succeeded=list(results.keys()),
             )
 
         # ---- Write QC CSV ----
@@ -898,7 +1052,8 @@ class AlignmentStage(PipelineStage):
         append_to_master_log(
             master_log,
             "Alignment complete",
-            f"Processed {len(reactions)} reactions, {len(all_metrics)} QC records",
+            f"Processed {len(reactions)} reactions ({len(results)} succeeded, "
+            f"{len(errors)} failed), {len(all_metrics)} QC records",
         )
 
         # Register the master log as a job output
@@ -925,8 +1080,6 @@ class AlignmentStage(PipelineStage):
 
     def mock_run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
         """Create real stub files on disk so file browser, IGV, and downloads work."""
-        time.sleep(5)
-
         reactions = params.get("reactions", [])
         project_id = params.get("project_id", 0)
         experiment_id = params.get("experiment_id", 0)
@@ -943,10 +1096,10 @@ class AlignmentStage(PipelineStage):
 
         # Load canned QC data from CUTANA Cloud export
         canned = _load_canned_qc_data()
-        all_metrics: list[dict] = []
-        outputs: list[dict] = []
 
-        for i, rxn in enumerate(reactions):
+        def _mock_process_reaction(i: int, rxn: dict) -> dict:
+            """Process one mock reaction. Thread-safe — no shared mutable state."""
+            time.sleep(1)
             short_name = rxn["short_name"]
             reaction_id = rxn["reaction_id"]
 
@@ -971,7 +1124,8 @@ class AlignmentStage(PipelineStage):
                         round(mock_ecoli / mock_uniq, 6) if mock_uniq > 0 else 0.0
                     ),
                 }
-            all_metrics.append(metrics)
+
+            rxn_outputs: list[dict] = []
 
             # Create stub files
             stub_files = [
@@ -982,7 +1136,7 @@ class AlignmentStage(PipelineStage):
             ]
             for path, category, ftype in stub_files:
                 path.write_bytes(b"")
-                outputs.append(
+                rxn_outputs.append(
                     {
                         "file_category": category,
                         "filename": path.name,
@@ -995,18 +1149,12 @@ class AlignmentStage(PipelineStage):
 
             # Heatmap stubs (1x1 PNG)
             heatmap_files = [
-                (
-                    heatmaps_dir / f"{short_name}_tss_heatmap.png",
-                    "tss_heatmap",
-                ),
-                (
-                    heatmaps_dir / f"{short_name}_genebody_heatmap.png",
-                    "genebody_heatmap",
-                ),
+                (heatmaps_dir / f"{short_name}_tss_heatmap.png", "tss_heatmap"),
+                (heatmaps_dir / f"{short_name}_genebody_heatmap.png", "genebody_heatmap"),
             ]
             for path, category in heatmap_files:
                 path.write_bytes(_STUB_PNG)
-                outputs.append(
+                rxn_outputs.append(
                     {
                         "file_category": category,
                         "filename": path.name,
@@ -1020,7 +1168,7 @@ class AlignmentStage(PipelineStage):
             # Mock log files
             bt2_log = logs_dir / f"{short_name}.bowtie2"
             bt2_log.write_text(f"Mock bowtie2 log for {short_name}\n")
-            outputs.append(
+            rxn_outputs.append(
                 {
                     "file_category": "log",
                     "filename": bt2_log.name,
@@ -1032,6 +1180,29 @@ class AlignmentStage(PipelineStage):
             )
 
             logger.info("alignment.mock_reaction_complete", short_name=short_name)
+            return {"metrics": metrics, "outputs": rxn_outputs}
+
+        # ---- Concurrent mock dispatch ----
+        concurrent_count = min(settings.MAX_CONCURRENT_REACTIONS, max(len(reactions), 1))
+        all_metrics: list[dict] = []
+        outputs: list[dict] = []
+
+        with ThreadPoolExecutor(max_workers=concurrent_count) as executor:
+            future_to_idx = {
+                executor.submit(_mock_process_reaction, i, rxn): i
+                for i, rxn in enumerate(reactions)
+            }
+            # Collect results keyed by index to preserve original order
+            indexed_results: dict[int, dict] = {}
+            for future in as_completed(future_to_idx):
+                idx = future_to_idx[future]
+                indexed_results[idx] = future.result()
+
+        # Aggregate in original order
+        for i in range(len(reactions)):
+            r = indexed_results[i]
+            all_metrics.append(r["metrics"])
+            outputs.extend(r["outputs"])
 
         # Write QC CSV with canned data
         qc_csv = qc_dir / "alignment_metrics.csv"

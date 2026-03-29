@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     # Worker
     WORKER_POLL_INTERVAL_SECONDS: float = 2
 
+    # Pipeline concurrency
+    MAX_CONCURRENT_REACTIONS: int = 8
+
     # SSE
     SSE_KEEPALIVE_SECONDS: int = 15
 
