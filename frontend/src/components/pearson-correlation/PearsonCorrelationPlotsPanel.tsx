@@ -1,4 +1,5 @@
 // frontend/src/components/pearson-correlation/PearsonCorrelationPlotsPanel.tsx
+import { Download, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import {
@@ -45,7 +46,7 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
     return (
       <Card>
         <div className="flex h-40 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </Card>
     );
@@ -103,7 +104,7 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-xs text-gray-500">
-          Pairwise Pearson correlation of {report.sampleCount} sample
+          Pairwise Pearson correlation of <span className="font-mono">{report.sampleCount}</span> sample
           {report.sampleCount !== 1 ? 's' : ''} on {report.referenceGenome}.
           {report.maskingApplied ? ' Masked regions excluded.' : ''}
           {report.restrictBedLabel
@@ -116,8 +117,9 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
               variant="outlined"
               onClick={handleDownloadCorrelation}
               disabled={corrDownloading}
-              className="text-xs"
+              className="flex items-center gap-1 text-xs"
             >
+              <Download className="mr-1 h-3 w-3" />
               {corrDownloading ? 'Downloading...' : 'Correlation CSV'}
             </Button>
           )}
@@ -126,8 +128,9 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
               variant="outlined"
               onClick={handleDownloadCoverage}
               disabled={covDownloading}
-              className="text-xs"
+              className="flex items-center gap-1 text-xs"
             >
+              <Download className="mr-1 h-3 w-3" />
               {covDownloading ? 'Downloading...' : 'Coverage CSV'}
             </Button>
           )}
@@ -136,14 +139,15 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
 
       <Card>
         <div className="mb-2 flex items-center justify-between">
-          <h4 className="text-sm font-semibold text-gray-700">Correlation Heatmap</h4>
+          <h4 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">Correlation Heatmap</h4>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleDownloadPng}
               disabled={!pngUrl}
-              className="text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
             >
+              <Download className="h-3 w-3" />
               PNG
             </button>
             {report.plotOutput.outputIdSvg != null && (
@@ -151,8 +155,9 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
                 type="button"
                 onClick={handleDownloadSvg}
                 disabled={!svgUrl}
-                className="text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
               >
+                <Download className="h-3 w-3" />
                 SVG
               </button>
             )}
@@ -178,7 +183,7 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
           />
         ) : (
           <div className="flex h-48 items-center justify-center">
-            <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         )}
       </Card>

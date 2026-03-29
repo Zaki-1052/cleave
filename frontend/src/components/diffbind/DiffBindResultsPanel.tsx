@@ -1,5 +1,6 @@
 // frontend/src/components/diffbind/DiffBindResultsPanel.tsx
 import { type ColumnDef } from '@tanstack/react-table';
+import { Download, Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { downloadDiffBindCounts, downloadDiffBindResults } from '@/api/jobs';
@@ -26,27 +27,31 @@ function formatCellValue(value: string | number, columnName: string): React.Reac
     // FDR and p.value columns: color-coded
     if (lowerCol === 'fdr' || lowerCol === 'p.value') {
       return (
-        <span className={`rounded px-2 py-0.5 text-xs font-medium ${fdrColor(value)}`}>
+        <span className={`rounded px-2 py-0.5 font-mono text-xs font-medium ${fdrColor(value)}`}>
           {value.toExponential(2)}
         </span>
       );
     }
     // Fold change
     if (lowerCol === 'fold') {
-      return value.toFixed(3);
+      return <span className="font-mono">{value.toFixed(3)}</span>;
     }
     // Genomic coordinates (integers): format with commas
     if (lowerCol === 'start' || lowerCol === 'end' || lowerCol === 'width') {
-      return formatNumber(value);
+      return <span className="font-mono">{formatNumber(value)}</span>;
     }
     // Concentration columns: 2 decimal places
     if (lowerCol.startsWith('conc')) {
-      return value.toFixed(2);
+      return <span className="font-mono">{value.toFixed(2)}</span>;
     }
     // Default numeric
-    return typeof value === 'number' && Number.isInteger(value)
-      ? formatNumber(value)
-      : value.toFixed(4);
+    return (
+      <span className="font-mono">
+        {typeof value === 'number' && Number.isInteger(value)
+          ? formatNumber(value)
+          : value.toFixed(4)}
+      </span>
+    );
   }
 
   return String(value);
@@ -89,7 +94,7 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
     return (
       <Card>
         <div className="flex h-40 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </Card>
     );
@@ -110,26 +115,26 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-4">
         <Card>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <p className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
             Total Peaks
           </p>
-          <p className="mt-1 text-2xl font-bold text-gray-800">
+          <p className="mt-1 font-mono text-2xl font-bold text-gray-800">
             {formatNumber(report.totalPeaks)}
           </p>
         </Card>
         <Card>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <p className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
             Significant (FDR &lt; 0.05)
           </p>
-          <p className="mt-1 text-2xl font-bold text-green-700">
+          <p className="mt-1 font-mono text-2xl font-bold text-green-700">
             {formatNumber(report.significantPeaks005)}
           </p>
         </Card>
         <Card>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <p className="font-display text-xs font-semibold uppercase tracking-wide text-gray-500">
             Significant (FDR &lt; 0.01)
           </p>
-          <p className="mt-1 text-2xl font-bold text-green-800">
+          <p className="mt-1 font-mono text-2xl font-bold text-green-800">
             {formatNumber(report.significantPeaks001)}
           </p>
         </Card>
@@ -138,7 +143,7 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
       {/* Results table */}
       <Card>
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
             Differential Binding Results
           </h3>
           <div className="flex items-center gap-2">
@@ -148,6 +153,7 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
               disabled={downloadingResults}
               className="text-xs"
             >
+              <Download className="mr-1.5 h-3.5 w-3.5" />
               {downloadingResults ? 'Downloading...' : 'Download Results TSV'}
             </Button>
             <Button
@@ -156,6 +162,7 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
               disabled={downloadingCounts}
               className="text-xs"
             >
+              <Download className="mr-1.5 h-3.5 w-3.5" />
               {downloadingCounts ? 'Downloading...' : 'Download Normalized Counts'}
             </Button>
           </div>
@@ -172,7 +179,7 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
 
       {/* Info panel */}
       <Card>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
           About DiffBind Results
         </h3>
         <div className="space-y-3 text-xs text-gray-600">

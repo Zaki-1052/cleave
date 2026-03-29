@@ -1,4 +1,5 @@
 // frontend/src/components/normalization/NormalizationSelectSamplesStep.tsx
+import { ChevronUp, ChevronDown } from 'lucide-react';
 import { Card } from '@/components/layout/Card';
 import type { JobOutput } from '@/api/types';
 
@@ -151,7 +152,7 @@ export function NormalizationSelectSamplesStep({
                           className="rounded px-1 text-gray-400 hover:text-gray-700 disabled:opacity-30"
                           title="Move up"
                         >
-                          ↑
+                          <ChevronUp className="h-4 w-4" />
                         </button>
                         <button
                           type="button"
@@ -160,7 +161,7 @@ export function NormalizationSelectSamplesStep({
                           className="rounded px-1 text-gray-400 hover:text-gray-700 disabled:opacity-30"
                           title="Move down"
                         >
-                          ↓
+                          <ChevronDown className="h-4 w-4" />
                         </button>
                       </div>
                     )}

@@ -1,4 +1,5 @@
 // frontend/src/components/custom-heatmap/CustomHeatmapPlotsPanel.tsx
+import { Download, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { getOutputSignedUrl, downloadHeatmapMatrix } from '@/api/jobs';
@@ -19,7 +20,7 @@ export function CustomHeatmapPlotsPanel({ jobId }: CustomHeatmapPlotsPanelProps)
     return (
       <Card>
         <div className="flex h-40 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </Card>
     );
@@ -49,17 +50,18 @@ export function CustomHeatmapPlotsPanel({ jobId }: CustomHeatmapPlotsPanelProps)
       <div className="flex items-center justify-between">
         <p className="text-xs text-gray-500">
           Signal around the {report.referencePoint} of reference regions in{' '}
-          <strong>{report.bedLabel}</strong>, with a {report.flankingUpstream} bp upstream and{' '}
-          {report.flankingDownstream} bp downstream flanking window.{' '}
-          {report.sampleCount} sample{report.sampleCount !== 1 ? 's' : ''} shown.
+          <strong>{report.bedLabel}</strong>, with a <span className="font-mono">{report.flankingUpstream}</span> bp upstream and{' '}
+          <span className="font-mono">{report.flankingDownstream}</span> bp downstream flanking window.{' '}
+          <span className="font-mono">{report.sampleCount}</span> sample{report.sampleCount !== 1 ? 's' : ''} shown.
         </p>
         {report.matrixOutputId != null && (
           <Button
             variant="outlined"
             onClick={handleDownloadMatrix}
             disabled={matrixDownloading}
-            className="text-xs"
+            className="flex items-center gap-1 text-xs"
           >
+            <Download className="mr-1 h-3 w-3" />
             {matrixDownloading ? 'Downloading...' : 'Matrix (.gz)'}
           </Button>
         )}
@@ -145,14 +147,15 @@ function PlotCard({ jobId, plotInfo, label, description, filenameBase }: PlotCar
   return (
     <Card>
       <div className="mb-2 flex items-center justify-between">
-        <h4 className="text-sm font-semibold text-gray-700">{label}</h4>
+        <h4 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">{label}</h4>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleDownloadPng}
             disabled={!pngUrl}
-            className="text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
           >
+            <Download className="h-3 w-3" />
             PNG
           </button>
           {plotInfo.outputIdSvg != null && (
@@ -160,8 +163,9 @@ function PlotCard({ jobId, plotInfo, label, description, filenameBase }: PlotCar
               type="button"
               onClick={handleDownloadSvg}
               disabled={!svgUrl}
-              className="text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
             >
+              <Download className="h-3 w-3" />
               SVG
             </button>
           )}
@@ -183,7 +187,7 @@ function PlotCard({ jobId, plotInfo, label, description, filenameBase }: PlotCar
         />
       ) : (
         <div className="flex h-48 items-center justify-center">
-          <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       )}
     </Card>

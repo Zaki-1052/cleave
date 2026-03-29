@@ -1,4 +1,5 @@
 // frontend/src/components/diffbind/DiffBindPlotsPanel.tsx
+import { Download, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { getOutputSignedUrl } from '@/api/jobs';
@@ -33,7 +34,7 @@ export function DiffBindPlotsPanel({ jobId }: DiffBindPlotsPanelProps) {
     return (
       <Card>
         <div className="flex h-40 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </Card>
     );
@@ -129,14 +130,15 @@ function PlotCard({ jobId, plot }: PlotCardProps) {
   return (
     <Card>
       <div className="mb-2 flex items-center justify-between">
-        <h4 className="text-sm font-semibold text-gray-700">{label}</h4>
+        <h4 className="font-display text-sm font-semibold text-gray-700">{label}</h4>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleDownloadPng}
             disabled={!pngUrl}
-            className="text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
           >
+            <Download className="h-3 w-3" />
             PNG
           </button>
           {plot.outputIdSvg !== null && (
@@ -144,8 +146,9 @@ function PlotCard({ jobId, plot }: PlotCardProps) {
               type="button"
               onClick={handleDownloadSvg}
               disabled={!svgUrl}
-              className="text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
             >
+              <Download className="h-3 w-3" />
               SVG
             </button>
           )}
@@ -169,7 +172,7 @@ function PlotCard({ jobId, plot }: PlotCardProps) {
         />
       ) : (
         <div className="flex h-48 items-center justify-center">
-          <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       )}
     </Card>

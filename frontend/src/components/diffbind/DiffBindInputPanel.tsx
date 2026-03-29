@@ -23,7 +23,7 @@ export function DiffBindInputPanel({ job }: DiffBindInputPanelProps) {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">
           Sample Sheet
         </h3>
         <span className="text-xs text-gray-500">
@@ -54,7 +54,7 @@ export function DiffBindInputPanel({ job }: DiffBindInputPanelProps) {
               <tr key={s.reaction_id} className="border-b hover:bg-gray-50">
                 <td className="px-3 py-2 font-medium text-gray-800">{s.short_name}</td>
                 <td className="px-3 py-2 text-gray-700">{s.condition}</td>
-                <td className="px-3 py-2 text-gray-700">{s.replicate}</td>
+                <td className="px-3 py-2 font-mono text-gray-700">{s.replicate}</td>
                 <td className="px-3 py-2 text-gray-700">{s.peak_caller ?? '—'}</td>
               </tr>
             ))}

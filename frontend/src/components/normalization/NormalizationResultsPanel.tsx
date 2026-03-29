@@ -1,4 +1,5 @@
 // frontend/src/components/normalization/NormalizationResultsPanel.tsx
+import { Download, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import {
@@ -43,7 +44,7 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
     return (
       <Card>
         <div className="flex h-40 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </Card>
     );
@@ -101,8 +102,9 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
             variant="outlined"
             onClick={handleDownloadFactors}
             disabled={factorsDownloading}
-            className="text-xs"
+            className="flex items-center gap-1 text-xs"
           >
+            <Download className="mr-1 h-3 w-3" />
             {factorsDownloading ? 'Downloading...' : 'Factors CSV'}
           </Button>
         </div>
@@ -110,7 +112,7 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
 
       {/* Normalization factors table */}
       <Card>
-        <h4 className="mb-3 text-sm font-semibold text-gray-700">Normalization Factors</h4>
+        <h4 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-gray-500">Normalization Factors</h4>
         <p className="mb-3 text-xs text-gray-500">
           99th percentile signal values and normalization factors for each sample.
           All samples are normalized relative to the reference sample (NF = 1.0).
@@ -146,10 +148,10 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
                       <span className="ml-2 text-xs text-blue-600">(reference)</span>
                     )}
                   </td>
-                  <td className="px-4 py-2 tabular-nums text-gray-600">
+                  <td className="px-4 py-2 font-mono tabular-nums text-gray-600">
                     {entry.percentile99.toFixed(4)}
                   </td>
-                  <td className="px-4 py-2 tabular-nums text-gray-600">
+                  <td className="px-4 py-2 font-mono tabular-nums text-gray-600">
                     {entry.normalizationFactor.toFixed(4)}
                   </td>
                 </tr>
@@ -162,14 +164,15 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
       {/* Bar chart image */}
       <Card>
         <div className="mb-2 flex items-center justify-between">
-          <h4 className="text-sm font-semibold text-gray-700">Normalization Factor Plot</h4>
+          <h4 className="font-display text-sm font-semibold uppercase tracking-wide text-gray-500">Normalization Factor Plot</h4>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleDownloadPng}
               disabled={!pngUrl}
-              className="text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
             >
+              <Download className="h-3 w-3" />
               PNG
             </button>
             {report.plotOutputIdSvg != null && (
@@ -177,8 +180,9 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
                 type="button"
                 onClick={handleDownloadSvg}
                 disabled={!svgUrl}
-                className="text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:text-gray-300"
               >
+                <Download className="h-3 w-3" />
                 SVG
               </button>
             )}
@@ -204,7 +208,7 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
           />
         ) : (
           <div className="flex h-48 items-center justify-center">
-            <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         )}
       </Card>
