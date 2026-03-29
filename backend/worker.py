@@ -175,6 +175,7 @@ async def poll_and_run() -> None:
         experiment_id = job.experiment_id
         launched_by = job.launched_by
         job_name = job.name
+        is_auto_pipeline_job = job.auto_pipeline
 
         # Check if termination was requested while queued (race condition)
         if job.termination_requested_at is not None:
@@ -276,6 +277,15 @@ async def poll_and_run() -> None:
                     outputs=pipeline_result["outputs"],
                 )
 
+        # Auto-pipeline: queue next step if applicable
+        if is_auto_pipeline_job:
+            try:
+                from services.auto_pipeline_service import on_job_complete
+
+                await on_job_complete(experiment_id, job_id, job_type)
+            except Exception:
+                logger.exception("worker.auto_pipeline_hook_failed", job_id=job_id)
+
     except TerminatedError:
         duration = int(time.time() - start)
         async with async_session_factory() as db:
@@ -325,6 +335,15 @@ async def poll_and_run() -> None:
             resource_id=job_id,
             detail=f"Job '{job_name}' failed: {str(exc)[:200]}",
         )
+
+        # Auto-pipeline: mark pipeline as errored
+        if is_auto_pipeline_job:
+            try:
+                from services.auto_pipeline_service import on_job_error
+
+                await on_job_error(experiment_id, job_id, job_type)
+            except Exception:
+                logger.exception("worker.auto_pipeline_error_hook_failed", job_id=job_id)
 
     # Update experiment status based on final outcome
     await _update_experiment_status(experiment_id, final_status)

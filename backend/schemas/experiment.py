@@ -28,6 +28,9 @@ class ExperimentRead(CamelModel):
     created_by: int | None = None
     creator: UserBrief | None = None
     storage_bytes: int = 0
+    auto_pipeline: bool = False
+    auto_pipeline_status: str | None = None
+    auto_pipeline_config: dict | None = None
     created_at: datetime
     updated_at: datetime
 

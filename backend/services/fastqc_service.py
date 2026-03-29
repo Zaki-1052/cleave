@@ -106,3 +106,12 @@ async def run_fastqc_for_files(
                 message=f"FastQC finished for {completed_count}/{total_count} file(s){exp_label}.",
                 link_target=f"/experiments/{experiment_id}/fastqs",
             )
+
+    # Auto-pipeline: trigger next step if experiment has auto-pipeline enabled
+    if completed_count > 0:
+        try:
+            from services.auto_pipeline_service import on_fastqc_complete
+
+            await on_fastqc_complete(experiment_id)
+        except Exception:
+            logger.exception("auto_pipeline.fastqc_hook_failed", experiment_id=experiment_id)

@@ -1,6 +1,7 @@
 // frontend/src/components/pearson-correlation/PearsonSelectSamplesStep.tsx
 import { Card } from '@/components/layout/Card';
 import type { JobOutput } from '@/api/types';
+import { resolveReactionBigwig } from '@/lib/bigwig-utils';
 
 export interface PearsonSample {
   reactionId: number;
@@ -14,13 +15,8 @@ interface PearsonSelectSamplesStepProps {
   alignmentOutputs: JobOutput[];
   samples: PearsonSample[];
   setSamples: (samples: PearsonSample[]) => void;
-}
-
-function resolveReactionBigwig(reactionId: number, outputs: JobOutput[]): string {
-  const bw = outputs.find(
-    (o) => o.reactionId === reactionId && o.fileCategory === 'bigwig' && o.fileType === 'bw',
-  );
-  return bw?.filePath ?? '';
+  /** Which file category to resolve bigWig paths from */
+  fileCategory?: 'bigwig' | 'normalization_bigwig';
 }
 
 export function PearsonSelectSamplesStep({
@@ -28,6 +24,7 @@ export function PearsonSelectSamplesStep({
   alignmentOutputs,
   samples,
   setSamples,
+  fileCategory = 'bigwig',
 }: PearsonSelectSamplesStepProps) {
   function toggleReaction(reactionId: number, shortName: string) {
     const exists = samples.find((s) => s.reactionId === reactionId);
@@ -40,7 +37,7 @@ export function PearsonSelectSamplesStep({
           reactionId,
           shortName,
           label: shortName,
-          bigwigPath: resolveReactionBigwig(reactionId, alignmentOutputs),
+          bigwigPath: resolveReactionBigwig(reactionId, alignmentOutputs, fileCategory),
         },
       ]);
     }
@@ -55,7 +52,7 @@ export function PearsonSelectSamplesStep({
           reactionId: r.reaction_id,
           shortName: r.short_name,
           label: r.short_name,
-          bigwigPath: resolveReactionBigwig(r.reaction_id, alignmentOutputs),
+          bigwigPath: resolveReactionBigwig(r.reaction_id, alignmentOutputs, fileCategory),
         })),
       );
     }

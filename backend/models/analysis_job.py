@@ -1,7 +1,7 @@
 # backend/models/analysis_job.py
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -28,6 +28,7 @@ class AnalysisJob(Base):
     methods_text: Mapped[str | None] = mapped_column(String)
     termination_requested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     retry_of_job_id: Mapped[int | None] = mapped_column(ForeignKey("analysis_jobs.id"))
+    auto_pipeline: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     experiment: Mapped["Experiment"] = relationship(  # noqa: F821

@@ -4,23 +4,18 @@ import { useNavigate } from 'react-router-dom';
 import { WizardModal } from '@/components/ui/WizardModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/layout/Card';
+import { ChooseBigWigSourceStep, useBigWigOutputs } from '@/components/ui/ChooseBigWigSourceStep';
 import { PearsonSelectSamplesStep } from './PearsonSelectSamplesStep';
 import { PearsonSettingsStep } from './PearsonSettingsStep';
-import { useCreateJob, useJobs, useJobOutputs } from '@/hooks/useJobs';
-import type { AnalysisJob, Experiment, JobOutput } from '@/api/types';
+import { useCreateJob, useJobs } from '@/hooks/useJobs';
+import { resolveReactionBigwig, type BigWigSourceType } from '@/lib/bigwig-utils';
+import type { AnalysisJob, Experiment } from '@/api/types';
 import type { PearsonSample } from './PearsonSelectSamplesStep';
 
 interface NewPearsonCorrelationWizardProps {
   isOpen: boolean;
   onClose: () => void;
   experiment: Experiment;
-}
-
-function resolveReactionBigwig(reactionId: number, outputs: JobOutput[]): string {
-  const bw = outputs.find(
-    (o) => o.reactionId === reactionId && o.fileCategory === 'bigwig' && o.fileType === 'bw',
-  );
-  return bw?.filePath ?? '';
 }
 
 export function NewPearsonCorrelationWizard({
@@ -31,11 +26,9 @@ export function NewPearsonCorrelationWizard({
   const navigate = useNavigate();
   const createJobMutation = useCreateJob();
 
-  // Fetch all jobs for this experiment
-  const { data: jobsData, isLoading: jobsLoading } = useJobs(experiment.id, 1, 100);
-  const alignmentJobs = (jobsData?.items ?? []).filter(
-    (j: AnalysisJob) => j.jobType === 'alignment' && j.status === 'complete',
-  );
+  // Fetch all jobs for this experiment (used by ChooseBigWigSourceStep and for reactions)
+  const { data: jobsData } = useJobs(experiment.id, 1, 100);
+  const allJobs: AnalysisJob[] = jobsData?.items ?? [];
 
   // Step tracking
   const [currentStep, setCurrentStep] = useState(0);
@@ -44,8 +37,10 @@ export function NewPearsonCorrelationWizard({
   const [name, setName] = useState('');
   const [notes, setNotes] = useState('');
 
-  // Step 2: Choose Alignment
+  // Step 2: Choose BigWig Source (normalization or alignment)
+  const [bigwigSource, setBigwigSource] = useState<BigWigSourceType>('alignment');
   const [selectedAlignmentJobId, setSelectedAlignmentJobId] = useState<number | null>(null);
+  const [selectedNormalizationJobId, setSelectedNormalizationJobId] = useState<number | null>(null);
 
   // Step 3: Select Samples
   const [samples, setSamples] = useState<PearsonSample[]>([]);
@@ -59,26 +54,33 @@ export function NewPearsonCorrelationWizard({
   // Error
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Fetch alignment job outputs (bigWig files) to resolve paths per reaction
-  const { data: alignmentOutputs } = useJobOutputs(selectedAlignmentJobId, 'bigwig');
+  // Fetch bigWig outputs based on selected source
+  const { data: bigwigOutputs, fileCategory } = useBigWigOutputs(
+    bigwigSource,
+    selectedAlignmentJobId,
+    selectedNormalizationJobId,
+  );
 
-  // Extract reactions from the selected alignment job params
-  const selectedAlignmentJob = alignmentJobs.find(
-    (j: AnalysisJob) => j.id === selectedAlignmentJobId,
+  // Resolve the alignment job for reactions and genome info
+  const effectiveAlignmentJobId = selectedAlignmentJobId;
+  const alignmentJob = allJobs.find(
+    (j) => j.id === effectiveAlignmentJobId && j.jobType === 'alignment',
   );
   const alignmentReactions: { reaction_id: number; short_name: string }[] =
-    (selectedAlignmentJob?.params?.reactions as
+    (alignmentJob?.params?.reactions as
       | { reaction_id: number; short_name: string }[]
       | undefined) ?? [];
 
   const referenceGenome =
-    (selectedAlignmentJob?.params?.reference_genome as string) ?? '';
+    (alignmentJob?.params?.reference_genome as string) ?? '';
 
   function resetState() {
     setCurrentStep(0);
     setName('');
     setNotes('');
+    setBigwigSource('alignment');
     setSelectedAlignmentJobId(null);
+    setSelectedNormalizationJobId(null);
     setSamples([]);
     setRestrictBed(false);
     setBedSource('peak_calling');
@@ -93,8 +95,19 @@ export function NewPearsonCorrelationWizard({
     onClose();
   }
 
-  function handleSelectAlignment(jobId: number) {
-    setSelectedAlignmentJobId(jobId);
+  function handleSelectSource(
+    source: BigWigSourceType,
+    jobId: number,
+    alignmentJobId: number,
+  ) {
+    setBigwigSource(source);
+    if (source === 'normalization') {
+      setSelectedNormalizationJobId(jobId);
+      setSelectedAlignmentJobId(alignmentJobId);
+    } else {
+      setSelectedAlignmentJobId(jobId);
+      setSelectedNormalizationJobId(null);
+    }
     // Reset downstream state
     setSamples([]);
     setRestrictBed(false);
@@ -115,14 +128,14 @@ export function NewPearsonCorrelationWizard({
       if (selectedAlignmentJobId === null) return;
       // Auto-populate samples from alignment reactions (exclude IgG)
       if (samples.length === 0 && alignmentReactions.length > 0) {
-        const bwOutputs = alignmentOutputs ?? [];
+        const bwOutputs = bigwigOutputs ?? [];
         const newSamples = alignmentReactions
           .filter((r) => !r.short_name.toLowerCase().includes('igg'))
           .map((r) => ({
             reactionId: r.reaction_id,
             shortName: r.short_name,
             label: r.short_name,
-            bigwigPath: resolveReactionBigwig(r.reaction_id, bwOutputs),
+            bigwigPath: resolveReactionBigwig(r.reaction_id, bwOutputs, fileCategory),
           }));
         setSamples(newSamples);
       }
@@ -158,11 +171,16 @@ export function NewPearsonCorrelationWizard({
     if (isSubmitDisabled()) return;
     setSubmitError(null);
 
+    const parentJobId =
+      bigwigSource === 'normalization'
+        ? selectedNormalizationJobId
+        : selectedAlignmentJobId;
+
     try {
       const params: Record<string, unknown> = {
         experiment_id: experiment.id,
         project_id: experiment.projectId,
-        parent_job_id: selectedAlignmentJobId,
+        parent_job_id: parentJobId,
         alignment_job_id: selectedAlignmentJobId,
         reference_genome: referenceGenome,
         samples: samples.map((s) => ({
@@ -175,6 +193,10 @@ export function NewPearsonCorrelationWizard({
         restrict_bed_label: restrictBed ? bedLabel : null,
       };
 
+      if (bigwigSource === 'normalization' && selectedNormalizationJobId) {
+        params.normalization_job_id = selectedNormalizationJobId;
+      }
+
       const job = await createJobMutation.mutateAsync({
         experimentId: experiment.id,
         payload: {
@@ -182,7 +204,7 @@ export function NewPearsonCorrelationWizard({
           name: name.trim(),
           notes: notes.trim() || null,
           params,
-          parentJobId: selectedAlignmentJobId,
+          parentJobId: parentJobId,
         },
       });
       handleClose();
@@ -235,8 +257,8 @@ export function NewPearsonCorrelationWizard({
             <h4 className="font-medium text-gray-800">What is Pearson Correlation?</h4>
             <p>
               Pairwise Pearson correlation measures the linear relationship between
-              bigWig signal profiles across the genome, producing a value from -1 to +1
-              for each sample pair. It is widely used to assess replicate concordance
+              bigWig signal profiles across the genome, producing a correlation
+              coefficient for each sample pair. It is widely used to assess replicate concordance
               and identify sample outliers.
             </p>
           </div>
@@ -261,61 +283,29 @@ export function NewPearsonCorrelationWizard({
     </div>
   );
 
-  const alignmentStep = jobsLoading ? (
-    <div className="flex h-40 items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-    </div>
-  ) : (
-    <Card>
-      <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500">
-        Select an Alignment Run
-      </h3>
-      {alignmentJobs.length === 0 ? (
-        <p className="py-8 text-center text-sm text-gray-500">
-          No completed alignment runs available. Run an alignment first.
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {alignmentJobs.map((job: AnalysisJob) => (
-            <label
-              key={job.id}
-              className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${
-                selectedAlignmentJobId === job.id
-                  ? 'border-primary bg-primary/5'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <input
-                type="radio"
-                name="alignment"
-                checked={selectedAlignmentJobId === job.id}
-                onChange={() => handleSelectAlignment(job.id)}
-                className="text-primary"
-              />
-              <div className="flex-1">
-                <span className="font-medium text-gray-800">{job.name}</span>
-                <span className="ml-3 text-xs text-gray-400">
-                  {new Date(job.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-            </label>
-          ))}
-        </div>
-      )}
-    </Card>
+  const bigwigSourceStep = (
+    <ChooseBigWigSourceStep
+      experiment={experiment}
+      bigwigSource={bigwigSource}
+      selectedAlignmentJobId={selectedAlignmentJobId}
+      selectedNormalizationJobId={selectedNormalizationJobId}
+      onSelectSource={handleSelectSource}
+      showResolutionWarning={true}
+    />
   );
 
   const steps = [
     { label: 'Details', content: detailsStep },
-    { label: 'Choose Alignment', content: alignmentStep },
+    { label: 'BigWig Source', content: bigwigSourceStep },
     {
       label: 'Select Samples',
       content: (
         <PearsonSelectSamplesStep
           reactions={alignmentReactions}
-          alignmentOutputs={alignmentOutputs ?? []}
+          alignmentOutputs={bigwigOutputs ?? []}
           samples={samples}
           setSamples={setSamples}
+          fileCategory={fileCategory}
         />
       ),
     },

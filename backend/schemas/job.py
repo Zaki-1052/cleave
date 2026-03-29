@@ -39,6 +39,7 @@ class JobRead(CamelModel):
     error_message: str | None = None
     methods_text: str | None = None
     retry_of_job_id: int | None = None
+    auto_pipeline: bool = False
     created_at: datetime
 
 

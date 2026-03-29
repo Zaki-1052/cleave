@@ -29,6 +29,9 @@ export interface Experiment {
   createdBy: number | null;
   creator: MemberUser | null;
   storageBytes: number;
+  autoPipeline: boolean;
+  autoPipelineStatus: string | null;
+  autoPipelineConfig: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -137,6 +140,7 @@ export interface AnalysisJob {
   errorMessage: string | null;
   methodsText: string | null;
   retryOfJobId: number | null;
+  autoPipeline: boolean;
   createdAt: string;
 }
 

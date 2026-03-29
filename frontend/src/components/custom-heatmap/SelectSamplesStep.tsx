@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Card } from '@/components/layout/Card';
 import { useJobs, useJobOutputs } from '@/hooks/useJobs';
+import { resolveReactionBigwig } from '@/lib/bigwig-utils';
 import type { AnalysisJob, Experiment, JobOutput } from '@/api/types';
 import type { HeatmapSample } from './NewCustomHeatmapWizard';
 
@@ -22,13 +23,8 @@ interface SelectSamplesStepProps {
   setBedOutputId: (id: number | null) => void;
   bedUploading: boolean;
   onBedUpload: (file: File) => void;
-}
-
-function resolveReactionBigwig(reactionId: number, outputs: JobOutput[]): string {
-  const bw = outputs.find(
-    (o) => o.reactionId === reactionId && o.fileCategory === 'bigwig' && o.fileType === 'bw',
-  );
-  return bw?.filePath ?? '';
+  /** Which file category to resolve bigWig paths from */
+  fileCategory?: 'bigwig' | 'normalization_bigwig';
 }
 
 export function SelectSamplesStep({
@@ -47,6 +43,7 @@ export function SelectSamplesStep({
   setBedOutputId,
   bedUploading,
   onBedUpload,
+  fileCategory = 'bigwig',
 }: SelectSamplesStepProps) {
   // Fetch peak calling jobs for BED file selection
   const { data: jobsData } = useJobs(experiment.id, 1, 100);
@@ -70,7 +67,7 @@ export function SelectSamplesStep({
           reactionId,
           shortName,
           label: shortName,
-          bigwigPath: resolveReactionBigwig(reactionId, alignmentOutputs),
+          bigwigPath: resolveReactionBigwig(reactionId, alignmentOutputs, fileCategory),
         },
       ]);
     }

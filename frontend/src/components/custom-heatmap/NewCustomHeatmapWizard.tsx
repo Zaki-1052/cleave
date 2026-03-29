@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { WizardModal } from '@/components/ui/WizardModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/layout/Card';
+import { ChooseBigWigSourceStep, useBigWigOutputs } from '@/components/ui/ChooseBigWigSourceStep';
 import { SelectSamplesStep } from './SelectSamplesStep';
-import { useCreateJob, useJobs, useJobOutputs } from '@/hooks/useJobs';
+import { useCreateJob, useJobs } from '@/hooks/useJobs';
 import { uploadBedFile } from '@/api/jobs';
-import type { AnalysisJob, Experiment, JobOutput } from '@/api/types';
+import { resolveReactionBigwig, type BigWigSourceType } from '@/lib/bigwig-utils';
+import type { AnalysisJob, Experiment } from '@/api/types';
 import {
   HEATMAP_SORT_ORDERS,
   HEATMAP_COLOR_MAPS,
@@ -27,14 +29,6 @@ export interface HeatmapSample {
   bigwigPath: string;
 }
 
-/** Resolve the bigWig file path for a reaction from alignment job outputs. */
-function resolveReactionBigwig(reactionId: number, outputs: JobOutput[]): string {
-  const bw = outputs.find(
-    (o) => o.reactionId === reactionId && o.fileCategory === 'bigwig' && o.fileType === 'bw',
-  );
-  return bw?.filePath ?? '';
-}
-
 export function NewCustomHeatmapWizard({
   isOpen,
   onClose,
@@ -44,10 +38,8 @@ export function NewCustomHeatmapWizard({
   const createJobMutation = useCreateJob();
 
   // Fetch all jobs for this experiment
-  const { data: jobsData, isLoading: jobsLoading } = useJobs(experiment.id, 1, 100);
-  const alignmentJobs = (jobsData?.items ?? []).filter(
-    (j: AnalysisJob) => j.jobType === 'alignment' && j.status === 'complete',
-  );
+  const { data: jobsData } = useJobs(experiment.id, 1, 100);
+  const allJobs: AnalysisJob[] = jobsData?.items ?? [];
 
   // Step tracking
   const [currentStep, setCurrentStep] = useState(0);
@@ -56,8 +48,10 @@ export function NewCustomHeatmapWizard({
   const [name, setName] = useState('');
   const [notes, setNotes] = useState('');
 
-  // Step 2: Choose Alignment
+  // Step 2: Choose BigWig Source (normalization or alignment)
+  const [bigwigSource, setBigwigSource] = useState<BigWigSourceType>('alignment');
   const [selectedAlignmentJobId, setSelectedAlignmentJobId] = useState<number | null>(null);
+  const [selectedNormalizationJobId, setSelectedNormalizationJobId] = useState<number | null>(null);
 
   // Step 3: Select Samples & BED
   const [samples, setSamples] = useState<HeatmapSample[]>([]);
@@ -77,15 +71,19 @@ export function NewCustomHeatmapWizard({
   // Error
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Fetch alignment job outputs (bigWig files) to resolve paths per reaction
-  const { data: alignmentOutputs } = useJobOutputs(selectedAlignmentJobId, 'bigwig');
+  // Fetch bigWig outputs based on selected source
+  const { data: bigwigOutputs, fileCategory } = useBigWigOutputs(
+    bigwigSource,
+    selectedAlignmentJobId,
+    selectedNormalizationJobId,
+  );
 
-  // Extract reactions from the selected alignment job params
-  const selectedAlignmentJob = alignmentJobs.find(
-    (j: AnalysisJob) => j.id === selectedAlignmentJobId,
+  // Resolve the alignment job for reactions info
+  const alignmentJob = allJobs.find(
+    (j) => j.id === selectedAlignmentJobId && j.jobType === 'alignment',
   );
   const alignmentReactions: { reaction_id: number; short_name: string }[] =
-    (selectedAlignmentJob?.params?.reactions as
+    (alignmentJob?.params?.reactions as
       | { reaction_id: number; short_name: string }[]
       | undefined) ?? [];
 
@@ -93,7 +91,9 @@ export function NewCustomHeatmapWizard({
     setCurrentStep(0);
     setName('');
     setNotes('');
+    setBigwigSource('alignment');
     setSelectedAlignmentJobId(null);
+    setSelectedNormalizationJobId(null);
     setSamples([]);
     setBedSource('peak_calling');
     setBedPath('');
@@ -114,8 +114,19 @@ export function NewCustomHeatmapWizard({
     onClose();
   }
 
-  function handleSelectAlignment(jobId: number) {
-    setSelectedAlignmentJobId(jobId);
+  function handleSelectSource(
+    source: BigWigSourceType,
+    jobId: number,
+    alignmentJobId: number,
+  ) {
+    setBigwigSource(source);
+    if (source === 'normalization') {
+      setSelectedNormalizationJobId(jobId);
+      setSelectedAlignmentJobId(alignmentJobId);
+    } else {
+      setSelectedAlignmentJobId(jobId);
+      setSelectedNormalizationJobId(null);
+    }
     // Reset downstream state
     setSamples([]);
     setBedPath('');
@@ -150,14 +161,14 @@ export function NewCustomHeatmapWizard({
       if (selectedAlignmentJobId === null) return;
       // Auto-populate samples from alignment reactions
       if (samples.length === 0 && alignmentReactions.length > 0) {
-        const bwOutputs = alignmentOutputs ?? [];
+        const bwOutputs = bigwigOutputs ?? [];
         const newSamples = alignmentReactions
           .filter((r) => !r.short_name.toLowerCase().includes('igg'))
           .map((r) => ({
             reactionId: r.reaction_id,
             shortName: r.short_name,
             label: r.short_name,
-            bigwigPath: resolveReactionBigwig(r.reaction_id, bwOutputs),
+            bigwigPath: resolveReactionBigwig(r.reaction_id, bwOutputs, fileCategory),
           }));
         setSamples(newSamples);
       }
@@ -195,11 +206,16 @@ export function NewCustomHeatmapWizard({
     if (isSubmitDisabled()) return;
     setSubmitError(null);
 
+    const parentJobId =
+      bigwigSource === 'normalization'
+        ? selectedNormalizationJobId
+        : selectedAlignmentJobId;
+
     try {
       const params: Record<string, unknown> = {
         experiment_id: experiment.id,
         project_id: experiment.projectId,
-        parent_job_id: selectedAlignmentJobId,
+        parent_job_id: parentJobId,
         alignment_job_id: selectedAlignmentJobId,
         bed_source: bedSource,
         bed_path: bedPath,
@@ -220,6 +236,10 @@ export function NewCustomHeatmapWizard({
         z_max: null,
       };
 
+      if (bigwigSource === 'normalization' && selectedNormalizationJobId) {
+        params.normalization_job_id = selectedNormalizationJobId;
+      }
+
       const job = await createJobMutation.mutateAsync({
         experimentId: experiment.id,
         payload: {
@@ -227,7 +247,7 @@ export function NewCustomHeatmapWizard({
           name: name.trim(),
           notes: notes.trim() || null,
           params,
-          parentJobId: selectedAlignmentJobId,
+          parentJobId: parentJobId,
         },
       });
       handleClose();
@@ -300,48 +320,16 @@ export function NewCustomHeatmapWizard({
     </div>
   );
 
-  const alignmentStep = jobsLoading ? (
-    <div className="flex h-40 items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-    </div>
-  ) : (
-    <Card>
-      <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500">
-        Select an Alignment Run
-      </h3>
-      {alignmentJobs.length === 0 ? (
-        <p className="py-8 text-center text-sm text-gray-500">
-          No completed alignment runs available. Run an alignment first.
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {alignmentJobs.map((job: AnalysisJob) => (
-            <label
-              key={job.id}
-              className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${
-                selectedAlignmentJobId === job.id
-                  ? 'border-primary bg-primary/5'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <input
-                type="radio"
-                name="alignment"
-                checked={selectedAlignmentJobId === job.id}
-                onChange={() => handleSelectAlignment(job.id)}
-                className="text-primary"
-              />
-              <div className="flex-1">
-                <span className="font-medium text-gray-800">{job.name}</span>
-                <span className="ml-3 text-xs text-gray-400">
-                  {new Date(job.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-            </label>
-          ))}
-        </div>
-      )}
-    </Card>
+  const bigwigSourceStep = (
+    <ChooseBigWigSourceStep
+      experiment={experiment}
+      bigwigSource={bigwigSource}
+      selectedAlignmentJobId={selectedAlignmentJobId}
+      selectedNormalizationJobId={selectedNormalizationJobId}
+      onSelectSource={handleSelectSource}
+      showResolutionWarning={true}
+      alignmentWarningText="These bigWig files are at 20bp resolution. For best results on mouse, run Roman Normalization first. deepTools will handle any resolution for heatmaps."
+    />
   );
 
   const settingsStep = (
@@ -444,7 +432,7 @@ export function NewCustomHeatmapWizard({
 
   const steps = [
     { label: 'Details', content: detailsStep },
-    { label: 'Choose Alignment', content: alignmentStep },
+    { label: 'BigWig Source', content: bigwigSourceStep },
     {
       label: 'Samples & BED',
       content: (
@@ -452,7 +440,7 @@ export function NewCustomHeatmapWizard({
           experiment={experiment}
           alignmentJobId={selectedAlignmentJobId}
           reactions={alignmentReactions}
-          alignmentOutputs={alignmentOutputs ?? []}
+          alignmentOutputs={bigwigOutputs ?? []}
           samples={samples}
           setSamples={setSamples}
           bedSource={bedSource}
@@ -465,6 +453,7 @@ export function NewCustomHeatmapWizard({
           setBedOutputId={setBedOutputId}
           bedUploading={bedUploading}
           onBedUpload={handleBedUpload}
+          fileCategory={fileCategory}
         />
       ),
     },

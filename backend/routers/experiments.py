@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from auth import current_active_user
 from database import get_db
 from models.user import User
+from schemas.auto_pipeline import AutoPipelineConfig
 from schemas.common import PaginatedResponse
 from schemas.experiment import ExperimentCreate, ExperimentRead, ExperimentUpdate
 from schemas.experiment_event import ExperimentEventRead
@@ -100,3 +101,43 @@ async def list_experiment_history(
         raise HTTPException(status_code=404, detail="Experiment not found")
     events, total = result
     return PaginatedResponse(items=events, total=total, page=page, per_page=per_page)
+
+
+# --- Auto-Pipeline Endpoints ---
+
+
+@router.post("/{experiment_id}/auto-pipeline", status_code=status.HTTP_202_ACCEPTED)
+async def start_auto_pipeline_endpoint(
+    experiment_id: int,
+    body: AutoPipelineConfig,
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Start auto-pipeline for an experiment."""
+    from services import auto_pipeline_service
+
+    exp = await get_experiment(db, experiment_id, current_user.id)
+    if not exp:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+
+    await auto_pipeline_service.start_auto_pipeline(
+        db, experiment_id, current_user.id, body.model_dump()
+    )
+    return {"status": "started"}
+
+
+@router.post("/{experiment_id}/auto-pipeline/cancel")
+async def cancel_auto_pipeline_endpoint(
+    experiment_id: int,
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Cancel auto-pipeline. Completed steps are preserved."""
+    from services import auto_pipeline_service  # noqa: F811
+
+    exp = await get_experiment(db, experiment_id, current_user.id)
+    if not exp:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+
+    await auto_pipeline_service.cancel_auto_pipeline(db, experiment_id)
+    return {"status": "cancelled"}

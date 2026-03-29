@@ -10,8 +10,11 @@ import { NewCustomHeatmapWizard } from '@/components/custom-heatmap/NewCustomHea
 import { NewDiffBindWizard } from '@/components/diffbind/NewDiffBindWizard';
 import { NewPearsonCorrelationWizard } from '@/components/pearson-correlation/NewPearsonCorrelationWizard';
 import { NewNormalizationWizard } from '@/components/normalization/NewNormalizationWizard';
+import { AutoPipelineModal } from '@/components/experiments/AutoPipelineModal';
+import { AutoPipelineBanner } from '@/components/experiments/AutoPipelineBanner';
 import { useExperiment } from '@/hooks/useExperiments';
 import { useJobs } from '@/hooks/useJobs';
+import { useReactions } from '@/hooks/useReactions';
 
 const JOB_TYPE_LABELS: Record<string, string> = {
   alignment: 'Alignment',
@@ -48,6 +51,9 @@ export default function ExperimentView() {
   const [showCustomHeatmapWizard, setShowCustomHeatmapWizard] = useState(false);
   const [showPearsonCorrelationWizard, setShowPearsonCorrelationWizard] = useState(false);
   const [showNormalizationWizard, setShowNormalizationWizard] = useState(false);
+  const [showAutoPipelineModal, setShowAutoPipelineModal] = useState(false);
+  const { data: reactionsData } = useReactions(Number(id));
+  const reactions = reactionsData?.items ?? [];
 
   const lastJob = jobsData?.items?.[0] ?? null;
   const lastJobLabel = lastJob
@@ -85,15 +91,34 @@ export default function ExperimentView() {
           </div>
           <StatusBadge status={experiment.status} />
         </div>
-        <NewAnalysisDropdown
-          onAlignmentClick={() => setShowAlignmentWizard(true)}
-          onPeakCallingClick={() => setShowPeakCallingWizard(true)}
-          onDiffBindClick={() => setShowDiffBindWizard(true)}
-          onCustomHeatmapClick={() => setShowCustomHeatmapWizard(true)}
-          onPearsonCorrelationClick={() => setShowPearsonCorrelationWizard(true)}
-          onNormalizationClick={() => setShowNormalizationWizard(true)}
-        />
+        <div className="flex items-center gap-2">
+          {!experiment.autoPipelineStatus && reactions.length > 0 && (
+            <button
+              onClick={() => setShowAutoPipelineModal(true)}
+              className="rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700"
+            >
+              Run Full Pipeline
+            </button>
+          )}
+          <NewAnalysisDropdown
+            onAlignmentClick={() => setShowAlignmentWizard(true)}
+            onPeakCallingClick={() => setShowPeakCallingWizard(true)}
+            onDiffBindClick={() => setShowDiffBindWizard(true)}
+            onCustomHeatmapClick={() => setShowCustomHeatmapWizard(true)}
+            onPearsonCorrelationClick={() => setShowPearsonCorrelationWizard(true)}
+            onNormalizationClick={() => setShowNormalizationWizard(true)}
+          />
+        </div>
       </div>
+
+      {experiment.autoPipelineStatus && (
+        <AutoPipelineBanner
+          experiment={experiment}
+          onCancelled={() => {
+            // Refetch experiment to update status
+          }}
+        />
+      )}
 
       <div className="flex gap-6">
         <aside className="w-48 shrink-0">
@@ -157,6 +182,16 @@ export default function ExperimentView() {
         isOpen={showNormalizationWizard}
         onClose={() => setShowNormalizationWizard(false)}
         experiment={experiment}
+      />
+
+      <AutoPipelineModal
+        isOpen={showAutoPipelineModal}
+        onClose={() => setShowAutoPipelineModal(false)}
+        experiment={experiment}
+        reactions={reactions}
+        onStarted={() => {
+          // Refetch experiment to pick up new auto_pipeline_status
+        }}
       />
     </div>
   );
