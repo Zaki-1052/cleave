@@ -43,6 +43,40 @@ def _get_param(params: dict, key: str):
     return params.get(key, DEFAULTS.get(key))
 
 
+def _resolve_trimmomatic_cmd() -> list[str]:
+    """Resolve Trimmomatic invocation prefix, portable across install methods.
+
+    Priority:
+      1. TRIMMOMATIC_JAR env var (explicit JAR path for manual installs)
+      2. Conda share directory ($CONDA_PREFIX/share/trimmomatic-*/trimmomatic.jar)
+      3. 'trimmomatic' on PATH called directly (handles conda wrappers, system packages)
+    """
+    # 1. Explicit JAR path override
+    jar_env = os.environ.get("TRIMMOMATIC_JAR")
+    if jar_env:
+        jar_path = Path(jar_env)
+        if jar_path.is_file():
+            return ["java", "-jar", str(jar_path)]
+        logger.warning("TRIMMOMATIC_JAR set but file not found", path=jar_env)
+
+    # 2. Conda share directory
+    conda_prefix = os.environ.get("CONDA_PREFIX", "")
+    if conda_prefix:
+        jars = sorted(Path(conda_prefix).glob("share/trimmomatic-*/trimmomatic.jar"))
+        if jars:
+            return ["java", "-jar", str(jars[-1])]
+
+    # 3. trimmomatic on PATH (wrapper script or direct binary)
+    trimmomatic_bin = shutil.which("trimmomatic")
+    if trimmomatic_bin:
+        return [trimmomatic_bin]
+
+    raise PipelineError(
+        "Trimmomatic not found. Install via conda, set TRIMMOMATIC_JAR env var, "
+        "or ensure 'trimmomatic' is on PATH."
+    )
+
+
 class TrimmingStage(PipelineStage):
     """Two-stage FASTQ trimming: Trimmomatic PE + kseq_test fixed-length trim."""
 
@@ -103,10 +137,8 @@ class TrimmingStage(PipelineStage):
                     "kseq_test binary not found. Compile from backend/pipelines/tools/kseq_test.c"
                 )
 
-        # Resolve Trimmomatic JAR
-        trimmomatic_jar = shutil.which("trimmomatic")
-        if trimmomatic_jar is None:
-            raise PipelineError("Trimmomatic not found in PATH")
+        # Resolve Trimmomatic (JAR or wrapper, depending on install method)
+        trimmomatic_cmd_prefix = _resolve_trimmomatic_cmd()
 
         base_dir = working_dir / str(project_id) / str(experiment_id)
         trimmed_intermediate = base_dir / "fastqs" / "trimmed_intermediate"
@@ -135,9 +167,7 @@ class TrimmingStage(PipelineStage):
             r2_unpaired = trimmed_intermediate / f"{prefix}_R2_001.unpaired.fastq.gz"
 
             trim_cmd = [
-                "java",
-                "-jar",
-                trimmomatic_jar,
+                *trimmomatic_cmd_prefix,
                 "PE",
                 "-threads",
                 str(threads),

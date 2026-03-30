@@ -1,0 +1,13 @@
+kseq_test Binary Compilation
+============================
+
+The kseq_test binary must be compiled from source before running the trimming pipeline.
+
+Compile command:
+  gcc -O2 backend/pipelines/tools/kseq_test.c -lz -o backend/pipelines/tools/kseq_test
+
+This must be done on the target platform:
+- Local Mac (arm64): compile locally
+- EC2 (x86_64 Linux): compile on the instance
+
+The binary is not checked into version control — recompile after each fresh clone.
