@@ -18,6 +18,7 @@ from services.experiment_service import (
     list_experiments,
     update_experiment,
 )
+from services.permission_helpers import get_experiment_with_permission
 
 router = APIRouter()
 
@@ -117,7 +118,9 @@ async def start_auto_pipeline_endpoint(
     """Start auto-pipeline for an experiment."""
     from services import auto_pipeline_service
 
-    exp = await get_experiment(db, experiment_id, current_user.id)
+    exp = await get_experiment_with_permission(
+        db, experiment_id, current_user.id, ["admin", "contributor"]
+    )
     if not exp:
         raise HTTPException(status_code=404, detail="Experiment not found")
 
@@ -136,7 +139,9 @@ async def cancel_auto_pipeline_endpoint(
     """Cancel auto-pipeline. Completed steps are preserved."""
     from services import auto_pipeline_service  # noqa: F811
 
-    exp = await get_experiment(db, experiment_id, current_user.id)
+    exp = await get_experiment_with_permission(
+        db, experiment_id, current_user.id, ["admin", "contributor"]
+    )
     if not exp:
         raise HTTPException(status_code=404, detail="Experiment not found")
 
@@ -157,7 +162,9 @@ async def retry_auto_pipeline_endpoint(
     """Retry the failed auto-pipeline step and resume the chain."""
     from services import auto_pipeline_service  # noqa: F811
 
-    exp = await get_experiment(db, experiment_id, current_user.id)
+    exp = await get_experiment_with_permission(
+        db, experiment_id, current_user.id, ["admin", "contributor"]
+    )
     if not exp:
         raise HTTPException(status_code=404, detail="Experiment not found")
 
