@@ -1,7 +1,7 @@
 // frontend/src/components/layout/Navbar.tsx
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Bell, ChevronDown, Settings, LogOut } from 'lucide-react';
+import { Bell, BookOpen, ChevronDown, Settings, LogOut } from 'lucide-react';
 import { CleaveIcon } from '@/components/ui/CleaveIcon';
 import {
   DropdownMenu,
@@ -74,6 +74,15 @@ export function Navbar() {
           </button>
           <NotificationPanel isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
         </div>
+
+        {/* Docs link */}
+        <Link
+          to="/docs"
+          className="rounded-md p-2 text-foreground/60 transition-colors hover:text-primary"
+          aria-label="Documentation"
+        >
+          <BookOpen className="h-5 w-5" />
+        </Link>
 
         {/* Theme toggle */}
         <ThemeToggle />

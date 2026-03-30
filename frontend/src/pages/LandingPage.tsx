@@ -433,6 +433,10 @@ export default function LandingPage() {
                 {label}
               </a>
             ))}
+            <Link to="/docs"
+              className="hover:text-white transition-colors duration-200 relative after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-px after:bg-white/40 after:transition-all hover:after:w-full">
+              Docs
+            </Link>
             <Link to="/dashboard"
               className="ml-2 inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-semibold text-white transition-all duration-300 hover:scale-[1.03] hover:shadow-lg"
               style={{ background: `linear-gradient(135deg, ${C.blue}, ${C.seafoam})`, boxShadow: `0 2px 12px ${C.blue}25` }}>

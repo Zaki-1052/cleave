@@ -26,6 +26,9 @@ import HistoryTab from '@/pages/experiment/HistoryTab';
 import AllFilesTab from '@/pages/experiment/AllFilesTab';
 import AnalysisQueuePage from '@/pages/AnalysisQueuePage';
 import SettingsPage from '@/pages/SettingsPage';
+import DocsLayout from '@/components/docs/DocsLayout';
+import DocsLandingPage from '@/pages/docs/DocsLandingPage';
+import DocsPage from '@/pages/docs/DocsPage';
 import { useSSE } from '@/hooks/useSSE';
 
 function AuthenticatedLayout() {
@@ -49,6 +52,10 @@ export default function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/docs" element={<DocsLayout />}>
+        <Route index element={<DocsLandingPage />} />
+        <Route path=":slug" element={<DocsPage />} />
+      </Route>
       <Route element={<ErrorBoundary><AuthenticatedLayout /></ErrorBoundary>}>
         <Route path="/dashboard" element={<HomePage />} />
         <Route path="/projects/:id" element={<ProjectDetailPage />} />
