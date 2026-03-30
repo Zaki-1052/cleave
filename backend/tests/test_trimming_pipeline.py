@@ -2,7 +2,9 @@
 """Unit tests for the trimming pipeline module."""
 
 import gzip
+import time
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -172,3 +174,115 @@ def test_generate_methods_text_custom_params(stage):
     assert "LEADING:30" in text
     assert "MINLEN:36" in text
     assert "50bp" in text
+
+
+# --- Concurrency tests ---
+
+
+def _make_multi_pair_params(storage_root: Path, n_pairs: int = 4) -> dict:
+    """Create N FASTQ pairs with stub files and return valid params dict."""
+    fastq_content = b"@SEQ_ID\nACGTACGT\n+\nIIIIIIII\n"
+    raw_dir = storage_root / "projects" / "1" / "1" / "fastqs" / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+
+    pairs = []
+    for i in range(n_pairs):
+        name = f"sample_{i}"
+        r1 = raw_dir / f"{name}_R1_001.fastq.gz"
+        r2 = raw_dir / f"{name}_R2_001.fastq.gz"
+        r1.write_bytes(gzip.compress(fastq_content))
+        r2.write_bytes(gzip.compress(fastq_content))
+        pairs.append(
+            {
+                "prefix": name,
+                "r1_path": f"projects/1/1/fastqs/raw/{name}_R1_001.fastq.gz",
+                "r2_path": f"projects/1/1/fastqs/raw/{name}_R2_001.fastq.gz",
+                "r1_id": i * 2 + 1,
+                "r2_id": i * 2 + 2,
+            }
+        )
+
+    return {
+        "experiment_id": 1,
+        "project_id": 1,
+        "fastq_pairs": pairs,
+    }
+
+
+@patch("pipelines.trimming.settings")
+def test_mock_run_concurrent_correct_results(mock_settings, stage, tmp_path):
+    """Multiple pairs concurrently produce all expected outputs."""
+    mock_settings.STORAGE_ROOT = str(tmp_path)
+    mock_settings.MAX_CONCURRENT_REACTIONS = 4
+
+    params = _make_multi_pair_params(tmp_path, n_pairs=5)
+    working_dir = tmp_path / "projects"
+    job_dir = tmp_path / "job_1"
+
+    result = stage.mock_run(1, params, working_dir, job_dir)
+
+    assert result["status"] == "complete"
+    assert len(result["outputs"]) == 5
+    prefixes = {o["prefix"] for o in result["outputs"]}
+    assert prefixes == {f"sample_{i}" for i in range(5)}
+
+
+@patch("pipelines.trimming.settings")
+def test_mock_run_output_ordering_deterministic(mock_settings, stage, tmp_path):
+    """Outputs follow original pair order, not thread completion order."""
+    mock_settings.STORAGE_ROOT = str(tmp_path)
+    mock_settings.MAX_CONCURRENT_REACTIONS = 8
+
+    params = _make_multi_pair_params(tmp_path, n_pairs=6)
+    working_dir = tmp_path / "projects"
+    job_dir = tmp_path / "job_2"
+
+    result = stage.mock_run(2, params, working_dir, job_dir)
+
+    output_prefixes = [o["prefix"] for o in result["outputs"]]
+    assert output_prefixes == [f"sample_{i}" for i in range(6)]
+
+
+@patch("pipelines.trimming.settings")
+def test_mock_run_concurrent_faster_than_sequential(mock_settings, stage, tmp_path):
+    """Concurrent processing completes faster than N x sleep(1) would sequentially."""
+    mock_settings.STORAGE_ROOT = str(tmp_path)
+    mock_settings.MAX_CONCURRENT_REACTIONS = 4
+
+    params = _make_multi_pair_params(tmp_path, n_pairs=4)
+    working_dir = tmp_path / "projects"
+    job_dir = tmp_path / "job_3"
+
+    start = time.time()
+    result = stage.mock_run(3, params, working_dir, job_dir)
+    elapsed = time.time() - start
+
+    assert result["status"] == "complete"
+    # 4 pairs with sleep(1) each, concurrent should finish in ~1-2s, not 4s
+    assert elapsed < 3.0
+
+
+@patch("pipelines.trimming.settings")
+def test_mock_run_sequential_equivalence(mock_settings, stage, tmp_path):
+    """With MAX_CONCURRENT_REACTIONS=1, output is identical to sequential behavior."""
+    mock_settings.STORAGE_ROOT = str(tmp_path)
+    mock_settings.MAX_CONCURRENT_REACTIONS = 1
+
+    params = _make_multi_pair_params(tmp_path, n_pairs=3)
+    working_dir = tmp_path / "projects"
+    job_dir = tmp_path / "job_4"
+
+    result = stage.mock_run(4, params, working_dir, job_dir)
+
+    assert result["status"] == "complete"
+    assert len(result["outputs"]) == 3
+    # Verify original order preserved
+    assert result["outputs"][0]["prefix"] == "sample_0"
+    assert result["outputs"][1]["prefix"] == "sample_1"
+    assert result["outputs"][2]["prefix"] == "sample_2"
+    # Verify all files exist on disk
+    for out in result["outputs"]:
+        r1 = Path(mock_settings.STORAGE_ROOT) / out["r1_path"]
+        r2 = Path(mock_settings.STORAGE_ROOT) / out["r2_path"]
+        assert r1.exists()
+        assert r2.exists()

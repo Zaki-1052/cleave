@@ -1,29 +1,34 @@
-# 2026-03-29 — kseq_test Compilation + Trimmomatic Resolution Fix
+# 2026-03-29 — kseq_test Fix, Trimmomatic Resolution, Parallel Trimming
 
 ## What was done
 
 - **Compiled kseq_test binary** from `backend/pipelines/tools/kseq_test.c` using `gcc -O2 ... -lz`
-- **Fixed Trimmomatic invocation** in `backend/pipelines/trimming.py`:
-  - Conda installs Trimmomatic as a Python wrapper script, not a JAR — `java -jar <wrapper>` fails
-  - Added `_resolve_trimmomatic_cmd()` helper with 3 fallback strategies:
-    1. `TRIMMOMATIC_JAR` env var (explicit JAR path for manual installs)
-    2. Conda share directory (`$CONDA_PREFIX/share/trimmomatic-*/trimmomatic.jar`) → `java -jar`
-    3. `trimmomatic` on PATH called directly (handles wrapper scripts)
-  - Replaced hardcoded `["java", "-jar", trimmomatic_jar, ...]` with `[*trimmomatic_cmd_prefix, ...]`
+- **Fixed Trimmomatic invocation** — conda installs a Python wrapper, not a JAR. Added `_resolve_trimmomatic_cmd()` with 3 portable fallbacks: `TRIMMOMATIC_JAR` env var → conda share dir JAR → `trimmomatic` on PATH
+- **Parallelized trimming pipeline** — converted sequential per-pair loop to `ThreadPoolExecutor`, matching alignment's existing pattern:
+  - Added `_TrimmingContext` frozen dataclass for thread-safe shared state
+  - Extracted `_process_pair()` as standalone module-level function
+  - `run()` divides threads: `threads_per_pair = max(2, total // concurrent_count)`
+  - Partial failure support (only fails if ALL pairs fail)
+  - Termination shuts down executor immediately
+  - `mock_run()` also parallelized with `sleep(1)` per pair
+- **Added 4 concurrency tests**: correct results, deterministic ordering, faster-than-sequential, sequential equivalence
 - **Created `docs/note.txt`** with kseq_test compilation instructions
-
-## Files modified
-
-- `backend/pipelines/tools/kseq_test` — compiled binary (not in git)
-- `backend/pipelines/trimming.py` — Trimmomatic resolution logic
-- `docs/note.txt` — kseq_test build instructions
 
 ## Decisions made
 
-- Portable Trimmomatic resolution: works with conda wrappers (local dev), direct JARs (EC2), and system packages
-- kseq_test must be compiled per-platform (arm64 local, x86_64 EC2)
+- Reused `settings.MAX_CONCURRENT_REACTIONS` (default 8) from alignment — no new config
+- Trimmomatic's `-threads` gets per-pair count, not total (diminishing returns past ~4-8 threads)
+- Partial failure mirrors alignment: individual pair errors stored, only fatal if ALL fail
+- `tuple[str, ...]` for `trimmomatic_cmd_prefix` in frozen dataclass (immutable)
 
 ## Open items
 
-- Worker must be restarted after code changes to pick up the fix
-- Tests not yet run (user in middle of local test)
+- Worker must be restarted to pick up changes
+- kseq_test binary must be compiled per-platform (arm64 local, x86_64 EC2)
+
+## Key file paths
+
+- `backend/pipelines/trimming.py` — main implementation
+- `backend/tests/test_trimming_pipeline.py` — 13 tests (9 existing + 4 new), all passing
+- `backend/pipelines/tools/kseq_test` — compiled binary (not in git)
+- `docs/note.txt` — kseq_test build instructions
