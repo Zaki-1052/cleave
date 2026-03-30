@@ -6,15 +6,10 @@
 ## Project Documentation
 
 @README.md
-docs/cutana-cloud-ui.md
-@docs/cutana-architecture-plan.md
-@docs/cutana-cloud-info.md
+docs/cutana-cloud-info.md
 @docs/cf-lab-pipeline-spec.md
-@docs/cutana-cloud-docs.md
-@docs/cleave-spec-decisions.md
-@docs/PLAN.md
-@docs/todos.md
-docs/ui-improvement.md
+docs/cutana-cloud-docs.md
+@docs/SPEC.md
 
 ## Tech Stack
 
