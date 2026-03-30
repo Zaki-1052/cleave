@@ -5,7 +5,7 @@
 > **Author**: Zakir Alibhai
 > **Supersedes**: `cutana-architecture-plan.md`, `PLAN.md`, `cleave-spec-decisions.md`, `todos.md`
 
-Self-hosted CUT&RUN/CUT&Tag bioinformatics platform for the Ferguson Lab at UCSD. Replicates EpiCypher's CUTANA Cloud and extends it with lab-specific pipeline features. Single EC2 instance, ~8-10 users. 474+ backend tests passing.
+Self-hosted CUT&RUN/CUT&Tag bioinformatics platform for the Ferguson Lab at UCSD. Replicates EpiCypher's CUTANA Cloud and extends it with lab-specific pipeline features. Single EC2 instance, ~8-10 users. 492+ backend tests passing.
 
 ---
 
@@ -873,7 +873,7 @@ These bugs were found in the lab's scripts and fixed in Cleave:
 
 ## 14. Test Suite
 
-474+ tests across 27 test files, all running inside Docker (`docker compose exec api pytest tests/`).
+492+ tests across 27 test files, all running inside Docker (`docker compose exec api pytest tests/`).
 
 | Test File | Count | Scope |
 |-----------|-------|-------|
