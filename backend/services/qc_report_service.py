@@ -5,14 +5,14 @@ import csv
 import io
 from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from config import settings
 from models.analysis_job import AnalysisJob
 from models.experiment import Experiment
-from models.project import ProjectMember
+from models.project import Project, ProjectMember
 from pipelines.spike_in_barcodes import PTM_NAMES, normalize_counts
 from schemas.qc_report import (
     AlignmentQCReport,
@@ -39,14 +39,21 @@ async def _get_authorized_job(
     job_id: int,
     user_id: int,
 ) -> AnalysisJob | None:
-    """Fetch a job if the user has access to its project."""
+    """Fetch a job if the user has access (project member or reference project)."""
     result = await db.execute(
         select(AnalysisJob)
         .join(Experiment, Experiment.id == AnalysisJob.experiment_id)
-        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
+        .join(Project, Project.id == Experiment.project_id)
+        .outerjoin(
+            ProjectMember,
+            and_(
+                ProjectMember.project_id == Experiment.project_id,
+                ProjectMember.user_id == user_id,
+            ),
+        )
         .where(
             AnalysisJob.id == job_id,
-            ProjectMember.user_id == user_id,
+            or_(ProjectMember.user_id.isnot(None), Project.is_reference.is_(True)),
         )
         .options(selectinload(AnalysisJob.outputs))
     )

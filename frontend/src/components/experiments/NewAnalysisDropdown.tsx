@@ -54,6 +54,10 @@ export function NewAnalysisDropdown({
           <ArrowLeftRight className="h-4 w-4" />
           DiffBind
         </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onNormalizationClick}>
+          <Scale className="h-4 w-4" />
+          Normalization
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={onCustomHeatmapClick}>
           <Grid3x3 className="h-4 w-4" />
           Custom Heatmap
@@ -61,10 +65,6 @@ export function NewAnalysisDropdown({
         <DropdownMenuItem onSelect={onPearsonCorrelationClick}>
           <ScatterChart className="h-4 w-4" />
           Correlation
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={onNormalizationClick}>
-          <Scale className="h-4 w-4" />
-          Normalization
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

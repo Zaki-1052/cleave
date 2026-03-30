@@ -83,20 +83,61 @@ for (idx in seq_along(samples)) {
 
     cat(s, chr, chrlen, "\n")
     sig1 <- rep(0, chrlen)
+    names(sig1) <- as.character(1:chrlen)
 
     q1 <- GRanges(seqnames = chr, ranges = IRanges(start = x1, end = y1))
     q  <- GRanges(seqnames = chr, ranges = IRanges(start = 1:chrlen, end = 1:chrlen))
 
     u1 <- findOverlaps(q, q1)
-    w <- mcols(ychr)$score[u1@to]
-    names(w) <- as.character(1:chrlen)
-    sbw.list[[chr]] <- w
+    sig1[u1@from] <- mcols(ychr)$score[u1@to]
+    sbw.list[[chr]] <- sig1
   }
   samples.list[[s]] <- sbw.list
 }
 
 # -----------------------------------------------------------------
-# Step 2: Build coverage matrix — verbatim from peak_extractor.r
+# Step 1.5: Align chromosome lengths across samples
+# Different bigWig files may have slightly different coverage extents
+# at chromosome ends, producing different bin counts. Truncate all
+# samples to the minimum shared length per chromosome so the matrix
+# dimensions match. (Lab script assumes identical extents; we can't.)
+# -----------------------------------------------------------------
+cat("aligning chromosome lengths across samples\n")
+common_chrlen <- list()
+for (chr in chroms) {
+  lengths_for_chr <- c()
+  for (s in samples) {
+    if (!is.null(samples.list[[s]][[chr]])) {
+      lengths_for_chr <- c(lengths_for_chr, length(samples.list[[s]][[chr]]))
+    }
+  }
+  if (length(lengths_for_chr) > 0) {
+    common_chrlen[[chr]] <- min(lengths_for_chr)
+  }
+}
+
+for (s in samples) {
+  for (chr in names(common_chrlen)) {
+    clen <- common_chrlen[[chr]]
+    if (!is.null(samples.list[[s]][[chr]])) {
+      orig_len <- length(samples.list[[s]][[chr]])
+      if (orig_len > clen) {
+        samples.list[[s]][[chr]] <- samples.list[[s]][[chr]][1:clen]
+      } else if (orig_len < clen) {
+        padding <- rep(0, clen - orig_len)
+        names(padding) <- as.character((orig_len + 1):clen)
+        samples.list[[s]][[chr]] <- c(samples.list[[s]][[chr]], padding)
+      }
+    } else {
+      padding <- rep(0, clen)
+      names(padding) <- as.character(1:clen)
+      samples.list[[s]][[chr]] <- padding
+    }
+  }
+}
+
+# -----------------------------------------------------------------
+# Step 2: Build coverage matrix — from peak_extractor.r
 # -----------------------------------------------------------------
 cat("calculating number of bins\n")
 u <- unlist(samples.list[[samples[1]]])

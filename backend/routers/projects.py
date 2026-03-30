@@ -23,6 +23,7 @@ from services.project_service import (
     create_project,
     delete_project,
     get_project,
+    get_reference_projects,
     list_members,
     list_projects_for_user,
     remove_member,
@@ -31,6 +32,15 @@ from services.project_service import (
 )
 
 router = APIRouter()
+
+
+@router.get("/reference", response_model=list[ProjectRead])
+async def list_reference_projects(
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List all reference projects (visible to all authenticated users)."""
+    return await get_reference_projects(db)
 
 
 @router.get("", response_model=PaginatedResponse[ProjectRead])

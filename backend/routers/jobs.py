@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import FileResponse
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import current_active_user
@@ -11,7 +11,7 @@ from database import get_db
 from models.analysis_job import AnalysisJob
 from models.experiment import Experiment
 from models.job_output import JobOutput
-from models.project import ProjectMember
+from models.project import Project, ProjectMember
 from models.user import User
 from schemas.common import PaginatedResponse
 from schemas.job import JobCreate, JobLogTailRead, JobOutputRead, JobQueueRead, JobRead, JobUpdate
@@ -231,11 +231,18 @@ async def get_output_signed_url(
         select(JobOutput, Experiment.project_id)
         .join(AnalysisJob, AnalysisJob.id == JobOutput.job_id)
         .join(Experiment, Experiment.id == AnalysisJob.experiment_id)
-        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
+        .join(Project, Project.id == Experiment.project_id)
+        .outerjoin(
+            ProjectMember,
+            and_(
+                ProjectMember.project_id == Experiment.project_id,
+                ProjectMember.user_id == user.id,
+            ),
+        )
         .where(
             JobOutput.id == output_id,
             JobOutput.job_id == job_id,
-            ProjectMember.user_id == user.id,
+            or_(ProjectMember.user_id.isnot(None), Project.is_reference.is_(True)),
         )
     )
     row = result.first()

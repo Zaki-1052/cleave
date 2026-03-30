@@ -2,6 +2,11 @@
 import client from './client';
 import type { Member, PaginatedResponse, Project } from './types';
 
+export async function getReferenceProjects(): Promise<Project[]> {
+  const { data } = await client.get<Project[]>('/projects/reference');
+  return data;
+}
+
 export async function getProjects(
   page = 1,
   perPage = 25,

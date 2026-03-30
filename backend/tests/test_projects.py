@@ -1,5 +1,9 @@
 # backend/tests/test_projects.py
 from httpx import AsyncClient
+from sqlalchemy import select
+
+from models.experiment import Experiment
+from models.project import Project
 
 
 async def _register_and_get_headers(client: AsyncClient, email: str) -> dict:
@@ -295,3 +299,152 @@ async def test_nonmember_gets_404_for_project_actions(client: AsyncClient):
     # Non-member tries to list members — should get 404
     resp = await client.get(f"/api/v1/projects/{project_id}/members", headers=headers_outsider)
     assert resp.status_code == 404
+
+
+# --- Reference project tests ---
+
+
+async def _create_reference_project_in_db(db) -> tuple[int, int]:
+    """Create a reference project + experiment directly in DB. Returns (project_id, experiment_id)."""
+    project = Project(
+        name="Gold Standard Reference",
+        description="Test reference project",
+        is_reference=True,
+        created_by=None,
+    )
+    db.add(project)
+    await db.flush()
+
+    experiment = Experiment(
+        project_id=project.id,
+        name="MeCP2 CUT&RUN",
+        assay_type="CUT&RUN",
+        status="complete",
+        created_by=None,
+    )
+    db.add(experiment)
+    await db.commit()
+    return project.id, experiment.id
+
+
+async def test_reference_project_visible_to_all_users(client: AsyncClient):
+    """Any authenticated user can GET a reference project without being a member."""
+    from tests.conftest import test_session_factory
+
+    async with test_session_factory() as db:
+        pid, _ = await _create_reference_project_in_db(db)
+
+    headers = await _register_and_get_headers(client, "viewer@example.com")
+    resp = await client.get(f"/api/v1/projects/{pid}", headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["isReference"] is True
+
+
+async def test_list_reference_projects_endpoint(client: AsyncClient):
+    """GET /projects/reference returns reference projects."""
+    from tests.conftest import test_session_factory
+
+    async with test_session_factory() as db:
+        await _create_reference_project_in_db(db)
+
+    headers = await _register_and_get_headers(client, "user@example.com")
+    resp = await client.get("/api/v1/projects/reference", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data) == 1
+    assert data[0]["isReference"] is True
+    assert data[0]["name"] == "Gold Standard Reference"
+
+
+async def test_reference_project_not_in_user_projects_list(client: AsyncClient):
+    """GET /projects does not include reference projects (they're fetched separately)."""
+    from tests.conftest import test_session_factory
+
+    async with test_session_factory() as db:
+        await _create_reference_project_in_db(db)
+
+    headers = await _register_and_get_headers(client, "user@example.com")
+    resp = await client.get("/api/v1/projects", headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 0
+
+
+async def test_reference_project_blocks_experiment_creation(client: AsyncClient):
+    """Cannot create an experiment in a reference project."""
+    from tests.conftest import test_session_factory
+
+    async with test_session_factory() as db:
+        pid, _ = await _create_reference_project_in_db(db)
+
+    headers = await _register_and_get_headers(client, "user@example.com")
+    resp = await client.post(
+        f"/api/v1/experiments?projectId={pid}",
+        json={"name": "Hacked", "assayType": "CUT&RUN"},
+        headers=headers,
+    )
+    # No ProjectMember row exists, so the permission check returns None -> 403 or 404
+    assert resp.status_code in (403, 404)
+
+
+async def test_reference_project_experiment_visible(client: AsyncClient):
+    """Non-member can list and view experiments in a reference project."""
+    from tests.conftest import test_session_factory
+
+    async with test_session_factory() as db:
+        pid, eid = await _create_reference_project_in_db(db)
+
+    headers = await _register_and_get_headers(client, "viewer@example.com")
+
+    # List experiments
+    resp = await client.get(f"/api/v1/experiments?projectId={pid}", headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 1
+
+    # Get single experiment
+    resp = await client.get(f"/api/v1/experiments/{eid}", headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["name"] == "MeCP2 CUT&RUN"
+
+
+async def test_reference_project_cannot_be_deleted(client: AsyncClient):
+    """Reference projects cannot be deleted even by a superuser-like route."""
+    from tests.conftest import test_session_factory
+
+    async with test_session_factory() as db:
+        pid, _ = await _create_reference_project_in_db(db)
+
+    headers = await _register_and_get_headers(client, "admin@example.com")
+    # No ProjectMember exists, so admin check returns 404
+    resp = await client.delete(f"/api/v1/projects/{pid}", headers=headers)
+    assert resp.status_code == 404
+
+    # Verify project still exists
+    async with test_session_factory() as db:
+        result = await db.execute(select(Project).where(Project.id == pid))
+        assert result.scalar_one_or_none() is not None
+
+
+async def test_reference_project_blocks_job_creation(client: AsyncClient):
+    """Cannot submit a job in a reference project experiment."""
+    from tests.conftest import test_session_factory
+
+    async with test_session_factory() as db:
+        pid, eid = await _create_reference_project_in_db(db)
+
+    headers = await _register_and_get_headers(client, "user@example.com")
+    resp = await client.post(
+        f"/api/v1/experiments/{eid}/jobs",
+        json={
+            "jobType": "alignment",
+            "name": "Hacked",
+            "params": {"reference_genome": "mm10"},
+        },
+        headers=headers,
+    )
+    assert resp.status_code in (403, 404)
+
+
+async def test_reference_projects_endpoint_requires_auth(client: AsyncClient):
+    """GET /projects/reference requires authentication."""
+    resp = await client.get("/api/v1/projects/reference")
+    assert resp.status_code == 401

@@ -2,7 +2,7 @@
 import shutil
 from pathlib import Path
 
-from sqlalchemy import func, select, update
+from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -55,8 +55,15 @@ async def list_experiments(
 ) -> tuple[list[Experiment], int]:
     base = (
         select(Experiment)
-        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
-        .where(ProjectMember.user_id == user_id)
+        .join(Project, Project.id == Experiment.project_id)
+        .outerjoin(
+            ProjectMember,
+            and_(
+                ProjectMember.project_id == Experiment.project_id,
+                ProjectMember.user_id == user_id,
+            ),
+        )
+        .where(or_(ProjectMember.user_id.isnot(None), Project.is_reference.is_(True)))
     )
     if project_id is not None:
         base = base.where(Experiment.project_id == project_id)
@@ -74,8 +81,18 @@ async def list_experiments(
 async def get_experiment(db: AsyncSession, experiment_id: int, user_id: int) -> Experiment | None:
     result = await db.execute(
         select(Experiment)
-        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
-        .where(Experiment.id == experiment_id, ProjectMember.user_id == user_id)
+        .join(Project, Project.id == Experiment.project_id)
+        .outerjoin(
+            ProjectMember,
+            and_(
+                ProjectMember.project_id == Experiment.project_id,
+                ProjectMember.user_id == user_id,
+            ),
+        )
+        .where(
+            Experiment.id == experiment_id,
+            or_(ProjectMember.user_id.isnot(None), Project.is_reference.is_(True)),
+        )
         .options(selectinload(Experiment.creator))
     )
     return result.scalar_one_or_none()

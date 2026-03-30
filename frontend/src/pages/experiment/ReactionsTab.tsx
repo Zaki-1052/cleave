@@ -14,10 +14,11 @@ import type { Experiment, PrefixInfo, Reaction } from '@/api/types';
 
 interface ExperimentContext {
   experiment: Experiment;
+  isReadOnly?: boolean;
 }
 
 export default function ReactionsTab() {
-  const { experiment } = useOutletContext<ExperimentContext>();
+  const { experiment, isReadOnly } = useOutletContext<ExperimentContext>();
   const { data, isLoading } = useReactions(experiment.id);
   const { data: prefixes } = usePrefixes(experiment.id);
   const [showEditor, setShowEditor] = useState(false);
@@ -74,11 +75,13 @@ export default function ReactionsTab() {
           <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Reactions
           </h3>
-          <div className="flex gap-2">
-            <Button variant="primary" onClick={() => setShowEditor(true)}>
-              Edit
-            </Button>
-          </div>
+          {!isReadOnly && (
+            <div className="flex gap-2">
+              <Button variant="primary" onClick={() => setShowEditor(true)}>
+                Edit
+              </Button>
+            </div>
+          )}
         </div>
 
         {reactions.length > 0 ? (

@@ -15,6 +15,7 @@ export interface Project {
   description: string | null;
   createdBy: number | null;
   storageBytes: number;
+  isReference: boolean;
   createdAt: string;
   updatedAt: string;
 }

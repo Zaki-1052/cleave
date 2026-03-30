@@ -21,6 +21,7 @@ import type { Experiment, FastqFile } from '@/api/types';
 
 interface ExperimentContext {
   experiment: Experiment;
+  isReadOnly?: boolean;
 }
 
 const staticColumns: ColumnDef<FastqFile, unknown>[] = [
@@ -98,7 +99,7 @@ function buildTrimJobParams(
 }
 
 export default function FastqsTab() {
-  const { experiment } = useOutletContext<ExperimentContext>();
+  const { experiment, isReadOnly } = useOutletContext<ExperimentContext>();
   const { data, isLoading } = useFastqs(experiment.id);
   const deleteMutation = useDeleteFastq();
   const createJobMutation = useCreateJob();
@@ -273,21 +274,23 @@ export default function FastqsTab() {
           <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             FASTQ Files
           </h3>
-          <div className="flex gap-2">
-            <Button
-              variant="primary"
-              onClick={() => setShowUpload((prev) => !prev)}
-            >
-              {showUpload ? 'Close' : '+ Add FASTQs'}
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => setShowServerImport(true)}
-            >
-              <Server className="mr-1 h-4 w-4" />
-              Import from Server
-            </Button>
-          </div>
+          {!isReadOnly && (
+            <div className="flex gap-2">
+              <Button
+                variant="primary"
+                onClick={() => setShowUpload((prev) => !prev)}
+              >
+                {showUpload ? 'Close' : '+ Add FASTQs'}
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => setShowServerImport(true)}
+              >
+                <Server className="mr-1 h-4 w-4" />
+                Import from Server
+              </Button>
+            </div>
+          )}
         </div>
 
         {showUpload && (

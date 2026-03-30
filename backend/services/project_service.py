@@ -2,7 +2,7 @@
 import shutil
 from pathlib import Path
 
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -49,10 +49,23 @@ async def list_projects_for_user(
 async def get_project(db: AsyncSession, project_id: int, user_id: int) -> Project | None:
     result = await db.execute(
         select(Project)
-        .join(ProjectMember, ProjectMember.project_id == Project.id)
-        .where(Project.id == project_id, ProjectMember.user_id == user_id)
+        .outerjoin(
+            ProjectMember,
+            and_(ProjectMember.project_id == Project.id, ProjectMember.user_id == user_id),
+        )
+        .where(
+            Project.id == project_id,
+            or_(ProjectMember.user_id.isnot(None), Project.is_reference.is_(True)),
+        )
     )
     return result.scalar_one_or_none()
+
+
+async def get_reference_projects(db: AsyncSession) -> list[Project]:
+    result = await db.execute(
+        select(Project).where(Project.is_reference.is_(True)).order_by(Project.name)
+    )
+    return list(result.scalars().all())
 
 
 async def update_project(db: AsyncSession, project_id: int, data: ProjectUpdate) -> Project | None:
@@ -71,6 +84,8 @@ async def update_project(db: AsyncSession, project_id: int, data: ProjectUpdate)
 async def delete_project(db: AsyncSession, project_id: int) -> None:
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
+    if project and project.is_reference:
+        return  # Reference projects cannot be deleted
     if project:
         await db.delete(project)
         await db.commit()

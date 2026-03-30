@@ -11,7 +11,7 @@ from config import settings
 from models.fastq_file import FastqFile
 from services.event_service import log_event
 from services.job_output_service import update_storage_bytes
-from services.permission_helpers import get_experiment_with_permission
+from services.permission_helpers import check_experiment_membership, get_experiment_with_permission
 
 CHUNK_SIZE = 1024 * 1024  # 1 MB
 VALID_EXTENSIONS = (".fastq.gz", ".fastq", ".fq.gz", ".fq")
@@ -248,10 +248,8 @@ async def list_fastqs(
     per_page: int,
 ) -> tuple[list[FastqFile], int] | None:
     """List FASTQ files for an experiment. Returns None if not authorized."""
-    # Verify membership (any role)
-    experiment = await get_experiment_with_permission(
-        db, experiment_id, user_id, ["admin", "contributor", "viewer"]
-    )
+    # Verify membership (any role) or reference project
+    experiment = await check_experiment_membership(db, experiment_id, user_id)
     if experiment is None:
         return None
 

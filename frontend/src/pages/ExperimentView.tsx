@@ -23,6 +23,7 @@ import { AutoPipelineModal } from '@/components/experiments/AutoPipelineModal';
 import { AutoPipelineBanner } from '@/components/experiments/AutoPipelineBanner';
 import { useExperiment } from '@/hooks/useExperiments';
 import { useJobs } from '@/hooks/useJobs';
+import { useProject } from '@/hooks/useProjects';
 import { useReactions } from '@/hooks/useReactions';
 
 const JOB_TYPE_LABELS: Record<string, string> = {
@@ -54,6 +55,8 @@ export default function ExperimentView() {
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
   const { data: experiment, isLoading } = useExperiment(Number(id));
+  const { data: parentProject } = useProject(experiment?.projectId ?? 0);
+  const isReadOnly = parentProject?.isReference ?? false;
   const { data: jobsData } = useJobs(Number(id), 1, 1);
   const [showAlignmentWizard, setShowAlignmentWizard] = useState(false);
   const [showPeakCallingWizard, setShowPeakCallingWizard] = useState(false);
@@ -101,24 +104,26 @@ export default function ExperimentView() {
           </div>
           <StatusBadge status={experiment.status} />
         </div>
-        <div className="flex items-center gap-2">
-          {!experiment.autoPipelineStatus && reactions.length > 0 && (
-            <Button
-              variant="success"
-              onClick={() => setShowAutoPipelineModal(true)}
-            >
-              Run Full Pipeline
-            </Button>
-          )}
-          <NewAnalysisDropdown
-            onAlignmentClick={() => setShowAlignmentWizard(true)}
-            onPeakCallingClick={() => setShowPeakCallingWizard(true)}
-            onDiffBindClick={() => setShowDiffBindWizard(true)}
-            onCustomHeatmapClick={() => setShowCustomHeatmapWizard(true)}
-            onPearsonCorrelationClick={() => setShowPearsonCorrelationWizard(true)}
-            onNormalizationClick={() => setShowNormalizationWizard(true)}
-          />
-        </div>
+        {!isReadOnly && (
+          <div className="flex items-center gap-2">
+            {!experiment.autoPipelineStatus && reactions.length > 0 && (
+              <Button
+                variant="success"
+                onClick={() => setShowAutoPipelineModal(true)}
+              >
+                Run Full Pipeline
+              </Button>
+            )}
+            <NewAnalysisDropdown
+              onAlignmentClick={() => setShowAlignmentWizard(true)}
+              onPeakCallingClick={() => setShowPeakCallingWizard(true)}
+              onDiffBindClick={() => setShowDiffBindWizard(true)}
+              onCustomHeatmapClick={() => setShowCustomHeatmapWizard(true)}
+              onPearsonCorrelationClick={() => setShowPearsonCorrelationWizard(true)}
+              onNormalizationClick={() => setShowNormalizationWizard(true)}
+            />
+          </div>
+        )}
       </div>
 
       {experiment.autoPipelineStatus && (
@@ -158,7 +163,7 @@ export default function ExperimentView() {
         </aside>
 
         <div className="flex-1">
-          <Outlet context={{ experiment }} />
+          <Outlet context={{ experiment, isReadOnly }} />
         </div>
       </div>
 

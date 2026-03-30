@@ -1,7 +1,7 @@
 // frontend/src/pages/ProjectDetailPage.tsx
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { UserPlus } from 'lucide-react';
+import { Crown, UserPlus, Users } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
@@ -63,6 +63,7 @@ export default function ProjectDetailPage() {
 
   const currentMember = members?.find((m) => m.userId === currentUser?.id);
   const isAdmin = currentMember?.role === 'admin';
+  const isReference = project?.isReference ?? false;
 
   if (isLoading) {
     return (
@@ -84,7 +85,17 @@ export default function ProjectDetailPage() {
     <div className="flex gap-6">
       <aside className="w-64 shrink-0">
         <Card>
-          <h2 className="font-display text-lg font-bold text-foreground">{project.name}</h2>
+          <div className="flex items-center gap-2">
+            {isReference && <Crown className="h-5 w-5 shrink-0 text-amber-500" />}
+            <h2 className="font-display text-lg font-bold text-foreground">{project.name}</h2>
+          </div>
+
+          {isReference && (
+            <div className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
+              Read-only reference project with pre-analyzed data.
+            </div>
+          )}
+
           <div className="mt-2">
             <StorageGauge
               usedBytes={project.storageBytes}
@@ -95,56 +106,71 @@ export default function ProjectDetailPage() {
 
           <hr className="my-4" />
 
-          <h3 className="mb-3 text-sm font-semibold text-muted-foreground">
-            {members?.length ?? 0} Members
-          </h3>
-          <div className="space-y-3">
-            {members?.map((member) => (
-              <div key={member.userId} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-teal text-xs font-semibold text-white ring-2 ring-white shadow-sm">
-                    {getInitials(member.user)}
+          {isReference ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Users className="h-4 w-4" />
+              <span>Shared with all users</span>
+            </div>
+          ) : (
+            <>
+              <h3 className="mb-3 text-sm font-semibold text-muted-foreground">
+                {members?.length ?? 0} Members
+              </h3>
+              <div className="space-y-3">
+                {members?.map((member) => (
+                  <div key={member.userId} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-teal text-xs font-semibold text-white ring-2 ring-white shadow-sm">
+                        {getInitials(member.user)}
+                      </div>
+                      <span className="text-sm text-foreground">{getDisplayName(member.user)}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {ROLE_LABELS[member.role] ?? member.role}
+                    </span>
                   </div>
-                  <span className="text-sm text-foreground">{getDisplayName(member.user)}</span>
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  {ROLE_LABELS[member.role] ?? member.role}
-                </span>
+                ))}
               </div>
-            ))}
-          </div>
 
-          {isAdmin && (
-            <button
-              className="mt-4 inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
-              onClick={() => setIsMembersModalOpen(true)}
-            >
-              <UserPlus className="h-4 w-4" />
-              Manage Members
-            </button>
+              {isAdmin && (
+                <button
+                  className="mt-4 inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+                  onClick={() => setIsMembersModalOpen(true)}
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Manage Members
+                </button>
+              )}
+            </>
           )}
         </Card>
-        <ManageMembersModal
-          isOpen={isMembersModalOpen}
-          onClose={() => setIsMembersModalOpen(false)}
-          projectId={projectId}
-        />
-        <CreateExperimentWizard
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          projectId={projectId}
-          onCreated={(experiment) => {
-            setIsCreateModalOpen(false);
-            navigate(`/experiments/${experiment.id}`);
-          }}
-        />
+        {!isReference && (
+          <>
+            <ManageMembersModal
+              isOpen={isMembersModalOpen}
+              onClose={() => setIsMembersModalOpen(false)}
+              projectId={projectId}
+            />
+            <CreateExperimentWizard
+              isOpen={isCreateModalOpen}
+              onClose={() => setIsCreateModalOpen(false)}
+              projectId={projectId}
+              onCreated={(experiment) => {
+                setIsCreateModalOpen(false);
+                navigate(`/experiments/${experiment.id}`);
+              }}
+            />
+          </>
+        )}
       </aside>
 
       <div className="flex-1">
         <Card>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-display text-lg font-semibold text-primary">Experiments</h2>
-            <Button onClick={() => setIsCreateModalOpen(true)}>+ Create Experiment</Button>
+            {!isReference && (
+              <Button onClick={() => setIsCreateModalOpen(true)}>+ Create Experiment</Button>
+            )}
           </div>
           {!experimentsData?.items.length ? (
             <p className="py-8 text-center text-sm text-muted-foreground">

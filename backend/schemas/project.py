@@ -22,6 +22,7 @@ class ProjectRead(CamelModel):
     description: str | None = None
     created_by: int | None = None
     storage_bytes: int = 0
+    is_reference: bool = False
     created_at: datetime
     updated_at: datetime
 

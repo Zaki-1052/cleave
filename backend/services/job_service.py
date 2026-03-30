@@ -4,7 +4,7 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-from sqlalchemy import func, select, update
+from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -12,10 +12,10 @@ from config import settings
 from models.analysis_job import AnalysisJob
 from models.experiment import Experiment
 from models.job_output import JobOutput
-from models.project import ProjectMember
+from models.project import Project, ProjectMember
 from schemas.job import JobCreate
 from services.event_service import log_event
-from services.permission_helpers import get_experiment_with_permission
+from services.permission_helpers import check_experiment_membership, get_experiment_with_permission
 
 
 async def create_job(
@@ -62,14 +62,21 @@ async def get_job(
     job_id: int,
     user_id: int,
 ) -> AnalysisJob | None:
-    """Fetch a job by ID if user has access to its experiment's project."""
+    """Fetch a job by ID if user has access (project member or reference project)."""
     result = await db.execute(
         select(AnalysisJob)
         .join(Experiment, Experiment.id == AnalysisJob.experiment_id)
-        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
+        .join(Project, Project.id == Experiment.project_id)
+        .outerjoin(
+            ProjectMember,
+            and_(
+                ProjectMember.project_id == Experiment.project_id,
+                ProjectMember.user_id == user_id,
+            ),
+        )
         .where(
             AnalysisJob.id == job_id,
-            ProjectMember.user_id == user_id,
+            or_(ProjectMember.user_id.isnot(None), Project.is_reference.is_(True)),
         )
         .options(
             selectinload(AnalysisJob.outputs),
@@ -132,14 +139,19 @@ async def list_all_jobs_for_user(
     job_type: str | None = None,
     search: str | None = None,
 ) -> tuple[list[AnalysisJob], int]:
-    """List all jobs across projects the user is a member of."""
-    from models.project import Project
-
+    """List all jobs across projects the user is a member of (+ reference projects)."""
     base = (
         select(AnalysisJob)
         .join(Experiment, Experiment.id == AnalysisJob.experiment_id)
-        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
-        .where(ProjectMember.user_id == user_id)
+        .join(Project, Project.id == Experiment.project_id)
+        .outerjoin(
+            ProjectMember,
+            and_(
+                ProjectMember.project_id == Experiment.project_id,
+                ProjectMember.user_id == user_id,
+            ),
+        )
+        .where(or_(ProjectMember.user_id.isnot(None), Project.is_reference.is_(True)))
     )
     if status is not None:
         base = base.where(AnalysisJob.status == status)
@@ -147,7 +159,7 @@ async def list_all_jobs_for_user(
         base = base.where(AnalysisJob.job_type == job_type)
     if search is not None:
         like = f"%{search}%"
-        base = base.join(Project, Project.id == Experiment.project_id, isouter=True).where(
+        base = base.where(
             AnalysisJob.name.ilike(like) | Experiment.name.ilike(like) | Project.name.ilike(like)
         )
 
@@ -174,9 +186,7 @@ async def list_jobs_for_experiment(
     per_page: int,
 ) -> tuple[list[AnalysisJob], int] | None:
     """List jobs for an experiment. Returns None if unauthorized."""
-    experiment = await get_experiment_with_permission(
-        db, experiment_id, user_id, ["admin", "contributor", "viewer"]
-    )
+    experiment = await check_experiment_membership(db, experiment_id, user_id)
     if experiment is None:
         return None
 

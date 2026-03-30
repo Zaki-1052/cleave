@@ -14,3 +14,7 @@
 - `frontend/public/favicon.svg` — new favicon
 - `frontend/index.html` — updated icon link
 - `frontend/src/components/ui/CleaveIcon.tsx` — source design (unchanged)
+
+## Additional changes
+- Reordered "Normalization" in `NewAnalysisDropdown.tsx` to appear right after "DiffBind" (matching sidebar order)
+  - File: `frontend/src/components/experiments/NewAnalysisDropdown.tsx`

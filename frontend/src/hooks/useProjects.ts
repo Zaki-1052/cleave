@@ -2,6 +2,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as projectsApi from '@/api/projects';
 
+export function useReferenceProjects() {
+  return useQuery({
+    queryKey: ['projects', 'reference'],
+    queryFn: () => projectsApi.getReferenceProjects(),
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
 export function useProjects(page = 1, perPage = 25) {
   return useQuery({
     queryKey: ['projects', page, perPage],

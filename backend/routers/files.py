@@ -19,7 +19,7 @@ from fastapi import (
     status,
 )
 from fastapi.responses import FileResponse, StreamingResponse
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import current_active_user
@@ -28,7 +28,7 @@ from database import get_db
 from models.analysis_job import AnalysisJob
 from models.experiment import Experiment
 from models.job_output import JobOutput
-from models.project import ProjectMember
+from models.project import Project, ProjectMember
 from models.user import User
 from schemas.file import (
     BatchDownloadRequest,
@@ -46,7 +46,7 @@ from services.file_service import (
     is_compressed_file,
     validate_experiment_path,
 )
-from services.permission_helpers import check_experiment_membership
+from services.permission_helpers import check_experiment_membership, is_reference_experiment
 
 router = APIRouter()
 
@@ -262,11 +262,18 @@ async def download_job_file(
         select(JobOutput)
         .join(AnalysisJob, AnalysisJob.id == JobOutput.job_id)
         .join(Experiment, Experiment.id == AnalysisJob.experiment_id)
-        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
+        .join(Project, Project.id == Experiment.project_id)
+        .outerjoin(
+            ProjectMember,
+            and_(
+                ProjectMember.project_id == Experiment.project_id,
+                ProjectMember.user_id == current_user.id,
+            ),
+        )
         .where(
             JobOutput.id == file_id,
             JobOutput.job_id == job_id,
-            ProjectMember.user_id == current_user.id,
+            or_(ProjectMember.user_id.isnot(None), Project.is_reference.is_(True)),
         )
     )
     output = result.scalar_one_or_none()
@@ -309,11 +316,18 @@ async def batch_download_job_files(
         select(JobOutput)
         .join(AnalysisJob, AnalysisJob.id == JobOutput.job_id)
         .join(Experiment, Experiment.id == AnalysisJob.experiment_id)
-        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
+        .join(Project, Project.id == Experiment.project_id)
+        .outerjoin(
+            ProjectMember,
+            and_(
+                ProjectMember.project_id == Experiment.project_id,
+                ProjectMember.user_id == current_user.id,
+            ),
+        )
         .where(
             JobOutput.job_id == job_id,
             JobOutput.id.in_(body.output_ids),
-            ProjectMember.user_id == current_user.id,
+            or_(ProjectMember.user_id.isnot(None), Project.is_reference.is_(True)),
         )
     )
     outputs = list(result.scalars().all())
@@ -599,10 +613,17 @@ async def create_igv_tokens(
         select(JobOutput)
         .join(AnalysisJob, AnalysisJob.id == JobOutput.job_id)
         .join(Experiment, Experiment.id == AnalysisJob.experiment_id)
-        .join(ProjectMember, ProjectMember.project_id == Experiment.project_id)
+        .join(Project, Project.id == Experiment.project_id)
+        .outerjoin(
+            ProjectMember,
+            and_(
+                ProjectMember.project_id == Experiment.project_id,
+                ProjectMember.user_id == current_user.id,
+            ),
+        )
         .where(
             JobOutput.id.in_(body.output_ids),
-            ProjectMember.user_id == current_user.id,
+            or_(ProjectMember.user_id.isnot(None), Project.is_reference.is_(True)),
         )
     )
     outputs = list(result.scalars().all())
@@ -718,6 +739,12 @@ async def upload_bed_file(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Experiment not found or not authorized",
+        )
+
+    if await is_reference_experiment(db, experiment_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot upload to a reference project",
         )
 
     filename = file.filename or "upload.bed"

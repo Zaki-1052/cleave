@@ -10,7 +10,7 @@ from models.fastq_file import FastqFile
 from models.reaction import Reaction
 from schemas.reaction import ReactionCreate, ReactionUpdate
 from services.event_service import log_event
-from services.permission_helpers import get_experiment_with_permission
+from services.permission_helpers import check_experiment_membership, get_experiment_with_permission
 
 
 async def list_reactions(
@@ -21,9 +21,7 @@ async def list_reactions(
     per_page: int,
 ) -> tuple[list[Reaction], int] | None:
     """List reactions for an experiment. Returns None if not authorized."""
-    experiment = await get_experiment_with_permission(
-        db, experiment_id, user_id, ["admin", "contributor", "viewer"]
-    )
+    experiment = await check_experiment_membership(db, experiment_id, user_id)
     if experiment is None:
         return None
 
@@ -419,9 +417,7 @@ async def get_fastq_prefixes(
 
     Returns None if not authorized.
     """
-    experiment = await get_experiment_with_permission(
-        db, experiment_id, user_id, ["admin", "contributor", "viewer"]
-    )
+    experiment = await check_experiment_membership(db, experiment_id, user_id)
     if experiment is None:
         return None
 
