@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <!-- Gradient background matching the app's sky-blue → teal → lime → gold -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#87CEEB"/>
+      <stop offset="50%" stop-color="#7ECFB5"/>
+      <stop offset="100%" stop-color="#E8D974"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="6" fill="url(#bg)"/>
+
+  <!-- Left backbone -->
+  <path d="M7,28 C7,21.5 9.5,18 13.5,16 C9.5,14 7,10.5 7,4"
+    stroke="white" stroke-width="2.4" stroke-linecap="round" fill="none" opacity="0.92"/>
+  <!-- Right backbone -->
+  <path d="M25,28 C25,21.5 22.5,18 18.5,16 C22.5,14 25,10.5 25,4"
+    stroke="white" stroke-width="2.4" stroke-linecap="round" fill="none" opacity="0.92"/>
+
+  <!-- Base-pair rungs -->
+  <line x1="8.5" y1="8.5" x2="14.5" y2="8.5" stroke="white" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+  <line x1="17.5" y1="8.5" x2="23.5" y2="8.5" stroke="white" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+  <line x1="11.5" y1="16" x2="14.8" y2="16" stroke="white" stroke-width="1.3" stroke-linecap="round" opacity="0.45"/>
+  <line x1="17.2" y1="16" x2="20.5" y2="16" stroke="white" stroke-width="1.3" stroke-linecap="round" opacity="0.45"/>
+  <line x1="8.5" y1="23.5" x2="14.5" y2="23.5" stroke="white" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+  <line x1="17.5" y1="23.5" x2="23.5" y2="23.5" stroke="white" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Gold cleave slash -->
+  <line x1="13.8" y1="10.5" x2="18.2" y2="21.5"
+    stroke="#F2C94C" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+  <!-- Cut endpoint glow dots -->
+  <circle cx="13.8" cy="10.5" r="2" fill="#F2C94C" opacity="0.75"/>
+  <circle cx="18.2" cy="21.5" r="2" fill="#F2C94C" opacity="0.75"/>
+</svg>
