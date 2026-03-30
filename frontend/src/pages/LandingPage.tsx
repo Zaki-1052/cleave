@@ -21,9 +21,9 @@ const C = {
 const PIPELINE_STEPS = [
   { label: "FASTQ Upload", icon: "↑", desc: "Resumable tus uploads or direct FTP/SFTP import", color: C.blue },
   { label: "FastQC", icon: "✓", desc: "Automated quality assessment", color: C.seafoam },
-  { label: "Trimming", icon: "✂", desc: "Trimmomatic + kseq_test (42bp)", color: C.lime },
-  { label: "Alignment", icon: "⇶", desc: "Bowtie2 → SAMtools → Picard → deepTools", color: C.gold },
-  { label: "Peak Calling", icon: "▲", desc: "MACS2 / SICER2 / SEACR with HOMER", color: C.coral },
+  { label: "Trimming", icon: "✂", desc: "Parallel Trimmomatic + kseq_test (42bp)", color: C.lime },
+  { label: "Alignment", icon: "⇶", desc: "Parallel Bowtie2 → SAMtools → Picard → deepTools", color: C.gold },
+  { label: "Peak Calling", icon: "▲", desc: "Parallel MACS2 / SICER2 / SEACR with HOMER", color: C.coral },
   { label: "Visualization", icon: "◎", desc: "IGV.js genome browser + heatmaps", color: C.lavender },
 ];
 
@@ -83,12 +83,13 @@ const COMPARISON = [
   { feature: "IGV.js Genome Browser", cutana: true, cleave: true },
   { feature: "Auto-Generated Methods Text", cutana: true, cleave: true },
   { feature: "FTP / SFTP Server Import", cutana: true, cleave: true },
+  { feature: "Parallel Pipeline Processing", cutana: false, cleave: true },
 ];
 
 const STATS = [
-  { value: 466, label: "Backend Tests Passing" },
-  { value: 17, label: "Pipeline Capabilities" },
-  { value: 8, label: "New vs CUTANA Cloud" },
+  { value: 474, label: "Backend Tests Passing" },
+  { value: 18, label: "Pipeline Capabilities" },
+  { value: 9, label: "New vs CUTANA Cloud" },
   { value: 6, label: "Implementation Phases" },
 ];
 
@@ -682,7 +683,7 @@ export default function LandingPage() {
 
           <Reveal delay={300}>
             <p className="mt-6 text-center text-xs text-white/25" style={{ fontFamily: mono }}>
-              8 new features · 16 total capabilities · 466 backend tests passing
+              9 new features · 17 total capabilities · 474 backend tests passing
             </p>
           </Reveal>
         </div>

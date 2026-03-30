@@ -42,9 +42,9 @@ const TABS: { label: string; path: string; icon: LucideIcon }[] = [
   { label: 'Alignment', path: 'alignment/0', icon: AlignLeft },
   { label: 'Peak Calling', path: 'peaks/0', icon: Mountain },
   { label: 'DiffBind', path: 'diffbind/0', icon: ArrowLeftRight },
+  { label: 'Normalization', path: 'normalization/0', icon: Scale },
   { label: 'Heatmaps', path: 'heatmaps/0', icon: Grid3x3 },
   { label: 'Correlation', path: 'correlations/0', icon: ScatterChart },
-  { label: 'Normalization', path: 'normalization/0', icon: Scale },
   { label: 'History', path: 'history', icon: History },
   { label: 'All Files', path: 'files', icon: FolderTree },
 ];

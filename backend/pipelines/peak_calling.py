@@ -19,6 +19,8 @@ import shutil
 import subprocess
 import time
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
 from pathlib import Path
 
 import structlog
@@ -27,8 +29,10 @@ from config import settings
 from pipelines.base import (
     PipelineError,
     PipelineStage,
+    TerminatedError,
     append_to_master_log,
     count_bam_reads,
+    get_threads,
     resolve_blacklist,
     run_cmd,
     run_piped_cmd,
@@ -721,6 +725,274 @@ def _call_sicer2(
 
 
 # ---------------------------------------------------------------------------
+# Concurrent reaction processing — shared immutable context
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class _PeakCallingContext:
+    """Immutable config shared across all concurrent reaction threads."""
+
+    genome: str
+    genome_display: str
+    peak_caller: str
+    peak_size: str
+    q_value: float
+    broad_cutoff: float
+    fragment_filter: bool
+    fragment_size: int
+    seacr_threshold: float
+    sicer2_window: int
+    sicer2_gap: int
+    sicer2_fdr: float
+    blacklists: tuple[Path, ...]
+    igg_filtered_cache: dict[str, Path]
+    filtered_bams_dir: Path
+    peaks_dir: Path
+    annotation_dir: Path
+    logs_dir: Path
+    job_dir: Path
+    rel_job: str
+    threads: int
+    cancelled: Callable[[], bool] | None
+
+
+def _process_reaction(rxn: dict, ctx: _PeakCallingContext, reaction_log: Path) -> dict:
+    """Process a single reaction through the full peak calling pipeline.
+
+    Thread-safe: writes only to reaction-specific files and its own log.
+    Returns {"metrics": dict, "top_peaks": dict, "outputs": list[dict]}.
+    """
+    short_name = rxn["short_name"]
+    reaction_id = rxn["reaction_id"]
+
+    logger.info("peak_calling.reaction_start", short_name=short_name, caller=ctx.peak_caller)
+
+    # Per-reaction helpers that pass cancelled callback
+    def _run(cmd, **kwargs):
+        return run_cmd(cmd, master_log=reaction_log, cancelled=ctx.cancelled, **kwargs)
+
+    def _run_piped(cmd1, cmd2, output_path, **kwargs):
+        return run_piped_cmd(
+            cmd1, cmd2, output_path, master_log=reaction_log, cancelled=ctx.cancelled, **kwargs
+        )
+
+    # ---- Step 1: Locate input BAM ----
+    input_bam = Path(settings.STORAGE_ROOT) / rxn["bam_path"]
+    if not input_bam.exists():
+        raise PipelineError(f"Input BAM not found: {input_bam}")
+
+    # ---- Step 2: Fragment size filter ----
+    if ctx.cancelled and ctx.cancelled():
+        raise TerminatedError("Job terminated by user")
+
+    if ctx.fragment_filter:
+        filtered_bam = ctx.filtered_bams_dir / f"{short_name}_filtered.bam"
+        _apply_fragment_filter(input_bam, filtered_bam, ctx.fragment_size)
+        call_bam = filtered_bam
+    else:
+        call_bam = input_bam
+
+    # ---- Step 3: Resolve IgG control BAM ----
+    control_bam = None
+    igg_bam_path = rxn.get("igg_bam_path")
+    if igg_bam_path:
+        if ctx.fragment_filter:
+            control_bam = ctx.igg_filtered_cache.get(igg_bam_path)
+        else:
+            igg_abs = Path(settings.STORAGE_ROOT) / igg_bam_path
+            control_bam = igg_abs if igg_abs.exists() else None
+
+    # ---- Step 4: Peak calling dispatch ----
+    if ctx.cancelled and ctx.cancelled():
+        raise TerminatedError("Job terminated by user")
+
+    if ctx.peak_caller == "MACS2" and ctx.peak_size == "narrow":
+        peak_file, summit_file = _call_macs2_narrow(
+            call_bam,
+            control_bam,
+            ctx.genome,
+            short_name,
+            ctx.peaks_dir,
+            ctx.logs_dir,
+            ctx.q_value,
+        )
+    elif ctx.peak_caller == "MACS2" and ctx.peak_size == "broad":
+        peak_file, summit_file = _call_macs2_broad(
+            call_bam,
+            control_bam,
+            ctx.genome,
+            short_name,
+            ctx.peaks_dir,
+            ctx.logs_dir,
+            ctx.broad_cutoff,
+        )
+    elif ctx.peak_caller == "SEACR":
+        peak_file, summit_file = _call_seacr(
+            call_bam,
+            control_bam,
+            ctx.genome,
+            short_name,
+            ctx.peaks_dir,
+            ctx.logs_dir,
+            ctx.q_value,
+            ctx.seacr_threshold,
+            ctx.peak_size,
+        )
+    elif ctx.peak_caller == "SICER2":
+        peak_file, summit_file = _call_sicer2(
+            call_bam,
+            control_bam,
+            ctx.genome,
+            short_name,
+            ctx.peaks_dir,
+            ctx.logs_dir,
+            ctx.sicer2_window,
+            ctx.sicer2_gap,
+            ctx.sicer2_fdr,
+        )
+    else:
+        raise PipelineError(f"Unsupported caller/size: {ctx.peak_caller}/{ctx.peak_size}")
+
+    # ---- Step 5: Blacklist subtraction ----
+    for bl_bed in ctx.blacklists:
+        if not peak_file.exists():
+            break
+        bl_name = bl_bed.stem
+        clean_peak = ctx.peaks_dir / f"{peak_file.stem}_clean{peak_file.suffix}"
+        bl_cmd = ["bedtools", "subtract", "-a", str(peak_file), "-b", str(bl_bed)]
+        proc = subprocess.run(
+            bl_cmd,
+            capture_output=True,
+            text=True,
+            timeout=3600,
+        )
+        append_to_master_log(
+            reaction_log,
+            f"Blacklist subtraction ({bl_name}) — {short_name} (exit {proc.returncode})",
+            proc.stderr,
+        )
+        if proc.returncode == 0:
+            clean_peak.write_text(proc.stdout)
+            peak_file = clean_peak
+        else:
+            logger.warning(
+                "peak_calling.blacklist_subtraction_failed",
+                short_name=short_name,
+                blacklist=bl_name,
+                error=proc.stderr[-200:],
+            )
+
+    # ---- Step 6: FRiP calculation ----
+    total_reads = count_bam_reads(call_bam)
+    reads_in_peaks, frip = _calculate_frip(call_bam, peak_file)
+
+    # ---- Step 7: HOMER peak annotation ----
+    if ctx.cancelled and ctx.cancelled():
+        raise TerminatedError("Job terminated by user")
+
+    annotation_file = ctx.annotation_dir / f"{short_name}_annotation.txt"
+    annotation_stats = ctx.annotation_dir / f"{short_name}_annotation_stats.txt"
+    homer = shutil.which("annotatePeaks.pl")
+    if homer and peak_file.exists():
+        homer_cmd = [homer, str(peak_file), ctx.genome, "-annStats", str(annotation_stats)]
+        logger.info("pipeline.subprocess", cmd=" ".join(homer_cmd))
+        proc = subprocess.run(
+            homer_cmd,
+            capture_output=True,
+            text=True,
+            timeout=7200,
+        )
+        append_to_master_log(
+            reaction_log,
+            f"HOMER annotatePeaks — {short_name} (exit {proc.returncode})",
+            proc.stderr,
+        )
+        if proc.returncode == 0:
+            annotation_file.write_text(proc.stdout)
+        else:
+            logger.warning(
+                "peak_calling.homer_failed",
+                short_name=short_name,
+                error=proc.stderr[-300:],
+            )
+
+    # ---- Step 8: Count peaks and extract top ----
+    called_peaks_count = _count_peaks(peak_file) if peak_file.exists() else 0
+    top_peaks = _extract_top_peaks(peak_file) if peak_file.exists() else []
+
+    # ---- Step 9: Collect QC metrics ----
+    control_short_name = rxn.get("igg_short_name", "")
+    sig_threshold = ctx.q_value
+    if ctx.peak_caller == "MACS2" and ctx.peak_size == "broad":
+        sig_threshold = ctx.broad_cutoff
+    elif ctx.peak_caller == "SEACR":
+        sig_threshold = ctx.seacr_threshold
+    elif ctx.peak_caller == "SICER2":
+        sig_threshold = ctx.sicer2_fdr
+
+    metrics = {
+        "short_name": short_name,
+        "control_short_name": control_short_name,
+        "reference_genome": ctx.genome_display,
+        "peak_caller": ctx.peak_caller,
+        "peak_size": ctx.peak_size.capitalize(),
+        "significance_threshold": sig_threshold,
+        "uniquely_aligned_read_pairs": total_reads,
+        "called_peaks": called_peaks_count,
+        "reads_in_peaks": reads_in_peaks,
+        "frip": frip,
+    }
+    top_peaks_entry = {
+        "short_name": short_name,
+        "control_short_name": control_short_name,
+        "reference_genome": ctx.genome_display,
+        "peak_caller": ctx.peak_caller,
+        "peak_size": ctx.peak_size.capitalize(),
+        "significance_threshold": sig_threshold,
+        "top_peaks": top_peaks,
+    }
+
+    # ---- Step 10: Register output files ----
+    outputs: list[dict] = []
+
+    def _add_output(path: Path, category: str, ftype: str, rid: int | None = reaction_id):
+        if path.exists():
+            outputs.append(
+                {
+                    "file_category": category,
+                    "filename": path.name,
+                    "file_path": f"{ctx.rel_job}/{path.relative_to(ctx.job_dir)}",
+                    "file_type": ftype,
+                    "file_size_bytes": path.stat().st_size,
+                    "reaction_id": rid,
+                }
+            )
+
+    _add_output(peak_file, "bed", peak_file.suffix.lstrip("."))
+    _add_output(summit_file, "bed", "bed")
+    if annotation_file.exists():
+        _add_output(annotation_file, "annotation", "txt")
+    if annotation_stats.exists():
+        _add_output(annotation_stats, "annotation_stats", "txt")
+    for log_file in sorted(ctx.logs_dir.glob(f"{short_name}*.log")):
+        _add_output(log_file, "log", "txt")
+
+    logger.info(
+        "peak_calling.reaction_complete",
+        short_name=short_name,
+        peaks=called_peaks_count,
+        frip=frip,
+    )
+
+    return {
+        "metrics": metrics,
+        "top_peaks": top_peaks_entry,
+        "outputs": outputs,
+    }
+
+
+# ---------------------------------------------------------------------------
 # PeakCallingStage
 # ---------------------------------------------------------------------------
 
@@ -859,248 +1131,139 @@ class PeakCallingStage(PipelineStage):
             f"Blacklist: {blacklist_type}",
         )
 
-        # Local helpers that auto-pass master_log and cancelled
-        def _run(cmd, **kwargs):
-            return run_cmd(cmd, master_log=master_log, cancelled=cancelled, **kwargs)
-
-        def _run_piped(cmd1, cmd2, output_path, **kwargs):
-            return run_piped_cmd(
-                cmd1, cmd2, output_path, master_log=master_log, cancelled=cancelled, **kwargs
-            )
-
         # Blacklist(s) for post-peak-calling subtraction
-        blacklists: list[Path] = []
+        blacklists_list: list[Path] = []
         if blacklist_type == "both":
             for bl_type in ("encode_dac", "lab_custom"):
                 bl = resolve_blacklist(genome, bl_type)
                 if bl:
-                    blacklists.append(bl)
+                    blacklists_list.append(bl)
         elif blacklist_type != "none":
             bl = resolve_blacklist(genome, blacklist_type)
             if bl:
-                blacklists.append(bl)
+                blacklists_list.append(bl)
 
+        # Pre-filter all unique IgG BAMs before parallel dispatch
+        igg_filtered_cache: dict[str, Path] = {}
+        if fragment_filter:
+            unique_igg_paths = {rxn["igg_bam_path"] for rxn in reactions if rxn.get("igg_bam_path")}
+            for igg_bam_path in unique_igg_paths:
+                if cancelled and cancelled():
+                    raise TerminatedError("Job terminated by user")
+                igg_abs = Path(settings.STORAGE_ROOT) / igg_bam_path
+                if igg_abs.exists():
+                    igg_filtered = filtered_bams_dir / f"{igg_abs.stem}_filtered.bam"
+                    _apply_fragment_filter(igg_abs, igg_filtered, fragment_size)
+                    igg_filtered_cache[igg_bam_path] = igg_filtered
+                    append_to_master_log(
+                        master_log,
+                        f"IgG pre-filter complete: {igg_abs.name}",
+                        f"Output: {igg_filtered}",
+                    )
+                else:
+                    logger.warning("peak_calling.igg_bam_not_found", path=str(igg_abs))
+
+        # Compute concurrency
+        total_threads = get_threads()
+        concurrent_count = min(settings.MAX_CONCURRENT_REACTIONS, len(reactions))
+        threads_per_reaction = max(2, total_threads // concurrent_count)
+
+        logger.info(
+            "peak_calling.run_start",
+            job_id=job_id,
+            reactions=len(reactions),
+            total_threads=total_threads,
+            concurrent=concurrent_count,
+            threads_per_reaction=threads_per_reaction,
+        )
+
+        ctx = _PeakCallingContext(
+            genome=genome,
+            genome_display=genome_display,
+            peak_caller=peak_caller,
+            peak_size=peak_size,
+            q_value=q_value,
+            broad_cutoff=broad_cutoff,
+            fragment_filter=fragment_filter,
+            fragment_size=fragment_size,
+            seacr_threshold=seacr_threshold,
+            sicer2_window=sicer2_window,
+            sicer2_gap=sicer2_gap,
+            sicer2_fdr=sicer2_fdr,
+            blacklists=tuple(blacklists_list),
+            igg_filtered_cache=igg_filtered_cache,
+            filtered_bams_dir=filtered_bams_dir,
+            peaks_dir=peaks_dir,
+            annotation_dir=annotation_dir,
+            logs_dir=logs_dir,
+            job_dir=job_dir,
+            rel_job=rel_job,
+            threads=threads_per_reaction,
+            cancelled=cancelled,
+        )
+
+        # Per-reaction log files (each thread writes to its own file)
+        reaction_logs = {
+            rxn["short_name"]: logs_dir / f"{rxn['short_name']}_pipeline.log" for rxn in reactions
+        }
+
+        # ---- Concurrent reaction dispatch ----
+        results: dict[str, dict] = {}
+        errors: dict[str, str] = {}
+
+        with ThreadPoolExecutor(max_workers=concurrent_count) as executor:
+            future_to_name = {
+                executor.submit(
+                    _process_reaction,
+                    rxn,
+                    ctx,
+                    reaction_logs[rxn["short_name"]],
+                ): rxn["short_name"]
+                for rxn in reactions
+            }
+            for future in as_completed(future_to_name):
+                name = future_to_name[future]
+                try:
+                    results[name] = future.result()
+                except TerminatedError:
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    raise
+                except Exception as exc:
+                    errors[name] = str(exc)
+                    logger.error("peak_calling.reaction_failed", short_name=name, error=str(exc))
+
+        # Merge per-reaction logs into master log (in original order)
+        for rxn in reactions:
+            rxn_log = reaction_logs[rxn["short_name"]]
+            if rxn_log.exists():
+                content = rxn_log.read_text()
+                if content.strip():
+                    with open(master_log, "a") as f:
+                        f.write(content)
+
+        # Handle partial failures
+        if errors:
+            error_summary = "; ".join(f"{k}: {v[:100]}" for k, v in errors.items())
+            append_to_master_log(master_log, "Reaction failures", error_summary)
+            if len(errors) == len(reactions):
+                raise PipelineError(f"All reactions failed: {error_summary}")
+            logger.warning(
+                "peak_calling.partial_failure",
+                failed=list(errors.keys()),
+                succeeded=list(results.keys()),
+            )
+
+        # Aggregate results in original reaction order
         all_metrics: list[dict] = []
         all_top_peaks: list[dict] = []
         outputs: list[dict] = []
-        # Cache filtered IgG BAMs (shared across reactions)
-        igg_filtered_cache: dict[str, Path] = {}
-
         for rxn in reactions:
-            short_name = rxn["short_name"]
-            reaction_id = rxn["reaction_id"]
-
-            logger.info("peak_calling.reaction_start", short_name=short_name, caller=peak_caller)
-
-            # ---- Step 1: Locate input BAM ----
-            input_bam = Path(settings.STORAGE_ROOT) / rxn["bam_path"]
-            if not input_bam.exists():
-                raise PipelineError(f"Input BAM not found: {input_bam}")
-
-            # ---- Step 2: Fragment size filter ----
-            if fragment_filter:
-                filtered_bam = filtered_bams_dir / f"{short_name}_filtered.bam"
-                _apply_fragment_filter(input_bam, filtered_bam, fragment_size)
-                call_bam = filtered_bam
-            else:
-                call_bam = input_bam
-
-            # ---- Step 3: Resolve IgG control BAM ----
-            control_bam = None
-            igg_bam_path = rxn.get("igg_bam_path")
-            if igg_bam_path:
-                if fragment_filter:
-                    # Filter IgG once, cache for reuse across reactions
-                    if igg_bam_path not in igg_filtered_cache:
-                        igg_abs = Path(settings.STORAGE_ROOT) / igg_bam_path
-                        if igg_abs.exists():
-                            igg_filtered = filtered_bams_dir / "IgG_filtered.bam"
-                            _apply_fragment_filter(igg_abs, igg_filtered, fragment_size)
-                            igg_filtered_cache[igg_bam_path] = igg_filtered
-                        else:
-                            logger.warning("peak_calling.igg_bam_not_found", path=str(igg_abs))
-                    control_bam = igg_filtered_cache.get(igg_bam_path)
-                else:
-                    igg_abs = Path(settings.STORAGE_ROOT) / igg_bam_path
-                    control_bam = igg_abs if igg_abs.exists() else None
-
-            # ---- Step 4: Peak calling dispatch ----
-            if peak_caller == "MACS2" and peak_size == "narrow":
-                peak_file, summit_file = _call_macs2_narrow(
-                    call_bam,
-                    control_bam,
-                    genome,
-                    short_name,
-                    peaks_dir,
-                    logs_dir,
-                    q_value,
-                )
-            elif peak_caller == "MACS2" and peak_size == "broad":
-                peak_file, summit_file = _call_macs2_broad(
-                    call_bam,
-                    control_bam,
-                    genome,
-                    short_name,
-                    peaks_dir,
-                    logs_dir,
-                    broad_cutoff,
-                )
-            elif peak_caller == "SEACR":
-                peak_file, summit_file = _call_seacr(
-                    call_bam,
-                    control_bam,
-                    genome,
-                    short_name,
-                    peaks_dir,
-                    logs_dir,
-                    q_value,
-                    seacr_threshold,
-                    peak_size,
-                )
-            elif peak_caller == "SICER2":
-                peak_file, summit_file = _call_sicer2(
-                    call_bam,
-                    control_bam,
-                    genome,
-                    short_name,
-                    peaks_dir,
-                    logs_dir,
-                    sicer2_window,
-                    sicer2_gap,
-                    sicer2_fdr,
-                )
-            else:
-                raise PipelineError(f"Unsupported caller/size: {peak_caller}/{peak_size}")
-
-            # ---- Step 5: Blacklist subtraction ----
-            for bl_bed in blacklists:
-                if not peak_file.exists():
-                    break
-                bl_name = bl_bed.stem  # e.g. "mm10.blacklist" or "mm10.lab.blacklist"
-                clean_peak = peaks_dir / f"{peak_file.stem}_clean{peak_file.suffix}"
-                bl_cmd = ["bedtools", "subtract", "-a", str(peak_file), "-b", str(bl_bed)]
-                proc = subprocess.run(
-                    bl_cmd,
-                    capture_output=True,
-                    text=True,
-                    timeout=3600,
-                )
-                append_to_master_log(
-                    master_log,
-                    f"Blacklist subtraction ({bl_name}) — {short_name} (exit {proc.returncode})",
-                    proc.stderr,
-                )
-                if proc.returncode == 0:
-                    clean_peak.write_text(proc.stdout)
-                    peak_file = clean_peak
-                else:
-                    logger.warning(
-                        "peak_calling.blacklist_subtraction_failed",
-                        short_name=short_name,
-                        blacklist=bl_name,
-                        error=proc.stderr[-200:],
-                    )
-
-            # ---- Step 6: FRiP calculation ----
-            total_reads = count_bam_reads(call_bam)
-            reads_in_peaks, frip = _calculate_frip(call_bam, peak_file)
-
-            # ---- Step 7: HOMER peak annotation ----
-            annotation_file = annotation_dir / f"{short_name}_annotation.txt"
-            annotation_stats = annotation_dir / f"{short_name}_annotation_stats.txt"
-            homer = shutil.which("annotatePeaks.pl")
-            if homer and peak_file.exists():
-                homer_cmd = [homer, str(peak_file), genome, "-annStats", str(annotation_stats)]
-                logger.info("pipeline.subprocess", cmd=" ".join(homer_cmd))
-                proc = subprocess.run(
-                    homer_cmd,
-                    capture_output=True,
-                    text=True,
-                    timeout=7200,
-                )
-                append_to_master_log(
-                    master_log,
-                    f"HOMER annotatePeaks — {short_name} (exit {proc.returncode})",
-                    proc.stderr,
-                )
-                if proc.returncode == 0:
-                    annotation_file.write_text(proc.stdout)
-                else:
-                    logger.warning(
-                        "peak_calling.homer_failed",
-                        short_name=short_name,
-                        error=proc.stderr[-300:],
-                    )
-
-            # ---- Step 8: Count peaks and extract top ----
-            called_peaks_count = _count_peaks(peak_file) if peak_file.exists() else 0
-            top_peaks = _extract_top_peaks(peak_file) if peak_file.exists() else []
-
-            # ---- Step 9: Collect QC metrics ----
-            control_short_name = rxn.get("igg_short_name", "")
-            sig_threshold = q_value
-            if peak_caller == "MACS2" and peak_size == "broad":
-                sig_threshold = broad_cutoff
-            elif peak_caller == "SEACR":
-                sig_threshold = seacr_threshold
-            elif peak_caller == "SICER2":
-                sig_threshold = sicer2_fdr
-
-            all_metrics.append(
-                {
-                    "short_name": short_name,
-                    "control_short_name": control_short_name,
-                    "reference_genome": genome_display,
-                    "peak_caller": peak_caller,
-                    "peak_size": peak_size.capitalize(),
-                    "significance_threshold": sig_threshold,
-                    "uniquely_aligned_read_pairs": total_reads,
-                    "called_peaks": called_peaks_count,
-                    "reads_in_peaks": reads_in_peaks,
-                    "frip": frip,
-                }
-            )
-            all_top_peaks.append(
-                {
-                    "short_name": short_name,
-                    "control_short_name": control_short_name,
-                    "reference_genome": genome_display,
-                    "peak_caller": peak_caller,
-                    "peak_size": peak_size.capitalize(),
-                    "significance_threshold": sig_threshold,
-                    "top_peaks": top_peaks,
-                }
-            )
-
-            # ---- Step 10: Register output files ----
-            def _add_output(path: Path, category: str, ftype: str, rid: int | None = reaction_id):
-                if path.exists():
-                    outputs.append(
-                        {
-                            "file_category": category,
-                            "filename": path.name,
-                            "file_path": f"{rel_job}/{path.relative_to(job_dir)}",
-                            "file_type": ftype,
-                            "file_size_bytes": path.stat().st_size,
-                            "reaction_id": rid,
-                        }
-                    )
-
-            _add_output(peak_file, "bed", peak_file.suffix.lstrip("."))
-            _add_output(summit_file, "bed", "bed")
-            if annotation_file.exists():
-                _add_output(annotation_file, "annotation", "txt")
-            if annotation_stats.exists():
-                _add_output(annotation_stats, "annotation_stats", "txt")
-            for log_file in sorted(logs_dir.glob(f"{short_name}*.log")):
-                _add_output(log_file, "log", "txt")
-
-            logger.info(
-                "peak_calling.reaction_complete",
-                short_name=short_name,
-                peaks=called_peaks_count,
-                frip=frip,
-            )
+            name = rxn["short_name"]
+            if name in results:
+                r = results[name]
+                all_metrics.append(r["metrics"])
+                all_top_peaks.append(r["top_peaks"])
+                outputs.extend(r["outputs"])
 
         # ---- Write QC CSVs ----
         qc_csv = qc_dir / "peak_caller_metrics.csv"
@@ -1144,7 +1307,7 @@ class PeakCallingStage(PipelineStage):
 
         # Consolidate individual tool logs into master log
         for log_file in sorted(logs_dir.glob("*.log")):
-            if log_file.name == "peak_calling.log":
+            if log_file.name == "peak_calling.log" or log_file.name.endswith("_pipeline.log"):
                 continue
             append_to_master_log(master_log, f"Tool log: {log_file.name}", log_file.read_text())
 
@@ -1178,8 +1341,6 @@ class PeakCallingStage(PipelineStage):
 
     def mock_run(self, job_id: int, params: dict, working_dir: Path, job_dir: Path) -> dict:
         """Create real stub files on disk so file browser and downloads work."""
-        time.sleep(5)
-
         reactions = params.get("reactions", [])
         project_id = params.get("project_id", 0)
         experiment_id = params.get("experiment_id", 0)
@@ -1200,11 +1361,10 @@ class PeakCallingStage(PipelineStage):
         # Load canned QC data from CUTANA Cloud export
         canned_metrics = _load_canned_peak_qc()
         canned_top_peaks = _load_canned_top_peaks()
-        all_metrics: list[dict] = []
-        all_top_peaks: list[dict] = []
-        outputs: list[dict] = []
 
-        for i, rxn in enumerate(reactions):
+        def _mock_process_reaction(i: int, rxn: dict) -> dict:
+            """Process one mock reaction. Thread-safe — no shared mutable state."""
+            time.sleep(1)
             short_name = rxn["short_name"]
             reaction_id = rxn["reaction_id"]
             control_short_name = rxn.get("igg_short_name", "IgG")
@@ -1226,7 +1386,6 @@ class PeakCallingStage(PipelineStage):
                     "reads_in_peaks": 11000000,
                     "frip": 0.73,
                 }
-            all_metrics.append(metrics)
 
             if canned_top_peaks:
                 tp = canned_top_peaks[i % len(canned_top_peaks)]
@@ -1243,7 +1402,6 @@ class PeakCallingStage(PipelineStage):
                         f"chr{j + 1}:{1000000 + j * 5000}-{1004000 + j * 5000}" for j in range(10)
                     ],
                 }
-            all_top_peaks.append(top_entry)
 
             # Create stub peak file (valid narrowPeak/broadPeak/BED content)
             if peak_caller == "MACS2" and peak_size == "broad":
@@ -1275,7 +1433,6 @@ class PeakCallingStage(PipelineStage):
             annotation_stats_file = annotation_dir / f"{short_name}_annotation_stats.txt"
             is_igg = not rxn.get("igg_bam_path") or short_name.lower().startswith("igg")
             if is_igg:
-                # IgG-like: heavy intergenic/intron, low promoter
                 annotation_stats_file.write_text(
                     "Annotation\tNumber of peaks\tTotal size (bp)\tLog2 Enrichment\n"
                     "Promoter-TSS\t800\t4000000\t0.5\n"
@@ -1288,7 +1445,6 @@ class PeakCallingStage(PipelineStage):
                     "non-coding\t80\t800000\t0.1\n"
                 )
             else:
-                # Target-like: heavy promoter (H3K4me3 biology)
                 annotation_stats_file.write_text(
                     "Annotation\tNumber of peaks\tTotal size (bp)\tLog2 Enrichment\n"
                     "Promoter-TSS\t8500\t42500000\t3.2\n"
@@ -1305,6 +1461,7 @@ class PeakCallingStage(PipelineStage):
             log_file.write_text(f"Mock peak calling log for {short_name}\n")
 
             # Register outputs
+            rxn_outputs: list[dict] = []
             stub_files = [
                 (peak_file, "bed", peak_ext.split(".")[-1]),
                 (summit_file, "bed", "bed"),
@@ -1313,7 +1470,7 @@ class PeakCallingStage(PipelineStage):
                 (log_file, "log", "txt"),
             ]
             for path, category, ftype in stub_files:
-                outputs.append(
+                rxn_outputs.append(
                     {
                         "file_category": category,
                         "filename": path.name,
@@ -1325,6 +1482,35 @@ class PeakCallingStage(PipelineStage):
                 )
 
             logger.info("peak_calling.mock_reaction_complete", short_name=short_name)
+
+            return {
+                "metrics": metrics,
+                "top_peaks": top_entry,
+                "outputs": rxn_outputs,
+            }
+
+        # Dispatch reactions concurrently
+        concurrent_count = min(settings.MAX_CONCURRENT_REACTIONS, max(len(reactions), 1))
+
+        with ThreadPoolExecutor(max_workers=concurrent_count) as executor:
+            future_to_idx = {
+                executor.submit(_mock_process_reaction, i, rxn): i
+                for i, rxn in enumerate(reactions)
+            }
+            indexed_results: dict[int, dict] = {}
+            for future in as_completed(future_to_idx):
+                idx = future_to_idx[future]
+                indexed_results[idx] = future.result()
+
+        # Aggregate in original order
+        all_metrics: list[dict] = []
+        all_top_peaks: list[dict] = []
+        outputs: list[dict] = []
+        for i in range(len(reactions)):
+            r = indexed_results[i]
+            all_metrics.append(r["metrics"])
+            all_top_peaks.append(r["top_peaks"])
+            outputs.extend(r["outputs"])
 
         # Write QC CSVs
         qc_csv = qc_dir / "peak_caller_metrics.csv"

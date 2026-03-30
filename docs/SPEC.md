@@ -5,7 +5,7 @@
 > **Author**: Zakir Alibhai
 > **Supersedes**: `cutana-architecture-plan.md`, `PLAN.md`, `cleave-spec-decisions.md`, `todos.md`
 
-Self-hosted CUT&RUN/CUT&Tag bioinformatics platform for the Ferguson Lab at UCSD. Replicates EpiCypher's CUTANA Cloud and extends it with lab-specific pipeline features. Single EC2 instance, ~8-10 users. 466+ backend tests passing.
+Self-hosted CUT&RUN/CUT&Tag bioinformatics platform for the Ferguson Lab at UCSD. Replicates EpiCypher's CUTANA Cloud and extends it with lab-specific pipeline features. Single EC2 instance, ~8-10 users. 474+ backend tests passing.
 
 ---
 
@@ -506,7 +506,7 @@ FastQC runs inline (not via job queue) — triggered automatically post-upload.
 
 ### 6.1 Trimming
 
-**Two-stage**: Trimmomatic PE (adapter + quality) -> kseq_test (fixed-length 42bp).
+**Two-stage**: Trimmomatic PE (adapter + quality) -> kseq_test (fixed-length 42bp). Concurrent processing via ThreadPoolExecutor (pairs processed in parallel, threads divided among concurrent pairs).
 
 ```bash
 # Stage 1: Trimmomatic
@@ -539,7 +539,7 @@ kseq_test <paired_input> 42 <output>
 
 ### 6.3 Peak Calling
 
-Supports 5 modes. Fragment filter (<120bp) default ON.
+Supports 5 modes. Fragment filter (<120bp) default ON. Concurrent processing via ThreadPoolExecutor (reactions processed in parallel). IgG control BAMs are pre-filtered before dispatch for thread safety. Partial failure supported — individual reaction errors are collected, only fatal if ALL reactions fail.
 
 | Caller | Mode | Default Threshold | Command |
 |--------|------|-------------------|---------|
@@ -849,6 +849,7 @@ All settings via environment variables, loaded by Pydantic `BaseSettings`.
 | effectiveGenomeSize | Correct per-genome values | Fixes lab bug where mm10's value was used for all organisms |
 | Roman normalization | Mouse only (mm10) | Hardcoded chromosome list (chr1-19+chrX); no human equivalent |
 | Auto-pipeline | Job dependency chain via parent_job_id | One-click FastQC -> Trim -> Align -> Peak Call with conditional branching |
+| Pipeline parallelism | ThreadPoolExecutor per-reaction | Alignment, trimming, and peak calling all process reactions/pairs concurrently; thread budget divided among concurrent workers; partial failure support |
 | Dark mode | CSS variables + next-themes | System/light/dark with persistent preference |
 
 ---
@@ -872,31 +873,35 @@ These bugs were found in the lab's scripts and fixed in Cleave:
 
 ## 14. Test Suite
 
-466+ tests across 22 test files, all running inside Docker (`docker compose exec api pytest tests/`).
+474+ tests across 27 test files, all running inside Docker (`docker compose exec api pytest tests/`).
 
 | Test File | Count | Scope |
 |-----------|-------|-------|
-| test_peak_calling_pipeline.py | 52 | All 5 peak callers, fragment filter, FRiP, HOMER |
+| test_peak_calling_pipeline.py | 56 | All 5 peak callers, fragment filter, FRiP, HOMER, concurrency |
 | test_files.py | 38 | File tree, downloads, path traversal, IGV, Range headers |
+| test_jobs_api.py | 38 | Job CRUD, queue, QC endpoints, terminate/retry |
 | test_reactions.py | 31 | CRUD, validation, CSV import, unique constraints |
 | test_alignment_pipeline.py | 29 | Validation, mock files, QC CSV, methods text |
-| test_jobs_api.py | 21 | Job CRUD, queue, QC endpoints, terminate/retry |
+| test_server_import.py | 23 | SSRF, encryption, browse, auth, saved servers |
+| test_pearson_correlation_pipeline.py | 23 | Multi-genome, masking, validation |
 | test_diffbind_pipeline.py | 21 | 3 modes, dynamic columns, validation |
-| test_server_import.py | 20 | SSRF, encryption, browse, auth, saved servers |
 | test_roman_normalization_pipeline.py | 19 | Mouse-only, validation, mock run |
-| test_pearson_correlation_pipeline.py | 19 | Multi-genome, masking, validation |
 | test_custom_heatmap_pipeline.py | 18 | deepTools params, validation, mock run |
+| test_email_service.py | 17 | Email templates, SES integration |
 | test_projects.py | 16 | CRUD, membership, permissions |
+| test_auth.py | 16 | Register, login, refresh, logout, protected |
 | test_fastq_upload.py | 15 | Upload, validation, storage, list, delete |
 | test_qc_report.py | 14 | Alignment QC + Peak calling QC endpoints |
 | test_fastqc.py | 14 | Unit + integration, summary, resolver |
-| test_auth.py | 13 | Register, login, refresh, logout, protected |
+| test_trimming_pipeline.py | 13 | Validation, mock_run, methods text, concurrency |
+| test_cleanup_service.py | 11 | Storage cleanup, retention policies |
 | test_experiments.py | 10 | CRUD, name validation, project membership |
-| test_trimming_pipeline.py | 9 | Validation, mock_run, methods text |
+| test_experiment_events.py | 9 | Audit log entries, event creation |
 | test_worker.py | 8 | Poll cycle, job pickup, status transitions |
 | test_tus_upload.py | 7 | tus protocol: create, upload, finalize |
+| test_notifications.py | 7 | List, mark-read |
+| test_alignment_concurrency.py | 7 | ThreadPoolExecutor, partial failure, ordering |
 | test_sse.py | 6 | Auth, lifecycle, events, user isolation |
-| test_notifications.py | 5 | List, mark-read |
 | test_users.py | 4 | Profile get/update |
 | test_job_output_service.py | 4 | Output persistence, storage accounting |
 

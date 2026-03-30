@@ -779,3 +779,123 @@ def test_default_thresholds():
     assert DEFAULT_BROAD_CUTOFF == 0.1
     assert DEFAULT_SEACR_THRESHOLD == 0.01
     assert DEFAULT_FRAGMENT_SIZE == 120
+
+
+# --- Concurrency tests ---
+
+
+def _make_multi_reaction_params(n_reactions: int = 3, **overrides):
+    """Build peak calling params with N reactions for concurrency testing."""
+    reactions = []
+    for i in range(n_reactions):
+        name = f"sample_{i}"
+        reactions.append(
+            {
+                "reaction_id": i + 1,
+                "short_name": name,
+                "bam_path": f"projects/1/1/jobs/10/bams/{name}_final.bam",
+                "igg_bam_path": "projects/1/1/jobs/10/bams/IgG_final.bam",
+                "igg_short_name": "IgG",
+            }
+        )
+    params = {
+        "experiment_id": 1,
+        "project_id": 1,
+        "parent_job_id": 10,
+        "reference_genome": "mm10",
+        "peak_caller": "MACS2",
+        "peak_size": "narrow",
+        "q_value": DEFAULT_Q_VALUE,
+        "fragment_filter": True,
+        "reactions": reactions,
+    }
+    params.update(overrides)
+    return params
+
+
+@pytest.fixture
+def mock_settings(tmp_path):
+    """Patch settings for concurrency tests."""
+    from unittest.mock import patch
+
+    with patch("pipelines.peak_calling.settings") as ms:
+        ms.STORAGE_ROOT = str(tmp_path)
+        ms.MAX_CONCURRENT_REACTIONS = 8
+        ms.PIPELINE_MODE = "mock"
+        yield ms
+
+
+def test_mock_run_concurrent_correct_results(mock_settings, stage, tmp_path):
+    """Multiple reactions concurrently produce all expected outputs."""
+    mock_settings.MAX_CONCURRENT_REACTIONS = 4
+
+    params = _make_multi_reaction_params(n_reactions=5)
+    working_dir = tmp_path / "projects"
+    job_dir = working_dir / "1" / "1" / "jobs" / "200"
+    job_dir.mkdir(parents=True)
+
+    result = stage.mock_run(job_id=200, params=params, working_dir=working_dir, job_dir=job_dir)
+
+    assert result["status"] == "complete"
+    assert len(result["qc_metrics"]) == 5
+    short_names = {m["short_name"] for m in result["qc_metrics"]}
+    assert short_names == {f"sample_{i}" for i in range(5)}
+
+
+def test_mock_run_output_ordering_deterministic(mock_settings, stage, tmp_path):
+    """Outputs follow original reaction order, not thread completion order."""
+    mock_settings.MAX_CONCURRENT_REACTIONS = 8
+
+    params = _make_multi_reaction_params(n_reactions=6)
+    working_dir = tmp_path / "projects"
+    job_dir = working_dir / "1" / "1" / "jobs" / "201"
+    job_dir.mkdir(parents=True)
+
+    result = stage.mock_run(job_id=201, params=params, working_dir=working_dir, job_dir=job_dir)
+
+    metric_names = [m["short_name"] for m in result["qc_metrics"]]
+    assert metric_names == [f"sample_{i}" for i in range(6)]
+
+
+def test_mock_run_concurrent_faster_than_sequential(mock_settings, stage, tmp_path):
+    """Concurrent processing completes faster than N x sleep(1) would sequentially."""
+    import time
+
+    mock_settings.MAX_CONCURRENT_REACTIONS = 4
+
+    params = _make_multi_reaction_params(n_reactions=4)
+    working_dir = tmp_path / "projects"
+    job_dir = working_dir / "1" / "1" / "jobs" / "202"
+    job_dir.mkdir(parents=True)
+
+    start = time.time()
+    result = stage.mock_run(job_id=202, params=params, working_dir=working_dir, job_dir=job_dir)
+    elapsed = time.time() - start
+
+    assert result["status"] == "complete"
+    # 4 reactions with sleep(1) each, concurrent should finish in ~1-2s, not 4s
+    assert elapsed < 3.0
+
+
+def test_mock_run_sequential_equivalence(mock_settings, stage, tmp_path):
+    """With MAX_CONCURRENT_REACTIONS=1, output is identical to sequential behavior."""
+    mock_settings.MAX_CONCURRENT_REACTIONS = 1
+
+    params = _make_multi_reaction_params(n_reactions=3)
+    working_dir = tmp_path / "projects"
+    job_dir = working_dir / "1" / "1" / "jobs" / "203"
+    job_dir.mkdir(parents=True)
+
+    result = stage.mock_run(job_id=203, params=params, working_dir=working_dir, job_dir=job_dir)
+
+    assert result["status"] == "complete"
+    assert len(result["qc_metrics"]) == 3
+    # Verify original order preserved
+    assert result["qc_metrics"][0]["short_name"] == "sample_0"
+    assert result["qc_metrics"][1]["short_name"] == "sample_1"
+    assert result["qc_metrics"][2]["short_name"] == "sample_2"
+    # Verify all files exist on disk
+    for i in range(3):
+        name = f"sample_{i}"
+        assert (job_dir / "peaks" / f"{name}_peaks.narrowPeak").exists()
+        assert (job_dir / "peaks" / f"{name}_summits.bed").exists()
