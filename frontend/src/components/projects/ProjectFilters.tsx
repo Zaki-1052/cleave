@@ -29,6 +29,7 @@ const PROJECT_STATUSES = ['new', 'in_progress', 'complete', 'error', 'terminated
 type DateMode = '' | 'today' | 'this_week' | 'custom';
 
 interface ProjectFiltersProps {
+  initialFilters?: ProjectFiltersType;
   onApply: (filters: ProjectFiltersType) => void;
   onClear: () => void;
 }
@@ -39,16 +40,27 @@ function displayName(member: MemberUser): string {
   return member.email;
 }
 
-export function ProjectFilters({ onApply, onClear }: ProjectFiltersProps) {
+export function ProjectFilters({ initialFilters, onApply, onClear }: ProjectFiltersProps) {
   const { data: fellowMembers } = useFilterMembers();
 
   // Staged filter state — only applied on "Apply Filter"
-  const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set());
-  const [selectedMemberIds, setSelectedMemberIds] = useState<Set<number>>(new Set());
+  const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(
+    () => new Set(initialFilters?.statuses ?? []),
+  );
+  const [selectedMemberIds, setSelectedMemberIds] = useState<Set<number>>(
+    () => new Set(initialFilters?.memberIds ?? []),
+  );
   const [memberSearch, setMemberSearch] = useState('');
-  const [dateMode, setDateMode] = useState<DateMode>('');
-  const [customStart, setCustomStart] = useState<Date | undefined>();
-  const [customEnd, setCustomEnd] = useState<Date | undefined>();
+  const [dateMode, setDateMode] = useState<DateMode>(() => {
+    if (initialFilters?.createdAfter || initialFilters?.createdBefore) return 'custom';
+    return '';
+  });
+  const [customStart, setCustomStart] = useState<Date | undefined>(
+    () => (initialFilters?.createdAfter ? new Date(initialFilters.createdAfter) : undefined),
+  );
+  const [customEnd, setCustomEnd] = useState<Date | undefined>(
+    () => (initialFilters?.createdBefore ? new Date(initialFilters.createdBefore) : undefined),
+  );
 
   const filteredMembers = useMemo(() => {
     if (!fellowMembers) return [];
