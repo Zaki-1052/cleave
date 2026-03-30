@@ -69,7 +69,7 @@ async def start_auto_pipeline(
 
 
 async def on_fastqc_complete(experiment_id: int) -> None:
-    """Called after all FastQC files are processed. Evaluates adapter status."""
+    """Called after FastQC files are processed. Evaluates adapter status only when ALL are done."""
     async with async_session_factory() as db:
         exp = (
             await db.execute(select(Experiment).where(Experiment.id == experiment_id))
@@ -85,6 +85,18 @@ async def on_fastqc_complete(experiment_id: int) -> None:
             .where(FastqFile.is_trimmed.is_(False))
         )
         raw_fastqs = result.scalars().all()
+
+        # Wait until ALL raw FASTQs have completed FastQC before evaluating
+        all_have_fastqc = raw_fastqs and all(f.total_reads is not None for f in raw_fastqs)
+        if not all_have_fastqc:
+            logger.info(
+                "auto_pipeline.fastqc_not_all_done",
+                experiment_id=experiment_id,
+                total=len(raw_fastqs),
+                done=sum(1 for f in raw_fastqs if f.total_reads is not None),
+            )
+            return
+
         await _evaluate_fastqc_and_queue(db, experiment_id, config, raw_fastqs)
 
 

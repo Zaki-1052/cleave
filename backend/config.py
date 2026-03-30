@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     GENOME_INDEX_DIR: str = "/data/cleave/genomes"
 
     # Storage Lifecycle (Phase 7.1)
-    CLEANUP_ENABLED: bool = True
+    CLEANUP_ENABLED: bool = False
     CLEANUP_INTERVAL_HOURS: float = 24.0
     LOG_RETENTION_DAYS: int = 30
     STORAGE_QUOTA_BYTES: int = 0  # 0 = no quota (gauge shows raw usage only)

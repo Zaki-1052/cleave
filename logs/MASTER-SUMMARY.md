@@ -235,6 +235,9 @@ Cleave is a full-stack bioinformatics web platform that replicates EpiCypher's C
 - **Project Filters & Pagination**: `status` column on projects (migration `c5d8f3a10b64`). 5 filter query params on `GET /projects`. `GET /projects/filter-members` endpoint. `recompute_project_status()` wired into worker at all 3 job transitions. Frontend: `ProjectFilters.tsx` sidebar (status multi-select, members searchable, date picker), pagination, URL state persistence via `useSearchParams`.
 - **Documentation Site**: `/docs` route with 17 pages. `DocsLayout` with collapsible sidebar. Content as structured TypeScript data (2,506 lines). Single `DocsPage` component with slug-based lookup. Mobile responsive.
 - **Favicon**: `favicon.svg` using CleaveIcon design (DNA helix + gold slash).
+- **Auto-Pipeline in Wizard**: Added Step 4 ("Pipeline") to experiment creation wizard with "Run Full Pipeline when done" toggle. Extracted `AutoPipelineConfigPanel` from `AutoPipelineModal` (DRY). Calls existing `POST /auto-pipeline` on wizard completion. Error-resilient (toast on failure, experiment still created).
+- **Auto-Pipeline Race Fix**: `on_fastqc_complete()` now waits for ALL raw FASTQs to complete FastQC before evaluating adapter status (matching existing guard in `start_auto_pipeline()`).
+- **Cleanup Default**: Changed `CLEANUP_ENABLED` default to `False` — nothing auto-deleted out of the box.
 - **Auto-Pipeline Fixes**: Roman normalization default, `isMouse` derivation, Pearson description.
 - **Sidebar Reordering**: Normalization moved above Heatmaps/Correlation to match pipeline execution order.
 
@@ -863,7 +866,7 @@ scripts/seed_reference_project.py       # Idempotent gold standard seed
 - Phase 5: FastQC blocking event loop, Bowtie2 read groups, `@pytest.mark.anyio` double-wrapping, annotation stats parser, access token TTL
 - Phase 6: DiffBind R script bugs (3), test DB cleanup (`DROP SCHEMA public CASCADE`)
 - Phase 7: DiffBind crash on no significant sites, BiocParallel macOS crash, Roman normalization bin mismatch + NA propagation, Pearson resolution mismatch
-- Phase 9: SSRF bypass vectors (0.0.0.0/8, IPv6-mapped IPv4), Trimmomatic invocation portability
+- Phase 9: SSRF bypass vectors (0.0.0.0/8, IPv6-mapped IPv4), Trimmomatic invocation portability, `on_fastqc_complete` race condition (premature adapter evaluation)
 
 ---
 

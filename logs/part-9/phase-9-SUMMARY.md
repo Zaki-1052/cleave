@@ -116,6 +116,23 @@ Added public `/docs` route with 17 documentation pages:
 
 Created `frontend/public/favicon.svg` using the CleaveIcon design (DNA double helix with gold enzymatic cleave slash). SVG format with baked-in gradient background (sky-blue → teal → gold) so white strokes are visible in browser tabs. Updated `index.html` to reference it.
 
+### Auto-Pipeline in Experiment Creation Wizard
+
+Added auto-pipeline opt-in to the experiment creation wizard (Step 4: "Pipeline") so users can trigger the full chain at experiment creation time rather than navigating back to the experiment page.
+
+- Extracted `AutoPipelineConfigPanel.tsx` from `AutoPipelineModal.tsx` — shared config UI (genome selector, peak caller, optional steps, pipeline summary) reused by both the standalone modal and the new wizard step (DRY).
+- Created `AutoPipelineStep.tsx` — wizard Step 4 with "Run Full Pipeline when done" toggle. Auto-detects genome from reactions. When OFF, shows info text about starting later.
+- Modified `CreateExperimentWizard.tsx` — added Step 4 ("Pipeline"), pipeline config state, `handleFinish()` calls `startAutoPipeline()` on wizard completion. Error-resilient: toast on API failure but experiment still created.
+- Refactored `AutoPipelineModal.tsx` to use extracted panel (~60% less inline JSX).
+
+### Auto-Pipeline Race Condition Fix
+
+Fixed `on_fastqc_complete()` in `auto_pipeline_service.py` — added `all_have_fastqc` guard matching the existing check in `start_auto_pipeline()`. Prevents premature adapter evaluation when some FASTQ files are still processing FastQC. Safe because the callback fires again when each subsequent file completes.
+
+### Cleanup Default Changed
+
+Changed `CLEANUP_ENABLED` default from `True` to `False` in `config.py`. Nothing auto-deleted out of the box — lab opts in via `.env`. Only affected log files (30-day) and stale tus uploads (48h); actual pipeline outputs were never auto-deleted.
+
 ### Auto-Pipeline Fixes
 
 - Fixed Roman Normalization default: `includeNormalization` now initializes to `true` (was `isMouse` which could be stale from a previous render).
@@ -146,6 +163,8 @@ Created `frontend/public/favicon.svg` using the CleaveIcon design (DNA double he
 | Project filters | Staged (Apply/Clear) | Matches CUTANA Cloud spec. URL state persistence for shareable links. |
 | Docs content format | Hardcoded TypeScript data (no markdown parser) | Lean bundle, easily editable, no extra dependency. |
 | Docs routing | Public (no auth) | Accessible without login, like the landing page. |
+| Auto-pipeline in wizard | Optional Step 4, calls existing API on completion | No new endpoints needed; reuses `POST /auto-pipeline`. Error-resilient (toast on failure, experiment still created). |
+| Cleanup default | `CLEANUP_ENABLED=False` | Keep everything forever out of the box; lab opts in via `.env`. |
 
 ---
 
@@ -174,7 +193,9 @@ Two new Alembic migrations:
 - `backend/migrations/versions/c5d8f3a10b64_add_project_status.py` — Project status migration
 - `backend/tests/test_server_import.py` — 23 tests (20 initial + 3 SSRF)
 
-### Frontend (22 new files)
+### Frontend (24 new files)
+- `frontend/src/components/experiments/AutoPipelineConfigPanel.tsx` — Extracted shared pipeline config UI
+- `frontend/src/components/experiments/AutoPipelineStep.tsx` — Wizard Step 4 (pipeline toggle + config)
 - `frontend/src/api/serverImport.ts` — Server import API client
 - `frontend/src/hooks/useServerImport.ts` — Server import TanStack Query hooks
 - `frontend/src/components/fastqs/ServerImportModal.tsx` — 3-step import wizard
@@ -221,6 +242,8 @@ Two new Alembic migrations:
 - `backend/tests/test_projects.py` — 10 new filter tests + 8 reference project tests
 - `backend/tests/test_trimming_pipeline.py` — 4 new concurrency tests
 - `backend/tests/test_peak_calling_pipeline.py` — 4 new concurrency tests
+- `backend/config.py` — `CLEANUP_ENABLED` default changed to `False`
+- `backend/services/auto_pipeline_service.py` — Fixed `on_fastqc_complete` race condition (all-files-done guard)
 
 ### Frontend
 - `frontend/index.html` — Favicon reference updated
@@ -238,7 +261,8 @@ Two new Alembic migrations:
 - `frontend/src/api/projects.ts` — `getFilterMembers()`, `getReferenceProjects()`, filter interface
 - `frontend/src/api/types.ts` — `ProjectFilters` interface, `isReference` on Project type
 - `frontend/src/components/experiments/NewAnalysisDropdown.tsx` — Normalization reordered after DiffBind
-- `frontend/src/components/experiments/AutoPipelineModal.tsx` — Fixed normalization default + `isMouse` derivation
+- `frontend/src/components/experiments/AutoPipelineModal.tsx` — Refactored to use AutoPipelineConfigPanel + fixed normalization default + `isMouse` derivation
+- `frontend/src/components/experiments/CreateExperimentWizard.tsx` — Added Step 4 (Pipeline), auto-pipeline state, `handleFinish()` with `startAutoPipeline()` call
 - `frontend/src/components/pearson-correlation/PearsonCorrelationPlotsPanel.tsx` — Fixed correlation range description
 
 ---
