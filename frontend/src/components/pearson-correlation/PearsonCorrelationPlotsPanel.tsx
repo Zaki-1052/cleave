@@ -167,7 +167,7 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
 
         <p className="mb-3 text-xs text-muted-foreground">
           Pairwise Pearson correlation coefficients displayed as a color-coded heatmap.
-          Values range from -1 (inverse correlation) to +1 (perfect correlation).
+          Values range from 0 (no correlation) to 1 (perfect correlation).
           Replicates of the same condition should show high correlation (&gt;0.9).
         </p>
 

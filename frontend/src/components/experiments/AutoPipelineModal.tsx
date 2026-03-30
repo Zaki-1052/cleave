@@ -33,12 +33,12 @@ export function AutoPipelineModal({
     return '';
   }, [reactions]);
 
-  const isMouse = detectedGenome === 'mm10';
-
   const [referenceGenome, setReferenceGenome] = useState(detectedGenome);
+  const isMouse = referenceGenome === 'mm10';
+
   const [peakCaller, setPeakCaller] = useState('macs2');
   const [peakSize, setPeakSize] = useState('narrow');
-  const [includeNormalization, setIncludeNormalization] = useState(isMouse);
+  const [includeNormalization, setIncludeNormalization] = useState(true);
   const [includeDiffbind, setIncludeDiffbind] = useState(true);
   const [includeHeatmap, setIncludeHeatmap] = useState(true);
   const [includePearson, setIncludePearson] = useState(true);
