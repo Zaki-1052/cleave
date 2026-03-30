@@ -26,7 +26,7 @@ export function CreateExperimentWizard({
 }: CreateExperimentWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [name, setName] = useState('');
-  const [assayType, setAssayType] = useState('');
+  const [assayType, setAssayType] = useState('CUT&RUN');
   const [description, setDescription] = useState('');
   const [createdExperiment, setCreatedExperiment] = useState<Experiment | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);

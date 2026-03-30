@@ -56,10 +56,14 @@ async def _update_experiment_status(experiment_id: int, job_status: str) -> None
     """Update experiment status based on job state transitions."""
     async with async_session_factory() as db:
         if job_status == "running":
-            # Transition from new -> in_progress
+            # Transition to in_progress from new, error, or terminated
+            # (error/terminated can happen when a failed/terminated job is retried)
             await db.execute(
                 update(Experiment)
-                .where(Experiment.id == experiment_id, Experiment.status == "new")
+                .where(
+                    Experiment.id == experiment_id,
+                    Experiment.status.in_(["new", "error", "terminated"]),
+                )
                 .values(status="in_progress")
             )
         elif job_status == "error":
@@ -67,13 +71,22 @@ async def _update_experiment_status(experiment_id: int, job_status: str) -> None
                 update(Experiment).where(Experiment.id == experiment_id).values(status="error")
             )
         elif job_status in ("complete", "terminated"):
-            # Check if any jobs are still pending for this experiment
+            # Exclude jobs that have been superseded by a retry — their status
+            # is stale and should not block the experiment from completing.
+            retried_job_ids = (
+                select(AnalysisJob.retry_of_job_id)
+                .where(
+                    AnalysisJob.experiment_id == experiment_id,
+                    AnalysisJob.retry_of_job_id.isnot(None),
+                )
+            )
             result = await db.execute(
                 select(func.count())
                 .select_from(AnalysisJob)
                 .where(
                     AnalysisJob.experiment_id == experiment_id,
                     AnalysisJob.status.notin_(["complete", "terminated"]),
+                    AnalysisJob.id.notin_(retried_job_ids),
                 )
             )
             pending = result.scalar_one()
