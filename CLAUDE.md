@@ -6,10 +6,11 @@
 ## Project Documentation
 
 @README.md
-docs/cutana-cloud-info.md
 @docs/cf-lab-pipeline-spec.md
-docs/cutana-cloud-docs.md
 @docs/SPEC.md
+@logs/MASTER-SUMMARY.md
+@docs/cleave-user-guide.md
+@docs/DEPLOYMENT.md
 
 ## Tech Stack
 
