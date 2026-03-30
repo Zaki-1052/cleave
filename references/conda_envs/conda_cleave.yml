@@ -1,0 +1,90 @@
+# references/conda_envs/conda_cleave.yml
+# Master conda environment for Cleave production deployment.
+# Combines all bioinformatics tools, R/Bioconductor packages, and Python web
+# framework into a single environment for the API + worker processes.
+#
+# Install:
+#   conda env create -f conda_cleave.yml
+#
+# Fallback (if monolithic solve fails):
+#   Phase 1: conda create -n cleave -c conda-forge -c bioconda python=3.11 \
+#            bowtie2 samtools bedtools picard deeptools macs2 fastqc trimmomatic \
+#            homer openjdk perl wget pandas matplotlib seaborn numpy scipy
+#   Phase 2: conda install -n cleave -c conda-forge -c bioconda \
+#            r-base r-essentials r-tidyverse bioconductor-diffbind \
+#            bioconductor-rtracklayer bioconductor-genomicranges \
+#            bioconductor-biocparallel bioconductor-deseq2 bioconductor-edger
+#   Phase 3: conda activate cleave && pip install <all pip packages below>
+#
+# Post-install (HOMER annotation databases):
+#   conda activate cleave
+#   configureHomer.pl -install mm10
+#   configureHomer.pl -install hg38
+#   configureHomer.pl -install hg19
+
+name: cleave
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  # ---- Python core ----
+  - python=3.11
+  - pip
+
+  # ---- Bioinformatics tools (bioconda) ----
+  - bowtie2
+  - samtools
+  - bedtools
+  - picard
+  - deeptools
+  - macs2
+  - fastqc
+  - trimmomatic
+  - homer
+
+  # ---- System tools ----
+  - openjdk>=17
+  - wget
+  - perl
+
+  # ---- R + Bioconductor ----
+  - r-base>=4.2
+  - r-essentials
+  - r-tidyverse
+  - bioconductor-diffbind
+  - bioconductor-rtracklayer
+  - bioconductor-genomicranges
+  - bioconductor-biocparallel
+  - bioconductor-deseq2
+  - bioconductor-edger
+
+  # ---- Python scientific (conda-forge for better compatibility) ----
+  - pandas
+  - matplotlib
+  - seaborn
+  - numpy
+  - scipy
+
+  # ---- Pip-only packages (web framework + tools not on conda) ----
+  - pip:
+    - fastapi>=0.109
+    - "uvicorn[standard]"
+    - "sqlalchemy[asyncio]>=2.0"
+    - asyncpg
+    - psycopg2-binary
+    - alembic
+    - pydantic>=2.0
+    - pydantic-settings
+    - "fastapi-users[sqlalchemy]"
+    - slowapi
+    - python-multipart
+    - tuspyserver>=4.2.3
+    - httpx
+    - structlog
+    - "stream-zip>=0.0.83"
+    - boto3
+    - jinja2
+    - "aioftp>=0.22"
+    - "asyncssh>=2.14"
+    - SICER2

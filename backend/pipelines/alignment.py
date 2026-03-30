@@ -43,7 +43,7 @@ logger = structlog.get_logger(__name__)
 # Bowtie2 index base names (from config2.json, config_human.json, ecoli_config.json)
 BOWTIE2_INDEX_NAMES = {
     "mm10": "mm10",
-    "hg38": "GRCh38",
+    "hg38": "hg38",
     "hg19": "hg19",
     "dm6": "dm6",
     "sacCer3": "sacCer3",
