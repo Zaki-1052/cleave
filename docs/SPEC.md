@@ -5,7 +5,7 @@
 > **Author**: Zakir Alibhai
 > **Supersedes**: `cutana-architecture-plan.md`, `PLAN.md`, `cleave-spec-decisions.md`, `todos.md`
 
-Self-hosted CUT&RUN/CUT&Tag bioinformatics platform for the Ferguson Lab at UCSD. Replicates EpiCypher's CUTANA Cloud and extends it with lab-specific pipeline features. Single EC2 instance, ~8-10 users. 485+ backend tests passing.
+Self-hosted CUT&RUN/CUT&Tag bioinformatics platform for the Ferguson Lab at UCSD. Replicates EpiCypher's CUTANA Cloud and extends it with lab-specific pipeline features. Single EC2 instance, ~8-10 users. 500+ backend tests passing.
 
 ---
 
@@ -873,7 +873,7 @@ These bugs were found in the lab's scripts and fixed in Cleave:
 
 ## 14. Test Suite
 
-485+ tests across 27 test files, all running inside Docker (`docker compose exec api pytest tests/`).
+500+ tests across 30 test files, all running inside Docker (`docker compose exec api pytest tests/`).
 
 | Test File | Count | Scope |
 |-----------|-------|-------|
@@ -904,6 +904,9 @@ These bugs were found in the lab's scripts and fixed in Cleave:
 | test_sse.py | 6 | Auth, lifecycle, events, user isolation |
 | test_users.py | 4 | Profile get/update |
 | test_job_output_service.py | 4 | Output persistence, storage accounting |
+| test_download_token_service.py | 5 | HMAC token roundtrip, expiry, tampering, malformed input |
+| test_pipeline_base.py | 5 | get_threads, append_to_master_log, resolve_blacklist, run_cmd |
+| test_fastq_validation.py | 5 | Filename parsing, extension variants, path traversal, direction |
 
 All tests use Postgres (`cleave_test` DB). Schema cleanup via `DROP SCHEMA public CASCADE` per test. `ruff check` + `ruff format --check` + `npm run build` all clean.
 

@@ -2,7 +2,7 @@
 
 A self-hosted CUT&RUN/CUT&Tag bioinformatics web platform for the Ferguson Lab at UCSD. Cleave replicates [EpiCypher's CUTANA Cloud](https://www.epicypher.com/cutana-cloud/) and extends it with lab-specific pipeline features -- trimming, SEACR peak calling, MACS2 broad mode, DiffBind differential analysis, custom heatmaps, Pearson correlation, Roman normalization, and auto-pipeline mode.
 
-Built for ~8-10 lab members. Runs on a single AWS EC2 instance. 485+ backend tests passing.
+Built for ~8-10 lab members. Runs on a single AWS EC2 instance. 500+ backend tests passing.
 
 ## What It Does
 
@@ -108,7 +108,7 @@ cleave/
 │   │   ├── reference/           Blacklists, chrom sizes, masks, annotations
 │   │   ├── scripts/             R scripts (DiffBind, Pearson, Roman normalization)
 │   │   └── tools/               SEACR, kseq_test, filter_below.awk, change.bdg.py
-│   └── tests/                   pytest tests (485+ passing)
+│   └── tests/                   pytest tests (500+ passing)
 │
 ├── frontend/
 │   └── src/
@@ -247,7 +247,7 @@ cd frontend && npx tsc --noEmit
 # Run backend tests (MUST use Docker — tests need Postgres)
 docker compose exec api pytest tests/test_specific.py           # single file
 docker compose exec api pytest tests/test_specific.py -k "name" # single test
-docker compose exec api pytest tests/                           # full suite (485+ tests)
+docker compose exec api pytest tests/                           # full suite (500+ tests)
 
 # Create a new migration after model changes
 docker compose exec api alembic revision --autogenerate -m "description"
