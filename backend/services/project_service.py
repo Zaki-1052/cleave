@@ -1,8 +1,10 @@
 # backend/services/project_service.py
 import shutil
+from datetime import datetime
 from pathlib import Path
 
 from sqlalchemy import and_, func, or_, select
+from sqlalchemy import update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -31,19 +33,81 @@ async def create_project(db: AsyncSession, data: ProjectCreate, creator_id: int)
 
 
 async def list_projects_for_user(
-    db: AsyncSession, user_id: int, page: int, per_page: int
+    db: AsyncSession,
+    user_id: int,
+    page: int,
+    per_page: int,
+    statuses: list[str] | None = None,
+    member_ids: list[int] | None = None,
+    created_after: datetime | None = None,
+    created_before: datetime | None = None,
+    search: str | None = None,
 ) -> tuple[list[Project], int]:
     base = (
         select(Project)
         .join(ProjectMember, ProjectMember.project_id == Project.id)
         .where(ProjectMember.user_id == user_id)
     )
+
+    if statuses:
+        base = base.where(Project.status.in_(statuses))
+
+    if member_ids:
+        member_subq = select(ProjectMember.project_id).where(ProjectMember.user_id.in_(member_ids))
+        base = base.where(Project.id.in_(member_subq))
+
+    if created_after is not None:
+        base = base.where(Project.created_at >= created_after)
+
+    if created_before is not None:
+        base = base.where(Project.created_at <= created_before)
+
+    if search is not None:
+        base = base.where(Project.name.ilike(f"%{search}%"))
+
     count_result = await db.execute(select(func.count()).select_from(base.subquery()))
     total = count_result.scalar_one()
     result = await db.execute(
         base.order_by(Project.updated_at.desc()).offset((page - 1) * per_page).limit(per_page)
     )
     return list(result.scalars().all()), total
+
+
+async def list_fellow_members(db: AsyncSession, user_id: int) -> list[User]:
+    """Return distinct users who share at least one project with the given user."""
+    my_projects = select(ProjectMember.project_id).where(ProjectMember.user_id == user_id)
+    stmt = (
+        select(User)
+        .join(ProjectMember, ProjectMember.user_id == User.id)
+        .where(ProjectMember.project_id.in_(my_projects))
+        .distinct()
+        .order_by(User.email)
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def recompute_project_status(db: AsyncSession, project_id: int) -> None:
+    """Derive project status from its experiments' statuses and persist it."""
+    from models.experiment import Experiment
+
+    result = await db.execute(select(Experiment.status).where(Experiment.project_id == project_id))
+    statuses = [row[0] for row in result.all()]
+
+    if not statuses:
+        new_status = "new"
+    elif any(s == "error" for s in statuses):
+        new_status = "error"
+    elif any(s == "in_progress" for s in statuses):
+        new_status = "in_progress"
+    elif all(s == "complete" for s in statuses):
+        new_status = "complete"
+    elif any(s == "terminated" for s in statuses):
+        new_status = "terminated"
+    else:
+        new_status = "new"
+
+    await db.execute(sa_update(Project).where(Project.id == project_id).values(status=new_status))
 
 
 async def get_project(db: AsyncSession, project_id: int, user_id: int) -> Project | None:

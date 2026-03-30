@@ -1,18 +1,41 @@
 // frontend/src/api/projects.ts
 import client from './client';
-import type { Member, PaginatedResponse, Project } from './types';
+import type { Member, MemberUser, PaginatedResponse, Project } from './types';
+
+export interface ProjectFilters {
+  statuses?: string[];
+  memberIds?: number[];
+  createdAfter?: string;
+  createdBefore?: string;
+  search?: string;
+}
 
 export async function getReferenceProjects(): Promise<Project[]> {
   const { data } = await client.get<Project[]>('/projects/reference');
   return data;
 }
 
+export async function getFilterMembers(): Promise<MemberUser[]> {
+  const { data } = await client.get<MemberUser[]>('/projects/filter-members');
+  return data;
+}
+
 export async function getProjects(
   page = 1,
   perPage = 25,
+  filters?: ProjectFilters,
 ): Promise<PaginatedResponse<Project>> {
   const { data } = await client.get<PaginatedResponse<Project>>('/projects', {
-    params: { page, perPage },
+    params: {
+      page,
+      perPage,
+      ...(filters?.statuses?.length && { statuses: filters.statuses }),
+      ...(filters?.memberIds?.length && { memberIds: filters.memberIds }),
+      ...(filters?.createdAfter && { createdAfter: filters.createdAfter }),
+      ...(filters?.createdBefore && { createdBefore: filters.createdBefore }),
+      ...(filters?.search && { search: filters.search }),
+    },
+    paramsSerializer: { indexes: null },
   });
   return data;
 }

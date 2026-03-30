@@ -1,14 +1,17 @@
 // frontend/src/pages/HomePage.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Crown, FolderPlus, X } from 'lucide-react';
+import { Crown, FolderPlus, Search, X } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/layout/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { CreateProjectModal } from '@/components/projects/CreateProjectModal';
+import { ProjectFilters } from '@/components/projects/ProjectFilters';
 import { useProjects, useReferenceProjects } from '@/hooks/useProjects';
 import { formatBytes, formatDate } from '@/lib/utils';
+import type { ProjectFilters as ProjectFiltersType } from '@/api/projects';
 
 function useShowReferenceGuide() {
   const key = 'cleave_seen_reference_guide';
@@ -21,12 +24,37 @@ function useShowReferenceGuide() {
 }
 
 export default function HomePage() {
-  const { data, isLoading } = useProjects();
+  const [filters, setFilters] = useState<ProjectFiltersType>({});
+  const [page, setPage] = useState(1);
+  const [searchText, setSearchText] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchText), 300);
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
+  const activeFilters: ProjectFiltersType = {
+    ...filters,
+    ...(debouncedSearch && { search: debouncedSearch }),
+  };
+
+  const { data, isLoading } = useProjects(page, 25, activeFilters);
   const { data: referenceProjects } = useReferenceProjects();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const guide = useShowReferenceGuide();
 
   const hasReference = referenceProjects && referenceProjects.length > 0;
+
+  function handleApplyFilters(newFilters: ProjectFiltersType) {
+    setFilters(newFilters);
+    setPage(1);
+  }
+
+  function handleClearFilters() {
+    setFilters({});
+    setPage(1);
+  }
 
   return (
     <div className="flex gap-6">
@@ -58,15 +86,7 @@ export default function HomePage() {
           </Card>
         )}
 
-        <Card>
-          <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Projects Filters
-          </h2>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span>Coming soon</span>
-          </div>
-        </Card>
+        <ProjectFilters onApply={handleApplyFilters} onClear={handleClearFilters} />
       </aside>
 
       <div className="flex-1">
@@ -88,9 +108,24 @@ export default function HomePage() {
           </div>
         )}
 
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between gap-3">
           <h1 className="font-display text-xl font-bold text-foreground">Projects</h1>
-          <Button onClick={() => setIsCreateModalOpen(true)}>+ Create Project</Button>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search projects..."
+                value={searchText}
+                onChange={(e) => {
+                  setSearchText(e.target.value);
+                  setPage(1);
+                }}
+                className="rounded-md border border-input bg-background py-1.5 pl-8 pr-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+              />
+              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            </div>
+            <Button onClick={() => setIsCreateModalOpen(true)}>+ Create Project</Button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -100,8 +135,12 @@ export default function HomePage() {
         ) : data?.items.length === 0 ? (
           <EmptyState
             icon={FolderPlus}
-            title="No projects yet"
-            description="Create one to get started."
+            title="No projects found"
+            description={
+              Object.keys(activeFilters).length > 0
+                ? 'Try adjusting your filters or search.'
+                : 'Create one to get started.'
+            }
           />
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -112,6 +151,7 @@ export default function HomePage() {
                   <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
                     <span>Modified {formatDate(project.updatedAt)}</span>
                     <span className="font-mono">{formatBytes(project.storageBytes)}</span>
+                    <StatusBadge status={project.status} />
                   </div>
                   {project.description && (
                     <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">

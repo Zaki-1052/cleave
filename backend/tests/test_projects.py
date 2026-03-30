@@ -1,6 +1,6 @@
 # backend/tests/test_projects.py
 from httpx import AsyncClient
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from models.experiment import Experiment
 from models.project import Project
@@ -305,7 +305,7 @@ async def test_nonmember_gets_404_for_project_actions(client: AsyncClient):
 
 
 async def _create_reference_project_in_db(db) -> tuple[int, int]:
-    """Create a reference project + experiment directly in DB. Returns (project_id, experiment_id)."""
+    """Create a reference project + experiment directly in DB."""
     project = Project(
         name="Gold Standard Reference",
         description="Test reference project",
@@ -448,3 +448,234 @@ async def test_reference_projects_endpoint_requires_auth(client: AsyncClient):
     """GET /projects/reference requires authentication."""
     resp = await client.get("/api/v1/projects/reference")
     assert resp.status_code == 401
+
+
+# --- Filter tests ---
+
+
+async def test_list_projects_includes_status_field(client: AsyncClient):
+    """Project list response includes the status field."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    await _create_project(client, headers)
+
+    resp = await client.get("/api/v1/projects", headers=headers)
+    assert resp.status_code == 200
+    project = resp.json()["items"][0]
+    assert "status" in project
+    assert project["status"] == "new"
+
+
+async def test_list_projects_filter_by_status(client: AsyncClient):
+    """Filter projects by status returns only matching projects."""
+    from tests.conftest import test_session_factory
+
+    headers = await _register_and_get_headers(client, "user@example.com")
+    await _create_project(client, headers, "Project New")
+    pid_b = await _create_project(client, headers, "Project Complete")
+
+    async with test_session_factory() as db:
+        await db.execute(update(Project).where(Project.id == pid_b).values(status="complete"))
+        await db.commit()
+
+    # Filter for complete only
+    resp = await client.get("/api/v1/projects?statuses=complete", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 1
+    assert data["items"][0]["name"] == "Project Complete"
+
+    # Filter for new only
+    resp = await client.get("/api/v1/projects?statuses=new", headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 1
+    assert resp.json()["items"][0]["name"] == "Project New"
+
+
+async def test_list_projects_filter_by_multiple_statuses(client: AsyncClient):
+    """Filter by multiple statuses using repeated query params."""
+    from tests.conftest import test_session_factory
+
+    headers = await _register_and_get_headers(client, "user@example.com")
+    await _create_project(client, headers, "Project New")
+    pid_b = await _create_project(client, headers, "Project Complete")
+    pid_c = await _create_project(client, headers, "Project Error")
+
+    async with test_session_factory() as db:
+        await db.execute(update(Project).where(Project.id == pid_b).values(status="complete"))
+        await db.execute(update(Project).where(Project.id == pid_c).values(status="error"))
+        await db.commit()
+
+    resp = await client.get("/api/v1/projects?statuses=complete&statuses=error", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 2
+    names = {item["name"] for item in data["items"]}
+    assert names == {"Project Complete", "Project Error"}
+
+
+async def test_list_projects_filter_by_member(client: AsyncClient):
+    """Filter projects by member ID returns only shared projects."""
+    headers_a = await _register_and_get_headers(client, "user_a@example.com")
+    headers_b = await _register_and_get_headers(client, "user_b@example.com")
+    user_b_id = await _get_user_id(client, headers_b)
+
+    # Project shared between A and B
+    shared_pid = await _create_project(client, headers_a, "Shared Project")
+    await client.post(
+        f"/api/v1/projects/{shared_pid}/members",
+        json={"email": "user_b@example.com", "role": "contributor"},
+        headers=headers_a,
+    )
+
+    # Project only for A
+    await _create_project(client, headers_a, "Solo Project")
+
+    # Filter by user B — should return only the shared project
+    resp = await client.get(f"/api/v1/projects?memberIds={user_b_id}", headers=headers_a)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 1
+    assert data["items"][0]["name"] == "Shared Project"
+
+
+async def test_list_projects_filter_by_search(client: AsyncClient):
+    """Search by project name substring."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    await _create_project(client, headers, "Alpha Experiment")
+    await _create_project(client, headers, "Beta Analysis")
+
+    resp = await client.get("/api/v1/projects?search=alpha", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 1
+    assert data["items"][0]["name"] == "Alpha Experiment"
+
+
+async def test_list_projects_filter_by_date(client: AsyncClient):
+    """Filter by createdAfter/createdBefore date range."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    await _create_project(client, headers, "Recent Project")
+
+    # Far future date — no projects should match
+    resp = await client.get("/api/v1/projects?createdAfter=2099-01-01T00:00:00Z", headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 0
+
+    # Far past date — all projects should match
+    resp = await client.get("/api/v1/projects?createdAfter=2020-01-01T00:00:00Z", headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 1
+
+
+async def test_list_projects_combined_filters(client: AsyncClient):
+    """Multiple filters applied simultaneously (intersection)."""
+    from tests.conftest import test_session_factory
+
+    headers = await _register_and_get_headers(client, "user@example.com")
+    pid_a = await _create_project(client, headers, "Alpha Complete")
+    await _create_project(client, headers, "Beta New")
+
+    async with test_session_factory() as db:
+        await db.execute(update(Project).where(Project.id == pid_a).values(status="complete"))
+        await db.commit()
+
+    # Search "alpha" + status "complete" — should find one
+    resp = await client.get("/api/v1/projects?search=alpha&statuses=complete", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 1
+    assert data["items"][0]["name"] == "Alpha Complete"
+
+    # Search "beta" + status "complete" — should find none
+    resp = await client.get("/api/v1/projects?search=beta&statuses=complete", headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 0
+
+
+async def test_filter_members_endpoint(client: AsyncClient):
+    """GET /projects/filter-members returns fellow members."""
+    headers_a = await _register_and_get_headers(client, "alice@example.com")
+    await _register_and_get_headers(client, "bob@example.com")
+
+    pid = await _create_project(client, headers_a, "Shared")
+    await client.post(
+        f"/api/v1/projects/{pid}/members",
+        json={"email": "bob@example.com", "role": "contributor"},
+        headers=headers_a,
+    )
+
+    resp = await client.get("/api/v1/projects/filter-members", headers=headers_a)
+    assert resp.status_code == 200
+    data = resp.json()
+    emails = {m["email"] for m in data}
+    assert "alice@example.com" in emails
+    assert "bob@example.com" in emails
+
+
+async def test_filter_members_requires_auth(client: AsyncClient):
+    """GET /projects/filter-members requires authentication."""
+    resp = await client.get("/api/v1/projects/filter-members")
+    assert resp.status_code == 401
+
+
+async def test_recompute_project_status(client: AsyncClient):
+    """Verify recompute_project_status derives status from experiments."""
+    from services.project_service import recompute_project_status
+    from tests.conftest import test_session_factory
+
+    headers = await _register_and_get_headers(client, "user@example.com")
+    pid = await _create_project(client, headers, "Status Test")
+
+    # No experiments → new
+    async with test_session_factory() as db:
+        await recompute_project_status(db, pid)
+        await db.commit()
+
+    resp = await client.get(f"/api/v1/projects/{pid}", headers=headers)
+    assert resp.json()["status"] == "new"
+
+    # Add experiments in different statuses
+    async with test_session_factory() as db:
+        db.add(
+            Experiment(
+                project_id=pid,
+                name="Exp1",
+                assay_type="CUT&RUN",
+                status="complete",
+            )
+        )
+        db.add(
+            Experiment(
+                project_id=pid,
+                name="Exp2",
+                assay_type="CUT&RUN",
+                status="complete",
+            )
+        )
+        await db.commit()
+
+    async with test_session_factory() as db:
+        await recompute_project_status(db, pid)
+        await db.commit()
+
+    resp = await client.get(f"/api/v1/projects/{pid}", headers=headers)
+    assert resp.json()["status"] == "complete"
+
+    # One error experiment → project becomes error
+    async with test_session_factory() as db:
+        db.add(
+            Experiment(
+                project_id=pid,
+                name="Exp3",
+                assay_type="CUT&RUN",
+                status="error",
+            )
+        )
+        await db.commit()
+
+    async with test_session_factory() as db:
+        await recompute_project_status(db, pid)
+        await db.commit()
+
+    resp = await client.get(f"/api/v1/projects/{pid}", headers=headers)
+    assert resp.json()["status"] == "error"

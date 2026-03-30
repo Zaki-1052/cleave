@@ -86,6 +86,15 @@ async def _update_experiment_status(experiment_id: int, job_status: str) -> None
         await db.commit()
 
 
+async def _update_project_status(project_id: int) -> None:
+    """Recompute and persist the project's derived status."""
+    async with async_session_factory() as db:
+        from services.project_service import recompute_project_status
+
+        await recompute_project_status(db, project_id)
+        await db.commit()
+
+
 async def _create_job_notification(
     user_id: int | None,
     job_name: str,
@@ -191,6 +200,7 @@ async def poll_and_run() -> None:
             )
             await db.commit()
             await _update_experiment_status(experiment_id, "terminated")
+            await _update_project_status(project_id)
             await _create_job_notification(
                 launched_by,
                 job_name,
@@ -211,8 +221,9 @@ async def poll_and_run() -> None:
         )
         await db.commit()
 
-    # Update experiment status to in_progress
+    # Update experiment and project status
     await _update_experiment_status(experiment_id, "running")
+    await _update_project_status(project_id)
 
     # Construct working directories
     working_dir = Path(settings.STORAGE_ROOT) / "projects"
@@ -345,8 +356,9 @@ async def poll_and_run() -> None:
             except Exception:
                 logger.exception("worker.auto_pipeline_error_hook_failed", job_id=job_id)
 
-    # Update experiment status based on final outcome
+    # Update experiment and project status based on final outcome
     await _update_experiment_status(experiment_id, final_status)
+    await _update_project_status(project_id)
 
     # Create notification + email for job launcher
     await _create_job_notification(

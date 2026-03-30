@@ -7,7 +7,6 @@ from unittest.mock import patch
 import pytest
 from httpx import AsyncClient
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -23,9 +22,7 @@ async def _create_project(client: AsyncClient, auth_headers: dict) -> int:
     return resp.json()["id"]
 
 
-async def _create_experiment(
-    client: AsyncClient, auth_headers: dict, project_id: int
-) -> int:
+async def _create_experiment(client: AsyncClient, auth_headers: dict, project_id: int) -> int:
     resp = await client.post(
         "/api/v1/experiments",
         params={"projectId": project_id},
@@ -173,9 +170,7 @@ class TestBrowse:
         )
         assert resp.status_code == 401
 
-    async def test_browse_requires_contributor(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_browse_requires_contributor(self, client: AsyncClient, auth_headers: dict):
         """Viewer role should not be able to browse."""
         pid = await _create_project(client, auth_headers)
         eid = await _create_experiment(client, auth_headers, pid)
@@ -208,9 +203,7 @@ class TestBrowse:
         )
         assert resp.status_code == 404  # permission helper returns None → 404
 
-    async def test_browse_blocks_ssrf(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_browse_blocks_ssrf(self, client: AsyncClient, auth_headers: dict):
         pid = await _create_project(client, auth_headers)
         eid = await _create_experiment(client, auth_headers, pid)
 
@@ -310,9 +303,7 @@ class TestImportValidation:
 
 
 class TestSavedServers:
-    async def test_create_and_list(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_create_and_list(self, client: AsyncClient, auth_headers: dict):
         # Create
         resp = await client.post(
             "/api/v1/users/me/saved-servers",
@@ -342,9 +333,7 @@ class TestSavedServers:
         assert len(servers) == 1
         assert servers[0]["name"] == "IGM FTP"
 
-    async def test_duplicate_name_rejected(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_duplicate_name_rejected(self, client: AsyncClient, auth_headers: dict):
         await client.post(
             "/api/v1/users/me/saved-servers",
             json={
@@ -370,9 +359,7 @@ class TestSavedServers:
         )
         assert resp.status_code == 409
 
-    async def test_delete_saved_server(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_delete_saved_server(self, client: AsyncClient, auth_headers: dict):
         resp = await client.post(
             "/api/v1/users/me/saved-servers",
             json={
@@ -396,9 +383,7 @@ class TestSavedServers:
         resp = await client.get("/api/v1/users/me/saved-servers", headers=auth_headers)
         assert len(resp.json()) == 0
 
-    async def test_update_saved_server(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_update_saved_server(self, client: AsyncClient, auth_headers: dict):
         resp = await client.post(
             "/api/v1/users/me/saved-servers",
             json={
@@ -420,9 +405,7 @@ class TestSavedServers:
         assert resp.status_code == 200
         assert resp.json()["name"] == "New Name"
 
-    async def test_user_isolation(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_user_isolation(self, client: AsyncClient, auth_headers: dict):
         """User A's saved servers are not visible to User B."""
         # User A creates a server
         await client.post(

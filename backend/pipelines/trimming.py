@@ -159,9 +159,7 @@ def _process_pair(pair: dict, ctx: _TrimmingContext) -> dict:
         logger.info("trimming.stage2_start", prefix=prefix, read=read)
         proc = subprocess.run(kseq_cmd, capture_output=True, text=True, timeout=1800)
         if proc.returncode != 0:
-            raise PipelineError(
-                f"kseq_test failed for {prefix} {read}: {proc.stderr.strip()}"
-            )
+            raise PipelineError(f"kseq_test failed for {prefix} {read}: {proc.stderr.strip()}")
 
     # Build output record
     r1_size = r1_final.stat().st_size if r1_final.exists() else 0
@@ -380,8 +378,7 @@ class TrimmingStage(PipelineStage):
 
         with ThreadPoolExecutor(max_workers=concurrent_count) as executor:
             future_to_idx = {
-                executor.submit(_mock_process_pair, pair): i
-                for i, pair in enumerate(fastq_pairs)
+                executor.submit(_mock_process_pair, pair): i for i, pair in enumerate(fastq_pairs)
             }
             indexed_results: dict[int, dict] = {}
             for future in as_completed(future_to_idx):

@@ -1,4 +1,6 @@
 # backend/routers/projects.py
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +18,7 @@ from schemas.project import (
     ProjectCreate,
     ProjectRead,
     ProjectUpdate,
+    UserBrief,
 )
 from services.project_service import (
     AlreadyMemberError,
@@ -24,6 +27,7 @@ from services.project_service import (
     delete_project,
     get_project,
     get_reference_projects,
+    list_fellow_members,
     list_members,
     list_projects_for_user,
     remove_member,
@@ -43,14 +47,38 @@ async def list_reference_projects(
     return await get_reference_projects(db)
 
 
+@router.get("/filter-members", response_model=list[UserBrief])
+async def list_filter_members_endpoint(
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return distinct users who share at least one project with the current user."""
+    return await list_fellow_members(db, current_user.id)
+
+
 @router.get("", response_model=PaginatedResponse[ProjectRead])
 async def list_projects(
     page: int = Query(1, ge=1),
     per_page: int = Query(25, ge=1, le=100, alias="perPage"),
+    statuses: list[str] | None = Query(None, alias="statuses"),
+    member_ids: list[int] | None = Query(None, alias="memberIds"),
+    created_after: datetime | None = Query(None, alias="createdAfter"),
+    created_before: datetime | None = Query(None, alias="createdBefore"),
+    search: str | None = Query(None),
     current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
-    items, total = await list_projects_for_user(db, current_user.id, page, per_page)
+    items, total = await list_projects_for_user(
+        db,
+        current_user.id,
+        page,
+        per_page,
+        statuses=statuses,
+        member_ids=member_ids,
+        created_after=created_after,
+        created_before=created_before,
+        search=search,
+    )
     return PaginatedResponse(items=items, total=total, page=page, per_page=per_page)
 
 

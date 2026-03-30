@@ -1,6 +1,7 @@
 // frontend/src/hooks/useProjects.ts
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as projectsApi from '@/api/projects';
+import type { ProjectFilters } from '@/api/projects';
 
 export function useReferenceProjects() {
   return useQuery({
@@ -10,10 +11,18 @@ export function useReferenceProjects() {
   });
 }
 
-export function useProjects(page = 1, perPage = 25) {
+export function useFilterMembers() {
   return useQuery({
-    queryKey: ['projects', page, perPage],
-    queryFn: () => projectsApi.getProjects(page, perPage),
+    queryKey: ['projects', 'filter-members'],
+    queryFn: () => projectsApi.getFilterMembers(),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useProjects(page = 1, perPage = 25, filters?: ProjectFilters) {
+  return useQuery({
+    queryKey: ['projects', page, perPage, filters],
+    queryFn: () => projectsApi.getProjects(page, perPage, filters),
   });
 }
 
