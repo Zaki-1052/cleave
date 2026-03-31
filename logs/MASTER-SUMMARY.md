@@ -542,6 +542,7 @@ GET    /health                                         # {"status": "ok"}
 | `test_sse.py` | 6 | 3 | Auth rejection, generator lifecycle, events, user isolation |
 | `test_users.py` | 4 | 1 | Profile get/update |
 | `test_job_output_service.py` | 4 | 3 | Output persistence, storage accounting |
+| `test_admin.py` | 18 | 10 | Superuser auth, user management, project/job admin, stats |
 
 **Test infrastructure**: Postgres `cleave_test` DB, `NullPool`, schema cleanup via `DROP SCHEMA public CASCADE` per test, rate limiter disabled, `asyncio_mode = "auto"` (no `@pytest.mark.anyio` markers).
 
@@ -549,9 +550,10 @@ GET    /health                                         # {"status": "ok"}
 
 ## 7. Complete File Inventory
 
-### Backend Services (21 files)
+### Backend Services (22 files)
 ```
 backend/services/
+├── admin_service.py              # Superuser admin panel (Phase 10)
 ├── auto_pipeline_service.py      # Auto-pipeline orchestration (Phase 7)
 ├── cleanup_service.py            # Storage lifecycle cleanup (Phase 7)
 ├── download_token_service.py     # HMAC-signed download URLs (Phase 2)
@@ -578,7 +580,7 @@ backend/services/
 ### Backend Routers (14 files)
 ```
 backend/routers/
-├── admin.py              # Cleanup + storage info (Phase 7)
+├── admin.py              # Superuser admin panel: users, projects, jobs, stats, cleanup (Phase 7+10)
 ├── auth.py               # Login/register/refresh/logout/forgot/reset (Phase 1+7)
 ├── experiments.py        # Experiment CRUD + history + auto-pipeline (Phase 1+7)
 ├── fastq_files.py        # FASTQ list/delete/FastQC endpoints (Phase 2)
@@ -647,6 +649,7 @@ backend/schemas/
 ├── notification.py, file.py
 ├── qc_report.py           # All QC schemas (alignment, peak, diffbind, heatmap, pearson, normalization)
 ├── experiment_event.py
+├── admin.py               # Admin panel schemas (Phase 10)
 ├── auto_pipeline.py
 └── server_import.py
 ```
@@ -703,7 +706,7 @@ auth/              1 file: ProtectedRoute
 **Pages**:
 ```
 LandingPage, LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage
-HomePage, ProjectDetailPage, ExperimentView, AnalysisQueuePage, SettingsPage
+HomePage, ProjectDetailPage, ExperimentView, AnalysisQueuePage, SettingsPage, AdminPage
 experiment/: DescriptionTab, FastqsTab, ReactionsTab, AlignmentTab, PeakCallingTab
              DiffBindTab, CustomHeatmapTab, PearsonCorrelationTab, NormalizationTab
              HistoryTab, AllFilesTab
@@ -714,14 +717,14 @@ docs/: DocsLandingPage, DocsPage
 ```
 axios.ts, auth.ts, projects.ts, experiments.ts, experimentEvents.ts
 fastqs.ts, reactions.ts, jobs.ts, files.ts, notifications.ts
-serverImport.ts, autoPipeline.ts, types.ts
+serverImport.ts, autoPipeline.ts, admin.ts, types.ts
 ```
 
 **Hooks**:
 ```
 useAuth.ts, useProjects.ts, useExperiments.ts, useExperimentHistory.ts
 useFastqs.ts, useReactions.ts, useJobs.ts, useFiles.ts
-useNotifications.ts, useSSE.ts, useIGVTracks.ts, useServerImport.ts
+useNotifications.ts, useSSE.ts, useIGVTracks.ts, useServerImport.ts, useAdmin.ts
 ```
 
 **Lib**:
@@ -730,10 +733,11 @@ constants.ts, utils.ts, cn.ts, bigwig-utils.ts
 docs-navigation.ts, docs-content.ts (2,506 lines)
 ```
 
-### Tests (27 files)
+### Tests (28 files)
 ```
 backend/tests/
 ├── conftest.py
+├── test_admin.py
 ├── test_auth.py, test_users.py, test_projects.py, test_experiments.py
 ├── test_notifications.py, test_experiment_events.py
 ├── test_fastq_upload.py, test_fastqc.py, test_tus_upload.py
@@ -835,7 +839,7 @@ scripts/seed_reference_project.py       # Idempotent gold standard seed
 
 ## 9. Known Issues / Tech Debt (Current)
 
-### Open Items (as of Phase 9 completion)
+### Open Items (as of Phase 10 — Admin Panel)
 
 - **EC2 real-mode end-to-end validation**: Full pipeline tested locally with real tools on Mac but not yet on production EC2 instance.
 - **Gold Standard project**: Seed script exists but needs actual rsync of dev-data to EC2 + execution in production.
@@ -858,6 +862,7 @@ scripts/seed_reference_project.py       # Idempotent gold standard seed
 - **App3.tsx**: At repo root, superseded by `frontend/src/pages/LandingPage.tsx` — can be deleted.
 - **Raw FASTQs (~16GB)**: Excluded from reference project rsync (not needed for browsing results).
 - **Monitor m5.8xlarge**: Under real parallel pipeline load (32 vCPU).
+- **Superuser bootstrap**: No UI for initial superuser creation — must promote via SQL (`UPDATE users SET is_superuser = true WHERE email = '...'`). Could add seed script or first-user-is-admin pattern.
 
 ### Resolved Across All Phases (Partial List of Major Fixes)
 

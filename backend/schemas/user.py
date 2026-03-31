@@ -12,6 +12,7 @@ class UserRead(CamelModel):
     id: int
     email: str
     is_active: bool = True
+    is_superuser: bool = False
     first_name: str | None = None
     last_name: str | None = None
     email_notifications: str = "always"

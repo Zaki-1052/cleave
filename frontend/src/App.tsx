@@ -26,6 +26,7 @@ import HistoryTab from '@/pages/experiment/HistoryTab';
 import AllFilesTab from '@/pages/experiment/AllFilesTab';
 import AnalysisQueuePage from '@/pages/AnalysisQueuePage';
 import SettingsPage from '@/pages/SettingsPage';
+import AdminPage from '@/pages/AdminPage';
 import DocsLayout from '@/components/docs/DocsLayout';
 import DocsLandingPage from '@/pages/docs/DocsLandingPage';
 import DocsPage from '@/pages/docs/DocsPage';
@@ -75,6 +76,7 @@ export default function App() {
         </Route>
         <Route path="/queue" element={<AnalysisQueuePage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Route>
     </Routes>
   );

@@ -73,12 +73,9 @@ async def _update_experiment_status(experiment_id: int, job_status: str) -> None
         elif job_status in ("complete", "terminated"):
             # Exclude jobs that have been superseded by a retry — their status
             # is stale and should not block the experiment from completing.
-            retried_job_ids = (
-                select(AnalysisJob.retry_of_job_id)
-                .where(
-                    AnalysisJob.experiment_id == experiment_id,
-                    AnalysisJob.retry_of_job_id.isnot(None),
-                )
+            retried_job_ids = select(AnalysisJob.retry_of_job_id).where(
+                AnalysisJob.experiment_id == experiment_id,
+                AnalysisJob.retry_of_job_id.isnot(None),
             )
             result = await db.execute(
                 select(func.count())

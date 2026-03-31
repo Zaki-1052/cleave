@@ -468,9 +468,18 @@ Saved FTP/SFTP server passwords encrypted at rest with Fernet (AES-128-CBC + HMA
 
 ### Admin
 
+All admin endpoints require `is_superuser = true`. Gated via `require_superuser` FastAPI dependency (403 if not superuser).
+
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/admin/cleanup` | Trigger storage cleanup (superuser) |
+| GET | `/admin/stats` | System-wide aggregate statistics (users, projects, experiments, jobs, storage) |
+| GET | `/admin/users` | List all users (paginated, search, role/active filter) |
+| PATCH | `/admin/users/:id` | Toggle is_superuser / is_active (cannot modify self, cannot demote last superuser) |
+| GET | `/admin/projects` | List all projects (not member-scoped, paginated, search) |
+| DELETE | `/admin/projects/:id` | Force-delete project + disk cleanup |
+| GET | `/admin/jobs` | List all jobs (not member-scoped, paginated, search, status filter) |
+| POST | `/admin/jobs/:id/terminate` | Force-terminate queued/running job |
+| POST | `/admin/cleanup` | Trigger storage cleanup (expired logs + stale tus uploads) |
 | GET | `/admin/storage-info` | Disk usage + quota |
 
 ---
@@ -737,6 +746,7 @@ All file-serving endpoints validate paths stay within `STORAGE_ROOT/projects/{pr
   /files                   AllFilesTab (dual-panel tree + table)
 /queue                     AnalysisQueuePage (global job list)
 /settings                  SettingsPage
+/admin                     AdminPage (superuser only, 4 tabs: System, Users, Projects, Jobs)
 ```
 
 ### State Management
@@ -851,6 +861,7 @@ All settings via environment variables, loaded by Pydantic `BaseSettings`.
 | Auto-pipeline | Job dependency chain via parent_job_id | One-click FastQC -> Trim -> Align -> Peak Call with conditional branching |
 | Pipeline parallelism | ThreadPoolExecutor per-reaction | Alignment, trimming, and peak calling all process reactions/pairs concurrently; thread budget divided among concurrent workers; partial failure support |
 | Dark mode | CSS variables + next-themes | System/light/dark with persistent preference |
+| Admin panel | `require_superuser` dependency + tabbed frontend page | Superuser-only; user/project/job management, system stats, cleanup trigger |
 
 ---
 
@@ -907,6 +918,7 @@ These bugs were found in the lab's scripts and fixed in Cleave:
 | test_download_token_service.py | 5 | HMAC token roundtrip, expiry, tampering, malformed input |
 | test_pipeline_base.py | 5 | get_threads, append_to_master_log, resolve_blacklist, run_cmd |
 | test_fastq_validation.py | 5 | Filename parsing, extension variants, path traversal, direction |
+| test_admin.py | 18 | Superuser auth, user management, project/job admin, stats |
 
 All tests use Postgres (`cleave_test` DB). Schema cleanup via `DROP SCHEMA public CASCADE` per test. `ruff check` + `ruff format --check` + `npm run build` all clean.
 

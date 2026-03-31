@@ -1,7 +1,7 @@
 // frontend/src/components/layout/Navbar.tsx
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Bell, BookOpen, ChevronDown, Settings, LogOut } from 'lucide-react';
+import { Bell, BookOpen, ChevronDown, Settings, LogOut, Shield } from 'lucide-react';
 import { CleaveIcon } from '@/components/ui/CleaveIcon';
 import {
   DropdownMenu,
@@ -55,6 +55,19 @@ export function Navbar() {
           >
             Analysis Queue
           </Link>
+          {user?.isSuperuser && (
+            <Link
+              to="/admin"
+              className={`flex items-center gap-1 text-[15px] font-semibold transition-colors ${
+                pathname === '/admin'
+                  ? 'border-b-2 border-amber-500 text-amber-600 dark:text-amber-400'
+                  : 'text-foreground/70 hover:text-amber-600 dark:hover:text-amber-400'
+              }`}
+            >
+              <Shield className="h-3.5 w-3.5" />
+              Admin
+            </Link>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-3">

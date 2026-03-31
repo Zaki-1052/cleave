@@ -25,11 +25,12 @@ This guide deploys Cleave onto the Ferguson Lab's existing, actively-used EC2 in
 11. [systemd Services](#11-systemd-services)
 12. [Verification Checklist](#12-verification-checklist)
 13. [Seed Reference Project](#13-seed-reference-project)
-14. [Domain Switch](#14-domain-switch-nazalibhaicom--colefergusoncom)
-15. [Operations & Maintenance](#15-operations--maintenance)
-16. [Troubleshooting](#16-troubleshooting)
-17. [Security Checklist](#17-security-checklist)
-18. [Quick Reference](#18-quick-reference)
+14. [Promote Superuser](#14-promote-superuser-admin-access)
+15. [Domain Switch](#15-domain-switch-nazalibhaicom--colefergusoncom)
+16. [Operations & Maintenance](#16-operations--maintenance)
+17. [Troubleshooting](#17-troubleshooting)
+18. [Security Checklist](#18-security-checklist)
+19. [Quick Reference](#19-quick-reference)
 
 ---
 
@@ -919,7 +920,44 @@ The destination path **must match** the `Data path` printed by the seed script.
 
 ---
 
-## 14. Domain Switch (nazalibhai.com → coleferguson.com)
+## 14. Promote Superuser (Admin Access)
+
+After registering your account, promote it to superuser to access the Admin Panel (`/admin`).
+
+### 14.1 Run the promote script (on EC2)
+
+```bash
+conda activate cleave
+cd /data2/cleave/app/backend
+python ../scripts/promote_superuser.py
+```
+
+This promotes `zalibhai@ucsd.edu` by default (idempotent — safe to run multiple times).
+
+To promote a different user:
+
+```bash
+python ../scripts/promote_superuser.py --email someone@ucsd.edu
+```
+
+### 14.2 Via Docker Compose (local dev)
+
+```bash
+docker compose exec api python scripts/promote_superuser.py
+docker compose exec api python scripts/promote_superuser.py --email other@example.com
+```
+
+### 14.3 Verify
+
+1. Log out and log back in (so the frontend fetches the updated user profile)
+2. The **Admin** link (shield icon, amber color) should appear in the navbar after "Analysis Queue"
+3. The Admin Panel has 4 tabs: **System** (stats + storage), **Users** (manage roles), **Projects** (global view), **Jobs** (global queue)
+
+> **Note**: The user must register first — the script errors if the email doesn't exist in the database.
+
+---
+
+## 15. Domain Switch (nazalibhai.com → coleferguson.com)
 
 When the PI's domain moves from GoDaddy to Cloudflare:
 
@@ -1003,7 +1041,7 @@ Remove the old domain once the transition is complete.
 
 ---
 
-## 15. Operations & Maintenance
+## 16. Operations & Maintenance
 
 ### Updating the application
 
@@ -1074,7 +1112,7 @@ sudo systemctl status  cleave-api cleave-worker nginx postgresql
 
 ---
 
-## 16. Troubleshooting
+## 17. Troubleshooting
 
 ### "502 Bad Gateway" from NGINX
 
@@ -1184,7 +1222,7 @@ grep client_max_body_size /etc/nginx/sites-available/cleave
 
 ---
 
-## 17. Security Checklist
+## 18. Security Checklist
 
 - [ ] `SECRET_KEY` and `REFRESH_SECRET_KEY` are unique random strings (48+ chars)
 - [ ] `COOKIE_SECURE=true`
@@ -1199,7 +1237,7 @@ grep client_max_body_size /etc/nginx/sites-available/cleave
 
 ---
 
-## 18. Quick Reference
+## 19. Quick Reference
 
 ### Key File Paths
 

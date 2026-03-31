@@ -3,6 +3,8 @@
 export interface User {
   id: number;
   email: string;
+  isActive: boolean;
+  isSuperuser: boolean;
   firstName: string | null;
   lastName: string | null;
   emailNotifications: string;
