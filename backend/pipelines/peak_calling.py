@@ -1039,11 +1039,15 @@ class PeakCallingStage(PipelineStage):
         peak_caller = params.get("peak_caller")
         if not peak_caller:
             errors.append("Missing required parameter: peak_caller")
-        elif peak_caller not in PEAK_CALLERS:
-            errors.append(
-                f"Unsupported peak caller: {peak_caller}. "
-                f"Supported: {', '.join(sorted(PEAK_CALLERS))}"
-            )
+        else:
+            # Normalize case: accept "macs2"/"seacr"/"sicer2" as well as "MACS2"/"SEACR"/"SICER2"
+            peak_caller = peak_caller.upper()
+            params["peak_caller"] = peak_caller
+            if peak_caller not in PEAK_CALLERS:
+                errors.append(
+                    f"Unsupported peak caller: {peak_caller}. "
+                    f"Supported: {', '.join(sorted(PEAK_CALLERS))}"
+                )
 
         peak_size = params.get("peak_size")
         if not peak_size:

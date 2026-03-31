@@ -1,6 +1,8 @@
 // frontend/src/components/experiments/AutoPipelineBanner.tsx
 import { useMemo, useState } from 'react';
 import { Check, X } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
 import { cancelAutoPipeline, dismissAutoPipeline, retryAutoPipeline } from '@/api/autoPipeline';
@@ -45,6 +47,7 @@ export function AutoPipelineBanner({
   const status = experiment.autoPipelineStatus;
   const { data: jobsData } = useJobs(experiment.id, 1, 100);
   const [isRetrying, setIsRetrying] = useState(false);
+  const queryClient = useQueryClient();
 
   const autoJobs = useMemo(() => {
     const jobs: AnalysisJob[] = jobsData?.items ?? [];
@@ -111,8 +114,9 @@ export function AutoPipelineBanner({
     try {
       await cancelAutoPipeline(experiment.id);
       onCancelled();
+      toast.success('Auto-pipeline cancelled');
     } catch {
-      // Error handled silently
+      toast.error('Failed to cancel auto-pipeline');
     }
   }
 
@@ -120,9 +124,15 @@ export function AutoPipelineBanner({
     setIsRetrying(true);
     try {
       await retryAutoPipeline(experiment.id);
+      // Invalidate jobs queries so the retried job shows up in the queue immediately
+      void queryClient.invalidateQueries({ queryKey: ['jobs', experiment.id] });
+      void queryClient.invalidateQueries({ queryKey: ['all-jobs'] });
       onRetried();
-    } catch {
-      // Error handled silently
+      toast.success('Auto-pipeline step retried');
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : 'Failed to retry auto-pipeline';
+      toast.error(msg);
     } finally {
       setIsRetrying(false);
     }
@@ -133,7 +143,7 @@ export function AutoPipelineBanner({
       await dismissAutoPipeline(experiment.id);
       onDismissed();
     } catch {
-      // Error handled silently
+      toast.error('Failed to dismiss auto-pipeline');
     }
   }
 
