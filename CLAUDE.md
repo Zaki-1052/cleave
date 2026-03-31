@@ -150,7 +150,11 @@ Current phase tracking (update as we progress):
 4. ✅ Peak Calling (MACS2/SICER2/SEACR, HOMER, FRiP, fragment filter)
 5. ✅ Visualization (IGV.js integration)
 6. ✅ Lab Extensions (DiffBind, custom heatmaps, Pearson correlation, Roman normalization)
-7. 🔴 Polish & QA
+7. ✅ Polish & QA (storage lifecycle, job termination/retry, auto-pipeline, audit log)
+8. ✅ UI Overhaul (shadcn/ui, dark mode, typography system, landing page)
+9. ✅ FTP/SFTP Import (server import wizard, saved credentials, SSRF prevention)
+10. ✅ Admin Panel & Docs (superuser admin panel, in-app documentation, deployment guide)
+11. ✅ EC2 Deployment (NGINX, systemd, Cloudflare DNS, reference project seeded, live at cleave.nazalibhai.com)
 
 ## Test Ownership
 
