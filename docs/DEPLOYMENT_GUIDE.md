@@ -339,7 +339,19 @@ pip install \
   asyncpg psycopg2-binary alembic "pydantic>=2.0" pydantic-settings \
   "fastapi-users[sqlalchemy]" slowapi python-multipart "tuspyserver>=4.2.3" \
   httpx structlog "stream-zip>=0.0.83" boto3 jinja2 \
-  "aioftp>=0.22" "asyncssh>=2.14" SICER2
+  "aioftp>=0.22" "asyncssh>=2.14"
+
+# Phase 4: SICER2 (separate env — bioconda only has py3.9, pip fails on 3.11+)
+mamba create -n sicer2 -c bioconda -c conda-forge python=3.9 sicer2
+# Create wrapper so `sicer` is callable from the cleave env.
+# Hardcode miniconda path — the systemd worker PATH doesn't include conda itself.
+cat > "$CONDA_PREFIX/bin/sicer" << 'WRAPPER'
+#!/bin/bash
+source /home/ubuntu/miniconda3/etc/profile.d/conda.sh
+conda activate sicer2
+exec sicer "$@"
+WRAPPER
+chmod +x "$CONDA_PREFIX/bin/sicer"
 ```
 
 ### 6.3 Install HOMER annotation databases
@@ -445,7 +457,7 @@ COOKIE_SECURE=true
 # App
 CORS_ORIGINS=https://cleave.nazalibhai.com
 STORAGE_ROOT=/data2/cleave
-UPLOAD_MAX_SIZE_MB=5000
+UPLOAD_MAX_SIZE_MB=10000
 PIPELINE_MODE=real
 
 # File serving — NGINX handles large files
@@ -519,10 +531,16 @@ psql -h localhost -U cleave -d cleave -c "\dt"
 
 ## 9. Frontend Build
 
+Ubuntu 18.04 (glibc 2.27) cannot run Node 18+ — build the frontend locally and copy `dist/` to the instance.
+
 ```bash
-cd /data2/cleave/app/frontend
+# On your local machine (Node 20+ required)
+cd frontend
 npm install
 npm run build
+
+# Copy built assets to EC2 (get EC2 public DNS from AWS console or aws cli)
+scp -i ~/.ssh/210323.pem -r dist/ ubuntu@<ec2-public-dns>:/data2/cleave/app/frontend/
 ```
 
 **Verify:**
@@ -568,8 +586,8 @@ server {
     listen 80;
     server_name cleave.nazalibhai.com;
 
-    # Max upload size — matches UPLOAD_MAX_SIZE_MB (5 GB)
-    client_max_body_size 5120m;
+    # Max upload size — matches UPLOAD_MAX_SIZE_MB
+    client_max_body_size 10240m;
 
     # Proxy timeouts for long-running pipeline API calls
     proxy_read_timeout 600s;
@@ -584,6 +602,21 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
+    # ── SSE endpoint (long-lived connection, no buffering) ──
+    location /api/v1/notifications/stream {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_set_header Connection '';
+        proxy_http_version 1.1;
+        chunked_transfer_encoding off;
+        proxy_read_timeout 86400s;
+    }
+
     # ── API reverse proxy ──
     location /api/ {
         proxy_pass http://127.0.0.1:8000;
@@ -592,7 +625,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto https;
 
-        # SSE — disable buffering for event streams
+        # Disable buffering for remaining API calls
         proxy_buffering off;
         proxy_cache off;
 
@@ -666,7 +699,7 @@ Type=simple
 User=ubuntu
 Group=ubuntu
 WorkingDirectory=/data2/cleave/app/backend
-Environment="PATH=/home/ubuntu/miniconda3/envs/cleave/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PATH=/home/ubuntu/miniconda3/envs/cleave/bin:/data2/cleave/homer/bin:/usr/local/bin:/usr/bin:/bin"
 EnvironmentFile=/data2/cleave/app/backend/.env
 ExecStart=/home/ubuntu/miniconda3/envs/cleave/bin/uvicorn main:app \
     --host 127.0.0.1 \
@@ -700,7 +733,7 @@ Type=simple
 User=ubuntu
 Group=ubuntu
 WorkingDirectory=/data2/cleave/app/backend
-Environment="PATH=/home/ubuntu/miniconda3/envs/cleave/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PATH=/home/ubuntu/miniconda3/envs/cleave/bin:/data2/cleave/homer/bin:/usr/local/bin:/usr/bin:/bin"
 EnvironmentFile=/data2/cleave/app/backend/.env
 ExecStart=/home/ubuntu/miniconda3/envs/cleave/bin/python worker.py
 Restart=always
@@ -819,8 +852,8 @@ The Gold Standard Reference Project provides a pre-analyzed dataset visible to a
 
 ```bash
 conda activate cleave
-cd /data2/cleave/app
-python scripts/seed_reference_project.py
+cd /data2/cleave/app/backend
+python ../scripts/seed_reference_project.py
 ```
 
 Note the **Project ID** (`<PID>`) and **Experiment ID** (`<EID>`) from the output.
@@ -828,15 +861,18 @@ Note the **Project ID** (`<PID>`) and **Experiment ID** (`<EID>`) from the outpu
 ### 13.2 Transfer data files (from local Mac)
 
 ```bash
-# From your Mac where dev-data/ lives
-rsync -avz --progress \
-  --exclude='fastqs/raw/' \
-  dev-data/projects/1/1/ \
-  -e "ssh -i ./210323.pem" \
-  ubuntu@54.244.37.255:/data2/cleave/projects/<PID>/<EID>/
+# On EC2 — create parent directory first
+mkdir -p /data2/cleave/projects/<PID>
+
+# From your Mac where dev-data/ lives (no trailing slash on source)
+scp -i ~/.ssh/210323.pem -r dev-data/projects/<PID>/<EID> \
+  ubuntu@<ec2-public-dns>:/data2/cleave/projects/<PID>/
 ```
 
-The rsync destination path **must match** the `Data path` printed by the seed script.
+The destination path **must match** the `Data path` printed by the seed script.
+`<PID>` and `<EID>` are the Project ID and Experiment ID from the seed output.
+
+> **Note**: macOS `openrsync` may crash against Ubuntu 18.04's GNU rsync — use `scp -r` instead.
 
 **What gets transferred (~4.5 GB):**
 - `fastqs/trimmed/` — Trimmed FASTQ files
@@ -1013,6 +1049,24 @@ cd /data2/cleave/app/backend/pipelines/tools
 gcc -O2 kseq_test.c -lz -o kseq_test
 chmod +x kseq_test
 ```
+
+### SICER2 build fails via pip / conda
+
+SICER2's C extensions are incompatible with Python 3.11+ and bioconda only provides a py3.9 build. Install it in a separate conda env with a wrapper script:
+
+```bash
+mamba create -n sicer2 -c bioconda -c conda-forge python=3.9 sicer2
+conda activate cleave
+cat > "$CONDA_PREFIX/bin/sicer" << 'WRAPPER'
+#!/bin/bash
+source /home/ubuntu/miniconda3/etc/profile.d/conda.sh
+conda activate sicer2
+exec sicer "$@"
+WRAPPER
+chmod +x "$CONDA_PREFIX/bin/sicer"
+```
+
+**Note**: The path `/home/ubuntu/miniconda3` is hardcoded because the systemd worker's PATH only includes the cleave env's bin dir, not conda itself.
 
 ### "Trimmomatic not found"
 

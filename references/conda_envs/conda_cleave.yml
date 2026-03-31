@@ -87,4 +87,6 @@ dependencies:
     - jinja2
     - "aioftp>=0.22"
     - "asyncssh>=2.14"
-    - SICER2
+    # SICER2 excluded — C extensions incompatible with Python 3.11+.
+    # Install in a separate env: mamba create -n sicer2 -c bioconda -c conda-forge python=3.9 sicer2
+    # Then create a wrapper script in $CONDA_PREFIX/bin/sicer (see DEPLOYMENT_GUIDE.md §6)
