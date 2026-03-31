@@ -10,6 +10,8 @@ import { PearsonCorrelationPlotsPanel } from '@/components/pearson-correlation/P
 import { Card } from '@/components/layout/Card';
 import { DetailRow } from '@/components/ui/DetailRow';
 import { EmptyState } from '@/components/ui/EmptyState';
+import JobActions from '@/components/ui/JobActions';
+import JobErrorDetails from '@/components/ui/JobErrorDetails';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs, useUpdateJobNotes } from '@/hooks/useJobs';
@@ -259,6 +261,9 @@ function CorrelationInfoPanel({ job }: { job: AnalysisJob }) {
           )}
         </Card>
       </div>
+
+      <JobActions job={job} />
+      <JobErrorDetails job={job} />
     </div>
   );
 }
