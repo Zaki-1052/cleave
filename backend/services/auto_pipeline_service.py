@@ -107,14 +107,25 @@ async def _evaluate_fastqc_and_queue(
     raw_fastqs: list,
 ) -> None:
     """Check adapter status and queue trimming or alignment."""
-    adapters_detected = any(f.adapter_status in ("warn", "fail") for f in raw_fastqs)
-
     await db.execute(
         update(Experiment)
         .where(Experiment.id == experiment_id)
         .values(auto_pipeline_status="running")
     )
     await db.commit()
+
+    # Skip trimming if trimmed FASTQs already exist
+    trimmed_result = await db.execute(
+        select(FastqFile)
+        .where(FastqFile.experiment_id == experiment_id)
+        .where(FastqFile.is_trimmed.is_(True))
+    )
+    if trimmed_result.scalars().first():
+        logger.info("auto_pipeline.trimming_already_done", experiment_id=experiment_id)
+        await _queue_alignment(db, experiment_id, config, parent_job_id=None)
+        return
+
+    adapters_detected = any(f.adapter_status in ("warn", "fail") for f in raw_fastqs)
 
     if adapters_detected:
         logger.info("auto_pipeline.adapters_detected", experiment_id=experiment_id)
@@ -285,6 +296,17 @@ async def retry_auto_pipeline(
     return new_job
 
 
+async def dismiss_auto_pipeline(db: AsyncSession, experiment_id: int) -> None:
+    """Reset auto-pipeline status so the user can re-launch."""
+    await db.execute(
+        update(Experiment)
+        .where(Experiment.id == experiment_id)
+        .values(auto_pipeline_status=None, auto_pipeline=False)
+    )
+    await db.commit()
+    logger.info("auto_pipeline.dismissed", experiment_id=experiment_id)
+
+
 async def cancel_auto_pipeline(db: AsyncSession, experiment_id: int) -> None:
     """Cancel auto-pipeline. Terminate queued jobs, leave completed ones."""
     await db.execute(
@@ -347,7 +369,33 @@ async def _queue_alignment(
 ) -> None:
     """Queue an alignment job with default parameters."""
     reactions = await _get_reactions(db, experiment_id)
-    reaction_params = [{"reaction_id": r.id, "short_name": r.short_name} for r in reactions]
+
+    # Resolve FASTQ paths for each reaction (prefer trimmed over raw)
+    result = await db.execute(
+        select(FastqFile).where(FastqFile.experiment_id == experiment_id)
+    )
+    all_fastqs = result.scalars().all()
+
+    # Build prefix -> {R1: path, R2: path}, preferring trimmed files
+    prefix_paths: dict[str, dict[str, str]] = {}
+    for f in all_fastqs:
+        key = f.prefix
+        if key not in prefix_paths:
+            prefix_paths[key] = {}
+        direction = f.read_direction  # "R1" or "R2"
+        # Prefer trimmed over raw: overwrite if trimmed version exists
+        if direction not in prefix_paths[key] or f.is_trimmed:
+            prefix_paths[key][direction] = f.file_path
+
+    reaction_params = []
+    for r in reactions:
+        paths = prefix_paths.get(r.fastq_prefix, {})
+        rp: dict = {"reaction_id": r.id, "short_name": r.short_name}
+        if "R1" in paths:
+            rp["r1_path"] = paths["R1"]
+        if "R2" in paths:
+            rp["r2_path"] = paths["R2"]
+        reaction_params.append(rp)
 
     params = {
         "experiment_id": experiment_id,

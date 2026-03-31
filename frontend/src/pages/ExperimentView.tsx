@@ -106,7 +106,7 @@ export default function ExperimentView() {
         </div>
         {!isReadOnly && (
           <div className="flex items-center gap-2">
-            {!experiment.autoPipelineStatus && reactions.length > 0 && (
+            {(!experiment.autoPipelineStatus || experiment.autoPipelineStatus === 'cancelled') && reactions.length > 0 && (
               <Button
                 variant="success"
                 onClick={() => setShowAutoPipelineModal(true)}
@@ -133,6 +133,9 @@ export default function ExperimentView() {
             void queryClient.invalidateQueries({ queryKey: ['experiments', experiment.id] });
           }}
           onRetried={() => {
+            void queryClient.invalidateQueries({ queryKey: ['experiments', experiment.id] });
+          }}
+          onDismissed={() => {
             void queryClient.invalidateQueries({ queryKey: ['experiments', experiment.id] });
           }}
         />

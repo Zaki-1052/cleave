@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Check, X } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
-import { cancelAutoPipeline, retryAutoPipeline } from '@/api/autoPipeline';
+import { cancelAutoPipeline, dismissAutoPipeline, retryAutoPipeline } from '@/api/autoPipeline';
 import { useJobs } from '@/hooks/useJobs';
 import type { AnalysisJob, Experiment } from '@/api/types';
 
@@ -11,6 +11,7 @@ interface AutoPipelineBannerProps {
   experiment: Experiment;
   onCancelled: () => void;
   onRetried: () => void;
+  onDismissed: () => void;
 }
 
 const STEP_ORDER: Record<string, number> = {
@@ -39,6 +40,7 @@ export function AutoPipelineBanner({
   experiment,
   onCancelled,
   onRetried,
+  onDismissed,
 }: AutoPipelineBannerProps) {
   const status = experiment.autoPipelineStatus;
   const { data: jobsData } = useJobs(experiment.id, 1, 100);
@@ -126,6 +128,15 @@ export function AutoPipelineBanner({
     }
   }
 
+  async function handleDismiss() {
+    try {
+      await dismissAutoPipeline(experiment.id);
+      onDismissed();
+    } catch {
+      // Error handled silently
+    }
+  }
+
   return (
     <div className={`mb-4 rounded-lg border p-4 ${bgColor}`}>
       <div className="flex items-center justify-between">
@@ -144,6 +155,11 @@ export function AutoPipelineBanner({
           {isError && (
             <Button variant="outlined" onClick={handleRetry} disabled={isRetrying}>
               {isRetrying ? 'Retrying...' : 'Retry'}
+            </Button>
+          )}
+          {isCancelled && (
+            <Button variant="outlined" onClick={handleDismiss}>
+              Dismiss
             </Button>
           )}
           {(isRunning || isPending) && (

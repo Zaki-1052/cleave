@@ -34,6 +34,15 @@ export async function cancelAutoPipeline(
   return data;
 }
 
+export async function dismissAutoPipeline(
+  experimentId: number,
+): Promise<{ status: string }> {
+  const { data } = await client.post(
+    `/experiments/${experimentId}/auto-pipeline/dismiss`,
+  );
+  return data;
+}
+
 export async function retryAutoPipeline(
   experimentId: number,
 ): Promise<AnalysisJob> {

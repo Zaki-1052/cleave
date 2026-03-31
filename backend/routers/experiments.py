@@ -149,6 +149,25 @@ async def cancel_auto_pipeline_endpoint(
     return {"status": "cancelled"}
 
 
+@router.post("/{experiment_id}/auto-pipeline/dismiss")
+async def dismiss_auto_pipeline_endpoint(
+    experiment_id: int,
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Dismiss a cancelled/completed auto-pipeline so it can be re-launched."""
+    from services import auto_pipeline_service  # noqa: F811
+
+    exp = await get_experiment_with_permission(
+        db, experiment_id, current_user.id, ["admin", "contributor"]
+    )
+    if not exp:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+
+    await auto_pipeline_service.dismiss_auto_pipeline(db, experiment_id)
+    return {"status": "dismissed"}
+
+
 @router.post(
     "/{experiment_id}/auto-pipeline/retry",
     response_model=JobRead,
