@@ -95,11 +95,11 @@ export function AutoPipelineConfigPanel({
               }}
               className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             >
-              <option value="macs2-narrow">MACS2 Narrow (q=0.01)</option>
-              <option value="macs2-broad">MACS2 Broad</option>
-              <option value="sicer2-broad">SICER2 Broad</option>
-              <option value="seacr-stringent">SEACR Stringent</option>
-              <option value="seacr-relaxed">SEACR Relaxed</option>
+              <option value="SEACR-stringent">SEACR Stringent (lab default)</option>
+              <option value="SEACR-relaxed">SEACR Relaxed</option>
+              <option value="MACS2-narrow">MACS2 Narrow (q=0.01)</option>
+              <option value="MACS2-broad">MACS2 Broad</option>
+              <option value="SICER2-broad">SICER2 Broad</option>
             </select>
           </div>
         </div>

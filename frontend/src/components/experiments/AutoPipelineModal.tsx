@@ -34,8 +34,8 @@ export function AutoPipelineModal({
   }, [reactions]);
 
   const [referenceGenome, setReferenceGenome] = useState(detectedGenome);
-  const [peakCaller, setPeakCaller] = useState('macs2');
-  const [peakSize, setPeakSize] = useState('narrow');
+  const [peakCaller, setPeakCaller] = useState('SEACR');
+  const [peakSize, setPeakSize] = useState('stringent');
   const [includeNormalization, setIncludeNormalization] = useState(true);
   const [includeDiffbind, setIncludeDiffbind] = useState(true);
   const [includeHeatmap, setIncludeHeatmap] = useState(true);

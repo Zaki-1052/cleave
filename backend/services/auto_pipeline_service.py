@@ -447,9 +447,10 @@ async def _queue_peak_calling(
         "parent_job_id": alignment_job_id,
         "alignment_job_id": alignment_job_id,
         "reference_genome": config["reference_genome"],
-        "peak_caller": config.get("peak_caller", "macs2"),
-        "peak_size": config.get("peak_size", "narrow"),
+        "peak_caller": config.get("peak_caller", "SEACR"),
+        "peak_size": config.get("peak_size", "stringent"),
         "macs2_qvalue": config.get("macs2_qvalue", 0.01),
+        "seacr_threshold": config.get("seacr_threshold", 0.01),
         "fragment_filter": config.get("fragment_filter", True),
         "reactions": reaction_params,
     }

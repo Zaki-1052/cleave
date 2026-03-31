@@ -6,8 +6,8 @@ class AutoPipelineConfig(CamelModel):
     """Configuration for auto-pipeline mode."""
 
     reference_genome: str
-    peak_caller: str = "macs2"
-    peak_size: str = "narrow"
+    peak_caller: str = "SEACR"
+    peak_size: str = "stringent"
     macs2_qvalue: float = 0.01
     fragment_filter: bool = True
     include_normalization: bool = True

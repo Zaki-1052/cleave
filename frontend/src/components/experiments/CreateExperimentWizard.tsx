@@ -34,8 +34,8 @@ export function CreateExperimentWizard({
   // Auto-pipeline config state
   const [autoPipelineEnabled, setAutoPipelineEnabled] = useState(false);
   const [referenceGenome, setReferenceGenome] = useState('mm10');
-  const [peakCaller, setPeakCaller] = useState('macs2');
-  const [peakSize, setPeakSize] = useState('narrow');
+  const [peakCaller, setPeakCaller] = useState('SEACR');
+  const [peakSize, setPeakSize] = useState('stringent');
   const [includeNormalization, setIncludeNormalization] = useState(true);
   const [includeDiffbind, setIncludeDiffbind] = useState(true);
   const [includeHeatmap, setIncludeHeatmap] = useState(true);
@@ -54,8 +54,8 @@ export function CreateExperimentWizard({
     setCreateError(null);
     setAutoPipelineEnabled(false);
     setReferenceGenome('');
-    setPeakCaller('macs2');
-    setPeakSize('narrow');
+    setPeakCaller('SEACR');
+    setPeakSize('stringent');
     setIncludeNormalization(true);
     setIncludeDiffbind(true);
     setIncludeHeatmap(true);
