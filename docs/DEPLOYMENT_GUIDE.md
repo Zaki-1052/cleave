@@ -669,12 +669,29 @@ sudo systemctl reload nginx
 sudo systemctl enable nginx
 ```
 
-### 10.3 Cloudflare DNS
+### 10.3 EC2 Security Group
+
+The security group must allow inbound HTTP from Cloudflare. If only SSH (22) is open:
+
+```bash
+aws ec2 authorize-security-group-ingress \
+  --group-id <sg-id> --protocol tcp --port 80 --cidr 0.0.0.0/0 \
+  --region us-west-2
+```
+
+Find your security group ID with:
+
+```bash
+aws ec2 describe-instances --instance-ids <instance-id> --region us-west-2 \
+  --query 'Reservations[0].Instances[0].SecurityGroups' --output table
+```
+
+### 10.4 Cloudflare DNS
 
 In the Cloudflare dashboard for `nazalibhai.com`:
 
 1. Add an **A record**: `cleave` → `54.244.37.255` (Proxied / orange cloud)
-2. Set **SSL/TLS mode** to **Full** (not "Full (strict)" — there is no origin certificate)
+2. SSL/TLS mode can stay on **Flexible** (NGINX listens on port 80; Cloudflare handles HTTPS to users)
 
 ---
 
@@ -899,25 +916,56 @@ The destination path **must match** the `Data path` printed by the seed script.
 
 When the PI's domain moves from GoDaddy to Cloudflare:
 
-### 14.1 Cloudflare DNS
+### 14.1 Cloudflare Origin Certificate
+
+Generate a certificate so the connection between Cloudflare and the origin is fully verified.
+
+1. In the `coleferguson.com` Cloudflare dashboard → **SSL/TLS** → **Origin Server**
+2. Click **Create Certificate**
+3. Keep defaults (RSA 2048, 15 years, hostnames: `*.coleferguson.com, coleferguson.com`)
+4. Copy the **Origin Certificate** and **Private Key**
+5. Save them on EC2:
+
+```bash
+sudo mkdir -p /etc/ssl/cloudflare
+sudo nano /etc/ssl/cloudflare/origin.pem      # paste certificate
+sudo nano /etc/ssl/cloudflare/origin-key.pem   # paste private key
+sudo chmod 600 /etc/ssl/cloudflare/origin-key.pem
+```
+
+### 14.2 Cloudflare DNS
 
 In the `coleferguson.com` Cloudflare dashboard:
-- Add **A record**: `cleave` → `54.244.37.255` (Proxied)
-- Set **SSL/TLS mode** to **Full**
+- Add **A record**: `cleave` → `54.244.37.255` (Proxied / orange cloud)
+- Set **SSL/TLS mode** to **Full (strict)**
 
-### 14.2 NGINX
+### 14.3 NGINX
 
-Update `server_name` in `/etc/nginx/sites-available/cleave`:
+Update `/etc/nginx/sites-available/cleave` — add HTTPS listener with the origin cert:
 
 ```nginx
-server_name cleave.coleferguson.com;
+server {
+    listen 80;
+    server_name cleave.coleferguson.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name cleave.coleferguson.com;
+
+    ssl_certificate     /etc/ssl/cloudflare/origin.pem;
+    ssl_certificate_key /etc/ssl/cloudflare/origin-key.pem;
+
+    # ... rest of config (client_max_body_size, locations, etc.) stays the same ...
+}
 ```
 
 ```bash
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-### 14.3 Backend .env
+### 14.4 Backend .env
 
 Update two variables in `/data2/cleave/app/backend/.env`:
 
@@ -930,7 +978,7 @@ APP_URL=https://cleave.coleferguson.com
 sudo systemctl restart cleave-api cleave-worker
 ```
 
-### 14.4 Temporary dual-domain support (optional)
+### 14.5 Temporary dual-domain support (optional)
 
 To support both domains during the transition:
 
