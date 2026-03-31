@@ -671,19 +671,26 @@ sudo systemctl enable nginx
 
 ### 10.3 EC2 Security Group
 
-The security group must allow inbound HTTP from Cloudflare. If only SSH (22) is open:
+The security group must allow inbound HTTP from Cloudflare. Find the **actual** security group attached to the instance (there may be multiple groups in the account — use the one attached to this instance):
+
+```bash
+aws ec2 describe-instances --instance-ids i-094efb787523fb12d --region us-west-2 \
+  --query 'Reservations[0].Instances[0].SecurityGroups' --output table
+```
+
+Then add port 80:
 
 ```bash
 aws ec2 authorize-security-group-ingress \
-  --group-id <sg-id> --protocol tcp --port 80 --cidr 0.0.0.0/0 \
+  --group-id <sg-id-from-above> --protocol tcp --port 80 --cidr 0.0.0.0/0 \
   --region us-west-2
 ```
 
-Find your security group ID with:
+Verify from your local machine:
 
 ```bash
-aws ec2 describe-instances --instance-ids <instance-id> --region us-west-2 \
-  --query 'Reservations[0].Instances[0].SecurityGroups' --output table
+curl -v --connect-timeout 5 http://54.244.37.255/api/v1/health
+# Should return: {"status":"ok"}
 ```
 
 ### 10.4 Cloudflare DNS
