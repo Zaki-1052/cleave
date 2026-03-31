@@ -55,7 +55,7 @@ export function AutoPipelineStep({
       if (org === 'drosophila') return 'dm6';
       if (org === 'yeast') return 'saccer3';
     }
-    return '';
+    return 'mm10';
   }, [reactions]);
 
   // Auto-detect genome when toggle is first enabled

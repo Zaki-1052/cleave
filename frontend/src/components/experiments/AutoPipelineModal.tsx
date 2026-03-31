@@ -30,7 +30,7 @@ export function AutoPipelineModal({
       if (org === 'drosophila') return 'dm6';
       if (org === 'yeast') return 'saccer3';
     }
-    return '';
+    return 'mm10';
   }, [reactions]);
 
   const [referenceGenome, setReferenceGenome] = useState(detectedGenome);

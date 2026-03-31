@@ -33,7 +33,7 @@ export function CreateExperimentWizard({
 
   // Auto-pipeline config state
   const [autoPipelineEnabled, setAutoPipelineEnabled] = useState(false);
-  const [referenceGenome, setReferenceGenome] = useState('');
+  const [referenceGenome, setReferenceGenome] = useState('mm10');
   const [peakCaller, setPeakCaller] = useState('macs2');
   const [peakSize, setPeakSize] = useState('narrow');
   const [includeNormalization, setIncludeNormalization] = useState(true);

@@ -7,7 +7,8 @@ import { getAccessToken } from '@/api/client';
 import { formatBytes } from '@/lib/utils';
 
 const VALID_EXTENSIONS = ['.fastq.gz', '.fastq', '.fq.gz', '.fq'];
-const TUS_CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB chunks
+const TUS_CHUNK_SIZE = 100 * 1024 * 1024; // 100 MB chunks
+const MAX_CONCURRENT_UPLOADS = 2;
 
 function hasValidExtension(name: string): boolean {
   return VALID_EXTENSIONS.some((ext) => name.toLowerCase().endsWith(ext));
@@ -97,35 +98,33 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
     });
   }
 
-  const handleUpload = useCallback(async () => {
-    const stagedIndices = fileStates
-      .map((f, i) => (f.status === 'staged' ? i : -1))
-      .filter((i) => i !== -1);
+  const handleUpload = useCallback(() => {
+    const stagedEntries = fileStates
+      .map((f, i) => ({ idx: i, file: f.file }))
+      .filter((_, i) => fileStates[i]?.status === 'staged');
 
-    if (stagedIndices.length === 0) return;
+    if (stagedEntries.length === 0) return;
     setUploadError(null);
 
     let completedCount = 0;
-    const totalFiles = stagedIndices.length;
+    const totalFiles = stagedEntries.length;
+    const queue = [...stagedEntries];
+    let activeCount = 0;
 
-    function checkAllComplete() {
-      completedCount++;
-      if (completedCount === totalFiles) {
-        onUploadComplete();
-      }
-    }
+    function startNext() {
+      const entry = queue.shift();
+      if (!entry) return;
+      activeCount++;
 
-    for (const idx of stagedIndices) {
-      const fileState = fileStates[idx];
-      if (!fileState) continue;
+      const { idx, file } = entry;
 
-      const upload = new tus.Upload(fileState.file, {
+      const upload = new tus.Upload(file, {
         endpoint: '/api/v1/tus',
         chunkSize: TUS_CHUNK_SIZE,
-        retryDelays: [0, 1000, 3000, 5000],
+        retryDelays: [0, 1000, 3000, 5000, 10000, 30000],
         metadata: {
           experiment_id: String(experimentId),
-          filename: fileState.file.name,
+          filename: file.name,
           filetype: 'application/octet-stream',
         },
         headers: {},
@@ -145,7 +144,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
           setFileStates((prev) =>
             prev.map((f, i) => (i === idx ? { ...f, status: 'complete', progress: 100 } : f)),
           );
-          checkAllComplete();
+          onUploadDone();
         },
         onError: (error) => {
           setFileStates((prev) =>
@@ -153,6 +152,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
               i === idx ? { ...f, status: 'error', error: error.message } : f,
             ),
           );
+          onUploadDone();
         },
       });
 
@@ -161,6 +161,18 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
       );
 
       upload.start();
+    }
+
+    function onUploadDone() {
+      activeCount--;
+      completedCount++;
+      if (queue.length > 0) startNext();
+      if (completedCount === totalFiles) onUploadComplete();
+    }
+
+    const initialBatch = Math.min(MAX_CONCURRENT_UPLOADS, stagedEntries.length);
+    for (let i = 0; i < initialBatch; i++) {
+      startNext();
     }
   }, [fileStates, experimentId, onUploadComplete]);
 

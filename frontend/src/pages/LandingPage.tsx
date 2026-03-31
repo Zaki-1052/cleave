@@ -437,6 +437,12 @@ export default function LandingPage() {
               className="hover:text-white transition-colors duration-200 relative after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-px after:bg-white/40 after:transition-all hover:after:w-full">
               Docs
             </Link>
+            <a href="https://github.com/Zaki-1052/cleave" target="_blank" rel="noopener noreferrer"
+              className="hover:text-white transition-colors duration-200" aria-label="GitHub Repository">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+              </svg>
+            </a>
             <Link to="/dashboard"
               className="ml-2 inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-semibold text-white transition-all duration-300 hover:scale-[1.03] hover:shadow-lg"
               style={{ background: `linear-gradient(135deg, ${C.blue}, ${C.seafoam})`, boxShadow: `0 2px 12px ${C.blue}25` }}>
@@ -780,7 +786,22 @@ export default function LandingPage() {
                 ))}
               </div>
               <p className="text-xs text-white/15">
-                © {new Date().getFullYear()} Cleave · Private · Ferguson Lab, UCSD
+                © {new Date().getFullYear()} Cleave · Ferguson Lab, UCSD
+              </p>
+              <p className="text-xs text-white/25 mt-2 flex items-center justify-center gap-2">
+                Built by{" "}
+                <a href="https://www.linkedin.com/in/zakir-alibhai-541454276/" target="_blank" rel="noopener noreferrer"
+                  className="text-white/40 hover:text-white/70 transition-colors underline underline-offset-2">
+                  Zakir Alibhai
+                </a>
+                <span className="text-white/10">·</span>
+                <a href="https://github.com/Zaki-1052/cleave" target="_blank" rel="noopener noreferrer"
+                  className="text-white/40 hover:text-white/70 transition-colors inline-flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                  </svg>
+                  Source
+                </a>
               </p>
             </div>
           </Reveal>
