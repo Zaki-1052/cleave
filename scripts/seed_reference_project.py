@@ -20,7 +20,7 @@ from pathlib import Path
 # Add backend to path so imports work from repo root or scripts/
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from config import settings
@@ -478,12 +478,199 @@ async def seed(mock: bool = False) -> None:
     await engine.dispose()
 
 
+async def rescan() -> None:
+    """Rescan storage for an existing reference project and rebuild JobOutput records.
+
+    Handles the common case where the seed script ran before files were rsynced:
+    1. Renames job directories from dev IDs (11, 12, ...) to actual DB IDs
+    2. Creates JobOutput records for all files found on disk
+    3. Updates storage_bytes on experiment and project
+    """
+    engine = create_async_engine(str(settings.DATABASE_URL))
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with session_factory() as db:
+        # Find existing reference project
+        result = await db.execute(
+            select(Project).where(Project.is_reference.is_(True))
+        )
+        project = result.scalar_one_or_none()
+        if project is None:
+            print("No reference project found. Run without --rescan first.")
+            await engine.dispose()
+            return
+
+        # Find experiment
+        result = await db.execute(
+            select(Experiment).where(Experiment.project_id == project.id)
+        )
+        experiment = result.scalar_one_or_none()
+        if experiment is None:
+            print("No experiment found in reference project.")
+            await engine.dispose()
+            return
+
+        pid = project.id
+        eid = experiment.id
+        print(f"Found reference project: id={pid}, experiment: id={eid}")
+
+        # Find reactions
+        result = await db.execute(
+            select(Reaction).where(Reaction.experiment_id == eid)
+        )
+        reaction_map = {r.short_name: r for r in result.scalars().all()}
+        print(f"  Reactions: {len(reaction_map)}")
+
+        # Find jobs and build dev_id → job mapping using JOBS definition order
+        result = await db.execute(
+            select(AnalysisJob)
+            .where(AnalysisJob.experiment_id == eid)
+            .order_by(AnalysisJob.id)
+        )
+        jobs = list(result.scalars().all())
+
+        # Match DB jobs to JOBS definition by job_type (unique per definition)
+        job_by_type: dict[str, AnalysisJob] = {}
+        for j in jobs:
+            job_by_type[j.job_type] = j
+
+        dev_id_to_job: dict[int, AnalysisJob] = {}
+        for dev_id, job_type, name, _, _ in JOBS:
+            if job_type in job_by_type:
+                dev_id_to_job[dev_id] = job_by_type[job_type]
+                print(f"  Job: {name} (db_id={job_by_type[job_type].id}, dev_id={dev_id})")
+
+        storage_base = Path(settings.STORAGE_ROOT) / "projects" / str(pid) / str(eid)
+        jobs_dir = storage_base / "jobs"
+
+        if not jobs_dir.exists():
+            print(f"\nNo jobs directory at {jobs_dir}")
+            print("Ensure files are rsynced to the correct path.")
+            await engine.dispose()
+            return
+
+        # Step 1: Resolve each job's actual directory on disk.
+        # Files may be at jobs/{dev_id}/ (rsynced) or jobs/{job.id}/ (renamed).
+        # Pick whichever has files; rename dev→actual when possible.
+        job_scan_dir: dict[int, tuple[Path, int]] = {}  # dev_id -> (dir_to_scan, dir_label_for_path)
+        for dev_id, job in dev_id_to_job.items():
+            dev_dir = jobs_dir / str(dev_id)
+            actual_dir = jobs_dir / str(job.id)
+
+            if dev_id == job.id:
+                # IDs match — no rename needed
+                if actual_dir.exists():
+                    job_scan_dir[dev_id] = (actual_dir, job.id)
+                continue
+
+            dev_has_files = dev_dir.exists() and any(dev_dir.rglob("*"))
+            actual_has_files = actual_dir.exists() and any(actual_dir.rglob("*"))
+
+            if dev_has_files and not actual_has_files:
+                # Only dev dir has files — rename it
+                if actual_dir.exists():
+                    actual_dir.rmdir()  # Remove empty dir
+                dev_dir.rename(actual_dir)
+                print(f"  Renamed jobs/{dev_id}/ → jobs/{job.id}/")
+                job_scan_dir[dev_id] = (actual_dir, job.id)
+            elif dev_has_files and actual_has_files:
+                # Both have files — scan the dev dir, store paths with dev_id
+                print(f"  Both jobs/{dev_id}/ and jobs/{job.id}/ have files. Using jobs/{dev_id}/.")
+                job_scan_dir[dev_id] = (dev_dir, dev_id)
+            elif actual_has_files:
+                # Only actual dir has files — use it
+                job_scan_dir[dev_id] = (actual_dir, job.id)
+            elif dev_dir.exists():
+                # Dev dir exists but empty
+                job_scan_dir[dev_id] = (dev_dir, dev_id)
+            elif actual_dir.exists():
+                # Actual dir exists but empty
+                job_scan_dir[dev_id] = (actual_dir, job.id)
+
+        # Step 2: Delete existing JobOutput records for these jobs
+        job_ids = [j.id for j in dev_id_to_job.values()]
+        await db.execute(
+            delete(JobOutput).where(JobOutput.job_id.in_(job_ids))
+        )
+        await db.flush()
+
+        # Step 3: Scan storage and create JobOutput records
+        total_size = 0
+        output_count = 0
+
+        for dev_id, job in dev_id_to_job.items():
+            if dev_id not in job_scan_dir:
+                print(f"  Warning: No directory found for {job.name} (dev_id={dev_id}, db_id={job.id})")
+                continue
+
+            scan_dir, path_label = job_scan_dir[dev_id]
+            job_file_count = 0
+
+            for file_path in sorted(scan_dir.rglob("*")):
+                if not file_path.is_file():
+                    continue
+
+                rel_to_job = str(file_path.relative_to(scan_dir))
+                # Use dev_id for classification (classify_file has hardcoded path checks)
+                category, file_type = classify_file(f"jobs/{dev_id}/{rel_to_job}")
+
+                if category == "sample_sheet":
+                    continue
+
+                reaction_id = None
+                rxn_name = get_reaction_name_from_file(file_path.name)
+                if rxn_name and rxn_name in reaction_map:
+                    reaction_id = reaction_map[rxn_name].id
+
+                file_size = file_path.stat().st_size
+                total_size += file_size
+
+                # Use path_label (actual disk directory name) so path matches real location
+                storage_rel = f"projects/{pid}/{eid}/jobs/{path_label}/{rel_to_job}"
+
+                output = JobOutput(
+                    job_id=job.id,
+                    reaction_id=reaction_id,
+                    file_category=category,
+                    filename=file_path.name,
+                    file_path=storage_rel,
+                    file_type=file_type,
+                    file_size_bytes=file_size,
+                )
+                db.add(output)
+                output_count += 1
+                job_file_count += 1
+
+            print(f"  {job.name}: {job_file_count} outputs from jobs/{path_label}/")
+
+        # Step 4: Update storage_bytes
+        experiment.storage_bytes = total_size
+        project.storage_bytes = total_size
+
+        await db.commit()
+
+        print(f"\nRescan complete:")
+        print(f"  Job outputs created: {output_count}")
+        print(f"  Total size:          {total_size:,} bytes ({total_size / 1024 / 1024:.1f} MB)")
+
+    await engine.dispose()
+
+
 def main():
     parser = argparse.ArgumentParser(description="Seed the Gold Standard Reference Project")
     parser.add_argument("--mock", action="store_true", help="Create stub files for local dev")
+    parser.add_argument(
+        "--rescan",
+        action="store_true",
+        help="Rescan storage for an existing reference project: rename job dirs, "
+        "create JobOutput records, and update storage_bytes",
+    )
     args = parser.parse_args()
 
-    asyncio.run(seed(mock=args.mock))
+    if args.rescan:
+        asyncio.run(rescan())
+    else:
+        asyncio.run(seed(mock=args.mock))
 
 
 if __name__ == "__main__":
