@@ -1,5 +1,6 @@
 // frontend/src/pages/AnalysisQueuePage.tsx
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -22,10 +23,24 @@ const STATUS_OPTIONS = [
 
 const JOB_TYPE_OPTIONS = [
   { value: '', label: 'All Types' },
-  { value: 'alignment', label: 'Alignment' },
   { value: 'trimming', label: 'Trimming' },
+  { value: 'alignment', label: 'Alignment' },
   { value: 'peak_calling', label: 'Peak Calling' },
+  { value: 'roman_normalization', label: 'Normalization' },
+  { value: 'diffbind', label: 'DiffBind' },
+  { value: 'custom_heatmap', label: 'Custom Heatmap' },
+  { value: 'pearson_correlation', label: 'Correlation' },
 ];
+
+const JOB_TYPE_TO_TAB: Record<string, string> = {
+  alignment: 'alignment',
+  trimming: 'fastqs',
+  peak_calling: 'peaks',
+  diffbind: 'diffbind',
+  custom_heatmap: 'heatmaps',
+  pearson_correlation: 'correlations',
+  roman_normalization: 'normalization',
+};
 
 function ActionsCell({ job }: { job: QueueJob }) {
   const terminateMutation = useTerminateJob();
@@ -107,6 +122,7 @@ const columns: ColumnDef<QueueJob, unknown>[] = [
 const PER_PAGE = 25;
 
 export default function AnalysisQueuePage() {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [jobTypeFilter, setJobTypeFilter] = useState<string>('');
@@ -191,7 +207,15 @@ export default function AnalysisQueuePage() {
       ) : jobs.length === 0 ? (
         <p className="py-12 text-center text-sm text-muted-foreground">No jobs found.</p>
       ) : (
-        <DataTable data={jobs} columns={columns} pageSize={jobs.length} />
+        <DataTable
+          data={jobs}
+          columns={columns}
+          pageSize={jobs.length}
+          onRowClick={(job) => {
+            const tab = JOB_TYPE_TO_TAB[job.jobType] ?? 'files';
+            navigate(`/experiments/${job.experimentId}/${tab}/${job.id}`);
+          }}
+        />
       )}
 
       {total > 0 && (
