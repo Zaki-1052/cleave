@@ -50,7 +50,6 @@ dev-data/
 *.fastq.gz
 *.fq
 *.fq.gz
-*.bed
 *.bedgraph
 *.bdg
 *.sam
