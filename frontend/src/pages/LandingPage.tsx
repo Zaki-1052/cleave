@@ -90,7 +90,7 @@ const STATS = [
   { value: 500, label: "Backend Tests Passing" },
   { value: 18, label: "Pipeline Capabilities" },
   { value: 9, label: "New vs CUTANA Cloud" },
-  { value: 6, label: "Implementation Phases" },
+  { value: 10, label: "Implementation Phases" },
 ];
 
 /* ─────────────── font shorthands ─────────────── */
@@ -451,6 +451,8 @@ export default function LandingPage() {
           </div>
         </div>
       </nav>
+      <div className="hidden lg:block absolute top-[52px] left-[5%] right-[5%] h-px z-10"
+        style={{ background: `linear-gradient(90deg, ${C.blue}20, ${C.seafoam}20, ${C.lime}20, ${C.gold}20, ${C.coral}20, ${C.lavender}20)` }} />
 
       {/* ═══ HERO ═══ */}
       <section className="relative min-h-[100vh] flex flex-col items-center justify-center px-6 overflow-hidden">
@@ -555,8 +557,6 @@ export default function LandingPage() {
           </Reveal>
 
           <div className="mt-16 relative">
-            <div className="hidden lg:block absolute top-[52px] left-[5%] right-[5%] h-px"
-              style={{ background: `linear-gradient(90deg, ${C.blue}20, ${C.seafoam}20, ${C.lime}20, ${C.gold}20, ${C.coral}20, ${C.lavender}20)` }} />
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
               {PIPELINE_STEPS.map((step, i) => (
                 <Reveal key={step.label} delay={i * 80} direction={i % 2 === 0 ? "up" : "scale"}>

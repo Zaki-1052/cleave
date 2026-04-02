@@ -2,7 +2,7 @@
 
 A self-hosted CUT&RUN/CUT&Tag bioinformatics web platform for the Ferguson Lab at UCSD. Cleave replicates [EpiCypher's CUTANA Cloud](https://www.epicypher.com/cutana-cloud/) and extends it with lab-specific pipeline features -- trimming, SEACR peak calling, MACS2 broad mode, DiffBind differential analysis, custom heatmaps, Pearson correlation, Roman normalization, and auto-pipeline mode.
 
-Built for ~8-10 lab members. Runs on a single AWS EC2 instance. 500+ backend tests passing.
+Built for ~8-10 lab members. Runs on a single AWS EC2 instance. Live at [cleave.nazalibhai.com](https://cleave.nazalibhai.com). 525+ backend tests passing.
 
 ## What It Does
 
@@ -29,7 +29,12 @@ Auto-pipeline mode chains FastQC, Trimming, Alignment, and Peak Calling into a s
 | E. coli spike-in normalization | Yes | Yes |
 | IGV.js genome browser | Yes | Yes |
 | Auto-generated methods text | Yes | Yes |
+| One-click auto-pipeline | - | Yes |
 | Parallel pipeline processing | - | Yes |
+| Dark mode | - | Yes |
+| Superuser admin panel | - | Yes |
+| In-app documentation | - | Yes |
+| Self-hosted (no per-credit cost) | - | Yes |
 
 ## Tech Stack
 
@@ -101,8 +106,8 @@ cleave/
 │   ├── models/                  SQLAlchemy 2.0 ORM models (11 tables)
 │   ├── schemas/                 Pydantic v2 request/response schemas
 │   ├── routers/                 FastAPI route handlers (14 routers)
-│   ├── services/                Business logic layer (21 services)
-│   ├── migrations/              Alembic migrations (9 versioned migrations)
+│   ├── services/                Business logic layer (23 services)
+│   ├── migrations/              Alembic migrations (12 versioned migrations)
 │   ├── pipelines/               Pipeline modules + reference data
 │   │   ├── adapters/            Trimmomatic adapter FASTAs
 │   │   ├── reference/           Blacklists, chrom sizes, masks, annotations
@@ -123,11 +128,12 @@ cleave/
 │       │   ├── igv/             IGV.js genome browser wrapper
 │       │   ├── custom-heatmap/  Custom heatmap wizard
 │       │   ├── pearson-correlation/  Correlation matrix UI
-│       │   └── normalization/   Roman normalization UI
+│       │   ├── normalization/   Roman normalization UI
+│       │   └── docs/            In-app documentation components
 │       ├── contexts/            AuthContext, ThemeProvider (dark mode)
 │       ├── hooks/               TanStack Query hooks for all API resources
-│       ├── lib/                 Constants, utilities, cn() helper
-│       └── pages/               Route-level pages + LandingPage
+│       ├── lib/                 Constants, utilities, cn() helper, docs content
+│       └── pages/               Route-level pages, LandingPage, AdminPage, DocsPages
 │
 ├── scripts/                     Dev scripts (run-local.sh)
 ├── docs/                        Architecture, specs, UI reference, decisions
@@ -140,7 +146,7 @@ cleave/
 
 ## Database Schema
 
-11 tables managed via 9 Alembic migrations:
+11 tables managed via 12 Alembic migrations:
 
 - **users** -- accounts extending fastapi-users base model (Argon2 password hashes)
 - **projects** -- top-level organizational containers
@@ -156,7 +162,7 @@ cleave/
 
 ## API
 
-RESTful under `/api/v1/`. JWT required except `/api/v1/auth/*` and `/api/v1/health`. 14 route modules.
+68+ endpoints across 14 routers under `/api/v1/`. JWT required except `/api/v1/auth/*` and `/api/v1/health`.
 
 ```
 # Auth & Users
@@ -166,62 +172,104 @@ GET    /api/v1/users/me
 PATCH  /api/v1/users/me
 
 # Projects & Members
-GET    /api/v1/projects                     # paginated, filtered by membership
+GET    /api/v1/projects                     # paginated, member-filtered, 5 filter params
 POST   /api/v1/projects
 GET    /api/v1/projects/:id
 PATCH  /api/v1/projects/:id                 # admin only
-DELETE /api/v1/projects/:id                 # admin only
+DELETE /api/v1/projects/:id                 # admin only (disk cleanup)
+GET    /api/v1/projects/reference            # reference projects (all authenticated users)
 GET    /api/v1/projects/:id/members
 POST   /api/v1/projects/:id/members         # admin only
+PATCH  /api/v1/projects/:id/members/:uid    # change role
+DELETE /api/v1/projects/:id/members/:uid    # remove member
 
 # Experiments
 GET    /api/v1/experiments                   # ?projectId= filter
 POST   /api/v1/experiments?projectId=
 GET    /api/v1/experiments/:id
 PATCH  /api/v1/experiments/:id
-DELETE /api/v1/experiments/:id
-GET    /api/v1/experiments/:id/events        # audit log
+DELETE /api/v1/experiments/:id               # disk cleanup
+GET    /api/v1/experiments/:id/history       # paginated audit log
+POST   /api/v1/experiments/:id/auto-pipeline         # one-click full pipeline
+POST   /api/v1/experiments/:id/auto-pipeline/cancel
+POST   /api/v1/experiments/:id/auto-pipeline/retry
 
 # FASTQ Files & Upload
 GET    /api/v1/experiments/:id/fastqs
-POST   /api/v1/experiments/:id/fastqs/upload # tus resumable upload endpoint
+POST   /api/v1/experiments/:id/fastqs/upload          # multipart upload (legacy)
+POST/PATCH/DELETE/GET /api/v1/experiments/:id/tus/*    # tus v1.0.0 resumable upload
 DELETE /api/v1/experiments/:id/fastqs/:fid
+GET    /api/v1/experiments/:id/fastqs/:fid/fastqc     # FastQC HTML report
+GET    /api/v1/experiments/:id/fastqs/:fid/fastqc-token
+GET    /api/v1/experiments/:id/fastqs/:fid/fastqc-summary
 
 # Reactions
 GET    /api/v1/experiments/:id/reactions
 POST   /api/v1/experiments/:id/reactions
+POST   /api/v1/experiments/:id/reactions/bulk
 POST   /api/v1/experiments/:id/reactions/import-csv
 GET    /api/v1/experiments/:id/reactions/template
+GET    /api/v1/experiments/:id/reactions/prefixes
+PATCH  /api/v1/experiments/:id/reactions/:rid
+DELETE /api/v1/experiments/:id/reactions/:rid
 
 # Analysis Jobs & Outputs
-POST   /api/v1/experiments/:id/jobs          # submit alignment, peak calling, etc.
-POST   /api/v1/experiments/:id/auto-pipeline # one-click full pipeline
+POST   /api/v1/experiments/:id/jobs          # submit job (any of 7 types)
 GET    /api/v1/experiments/:id/jobs
-GET    /api/v1/jobs                           # cross-project queue
+GET    /api/v1/jobs                           # cross-project queue (filterable)
 GET    /api/v1/jobs/:jid
+PATCH  /api/v1/jobs/:jid                     # update notes
 POST   /api/v1/jobs/:jid/terminate
 POST   /api/v1/jobs/:jid/retry
-GET    /api/v1/jobs/:jid/qc-report
-GET    /api/v1/jobs/:jid/outputs
+GET    /api/v1/jobs/:jid/log-tail            # last N lines of pipeline log
+GET    /api/v1/jobs/:jid/outputs             # list outputs (category filter)
+GET    /api/v1/jobs/:jid/outputs/:oid/signed-url
+
+# QC Reports & Pipeline Results
+GET    /api/v1/jobs/:jid/qc-report           # alignment QC
+GET    /api/v1/jobs/:jid/peak-qc-report      # peak calling QC
+GET    /api/v1/jobs/:jid/diffbind-report     # DiffBind results
+GET    /api/v1/jobs/:jid/heatmap-report      # custom heatmap
+GET    /api/v1/jobs/:jid/pearson-report      # Pearson correlation
+GET    /api/v1/jobs/:jid/normalization-report # Roman normalization
+# (each with /download sub-endpoints for CSV/TSV export)
 
 # Files & Downloads
-GET    /api/v1/experiments/:id/files         # file tree
-GET    /api/v1/files/download                # HMAC-signed token download
+GET    /api/v1/experiments/:id/files         # file tree (disk scan)
+GET    /api/v1/experiments/:id/files/download # single file download
 POST   /api/v1/experiments/:id/files/batch-download
+POST   /api/v1/jobs/:jid/files/batch-download
+POST   /api/v1/files/download-token          # HMAC-signed URL (5-min)
+GET    /api/v1/files/signed-download
+POST   /api/v1/files/igv-tokens              # batch IGV tokens (60-min)
+GET    /api/v1/files/igv-serve               # Range header support (RFC 7233)
+POST   /api/v1/experiments/:id/upload-bed    # BED file upload (<50MB)
 
 # Server Import (FTP/SFTP)
-POST   /api/v1/server-import/connect
-POST   /api/v1/server-import/browse
-POST   /api/v1/server-import/import
-GET    /api/v1/server-import/saved-servers
+POST   /api/v1/experiments/:id/server-import/browse
+POST   /api/v1/experiments/:id/server-import/start
+GET    /api/v1/experiments/:id/server-import/:iid/progress
+GET    /api/v1/users/me/saved-servers
+POST   /api/v1/users/me/saved-servers
+PATCH  /api/v1/users/me/saved-servers/:id
+DELETE /api/v1/users/me/saved-servers/:id
 
 # Real-time & Notifications
+GET    /api/v1/notifications/stream          # SSE endpoint (2s poll, 15s keepalive)
 GET    /api/v1/notifications
-GET    /api/v1/notifications/stream          # SSE endpoint
+PATCH  /api/v1/notifications/read-all
 PATCH  /api/v1/notifications/:id/read
 
-# Admin
-GET    /api/v1/admin/stats                   # system-wide statistics
+# Admin (superuser only)
+GET    /api/v1/admin/stats
+GET    /api/v1/admin/users
+PATCH  /api/v1/admin/users/:id
+GET    /api/v1/admin/projects
+DELETE /api/v1/admin/projects/:id
+GET    /api/v1/admin/jobs
+POST   /api/v1/admin/jobs/:id/terminate
+POST   /api/v1/admin/cleanup
+GET    /api/v1/admin/storage-info
 
 # Health
 GET    /api/v1/health                        # {"status": "ok"}
@@ -267,9 +315,11 @@ docker compose up -d --build api
 | 4. Peak Calling | MACS2/SICER2/SEACR, HOMER, FRiP, fragment filter | Complete |
 | 5. Visualization | IGV.js genome browser, byte-range serving | Complete |
 | 6. Lab Extensions | DiffBind, custom heatmaps, Pearson correlation, Roman normalization | Complete |
-| 7. Polish & QA | Storage lifecycle, job termination/retry, auto-pipeline, audit log | In Progress |
+| 7. Polish & QA | Storage lifecycle, job termination/retry, auto-pipeline, audit log | Complete |
 | 8. UI Overhaul | shadcn/ui, dark mode, typography system, landing page | Complete |
 | 9. FTP/SFTP Import | Server import wizard, saved credentials, SSRF prevention | Complete |
+| 10. Admin Panel & Docs | Superuser admin panel, in-app documentation, deployment guide | Complete |
+| 11. EC2 Deployment | NGINX, systemd, Cloudflare DNS, reference project seeded | Complete |
 
 ## Documentation
 
@@ -277,13 +327,16 @@ Detailed specs in `docs/`:
 
 | Document | Contents |
 |----------|----------|
-| `PLAN.md` | Build roadmap, phase-by-phase implementation steps, done criteria |
-| `cutana-architecture-plan.md` | System architecture, data model, API routes, deployment |
-| `cleave-spec-decisions.md` | Resolved questions, script audit, parameter reference, bug fixes |
+| `SPEC.md` | Living technical specification -- architecture, schema, API, pipeline details |
+| `DEPLOYMENT_GUIDE.md` | EC2 deployment instructions (NGINX, systemd, Cloudflare, SSL) |
+| `cleave-user-guide.md` | End-user documentation, QC interpretation, step-by-step tutorials |
 | `cf-lab-pipeline-spec.md` | Lab pipeline stages, scripts, parameters, feature gaps |
-| `cutana-cloud-ui.md` | Page-by-page UI reference with component specs |
-| `cutana-cloud-docs.md` | Platform behavior, QC interpretation, terminology |
-| `cutana-cloud-info.md` | Workflow details, pricing, software versions |
+| `cleave-spec-decisions.md` | Resolved questions, script audit, parameter reference, bug fixes |
+| `cutana-architecture-plan.md` | Original system architecture and data model |
+| `cutana-cloud-ui.md` | Page-by-page CUTANA Cloud UI reference |
+| `cutana-cloud-docs.md` | CUTANA Cloud platform behavior, QC interpretation, terminology |
+
+In-app documentation is also available at `/docs` with 17 pages covering all platform features.
 
 ## UI & Design
 
@@ -298,7 +351,8 @@ Detailed specs in `docs/`:
 ## Key Design Decisions
 
 - **Async everywhere** -- async SQLAlchemy engine, all handlers and services are `async def`
-- **Single job queue** -- `analysis_jobs` table polled by a standalone worker process. Configurable concurrency (alignment is CPU/memory-heavy)
+- **Single job queue** -- `analysis_jobs` table polled by a standalone worker process (`FOR UPDATE SKIP LOCKED`). Configurable concurrency
+- **Parallel pipeline processing** -- ThreadPoolExecutor per-reaction for trimming, alignment, and peak calling
 - **JSONB params** -- `analysis_jobs.params` stores all job-specific config. No per-job-type tables
 - **MACS2 q-value defaults to 0.01** (lab standard), not 0.05 (CUTANA Cloud). Both available in Advanced Settings
 - **SEACR uses numeric threshold 0.01** by default (top 1% AUC), not IgG control. Both modes available
@@ -308,8 +362,11 @@ Detailed specs in `docs/`:
 - **HMAC-signed download tokens** -- file downloads use time-limited HMAC tokens for auth instead of JWT, enabling direct browser downloads and IGV.js byte-range requests
 - **Mock pipeline mode** -- `PIPELINE_MODE=mock` stubs all pipeline calls for frontend/API dev without bioinformatics tools
 - **Large files served via NGINX** `X-Accel-Redirect` in production. FastAPI only checks auth, never streams large files
-- **SSRF prevention** -- FTP/SFTP server import blocks private IP ranges, localhost, and AWS metadata endpoints
+- **SSRF prevention** -- FTP/SFTP server import blocks private IP ranges, localhost, AWS metadata endpoints, and IPv6-mapped IPv4
 - **Fernet encryption** -- saved server credentials encrypted at rest with per-instance key
+- **DiffBind columns are dynamic** -- `Conc_X`/`Conc_Y` parsed from TSV header, never hardcoded
+- **Job termination & retry** -- DB-polled termination between subprocess steps; retry creates a new job from failed/terminated
+- **Admin panel** -- superuser-only panel for user management, project/job oversight, storage cleanup, system stats
 
 ## License
 
