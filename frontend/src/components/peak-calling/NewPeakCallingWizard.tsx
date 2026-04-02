@@ -17,6 +17,7 @@ interface NewPeakCallingWizardProps {
   isOpen: boolean;
   onClose: () => void;
   experiment: Experiment;
+  isTrainingProject?: boolean;
 }
 
 interface AlignmentReaction {
@@ -39,6 +40,7 @@ export function NewPeakCallingWizard({
   isOpen,
   onClose,
   experiment,
+  isTrainingProject = false,
 }: NewPeakCallingWizardProps) {
   const navigate = useNavigate();
   const createJobMutation = useCreateJob();
@@ -62,17 +64,19 @@ export function NewPeakCallingWizard({
   // Step 3: Choose Reactions
   const [selectedReactionIds, setSelectedReactionIds] = useState<Set<number>>(new Set());
 
-  // Step 4: Settings
-  const [peakCaller, setPeakCaller] = useState('SEACR');
-  const [peakSize, setPeakSize] = useState('stringent');
+  // Step 4: Settings (training mode clears scientifically meaningful defaults)
+  const [peakCaller, setPeakCaller] = useState(isTrainingProject ? '' : 'SEACR');
+  const [peakSize, setPeakSize] = useState(isTrainingProject ? '' : 'stringent');
   const [iggReactionId, setIggReactionId] = useState<number | null>(null);
   const [qValue, setQValue] = useState(PEAK_CALLING_DEFAULTS.q_value);
   const [broadCutoff, setBroadCutoff] = useState(PEAK_CALLING_DEFAULTS.broad_cutoff);
   const [seacrThreshold, setSeacrThreshold] = useState(PEAK_CALLING_DEFAULTS.seacr_threshold);
   const [sicer2Fdr, setSicer2Fdr] = useState(PEAK_CALLING_DEFAULTS.sicer2_fdr);
-  const [fragmentFilter, setFragmentFilter] = useState(PEAK_CALLING_DEFAULTS.fragment_filter);
+  const [fragmentFilter, setFragmentFilter] = useState<boolean | null>(
+    isTrainingProject ? null : PEAK_CALLING_DEFAULTS.fragment_filter,
+  );
   const [fragmentSize, setFragmentSize] = useState(PEAK_CALLING_DEFAULTS.fragment_size);
-  const [blacklist, setBlacklist] = useState(PEAK_CALLING_DEFAULTS.blacklist);
+  const [blacklist, setBlacklist] = useState(isTrainingProject ? '' : PEAK_CALLING_DEFAULTS.blacklist);
 
   // Error
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -98,16 +102,16 @@ export function NewPeakCallingWizard({
     setNotes('');
     setSelectedAlignmentJobId(null);
     setSelectedReactionIds(new Set());
-    setPeakCaller('MACS2');
-    setPeakSize('narrow');
+    setPeakCaller(isTrainingProject ? '' : 'SEACR');
+    setPeakSize(isTrainingProject ? '' : 'stringent');
     setIggReactionId(null);
     setQValue(PEAK_CALLING_DEFAULTS.q_value);
     setBroadCutoff(PEAK_CALLING_DEFAULTS.broad_cutoff);
     setSeacrThreshold(PEAK_CALLING_DEFAULTS.seacr_threshold);
     setSicer2Fdr(PEAK_CALLING_DEFAULTS.sicer2_fdr);
-    setFragmentFilter(PEAK_CALLING_DEFAULTS.fragment_filter);
+    setFragmentFilter(isTrainingProject ? null : PEAK_CALLING_DEFAULTS.fragment_filter);
     setFragmentSize(PEAK_CALLING_DEFAULTS.fragment_size);
-    setBlacklist(PEAK_CALLING_DEFAULTS.blacklist);
+    setBlacklist(isTrainingProject ? '' : PEAK_CALLING_DEFAULTS.blacklist);
     setSubmitError(null);
     createJobMutation.reset();
   }
@@ -169,11 +173,13 @@ export function NewPeakCallingWizard({
 
     if (currentStep === 2) {
       if (selectedReactionIds.size === 0) return;
-      // Auto-set peak size to first valid for current caller
-      const sizes = PEAK_SIZES[peakCaller] ?? [];
-      const firstSize = sizes[0];
-      if (firstSize && !sizes.some((s) => s.value === peakSize)) {
-        setPeakSize(firstSize.value);
+      // Auto-set peak size to first valid for current caller (skip in training mode)
+      if (!isTrainingProject && peakCaller) {
+        const sizes = PEAK_SIZES[peakCaller] ?? [];
+        const firstSize = sizes[0];
+        if (firstSize && !sizes.some((s) => s.value === peakSize)) {
+          setPeakSize(firstSize.value);
+        }
       }
       setCurrentStep(3);
     }
@@ -203,7 +209,7 @@ export function NewPeakCallingWizard({
       reference_genome: referenceGenome,
       peak_caller: peakCaller,
       peak_size: peakSize,
-      fragment_filter: fragmentFilter,
+      fragment_filter: fragmentFilter ?? true,
       fragment_size: fragmentSize,
       blacklist,
       reactions: selectedReactions.map((r) => ({
@@ -236,6 +242,18 @@ export function NewPeakCallingWizard({
     }
     if (selectedReactionIds.size === 0) {
       setSubmitError('Please select at least one reaction.');
+      return;
+    }
+    if (!peakCaller) {
+      setSubmitError('Please select a peak caller.');
+      return;
+    }
+    if (!peakSize) {
+      setSubmitError('Please select a peak size/mode.');
+      return;
+    }
+    if (fragmentFilter === null) {
+      setSubmitError('Please choose whether to enable the fragment size filter.');
       return;
     }
 
@@ -323,6 +341,7 @@ export function NewPeakCallingWizard({
           setFragmentSize={setFragmentSize}
           blacklist={blacklist}
           setBlacklist={setBlacklist}
+          isTrainingProject={isTrainingProject}
         />
       ),
     },
@@ -358,7 +377,7 @@ export function NewPeakCallingWizard({
               {step === 3 ? (
                 <Button
                   onClick={handleSubmit}
-                  disabled={selectedReactionIds.size === 0 || createJobMutation.isPending}
+                  disabled={selectedReactionIds.size === 0 || !peakCaller || !peakSize || fragmentFilter === null || createJobMutation.isPending}
                 >
                   {createJobMutation.isPending ? 'Starting...' : 'Start Peak Calling'}
                 </Button>

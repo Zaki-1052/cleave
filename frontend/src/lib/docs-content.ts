@@ -159,6 +159,165 @@ export const DOCS_CONTENT: Record<string, DocsPageData> = {
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // 2b. Training Mode
+  // ─────────────────────────────────────────────────────────────────────────────
+  'training-mode': {
+    title: 'Training Mode',
+    description:
+      'How Cleave helps first-time users learn bioinformatics parameters through guided analysis.',
+    blocks: [
+      {
+        type: 'heading',
+        level: 2,
+        text: 'Training Mode',
+        id: 'training-mode',
+      },
+      { type: 'separator' },
+      {
+        type: 'paragraph',
+        text: 'When you create your <strong>first project</strong> in Cleave, it is automatically set to <strong>Training Mode</strong>. This mode is designed to help wet lab members learn the bioinformatics behind each analysis step, rather than relying on pre-filled defaults.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Training mode only applies to your first project. All subsequent projects work normally with full defaults and auto-pipeline access.',
+      },
+      { type: 'separator' },
+      {
+        type: 'heading',
+        level: 3,
+        text: 'What Changes in Training Mode',
+        id: 'what-changes',
+      },
+      {
+        type: 'heading',
+        level: 4,
+        text: 'Auto-Pipeline Disabled',
+        id: 'auto-pipeline-disabled',
+      },
+      {
+        type: 'paragraph',
+        text: 'The <strong>Run Full Pipeline</strong> button and the Pipeline step in the experiment creation wizard are hidden. You must run each analysis step manually -- trimming, alignment, and peak calling -- to understand what each one does and how to configure it.',
+      },
+      {
+        type: 'heading',
+        level: 4,
+        text: 'Defaults Cleared',
+        id: 'defaults-cleared',
+      },
+      {
+        type: 'paragraph',
+        text: 'In normal mode, Cleave pre-selects sensible defaults (e.g., SEACR stringent, remove duplicates ON). In training mode, these scientifically meaningful parameters start <strong>empty</strong>, so you must actively choose each one:',
+      },
+      {
+        type: 'table',
+        headers: ['Wizard', 'Parameter', 'Normal Default', 'Training Mode'],
+        rows: [
+          ['Alignment', 'Reference Genome', 'Auto-detected from organism', 'Must select manually'],
+          ['Alignment', 'Remove Duplicates', 'ON', 'Must choose'],
+          ['Alignment', 'Remove DAC Exclusion List', 'ON', 'Must choose'],
+          ['Peak Calling', 'Peak Caller', 'SEACR', 'Must select'],
+          ['Peak Calling', 'Peak Size / Mode', 'Stringent', 'Must select'],
+          ['Peak Calling', 'Fragment Size Filter', 'ON', 'Must choose'],
+          ['Peak Calling', 'Blacklist Subtraction', 'Both (ENCODE + Lab)', 'Must select'],
+          ['DiffBind', 'Analysis Method', 'DESeq2 (Consensus)', 'Must select'],
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'note',
+        text: 'Technical tuning parameters like bin sizes (20bp / 100bp) and numeric thresholds (q-value 0.01) keep their defaults since they are implementation details rather than scientific concepts.',
+      },
+      {
+        type: 'heading',
+        level: 4,
+        text: 'Educational Hints',
+        id: 'educational-hints',
+      },
+      {
+        type: 'paragraph',
+        text: 'Each parameter in training mode is accompanied by a <strong>teal hint box</strong> explaining the biology behind the choice. These hints answer questions like:',
+      },
+      {
+        type: 'list',
+        ordered: false,
+        items: [
+          '<strong>Reference Genome</strong> -- Why does the genome build matter, and which one matches your organism?',
+          '<strong>Remove Duplicates</strong> -- What are PCR duplicates and why should you remove them?',
+          '<strong>DAC Exclusion List</strong> -- What are blacklisted regions and why do they cause false positives?',
+          '<strong>Peak Caller</strong> -- How do MACS2, SICER2, and SEACR differ, and when should you use each?',
+          '<strong>Peak Size</strong> -- What is the difference between narrow and broad peaks?',
+          '<strong>Fragment Filter</strong> -- Why are sub-nucleosomal fragments (<120bp) the biologically relevant signal?',
+          '<strong>Blacklist Subtraction</strong> -- What are ENCODE DAC and lab-custom blacklists?',
+          '<strong>DiffBind Method</strong> -- How do DESeq2 and edgeR differ, and what is a consensus peakset?',
+        ],
+      },
+      {
+        type: 'heading',
+        level: 4,
+        text: 'Advanced Settings Expanded',
+        id: 'advanced-expanded',
+      },
+      {
+        type: 'paragraph',
+        text: 'In both the alignment and peak calling wizards, the <strong>Advanced Settings</strong> section starts expanded (instead of collapsed) so you can see and learn about all available parameters.',
+      },
+      { type: 'separator' },
+      {
+        type: 'heading',
+        level: 3,
+        text: 'How It Works',
+        id: 'how-it-works',
+      },
+      {
+        type: 'steps',
+        items: [
+          {
+            title: 'Register and create your first project',
+            description:
+              'Your first project is automatically flagged as a <strong>Training Project</strong>. You will see a teal banner at the top of each experiment in this project.',
+          },
+          {
+            title: 'Run each analysis step manually',
+            description:
+              'Use the <strong>New Analysis</strong> dropdown to launch trimming, alignment, peak calling, and other analyses one at a time.',
+          },
+          {
+            title: 'Read the hints and choose parameters',
+            description:
+              'For each required parameter, read the educational hint and make your selection. The submit button stays disabled until all required choices are made.',
+          },
+          {
+            title: 'Create your second project',
+            description:
+              'Once you are comfortable with the parameters, create a second project. It will have full defaults, auto-pipeline, and no training hints -- the full Cleave experience.',
+          },
+        ],
+      },
+      { type: 'separator' },
+      {
+        type: 'heading',
+        level: 3,
+        text: 'Training Banner',
+        id: 'training-banner',
+      },
+      {
+        type: 'paragraph',
+        text: 'When viewing any experiment inside a training project, a <strong>teal banner</strong> appears below the experiment header:',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: '<strong>Training Project</strong> -- This is your first project. Auto-pipeline is disabled so you can learn each analysis step. Defaults have been cleared -- read the hints and choose your own parameters.',
+      },
+      {
+        type: 'paragraph',
+        text: 'This banner is a reminder that you are in training mode. It does not affect any functionality beyond the cleared defaults and hidden auto-pipeline.',
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // 3. Projects
   // ─────────────────────────────────────────────────────────────────────────────
   projects: {

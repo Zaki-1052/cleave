@@ -17,6 +17,7 @@ interface NewDiffBindWizardProps {
   isOpen: boolean;
   onClose: () => void;
   experiment: Experiment;
+  isTrainingProject?: boolean;
 }
 
 interface PeakCallingReaction {
@@ -51,6 +52,7 @@ export function NewDiffBindWizard({
   isOpen,
   onClose,
   experiment,
+  isTrainingProject = false,
 }: NewDiffBindWizardProps) {
   const navigate = useNavigate();
   const createJobMutation = useCreateJob();
@@ -75,8 +77,10 @@ export function NewDiffBindWizard({
   const [selectedReactionIds, setSelectedReactionIds] = useState<Set<number>>(new Set());
   const [assignments, setAssignments] = useState<Map<number, SampleAssignment>>(new Map());
 
-  // Step 4: Settings
-  const [analysisMethod, setAnalysisMethod] = useState('deseq2_consensus');
+  // Step 4: Settings (training mode clears default)
+  const [analysisMethod, setAnalysisMethod] = useState(
+    isTrainingProject ? '' : 'deseq2_consensus',
+  );
   const [customPeaksetOutputId, setCustomPeaksetOutputId] = useState<number | null>(null);
 
   // Error
@@ -280,6 +284,10 @@ export function NewDiffBindWizard({
       setSubmitError('Please select a peak calling run.');
       return;
     }
+    if (!analysisMethod) {
+      setSubmitError('Please select an analysis method.');
+      return;
+    }
     if (!isConditionsValid()) {
       setSubmitError(
         'Please select at least 4 reactions with at least 2 conditions and 2 replicates each.',
@@ -324,6 +332,7 @@ export function NewDiffBindWizard({
 
   /** Determine whether the "Start DiffBind" button should be disabled. */
   function isSubmitDisabled(): boolean {
+    if (!analysisMethod) return true;
     if (!isConditionsValid()) return true;
     const needsCustom =
       analysisMethod === 'deseq2_peaklist' || analysisMethod === 'edger_peaklist';
@@ -381,6 +390,7 @@ export function NewDiffBindWizard({
           customPeaksetOutputId={customPeaksetOutputId}
           setCustomPeaksetOutputId={setCustomPeaksetOutputId}
           bedOutputs={bedOutputs}
+          isTrainingProject={isTrainingProject}
         />
       ),
     },

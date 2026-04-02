@@ -78,7 +78,7 @@ Self-hosted CUT&RUN/CUT&Tag bioinformatics platform for the Ferguson Lab at UCSD
 
 ## 3. Database Schema
 
-11 tables managed via 9 Alembic migrations. All timestamps use `TIMESTAMPTZ DEFAULT now()`.
+11 tables managed via 12 Alembic migrations. All timestamps use `TIMESTAMPTZ DEFAULT now()`.
 
 ### Entity Relationships
 
@@ -136,6 +136,9 @@ Extends `SQLAlchemyBaseUserTable[int]` from fastapi-users.
 | description | String | nullable |
 | created_by | Integer | FK(users.id) |
 | storage_bytes | BigInteger | NOT NULL, default 0 |
+| is_reference | Boolean | NOT NULL, default false |
+| is_training | Boolean | NOT NULL, default false |
+| status | String | NOT NULL, default "new" |
 | created_at | DateTime(tz) | server_default=now() |
 | updated_at | DateTime(tz) | server_default=now(), onupdate=now() |
 
@@ -862,6 +865,7 @@ All settings via environment variables, loaded by Pydantic `BaseSettings`.
 | Pipeline parallelism | ThreadPoolExecutor per-reaction | Alignment, trimming, and peak calling all process reactions/pairs concurrently; thread budget divided among concurrent workers; partial failure support |
 | Dark mode | CSS variables + next-themes | System/light/dark with persistent preference |
 | Admin panel | `require_superuser` dependency + tabbed frontend page | Superuser-only; user/project/job management, system stats, cleanup trigger |
+| Training wheels | `is_training` flag on first-created project | First-time users must learn parameters: auto-pipeline disabled, defaults cleared, educational hints shown |
 
 ---
 

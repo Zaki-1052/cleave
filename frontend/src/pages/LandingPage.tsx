@@ -71,6 +71,12 @@ const COMPARISON = [
   { feature: "Bowtie2 Alignment + QC", cutana: true, cleave: true },
   { feature: "MACS2 Narrow Peaks", cutana: true, cleave: true },
   { feature: "SICER2 Broad Peaks", cutana: true, cleave: true },
+  { feature: "IgG Control Background Subtraction", cutana: true, cleave: true },
+  { feature: "E. coli Spike-in Normalization", cutana: true, cleave: true },
+  { feature: "SNAP-CUTANA Spike-in QC", cutana: true, cleave: true },
+  { feature: "IGV.js Genome Browser", cutana: true, cleave: true },
+  { feature: "Auto-Generated Methods Text", cutana: true, cleave: true },
+  { feature: "FTP / SFTP Server Import", cutana: true, cleave: true },
   { feature: "SEACR Peak Calling", cutana: false, cleave: true },
   { feature: "MACS2 Broad Mode", cutana: false, cleave: true },
   { feature: "FASTQ Trimming", cutana: false, cleave: true },
@@ -79,18 +85,15 @@ const COMPARISON = [
   { feature: "Custom Reference-Point Heatmaps", cutana: false, cleave: true },
   { feature: "Pearson Correlation Matrices", cutana: false, cleave: true },
   { feature: "Roman Normalization", cutana: false, cleave: true },
-  { feature: "SNAP-CUTANA Spike-in QC", cutana: true, cleave: true },
-  { feature: "IGV.js Genome Browser", cutana: true, cleave: true },
-  { feature: "Auto-Generated Methods Text", cutana: true, cleave: true },
-  { feature: "FTP / SFTP Server Import", cutana: true, cleave: true },
   { feature: "Parallel Pipeline Processing", cutana: false, cleave: true },
+  { feature: "Training Mode (First-Time Users)", cutana: false, cleave: true },
 ];
 
 const STATS = [
   { value: 500, label: "Backend Tests Passing" },
-  { value: 18, label: "Pipeline Capabilities" },
-  { value: 9, label: "New vs CUTANA Cloud" },
-  { value: 10, label: "Implementation Phases" },
+  { value: 20, label: "Pipeline Capabilities" },
+  { value: 10, label: "New vs CUTANA Cloud" },
+  { value: 12, label: "Implementation Phases" },
 ];
 
 /* ─────────────── font shorthands ─────────────── */
@@ -693,7 +696,7 @@ export default function LandingPage() {
 
           <Reveal delay={300}>
             <p className="mt-6 text-center text-xs text-white/25" style={{ fontFamily: mono }}>
-              9 new features · 18 total capabilities · 500 backend tests passing
+              10 new features · 20 total capabilities · 500+ backend tests passing
             </p>
           </Reveal>
         </div>
@@ -724,7 +727,7 @@ export default function LandingPage() {
             {[
               { layer: "Frontend", items: ["React 18 (Vite)", "TypeScript", "Tailwind CSS", "TanStack Query", "TanStack Table", "IGV.js", "Recharts"], color: C.blue },
               { layer: "Backend", items: ["FastAPI", "Python 3.11+", "SQLAlchemy 2.0", "Pydantic v2", "fastapi-users", "Alembic", "SSE"], color: C.seafoam },
-              { layer: "Pipeline", items: ["Bowtie2", "SAMtools", "BEDTools", "Picard", "deepTools", "MACS2 / SICER2", "SEACR / HOMER", "DiffBind (R)"], color: C.lime },
+              { layer: "Pipeline", items: ["Bowtie2", "SAMtools", "BEDTools", "Picard / deepTools", "MACS2 / SICER2", "SEACR / HOMER", "DiffBind (R)"], color: C.lime },
               { layer: "Infra", items: ["PostgreSQL 15+", "NGINX", "Docker Compose", "systemd", "AWS EC2", "Cloudflare DNS", "tus protocol"], color: C.gold },
             ].map((g, gi) => (
               <Reveal key={g.layer} delay={gi * 90} direction={gi < 2 ? "left" : "right"}>
@@ -770,7 +773,7 @@ export default function LandingPage() {
               </span>
             </h2>
             <p className="mt-4 text-white/35 text-base leading-relaxed max-w-md mx-auto">
-              Designed and built for the Ferguson Lab at UC San Diego. Self-hosted on a single EC2 instance — your data never leaves your infrastructure.
+              Designed and built for the Ferguson Lab at UC San Diego. Self-hosted on a single EC2 instance for maximum reliability.
             </p>
           </Reveal>
 

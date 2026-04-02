@@ -20,7 +20,17 @@ class AlreadyMemberError(Exception):
 
 
 async def create_project(db: AsyncSession, data: ProjectCreate, creator_id: int) -> Project:
-    project = Project(name=data.name, description=data.description, created_by=creator_id)
+    # Training wheels: first project a user creates gets training mode
+    count_result = await db.execute(select(func.count()).where(Project.created_by == creator_id))
+    existing_count = count_result.scalar_one()
+    is_training = existing_count == 0
+
+    project = Project(
+        name=data.name,
+        description=data.description,
+        created_by=creator_id,
+        is_training=is_training,
+    )
     db.add(project)
     await db.flush()
     member = ProjectMember(

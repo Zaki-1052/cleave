@@ -4,13 +4,6 @@
 
 ---
 
-## Critical (Blocks Real Usage)
-
-- [ ] **Real pipeline end-to-end test on EC2** — alignment/peak calling with actual FASTQs hasn't been validated on the production instance yet
-- [ ] **SICER2 wrapper untested** — separate conda env + wrapper script set up but never run with an actual SICER2 peak calling job
-- [ ] **Subprocess kill gap** — termination waits for current subprocess step to finish (e.g., a 30-min bowtie2 run); no SIGTERM sent to the running process
-- [ ] **Superuser bootstrap** — no UI for initial superuser creation; must promote via SQL (`UPDATE users SET is_superuser = true WHERE email = '...'`)
-
 ## Deployment-Specific
 
 - [ ] **`coleferguson.com` domain switch** — Origin Certificate + Full (strict) documented but not yet executed

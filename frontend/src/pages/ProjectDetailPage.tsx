@@ -155,6 +155,7 @@ export default function ProjectDetailPage() {
               isOpen={isCreateModalOpen}
               onClose={() => setIsCreateModalOpen(false)}
               projectId={projectId}
+              isTrainingProject={project?.isTraining ?? false}
               onCreated={(experiment) => {
                 setIsCreateModalOpen(false);
                 navigate(`/experiments/${experiment.id}`);

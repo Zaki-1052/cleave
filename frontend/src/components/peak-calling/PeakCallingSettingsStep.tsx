@@ -8,6 +8,7 @@ import {
   PEAK_CALLING_DEFAULTS,
   PEAK_SIZES,
 } from '@/lib/constants';
+import { TrainingHint } from '@/components/ui/TrainingHint';
 
 interface AlignmentReaction {
   reaction_id: number;
@@ -31,12 +32,13 @@ interface PeakCallingSettingsStepProps {
   setSeacrThreshold: (v: number) => void;
   sicer2Fdr: number;
   setSicer2Fdr: (v: number) => void;
-  fragmentFilter: boolean;
+  fragmentFilter: boolean | null;
   setFragmentFilter: (v: boolean) => void;
   fragmentSize: number;
   setFragmentSize: (v: number) => void;
   blacklist: string;
   setBlacklist: (v: string) => void;
+  isTrainingProject?: boolean;
 }
 
 export function PeakCallingSettingsStep({
@@ -62,8 +64,10 @@ export function PeakCallingSettingsStep({
   setFragmentSize,
   blacklist,
   setBlacklist,
+  isTrainingProject = false,
 }: PeakCallingSettingsStepProps) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  // Force advanced settings open in training mode
+  const [showAdvanced, setShowAdvanced] = useState(isTrainingProject);
 
   const availablePeakSizes = PEAK_SIZES[peakCaller] ?? [];
 
@@ -95,12 +99,21 @@ export function PeakCallingSettingsStep({
             onChange={(e) => handlePeakCallerChange(e.target.value)}
             className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
           >
+            {!peakCaller && (
+              <option value="" disabled>
+                Select peak caller
+              </option>
+            )}
             {PEAK_CALLERS.map((pc) => (
               <option key={pc.value} value={pc.value}>
                 {pc.label}
               </option>
             ))}
           </select>
+          <TrainingHint visible={isTrainingProject}>
+            SEACR is designed for CUT&RUN&apos;s low background. MACS2 is the most widely published
+            caller. SICER2 specializes in broad histone marks like H3K27me3.
+          </TrainingHint>
         </div>
 
         <div className="flex-1">
@@ -113,12 +126,21 @@ export function PeakCallingSettingsStep({
             onChange={(e) => setPeakSize(e.target.value)}
             className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
           >
+            {!peakSize && (
+              <option value="" disabled>
+                Select peak size
+              </option>
+            )}
             {availablePeakSizes.map((ps) => (
               <option key={ps.value} value={ps.value}>
                 {ps.label}
               </option>
             ))}
           </select>
+          <TrainingHint visible={isTrainingProject}>
+            Narrow peaks suit sharp marks (H3K4me3, CTCF). Broad peaks suit diffuse marks
+            (H3K27me3). SEACR uses stringent (fewer, high-confidence) vs relaxed (more, exploratory).
+          </TrainingHint>
         </div>
 
         <div className="flex-1">
@@ -309,17 +331,29 @@ export function PeakCallingSettingsStep({
               )}
 
               {/* Fragment filter — always visible */}
-              <label className="flex items-center gap-2 text-sm text-foreground">
-                <input
-                  type="checkbox"
-                  checked={fragmentFilter}
-                  onChange={(e) => setFragmentFilter(e.target.checked)}
-                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                />
-                Fragment Size Filter (&lt;{fragmentSize}bp)
-              </label>
+              <div>
+                <label className="flex items-center gap-2 text-sm text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={fragmentFilter === true}
+                    ref={(el) => { if (el) el.indeterminate = fragmentFilter === null; }}
+                    onChange={(e) => setFragmentFilter(e.target.checked)}
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  Fragment Size Filter (&lt;{fragmentSize}bp)
+                  {fragmentFilter === null && (
+                    <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                      (choose)
+                    </span>
+                  )}
+                </label>
+                <TrainingHint visible={isTrainingProject}>
+                  CUT&RUN produces sub-nucleosomal fragments (&lt;120bp) that represent true binding.
+                  Filtering to these enriches signal and improves peak calling.
+                </TrainingHint>
+              </div>
 
-              {fragmentFilter && (
+              {fragmentFilter === true && (
                 <div>
                   <label htmlFor="pc-fragment-size" className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Fragment Size (bp)
@@ -354,6 +388,11 @@ export function PeakCallingSettingsStep({
                   onChange={(e) => setBlacklist(e.target.value)}
                   className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                 >
+                  {!blacklist && (
+                    <option value="" disabled>
+                      Select blacklist mode
+                    </option>
+                  )}
                   {BLACKLIST_OPTIONS.filter(
                     (opt) =>
                       opt.value === 'encode_dac' ||
@@ -369,6 +408,10 @@ export function PeakCallingSettingsStep({
                   Peaks overlapping blacklist regions are removed after calling.
                   The lab custom blacklist (255 regions) is available for mm10 only.
                 </p>
+                <TrainingHint visible={isTrainingProject}>
+                  Blacklist regions are known artifact loci. ENCODE DAC is the standard set.
+                  The lab custom list adds 255 mm10-specific regions.
+                </TrainingHint>
               </div>
             </div>
           </div>

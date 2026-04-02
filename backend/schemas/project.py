@@ -23,6 +23,7 @@ class ProjectRead(CamelModel):
     created_by: int | None = None
     storage_bytes: int = 0
     is_reference: bool = False
+    is_training: bool = False
     status: str = "new"
     created_at: datetime
     updated_at: datetime

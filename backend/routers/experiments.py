@@ -1,9 +1,11 @@
 # backend/routers/experiments.py
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import current_active_user
 from database import get_db
+from models.project import Project
 from models.user import User
 from schemas.auto_pipeline import AutoPipelineConfig
 from schemas.common import PaginatedResponse
@@ -123,6 +125,16 @@ async def start_auto_pipeline_endpoint(
     )
     if not exp:
         raise HTTPException(status_code=404, detail="Experiment not found")
+
+    # Block auto-pipeline on training projects
+    project_result = await db.execute(select(Project).where(Project.id == exp.project_id))
+    proj = project_result.scalar_one_or_none()
+    if proj and proj.is_training:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Auto-pipeline is disabled on your first project. "
+            "Run each step manually to learn the parameters.",
+        )
 
     await auto_pipeline_service.start_auto_pipeline(
         db, experiment_id, current_user.id, body.model_dump()

@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   FileText, Dna, FlaskConical, AlignLeft, Mountain,
   ArrowLeftRight, Grid3x3, ScatterChart, Scale, History,
-  FolderTree,
+  FolderTree, GraduationCap,
 } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import type { LucideIcon } from 'lucide-react';
@@ -57,6 +57,7 @@ export default function ExperimentView() {
   const { data: experiment, isLoading } = useExperiment(Number(id));
   const { data: parentProject } = useProject(experiment?.projectId ?? 0);
   const isReadOnly = parentProject?.isReference ?? false;
+  const isTrainingProject = parentProject?.isTraining ?? false;
   const { data: jobsData } = useJobs(Number(id), 1, 1);
   const [showAlignmentWizard, setShowAlignmentWizard] = useState(false);
   const [showPeakCallingWizard, setShowPeakCallingWizard] = useState(false);
@@ -106,7 +107,7 @@ export default function ExperimentView() {
         </div>
         {!isReadOnly && (
           <div className="flex items-center gap-2">
-            {(!experiment.autoPipelineStatus || experiment.autoPipelineStatus === 'cancelled') && reactions.length > 0 && (
+            {!isTrainingProject && (!experiment.autoPipelineStatus || experiment.autoPipelineStatus === 'cancelled') && reactions.length > 0 && (
               <Button
                 variant="success"
                 onClick={() => setShowAutoPipelineModal(true)}
@@ -125,6 +126,21 @@ export default function ExperimentView() {
           </div>
         )}
       </div>
+
+      {isTrainingProject && (
+        <div className="mb-4 flex items-center gap-3 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 dark:border-teal-800 dark:bg-teal-950">
+          <GraduationCap className="h-5 w-5 shrink-0 text-teal-600 dark:text-teal-400" />
+          <div>
+            <p className="text-sm font-medium text-teal-800 dark:text-teal-200">
+              Training Project
+            </p>
+            <p className="text-xs text-teal-600 dark:text-teal-400">
+              This is your first project. Auto-pipeline is disabled so you can learn each analysis
+              step. Defaults have been cleared — read the hints and choose your own parameters.
+            </p>
+          </div>
+        </div>
+      )}
 
       {experiment.autoPipelineStatus && (
         <AutoPipelineBanner
@@ -166,7 +182,7 @@ export default function ExperimentView() {
         </aside>
 
         <div className="flex-1">
-          <Outlet context={{ experiment, isReadOnly }} />
+          <Outlet context={{ experiment, isReadOnly, isTrainingProject }} />
         </div>
       </div>
 
@@ -174,18 +190,21 @@ export default function ExperimentView() {
         isOpen={showAlignmentWizard}
         onClose={() => setShowAlignmentWizard(false)}
         experiment={experiment}
+        isTrainingProject={isTrainingProject}
       />
 
       <NewPeakCallingWizard
         isOpen={showPeakCallingWizard}
         onClose={() => setShowPeakCallingWizard(false)}
         experiment={experiment}
+        isTrainingProject={isTrainingProject}
       />
 
       <NewDiffBindWizard
         isOpen={showDiffBindWizard}
         onClose={() => setShowDiffBindWizard(false)}
         experiment={experiment}
+        isTrainingProject={isTrainingProject}
       />
 
       <NewCustomHeatmapWizard

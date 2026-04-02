@@ -3,19 +3,21 @@ import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import type { Reaction } from '@/api/types';
 import { GENOME_DISPLAY_NAMES, REFERENCE_GENOMES } from '@/lib/constants';
+import { TrainingHint } from '@/components/ui/TrainingHint';
 
 interface AlignmentSettingsStepProps {
   selectedReactions: Reaction[];
   referenceGenome: string;
   setReferenceGenome: (v: string) => void;
-  removeDuplicates: boolean;
+  removeDuplicates: boolean | null;
   setRemoveDuplicates: (v: boolean) => void;
-  removeDacExclusion: boolean;
+  removeDacExclusion: boolean | null;
   setRemoveDacExclusion: (v: boolean) => void;
   bamCoverageBinSize: number;
   setBamCoverageBinSize: (v: number) => void;
   smoothedBinSize: number;
   setSmoothedBinSize: (v: number) => void;
+  isTrainingProject?: boolean;
 }
 
 export function AlignmentSettingsStep({
@@ -30,8 +32,10 @@ export function AlignmentSettingsStep({
   setBamCoverageBinSize,
   smoothedBinSize,
   setSmoothedBinSize,
+  isTrainingProject = false,
 }: AlignmentSettingsStepProps) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  // Force advanced settings open in training mode
+  const [showAdvanced, setShowAdvanced] = useState(isTrainingProject);
 
   // Collect unique organisms from selected reactions
   const organisms = [...new Set(selectedReactions.map((r) => r.organism))];
@@ -88,6 +92,10 @@ export function AlignmentSettingsStep({
                 </option>
               ))}
         </select>
+        <TrainingHint visible={isTrainingProject}>
+          The reference genome must match your organism. Mouse uses mm10, human uses hg38 or hg19.
+          Aligning to the wrong genome produces misleading results.
+        </TrainingHint>
       </div>
 
       {/* Reactions table */}
@@ -141,25 +149,49 @@ export function AlignmentSettingsStep({
         {showAdvanced && (
           <div className="border-t px-4 py-4">
             <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-              <label className="flex items-center gap-2 text-sm text-foreground">
-                <input
-                  type="checkbox"
-                  checked={removeDuplicates}
-                  onChange={(e) => setRemoveDuplicates(e.target.checked)}
-                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                />
-                Remove Duplicate Reads
-              </label>
+              <div>
+                <label className="flex items-center gap-2 text-sm text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={removeDuplicates === true}
+                    ref={(el) => { if (el) el.indeterminate = removeDuplicates === null; }}
+                    onChange={(e) => setRemoveDuplicates(e.target.checked)}
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  Remove Duplicate Reads
+                  {removeDuplicates === null && (
+                    <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                      (choose)
+                    </span>
+                  )}
+                </label>
+                <TrainingHint visible={isTrainingProject}>
+                  PCR duplicates are identical read pairs from amplification, not biology. Removing
+                  them prevents artificial signal inflation. Recommended for CUT&RUN/CUT&Tag.
+                </TrainingHint>
+              </div>
 
-              <label className="flex items-center gap-2 text-sm text-foreground">
-                <input
-                  type="checkbox"
-                  checked={removeDacExclusion}
-                  onChange={(e) => setRemoveDacExclusion(e.target.checked)}
-                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                />
-                Remove ENCODE DAC Exclusion List Regions
-              </label>
+              <div>
+                <label className="flex items-center gap-2 text-sm text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={removeDacExclusion === true}
+                    ref={(el) => { if (el) el.indeterminate = removeDacExclusion === null; }}
+                    onChange={(e) => setRemoveDacExclusion(e.target.checked)}
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  Remove ENCODE DAC Exclusion List Regions
+                  {removeDacExclusion === null && (
+                    <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                      (choose)
+                    </span>
+                  )}
+                </label>
+                <TrainingHint visible={isTrainingProject}>
+                  The ENCODE DAC exclusion list contains genomic regions with anomalous signal in
+                  any experiment (e.g., centromeres, telomeres). Removing reads here reduces false peaks.
+                </TrainingHint>
+              </div>
 
               <div>
                 <label

@@ -2,7 +2,7 @@
 import {
   BookOpen, GitBranch, FolderKanban, FlaskConical, Dna, FlaskRound,
   Globe, Scissors, AlignLeft, Mountain, Monitor, Beaker, Zap,
-  ClipboardCheck, GraduationCap, HelpCircle, BookA,
+  ClipboardCheck, GraduationCap, HelpCircle, BookA, Lightbulb,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -23,6 +23,7 @@ export const DOCS_NAV: DocsNavGroup[] = [
     items: [
       { slug: 'getting-started', label: 'Overview', icon: BookOpen },
       { slug: 'data-hierarchy', label: 'Data Hierarchy', icon: GitBranch },
+      { slug: 'training-mode', label: 'Training Mode', icon: Lightbulb },
     ],
   },
   {

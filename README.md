@@ -320,6 +320,7 @@ docker compose up -d --build api
 | 9. FTP/SFTP Import | Server import wizard, saved credentials, SSRF prevention | Complete |
 | 10. Admin Panel & Docs | Superuser admin panel, in-app documentation, deployment guide | Complete |
 | 11. EC2 Deployment | NGINX, systemd, Cloudflare DNS, reference project seeded | Complete |
+| 12. Training Wheels | First-project training mode, cleared defaults, educational hints | Complete |
 
 ## Documentation
 

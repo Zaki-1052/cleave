@@ -155,6 +155,7 @@ Current phase tracking (update as we progress):
 9. ✅ FTP/SFTP Import (server import wizard, saved credentials, SSRF prevention)
 10. ✅ Admin Panel & Docs (superuser admin panel, in-app documentation, deployment guide)
 11. ✅ EC2 Deployment (NGINX, systemd, Cloudflare DNS, reference project seeded, live at cleave.nazalibhai.com)
+12. ✅ Training Wheels (first-project training mode, cleared defaults, educational hints, auto-pipeline disabled)
 
 ## Test Ownership
 

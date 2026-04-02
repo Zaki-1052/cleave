@@ -2,6 +2,7 @@
 import { DIFFBIND_ANALYSIS_METHODS } from '@/lib/constants';
 import type { JobOutput } from '@/api/types';
 import type { SampleAssignment } from './AssignConditionsStep';
+import { TrainingHint } from '@/components/ui/TrainingHint';
 
 interface PeakCallingReaction {
   reaction_id: number;
@@ -16,6 +17,7 @@ interface DiffBindSettingsStepProps {
   customPeaksetOutputId: number | null;
   setCustomPeaksetOutputId: (v: number | null) => void;
   bedOutputs: JobOutput[];
+  isTrainingProject?: boolean;
 }
 
 /** Derive a summary of conditions and sample counts from the assignments. */
@@ -42,6 +44,7 @@ export function DiffBindSettingsStep({
   customPeaksetOutputId,
   setCustomPeaksetOutputId,
   bedOutputs,
+  isTrainingProject = false,
 }: DiffBindSettingsStepProps) {
   const needsCustomPeakset =
     analysisMethod === 'deseq2_peaklist' || analysisMethod === 'edger_peaklist';
@@ -55,6 +58,16 @@ export function DiffBindSettingsStep({
         <h4 className="mb-3 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Analysis Method <span className="text-red-500">*</span>
         </h4>
+        <TrainingHint visible={isTrainingProject}>
+          DiffBind compares binding between conditions. DESeq2 with consensus peakset is standard —
+          it builds peaks from all samples. edgeR uses TMM normalization. Custom peakset lets you
+          supply your own regions.
+        </TrainingHint>
+        {!analysisMethod && isTrainingProject && (
+          <p className="mb-2 text-xs font-medium text-amber-600 dark:text-amber-400">
+            Please select an analysis method below.
+          </p>
+        )}
         <div className="space-y-2">
           {DIFFBIND_ANALYSIS_METHODS.map((method) => (
             <label

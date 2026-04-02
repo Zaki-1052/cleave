@@ -15,6 +15,7 @@ interface CreateExperimentWizardProps {
   isOpen: boolean;
   onClose: () => void;
   projectId: number;
+  isTrainingProject?: boolean;
   onCreated: (experiment: Experiment) => void;
 }
 
@@ -22,6 +23,7 @@ export function CreateExperimentWizard({
   isOpen,
   onClose,
   projectId,
+  isTrainingProject = false,
   onCreated,
 }: CreateExperimentWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
@@ -104,7 +106,8 @@ export function CreateExperimentWizard({
       return;
     }
 
-    if (currentStep < 3) {
+    const maxStep = isTrainingProject ? 2 : 3;
+    if (currentStep < maxStep) {
       setCurrentStep((prev) => prev + 1);
     }
   }
@@ -187,30 +190,35 @@ export function CreateExperimentWizard({
         />
       ) : null,
     },
-    {
-      label: 'Pipeline',
-      content: createdExperiment ? (
-        <AutoPipelineStep
-          experimentId={createdExperiment.id}
-          enabled={autoPipelineEnabled}
-          setEnabled={setAutoPipelineEnabled}
-          referenceGenome={referenceGenome}
-          setReferenceGenome={setReferenceGenome}
-          peakCaller={peakCaller}
-          setPeakCaller={setPeakCaller}
-          peakSize={peakSize}
-          setPeakSize={setPeakSize}
-          includeNormalization={includeNormalization}
-          setIncludeNormalization={setIncludeNormalization}
-          includeDiffbind={includeDiffbind}
-          setIncludeDiffbind={setIncludeDiffbind}
-          includeHeatmap={includeHeatmap}
-          setIncludeHeatmap={setIncludeHeatmap}
-          includePearson={includePearson}
-          setIncludePearson={setIncludePearson}
-        />
-      ) : null,
-    },
+    // Pipeline step hidden for training projects
+    ...(!isTrainingProject
+      ? [
+          {
+            label: 'Pipeline',
+            content: createdExperiment ? (
+              <AutoPipelineStep
+                experimentId={createdExperiment.id}
+                enabled={autoPipelineEnabled}
+                setEnabled={setAutoPipelineEnabled}
+                referenceGenome={referenceGenome}
+                setReferenceGenome={setReferenceGenome}
+                peakCaller={peakCaller}
+                setPeakCaller={setPeakCaller}
+                peakSize={peakSize}
+                setPeakSize={setPeakSize}
+                includeNormalization={includeNormalization}
+                setIncludeNormalization={setIncludeNormalization}
+                includeDiffbind={includeDiffbind}
+                setIncludeDiffbind={setIncludeDiffbind}
+                includeHeatmap={includeHeatmap}
+                setIncludeHeatmap={setIncludeHeatmap}
+                includePearson={includePearson}
+                setIncludePearson={setIncludePearson}
+              />
+            ) : null,
+          },
+        ]
+      : []),
   ];
 
   return (

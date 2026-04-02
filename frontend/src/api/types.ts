@@ -18,6 +18,7 @@ export interface Project {
   createdBy: number | null;
   storageBytes: number;
   isReference: boolean;
+  isTraining: boolean;
   status: string;
   createdAt: string;
   updatedAt: string;

@@ -18,6 +18,7 @@ interface NewAlignmentWizardProps {
   isOpen: boolean;
   onClose: () => void;
   experiment: Experiment;
+  isTrainingProject?: boolean;
 }
 
 /** Resolve the best R1/R2 FASTQ file paths for a reaction, preferring trimmed. */
@@ -48,6 +49,7 @@ export function NewAlignmentWizard({
   isOpen,
   onClose,
   experiment,
+  isTrainingProject = false,
 }: NewAlignmentWizardProps) {
   const navigate = useNavigate();
 
@@ -66,10 +68,14 @@ export function NewAlignmentWizard({
   // Step 2: Reaction selection
   const [selectedReactionIds, setSelectedReactionIds] = useState<Set<number>>(new Set());
 
-  // Step 3: Settings
+  // Step 3: Settings (training mode clears scientifically meaningful defaults)
   const [referenceGenome, setReferenceGenome] = useState('');
-  const [removeDuplicates, setRemoveDuplicates] = useState(true);
-  const [removeDacExclusion, setRemoveDacExclusion] = useState(true);
+  const [removeDuplicates, setRemoveDuplicates] = useState<boolean | null>(
+    isTrainingProject ? null : true,
+  );
+  const [removeDacExclusion, setRemoveDacExclusion] = useState<boolean | null>(
+    isTrainingProject ? null : true,
+  );
   const [bamCoverageBinSize, setBamCoverageBinSize] = useState(20);
   const [smoothedBinSize, setSmoothedBinSize] = useState(100);
 
@@ -86,8 +92,8 @@ export function NewAlignmentWizard({
     setNotes('');
     setSelectedReactionIds(new Set());
     setReferenceGenome('');
-    setRemoveDuplicates(true);
-    setRemoveDacExclusion(true);
+    setRemoveDuplicates(isTrainingProject ? null : true);
+    setRemoveDacExclusion(isTrainingProject ? null : true);
     setBamCoverageBinSize(20);
     setSmoothedBinSize(100);
     setSubmitError(null);
@@ -126,9 +132,12 @@ export function NewAlignmentWizard({
     if (currentStep === 1) {
       if (selectedReactionIds.size === 0) return;
       // Auto-select reference genome based on selected reactions' organisms
-      const organisms = [...new Set(selectedReactions.map((r) => r.organism))];
-      if (!referenceGenome) {
-        setReferenceGenome(getDefaultGenome(organisms));
+      // Skip auto-detection in training mode — user must choose manually
+      if (!isTrainingProject) {
+        const organisms = [...new Set(selectedReactions.map((r) => r.organism))];
+        if (!referenceGenome) {
+          setReferenceGenome(getDefaultGenome(organisms));
+        }
       }
       setCurrentStep(2);
     }
@@ -144,8 +153,8 @@ export function NewAlignmentWizard({
       experiment_id: experiment.id,
       project_id: experiment.projectId,
       reference_genome: referenceGenome,
-      remove_duplicates: removeDuplicates,
-      remove_dac_exclusion: removeDacExclusion,
+      remove_duplicates: removeDuplicates ?? true,
+      remove_dac_exclusion: removeDacExclusion ?? true,
       bam_coverage_bin_size: bamCoverageBinSize,
       smoothed_bin_size: smoothedBinSize,
       reactions: selectedReactions.map((r) => {
@@ -170,6 +179,10 @@ export function NewAlignmentWizard({
     }
     if (selectedReactionIds.size === 0) {
       setSubmitError('Please select at least one reaction.');
+      return;
+    }
+    if (removeDuplicates === null || removeDacExclusion === null) {
+      setSubmitError('Please choose a value for all settings in Advanced Settings.');
       return;
     }
 
@@ -237,6 +250,7 @@ export function NewAlignmentWizard({
           setBamCoverageBinSize={setBamCoverageBinSize}
           smoothedBinSize={smoothedBinSize}
           setSmoothedBinSize={setSmoothedBinSize}
+          isTrainingProject={isTrainingProject}
         />
       ),
     },
@@ -272,7 +286,7 @@ export function NewAlignmentWizard({
               {step === 2 ? (
                 <Button
                   onClick={handleSubmit}
-                  disabled={!referenceGenome || createJobMutation.isPending}
+                  disabled={!referenceGenome || removeDuplicates === null || removeDacExclusion === null || createJobMutation.isPending}
                 >
                   {createJobMutation.isPending ? 'Starting...' : 'Start Alignment'}
                 </Button>

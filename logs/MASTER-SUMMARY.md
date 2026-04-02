@@ -1,8 +1,8 @@
-# Cleave — Master Build Summary (Phases 1-9)
+# Cleave — Master Build Summary (Phases 1-9 + Training Wheels)
 
 > **Project**: Self-hosted CUT&RUN/CUT&Tag bioinformatics platform for the Ferguson Lab at UCSD (CUTANA Cloud clone + lab extensions).
-> **Timeline**: 2026-03-23 to 2026-03-30 (8 days, ~70+ sessions across 9 phases).
-> **Final state**: 474+ backend tests passing. 11 database tables across 11 Alembic migrations. 68+ API endpoints. ~150+ frontend component files. Full dark mode. `ruff check` + `ruff format --check` + `npm run build` all clean.
+> **Timeline**: 2026-03-23 to 2026-04-01 (10 days, ~70+ sessions across 9 phases + training wheels).
+> **Final state**: 525+ backend tests passing. 11 database tables across 12 Alembic migrations. 68+ API endpoints. ~150+ frontend component files. Full dark mode. Training wheels mode. `ruff check` + `ruff format --check` + `npm run build` all clean.
 
 ---
 
@@ -324,6 +324,7 @@ Cleave is a full-stack bioinformatics web platform that replicates EpiCypher's C
 | IGV.js import | Dynamic import() | Keeps ~1.5MB out of main bundle |
 | Chart library | Recharts | Already in project; stacked bar chart for annotations |
 | Routing | `/` public landing, `/dashboard` auth | Marketing page at root |
+| Training wheels | `is_training` flag on first-created project | Forces first-time users to learn parameters; auto-pipeline disabled, defaults cleared, educational hints shown |
 
 ---
 
@@ -492,11 +493,12 @@ GET    /health                                         # {"status": "ok"}
 | 9 | `a3f1c8e92d47` | 9 | Add `saved_servers` table (11th table) |
 | 10 | `b4c7e2f19a53` | 9 | Add `is_reference` to projects |
 | 11 | `c5d8f3a10b64` | 9 | Add `status` to projects |
+| 12 | `d7a3f1b82e49` | 12 | Add `is_training` to projects (training wheels mode) |
 
 ### Tables
 
 1. **users** — Accounts (fastapi-users base + firstName, lastName, emailNotifications, password_changed_at)
-2. **projects** — Top-level containers (name, description, storage_bytes, is_reference, status)
+2. **projects** — Top-level containers (name, description, storage_bytes, is_reference, is_training, status)
 3. **project_members** — Role-based access (admin/contributor/viewer)
 4. **experiments** — CUT&RUN/CUT&Tag analysis units (assay_type, status, auto_pipeline columns)
 5. **fastq_files** — Uploaded FASTQ metadata (prefix, direction, is_trimmed, adapter_status, fastqc_report_path)
