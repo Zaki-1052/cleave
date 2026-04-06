@@ -2,7 +2,7 @@
 
 > **Project**: Self-hosted CUT&RUN/CUT&Tag bioinformatics platform for the Ferguson Lab at UCSD (CUTANA Cloud clone + lab extensions).
 > **Timeline**: 2026-03-23 to 2026-04-01 (10 days, ~70+ sessions across 9 phases + training wheels).
-> **Final state**: 525+ backend tests passing. 11 database tables across 12 Alembic migrations. 68+ API endpoints. ~150+ frontend component files. Full dark mode. Training wheels mode. `ruff check` + `ruff format --check` + `npm run build` all clean.
+> **Final state**: 548+ backend tests passing. 11 database tables across 13 Alembic migrations. 71+ API endpoints. ~150+ frontend component files. Full dark mode. Training wheels mode. `ruff check` + `ruff format --check` + `npm run build` all clean.
 
 ---
 
@@ -29,7 +29,7 @@ Cleave is a full-stack bioinformatics web platform that replicates EpiCypher's C
 
 **Tech stack**: React 18 (Vite) + FastAPI (Python 3.11+) + PostgreSQL 15 + NGINX. Auth via fastapi-users (JWT + httpOnly cookie). Pipeline modules call bioinformatics tools via `subprocess.run()`. SSE for real-time updates. tus protocol for resumable uploads. Docker Compose for local dev.
 
-**What distinguishes Cleave from CUTANA Cloud**: SEACR peak calling, MACS2 broad mode, FASTQ trimming (Trimmomatic + kseq), fragment size filter (<120bp), DiffBind differential analysis, custom reference-point heatmaps, Pearson correlation matrices, Roman normalization, auto-pipeline mode, FTP/SFTP server import, parallel pipeline processing, dark mode.
+**What distinguishes Cleave from CUTANA Cloud**: SEACR peak calling, MACS2 broad mode, FASTQ trimming (Trimmomatic + kseq), fragment size filter (<120bp), DiffBind differential analysis, custom reference-point heatmaps, Pearson correlation matrices, Roman normalization, auto-pipeline mode, FTP/SFTP server import, local instance path import (copy/symlink), parallel pipeline processing, dark mode.
 
 ---
 
@@ -279,6 +279,7 @@ Cleave is a full-stack bioinformatics web platform that replicates EpiCypher's C
 | Storage cleanup | Worker-integrated periodic task | 30-day log retention, 48h tus staging retention |
 | Path security | Validates paths within STORAGE_ROOT | Rejects `..`, absolute paths, symlinks |
 | SSRF prevention | Blocked private IPs + localhost + AWS metadata + IPv6-mapped IPv4 | Defense in depth for lab deployment |
+| Local path import | `shutil.copy2` (default) or `os.symlink` (optional) | Copy/symlink files from EC2 instance disk; shares progress tracking with server import; blocks STORAGE_ROOT and system dirs |
 
 ### Pipeline Architecture
 
@@ -453,6 +454,13 @@ PATCH  /users/me/saved-servers/:id                     # Update saved server
 DELETE /users/me/saved-servers/:id                     # Delete saved server
 ```
 
+### Local Path Import (Instance)
+```
+POST   /experiments/:id/local-import/browse            # Browse local directory on instance
+POST   /experiments/:id/local-import/start             # Start background copy/symlink import
+GET    /experiments/:id/local-import/:iid/progress     # Import progress
+```
+
 ### Notifications & SSE
 ```
 GET    /notifications/stream                           # SSE endpoint (2s poll, 15s keepalive)
@@ -476,7 +484,7 @@ GET    /health                                         # {"status": "ok"}
 
 ## 5. Database Schema (Final State)
 
-11 tables across 11 Alembic migrations.
+11 tables across 13 Alembic migrations.
 
 ### Migration History
 
@@ -494,6 +502,7 @@ GET    /health                                         # {"status": "ok"}
 | 10 | `b4c7e2f19a53` | 9 | Add `is_reference` to projects |
 | 11 | `c5d8f3a10b64` | 9 | Add `status` to projects |
 | 12 | `d7a3f1b82e49` | 12 | Add `is_training` to projects (training wheels mode) |
+| 13 | `cf4728be3c58` | 13 | Add `is_symlink` to fastq_files (local path import) |
 
 ### Tables
 
@@ -501,7 +510,7 @@ GET    /health                                         # {"status": "ok"}
 2. **projects** — Top-level containers (name, description, storage_bytes, is_reference, is_training, status)
 3. **project_members** — Role-based access (admin/contributor/viewer)
 4. **experiments** — CUT&RUN/CUT&Tag analysis units (assay_type, status, auto_pipeline columns)
-5. **fastq_files** — Uploaded FASTQ metadata (prefix, direction, is_trimmed, adapter_status, fastqc_report_path)
+5. **fastq_files** — Uploaded FASTQ metadata (prefix, direction, is_trimmed, adapter_status, fastqc_report_path, is_symlink)
 6. **reactions** — Sample metadata (16 fields including organism, antibody, spike-in; unique constraint on experiment_id + organism + short_name)
 7. **analysis_jobs** — Unified job queue (JSONB params, parent_job_id for dependency chains, termination/retry columns, auto_pipeline flag)
 8. **job_outputs** — Files produced by jobs (file_category, reaction_id nullable)
@@ -513,7 +522,7 @@ GET    /health                                         # {"status": "ok"}
 
 ## 6. Test Coverage (Final State)
 
-**474+ tests** across 27 test files. All run inside Docker (`docker compose exec api pytest tests/`).
+**548+ tests** across 28 test files. All run inside Docker (`docker compose exec api pytest tests/`).
 
 | Test File | Count | Phase | Scope |
 |-----------|-------|-------|-------|
@@ -524,6 +533,7 @@ GET    /health                                         # {"status": "ok"}
 | `test_reactions.py` | 31 | 2 | CRUD, validation, CSV import, unique constraints, prefixes |
 | `test_alignment_pipeline.py` | 29 | 3 | Validation, mock files, output categories, QC CSV, methods text |
 | `test_server_import.py` | 23 | 9 | SSRF validation, encryption, browse mock, auth, saved servers, SSRF bypass |
+| `test_local_import.py` | 23 | 13 | Path validation, browse (mock + real), import validation, progress |
 | `test_pearson_correlation_pipeline.py` | 23 | 6+7 | Multi-genome, masking, validation, methods text |
 | `test_diffbind_pipeline.py` | 21 | 6 | 3 modes, dynamic columns, validation |
 | `test_roman_normalization_pipeline.py` | 19 | 6 | Mouse-only, validation, mock run |
@@ -552,7 +562,7 @@ GET    /health                                         # {"status": "ok"}
 
 ## 7. Complete File Inventory
 
-### Backend Services (22 files)
+### Backend Services (23 files)
 ```
 backend/services/
 ├── admin_service.py              # Superuser admin panel (Phase 10)
@@ -567,6 +577,7 @@ backend/services/
 ├── file_service.py               # File tree, path validation, X-Accel (Phase 2)
 ├── job_output_service.py         # Generic job output persistence (Phase 3)
 ├── job_service.py                # Job CRUD + terminate/retry (Phase 2+7)
+├── local_import_service.py       # Local path browse + copy/symlink import (Phase 13)
 ├── notification_service.py       # Notifications + mark-all-read (Phase 1+7)
 ├── permission_helpers.py         # Shared experiment permission checks (Phase 2)
 ├── project_service.py            # Project CRUD + filters + reference (Phase 1+9)
@@ -579,7 +590,7 @@ backend/services/
 └── user_service.py               # User profile (Phase 1)
 ```
 
-### Backend Routers (14 files)
+### Backend Routers (15 files)
 ```
 backend/routers/
 ├── admin.py              # Superuser admin panel: users, projects, jobs, stats, cleanup (Phase 7+10)
@@ -587,6 +598,7 @@ backend/routers/
 ├── experiments.py        # Experiment CRUD + history + auto-pipeline (Phase 1+7)
 ├── fastq_files.py        # FASTQ list/delete/FastQC endpoints (Phase 2)
 ├── files.py              # File download, IGV serve, BED upload (Phase 2+5+6)
+├── local_import.py       # Local path import endpoints (Phase 13)
 ├── jobs.py               # Job CRUD + QC reports + terminate/retry (Phase 2+3+4+6+7)
 ├── members.py            # Member management (Phase 1)
 ├── notifications.py      # Notification list/read/stream (Phase 1+3+7)
@@ -750,7 +762,8 @@ backend/tests/
 ├── test_peak_calling_pipeline.py, test_qc_report.py
 ├── test_diffbind_pipeline.py, test_custom_heatmap_pipeline.py
 ├── test_pearson_correlation_pipeline.py, test_roman_normalization_pipeline.py
-└── test_server_import.py
+├── test_server_import.py
+└── test_local_import.py
 ```
 
 ### Scripts
@@ -911,6 +924,8 @@ These bugs were found in the lab's scripts and fixed in Cleave:
 | 7 | 68+ | ~441 |
 | 8 | 0 | ~441 |
 | 9 | 31+ | 474+ |
+| 10-12 | 51+ | 525+ |
+| 13 | 23 | 548+ |
 
 ---
 
@@ -937,7 +952,7 @@ These bugs were found in the lab's scripts and fixed in Cleave:
 /projects/:id                  ProjectDetailPage
 /experiments/:id               ExperimentView (tabbed sidebar)
   /description                 DescriptionTab
-  /fastqs                      FastqsTab (tus upload, FastQC, server import)
+  /fastqs                      FastqsTab (tus upload, FastQC, server import, instance import)
   /reactions                   ReactionsTab (CRUD + CSV import)
   /alignment/:jid              AlignmentTab (Info, Input, QC Report, Files, IGV)
   /peaks/:jid                  PeakCallingTab (Info, Input, QC Report, Files, IGV)

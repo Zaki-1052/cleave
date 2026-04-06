@@ -78,7 +78,7 @@ Self-hosted CUT&RUN/CUT&Tag bioinformatics platform for the Ferguson Lab at UCSD
 
 ## 3. Database Schema
 
-11 tables managed via 12 Alembic migrations. All timestamps use `TIMESTAMPTZ DEFAULT now()`.
+11 tables managed via 13 Alembic migrations. All timestamps use `TIMESTAMPTZ DEFAULT now()`.
 
 ### Entity Relationships
 
@@ -191,7 +191,8 @@ Status enums: `new`, `in_progress`, `complete`, `error`, `terminated`.
 | is_trimmed | Boolean | default false |
 | adapter_status | String | nullable ("pass"/"warn"/"fail") |
 | fastqc_report_path | String | nullable |
-| upload_source | String | nullable ("local"/"server"/"trimming") |
+| upload_source | String | nullable ("local"/"server"/"instance"/"trimming") |
+| is_symlink | Boolean | NOT NULL, default false |
 | uploaded_at | DateTime(tz) | server_default=now() |
 
 ### 3.6 reactions
@@ -338,7 +339,7 @@ Saved FTP/SFTP server passwords encrypted at rest with Fernet (AES-128-CBC + HMA
 
 ## 5. API Reference
 
-68+ endpoints across 12 routers under `/api/v1/`. JWT required except auth and health endpoints.
+71+ endpoints across 13 routers under `/api/v1/`. JWT required except auth and health endpoints.
 
 ### Auth & Users
 
@@ -459,6 +460,14 @@ Saved FTP/SFTP server passwords encrypted at rest with Fernet (AES-128-CBC + HMA
 | GET | `/experiments/:id/server-import/:iid/progress` | Import progress |
 | GET | `/users/me/saved-servers` | List saved credentials |
 | POST/PATCH/DELETE | `/users/me/saved-servers[/:id]` | CRUD saved servers |
+
+### Local Path Import (Instance)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/experiments/:id/local-import/browse` | Browse local directory on instance |
+| POST | `/experiments/:id/local-import/start` | Start background copy/symlink import |
+| GET | `/experiments/:id/local-import/:iid/progress` | Import progress |
 
 ### Notifications & SSE
 
@@ -858,6 +867,7 @@ All settings via environment variables, loaded by Pydantic `BaseSettings`.
 | SSE (not WebSocket) | 2-second polling | Unidirectional server->client is sufficient for ~8-10 users |
 | Upload protocol | tus v1.0.0 via tuspyserver | Chunked/resumable for multi-GB FASTQs |
 | FTP/SFTP import | aioftp + asyncssh | Pure Python async, no system deps; SSRF prevention built in |
+| Local path import | shutil.copy2 / os.symlink | Copy default, symlink optional; shares progress tracking with server import; rejects STORAGE_ROOT and system dirs |
 | Pipeline mock mode | Creates real stub files on disk | File browser, download, and IGV depend on files at real paths |
 | effectiveGenomeSize | Correct per-genome values | Fixes lab bug where mm10's value was used for all organisms |
 | Roman normalization | Mouse only (mm10) | Hardcoded chromosome list (chr1-19+chrX); no human equivalent |
@@ -888,7 +898,7 @@ These bugs were found in the lab's scripts and fixed in Cleave:
 
 ## 14. Test Suite
 
-500+ tests across 30 test files, all running inside Docker (`docker compose exec api pytest tests/`).
+548+ tests across 31 test files, all running inside Docker (`docker compose exec api pytest tests/`).
 
 | Test File | Count | Scope |
 |-----------|-------|-------|
@@ -897,6 +907,7 @@ These bugs were found in the lab's scripts and fixed in Cleave:
 | test_jobs_api.py | 38 | Job CRUD, queue, QC endpoints, terminate/retry |
 | test_reactions.py | 31 | CRUD, validation, CSV import, unique constraints |
 | test_alignment_pipeline.py | 29 | Validation, mock files, QC CSV, methods text |
+| test_local_import.py | 23 | Path validation, browse, import validation, progress |
 | test_server_import.py | 23 | SSRF, encryption, browse, auth, saved servers |
 | test_pearson_correlation_pipeline.py | 23 | Multi-genome, masking, validation |
 | test_diffbind_pipeline.py | 21 | 3 modes, dynamic columns, validation |

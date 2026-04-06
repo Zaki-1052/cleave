@@ -1,9 +1,10 @@
 // frontend/src/components/fastqs/FileUploadZone.tsx
 import { useCallback, useRef, useState, type DragEvent } from 'react';
+import axios from 'axios';
 import * as tus from 'tus-js-client';
 import { X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { getAccessToken } from '@/api/client';
+import { getAccessToken, setAccessToken } from '@/api/client';
 import { formatBytes } from '@/lib/utils';
 
 const VALID_EXTENSIONS = ['.fastq.gz', '.fastq', '.fq.gz', '.fq'];
@@ -98,13 +99,21 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
     });
   }
 
-  const handleUpload = useCallback(() => {
+  const handleUpload = useCallback(async () => {
     const stagedEntries = fileStates
       .map((f, i) => ({ idx: i, file: f.file }))
       .filter((_, i) => fileStates[i]?.status === 'staged');
 
     if (stagedEntries.length === 0) return;
     setUploadError(null);
+
+    // Proactively refresh token to ensure fresh 30-min window for upload
+    try {
+      const res = await axios.post('/api/v1/auth/refresh', {});
+      setAccessToken(res.data.accessToken);
+    } catch {
+      // Continue with existing token — may still be valid
+    }
 
     let completedCount = 0;
     const totalFiles = stagedEntries.length;
@@ -133,6 +142,24 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
           if (token) {
             req.setHeader('Authorization', `Bearer ${token}`);
           }
+        },
+        onAfterResponse: async (_req, res) => {
+          // Refresh token on 401 so the next retry uses a valid token
+          if (res.getStatus() === 401) {
+            try {
+              const refreshRes = await axios.post('/api/v1/auth/refresh', {});
+              setAccessToken(refreshRes.data.accessToken);
+            } catch {
+              // Refresh failed — will error out after retries exhausted
+            }
+          }
+        },
+        onShouldRetry: (err, retryAttempt) => {
+          const status = err.originalResponse ? err.originalResponse.getStatus() : 0;
+          // Allow one retry on 401 after token refresh
+          if (status === 401) return retryAttempt < 1;
+          // Default: retry network errors and 5xx server errors
+          return status === 0 || status >= 500;
         },
         onProgress: (bytesUploaded, bytesTotal) => {
           const percent = Math.round((bytesUploaded / bytesTotal) * 100);
