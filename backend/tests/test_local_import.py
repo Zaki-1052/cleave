@@ -1,7 +1,6 @@
 # backend/tests/test_local_import.py
 """Tests for local filesystem import — path validation, browse, import."""
 
-import os
 from pathlib import Path
 
 import pytest
@@ -34,6 +33,22 @@ async def _create_experiment(client: AsyncClient, auth_headers: dict, project_id
 
 
 # ---------------------------------------------------------------------------
+# Helpers — fixtures
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def local_import_root(tmp_path, monkeypatch):
+    """Set LOCAL_IMPORT_DEFAULT_PATH to a temp dir so tests can create files inside it."""
+    from config import settings
+
+    root = tmp_path / "import_root"
+    root.mkdir()
+    monkeypatch.setattr(settings, "LOCAL_IMPORT_DEFAULT_PATH", str(root))
+    return root
+
+
+# ---------------------------------------------------------------------------
 # Path Validation
 # ---------------------------------------------------------------------------
 
@@ -51,71 +66,77 @@ class TestPathValidation:
         with pytest.raises(ValueError, match="absolute path"):
             validate_local_path("")
 
-    def test_reject_storage_root(self, override_storage_root):
+    def test_reject_outside_allowed_root(self, local_import_root):
+        """Paths outside LOCAL_IMPORT_DEFAULT_PATH are rejected."""
+        from services.local_import_service import validate_local_path
+
+        with pytest.raises(ValueError, match="must be under"):
+            validate_local_path("/home")
+
+    def test_reject_storage_root(self, local_import_root, override_storage_root):
+        """STORAGE_ROOT is rejected even if it's under the allowed root."""
         from config import settings
         from services.local_import_service import validate_local_path
 
-        os.makedirs(settings.STORAGE_ROOT, exist_ok=True)
+        # Place STORAGE_ROOT inside the allowed root to test this specific check
+        storage = local_import_root / "cleave_storage"
+        storage.mkdir()
+        settings.STORAGE_ROOT = str(storage)
         with pytest.raises(ValueError, match="managed storage"):
-            validate_local_path(settings.STORAGE_ROOT)
+            validate_local_path(str(storage))
 
-    def test_reject_path_inside_storage_root(self, override_storage_root):
+    def test_reject_path_inside_storage_root(self, local_import_root, override_storage_root):
         from config import settings
         from services.local_import_service import validate_local_path
 
-        subdir = Path(settings.STORAGE_ROOT) / "projects" / "1"
-        os.makedirs(subdir, exist_ok=True)
+        storage = local_import_root / "cleave_storage"
+        subdir = storage / "projects" / "1"
+        subdir.mkdir(parents=True)
+        settings.STORAGE_ROOT = str(storage)
         with pytest.raises(ValueError, match="managed storage"):
             validate_local_path(str(subdir))
 
-    def test_reject_proc(self):
+    def test_blocklist_defense_in_depth(self, monkeypatch):
+        """System directories are blocked even if LOCAL_IMPORT_DEFAULT_PATH is /."""
+        from config import settings
         from services.local_import_service import validate_local_path
 
+        monkeypatch.setattr(settings, "LOCAL_IMPORT_DEFAULT_PATH", "/")
         with pytest.raises(ValueError, match="system directory"):
             validate_local_path("/proc")
-
-    def test_reject_etc(self):
-        from services.local_import_service import validate_local_path
-
         with pytest.raises(ValueError, match="system directory"):
             validate_local_path("/etc")
-
-    def test_reject_sys(self):
-        from services.local_import_service import validate_local_path
-
         with pytest.raises(ValueError, match="system directory"):
             validate_local_path("/sys")
-
-    def test_reject_dev(self):
-        from services.local_import_service import validate_local_path
-
         with pytest.raises(ValueError, match="system directory"):
             validate_local_path("/dev")
 
-    def test_reject_nonexistent(self):
+    def test_reject_nonexistent(self, local_import_root):
         from services.local_import_service import validate_local_path
 
         with pytest.raises(ValueError, match="does not exist"):
-            validate_local_path("/nonexistent_path_that_does_not_exist_abc123")
+            validate_local_path(str(local_import_root / "nonexistent_abc123"))
 
-    def test_reject_file_when_dir_required(self, tmp_path):
+    def test_reject_file_when_dir_required(self, local_import_root):
         from services.local_import_service import validate_local_path
 
-        f = tmp_path / "test.txt"
+        f = local_import_root / "test.txt"
         f.write_text("hello")
         with pytest.raises(ValueError, match="not a directory"):
             validate_local_path(str(f), must_be_dir=True)
 
-    def test_accept_valid_dir(self, tmp_path):
+    def test_accept_valid_dir(self, local_import_root):
         from services.local_import_service import validate_local_path
 
-        result = validate_local_path(str(tmp_path), must_be_dir=True)
+        subdir = local_import_root / "fastq"
+        subdir.mkdir()
+        result = validate_local_path(str(subdir), must_be_dir=True)
         assert result.is_dir()
 
-    def test_accept_valid_file(self, tmp_path):
+    def test_accept_valid_file(self, local_import_root):
         from services.local_import_service import validate_local_path
 
-        f = tmp_path / "sample_R1_001.fastq.gz"
+        f = local_import_root / "sample_R1_001.fastq.gz"
         f.write_bytes(b"data")
         result = validate_local_path(str(f), must_be_dir=False)
         assert result.is_file()
@@ -134,7 +155,9 @@ class TestBrowse:
         )
         assert resp.status_code == 401
 
-    async def test_browse_requires_contributor(self, client: AsyncClient, auth_headers: dict):
+    async def test_browse_requires_contributor(
+        self, client: AsyncClient, auth_headers: dict, local_import_root
+    ):
         """Viewer role should not be able to browse."""
         pid = await _create_project(client, auth_headers)
         eid = await _create_experiment(client, auth_headers, pid)
@@ -156,7 +179,7 @@ class TestBrowse:
 
         resp = await client.post(
             f"/api/v1/experiments/{eid}/local-import/browse",
-            json={"path": "/tmp"},
+            json={"path": str(local_import_root)},
             headers=viewer_headers,
         )
         assert resp.status_code == 404
@@ -179,24 +202,24 @@ class TestBrowse:
         assert len(data["entries"]) > 0
 
     async def test_browse_real_directory(
-        self, client: AsyncClient, auth_headers: dict, tmp_path, monkeypatch
+        self, client: AsyncClient, auth_headers: dict, local_import_root, monkeypatch
     ):
         from config import settings
 
         monkeypatch.setattr(settings, "PIPELINE_MODE", "real")
 
-        # Create test files
-        (tmp_path / "subdir").mkdir()
-        (tmp_path / "sample_R1_001.fastq.gz").write_bytes(b"data")
-        (tmp_path / "sample_R2_001.fastq.gz").write_bytes(b"data")
-        (tmp_path / ".hidden").write_text("hidden")
+        # Create test files inside the allowed root
+        (local_import_root / "subdir").mkdir()
+        (local_import_root / "sample_R1_001.fastq.gz").write_bytes(b"data")
+        (local_import_root / "sample_R2_001.fastq.gz").write_bytes(b"data")
+        (local_import_root / ".hidden").write_text("hidden")
 
         pid = await _create_project(client, auth_headers)
         eid = await _create_experiment(client, auth_headers, pid)
 
         resp = await client.post(
             f"/api/v1/experiments/{eid}/local-import/browse",
-            json={"path": str(tmp_path)},
+            json={"path": str(local_import_root)},
             headers=auth_headers,
         )
         assert resp.status_code == 200
@@ -209,7 +232,10 @@ class TestBrowse:
         # Directories should come first
         assert data["entries"][0]["isDir"] is True
 
-    async def test_browse_invalid_path(self, client: AsyncClient, auth_headers: dict, monkeypatch):
+    async def test_browse_outside_allowed_root(
+        self, client: AsyncClient, auth_headers: dict, local_import_root, monkeypatch
+    ):
+        """Browsing outside LOCAL_IMPORT_DEFAULT_PATH is rejected."""
         from config import settings
 
         monkeypatch.setattr(settings, "PIPELINE_MODE", "real")
@@ -219,7 +245,25 @@ class TestBrowse:
 
         resp = await client.post(
             f"/api/v1/experiments/{eid}/local-import/browse",
-            json={"path": "/nonexistent_abc123"},
+            json={"path": "/home"},
+            headers=auth_headers,
+        )
+        assert resp.status_code == 422
+        assert "must be under" in resp.json()["detail"]
+
+    async def test_browse_invalid_path(
+        self, client: AsyncClient, auth_headers: dict, local_import_root, monkeypatch
+    ):
+        from config import settings
+
+        monkeypatch.setattr(settings, "PIPELINE_MODE", "real")
+
+        pid = await _create_project(client, auth_headers)
+        eid = await _create_experiment(client, auth_headers, pid)
+
+        resp = await client.post(
+            f"/api/v1/experiments/{eid}/local-import/browse",
+            json={"path": str(local_import_root / "nonexistent_abc123")},
             headers=auth_headers,
         )
         assert resp.status_code == 422
@@ -239,14 +283,14 @@ class TestImportValidation:
         assert resp.status_code == 401
 
     async def test_import_rejects_invalid_filename(
-        self, client: AsyncClient, auth_headers: dict, tmp_path, monkeypatch
+        self, client: AsyncClient, auth_headers: dict, local_import_root, monkeypatch
     ):
         from config import settings
 
         monkeypatch.setattr(settings, "PIPELINE_MODE", "real")
 
-        # Create a file with invalid name
-        bad_file = tmp_path / "not_a_fastq.txt"
+        # Create a file with invalid name inside the allowed root
+        bad_file = local_import_root / "not_a_fastq.txt"
         bad_file.write_text("hello")
 
         pid = await _create_project(client, auth_headers)
@@ -260,13 +304,13 @@ class TestImportValidation:
         assert resp.status_code == 422
 
     async def test_import_rejects_duplicate_filenames(
-        self, client: AsyncClient, auth_headers: dict, tmp_path, monkeypatch
+        self, client: AsyncClient, auth_headers: dict, local_import_root, monkeypatch
     ):
         from config import settings
 
         monkeypatch.setattr(settings, "PIPELINE_MODE", "real")
 
-        f = tmp_path / "sample_R1_001.fastq.gz"
+        f = local_import_root / "sample_R1_001.fastq.gz"
         f.write_bytes(b"data")
 
         pid = await _create_project(client, auth_headers)
@@ -281,7 +325,7 @@ class TestImportValidation:
         assert "Duplicate" in resp.json()["detail"]
 
     async def test_import_rejects_nonexistent_source(
-        self, client: AsyncClient, auth_headers: dict, monkeypatch
+        self, client: AsyncClient, auth_headers: dict, local_import_root, monkeypatch
     ):
         from config import settings
 
@@ -292,14 +336,33 @@ class TestImportValidation:
 
         resp = await client.post(
             f"/api/v1/experiments/{eid}/local-import/start",
-            json={"filePaths": ["/nonexistent/sample_R1_001.fastq.gz"]},
+            json={"filePaths": [str(local_import_root / "nonexistent_R1_001.fastq.gz")]},
             headers=auth_headers,
         )
         assert resp.status_code == 422
         assert "does not exist" in resp.json()["detail"]
 
+    async def test_import_rejects_outside_allowed_root(
+        self, client: AsyncClient, auth_headers: dict, local_import_root, monkeypatch
+    ):
+        """Import from outside LOCAL_IMPORT_DEFAULT_PATH is rejected."""
+        from config import settings
+
+        monkeypatch.setattr(settings, "PIPELINE_MODE", "real")
+
+        pid = await _create_project(client, auth_headers)
+        eid = await _create_experiment(client, auth_headers, pid)
+
+        resp = await client.post(
+            f"/api/v1/experiments/{eid}/local-import/start",
+            json={"filePaths": ["/tmp/sample_R1_001.fastq.gz"]},
+            headers=auth_headers,
+        )
+        assert resp.status_code == 422
+        assert "must be under" in resp.json()["detail"]
+
     async def test_import_starts_successfully_mock(
-        self, client: AsyncClient, auth_headers: dict, monkeypatch
+        self, client: AsyncClient, auth_headers: dict, local_import_root, monkeypatch
     ):
         """Mock mode should accept the import and return 202."""
         from config import settings
@@ -309,28 +372,21 @@ class TestImportValidation:
         pid = await _create_project(client, auth_headers)
         eid = await _create_experiment(client, auth_headers, pid)
 
-        # In mock mode, path validation is skipped since we don't call validate_local_path
-        # on each file (mock start_local_import handles it). We need real files for the router
-        # validation though. Use tmp_path.
-        # Actually let's just test with mock mode where source path validation still runs.
-        # We'll create real temporary files.
-        import tempfile
+        # Create real files inside the allowed root for router validation
+        f1 = local_import_root / "sample_R1_001.fastq.gz"
+        f2 = local_import_root / "sample_R2_001.fastq.gz"
+        f1.write_bytes(b"data")
+        f2.write_bytes(b"data")
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            f1 = Path(tmpdir) / "sample_R1_001.fastq.gz"
-            f2 = Path(tmpdir) / "sample_R2_001.fastq.gz"
-            f1.write_bytes(b"data")
-            f2.write_bytes(b"data")
-
-            resp = await client.post(
-                f"/api/v1/experiments/{eid}/local-import/start",
-                json={"filePaths": [str(f1), str(f2)]},
-                headers=auth_headers,
-            )
-            assert resp.status_code == 202
-            data = resp.json()
-            assert data["fileCount"] == 2
-            assert "importId" in data
+        resp = await client.post(
+            f"/api/v1/experiments/{eid}/local-import/start",
+            json={"filePaths": [str(f1), str(f2)]},
+            headers=auth_headers,
+        )
+        assert resp.status_code == 202
+        data = resp.json()
+        assert data["fileCount"] == 2
+        assert "importId" in data
 
 
 # ---------------------------------------------------------------------------

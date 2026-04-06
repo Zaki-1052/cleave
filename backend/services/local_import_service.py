@@ -53,20 +53,27 @@ _BLOCKED_PREFIXES = (
 def validate_local_path(path: str, must_be_dir: bool = True) -> Path:
     """Validate and resolve a local filesystem path.
 
-    Rejects paths inside STORAGE_ROOT, system directories, and nonexistent paths.
+    Enforces allowlist (LOCAL_IMPORT_DEFAULT_PATH), rejects STORAGE_ROOT and system dirs.
     """
     if not path or not path.startswith("/"):
         raise ValueError("Path must be an absolute path starting with /")
 
     resolved = Path(path).resolve()
+    resolved_str = str(resolved)
+
+    # Allowlist: must be within LOCAL_IMPORT_DEFAULT_PATH
+    allowed_root = str(Path(settings.LOCAL_IMPORT_DEFAULT_PATH).resolve())
+    if allowed_root != "/" and not (
+        resolved_str == allowed_root or resolved_str.startswith(allowed_root + "/")
+    ):
+        raise ValueError(f"Path must be under {settings.LOCAL_IMPORT_DEFAULT_PATH}")
 
     # Reject paths inside Cleave's managed storage
     storage_root = Path(settings.STORAGE_ROOT).resolve()
-    if str(resolved).startswith(str(storage_root)):
+    if resolved_str.startswith(str(storage_root)):
         raise ValueError("Cannot import from Cleave's managed storage directory")
 
-    # Reject system directories
-    resolved_str = str(resolved)
+    # Reject system directories (defense-in-depth)
     for prefix in _BLOCKED_PREFIXES:
         if resolved_str == prefix or resolved_str.startswith(prefix + "/"):
             raise ValueError(f"Cannot access system directory: {prefix}")
