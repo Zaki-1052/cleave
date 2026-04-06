@@ -24,6 +24,7 @@ class FastqFile(Base):
     adapter_status: Mapped[str | None] = mapped_column(String)
     fastqc_report_path: Mapped[str | None] = mapped_column(String)
     upload_source: Mapped[str | None] = mapped_column(String)
+    is_symlink: Mapped[bool] = mapped_column(Boolean, default=False)
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

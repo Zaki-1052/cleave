@@ -475,6 +475,8 @@ async def _finalize_file(
     experiment_id: int,
     project_id: int,
     user_id: int,
+    upload_source: str = "server",
+    is_symlink: bool = False,
 ) -> None:
     """Move downloaded file to final location and create a FastqFile DB record."""
     # Validate filename
@@ -504,6 +506,9 @@ async def _finalize_file(
     file_size = dest_path.stat().st_size
     relative_path = _relative_storage_path(project_id, experiment_id, final_filename)
 
+    # Symlinks don't consume Cleave's managed storage
+    storage_delta = 0 if is_symlink else file_size
+
     # Create DB record with standalone session
     async with async_session_factory() as db:
         record = FastqFile(
@@ -513,20 +518,22 @@ async def _finalize_file(
             read_direction=direction,
             file_size_bytes=file_size,
             file_path=relative_path,
-            upload_source="server",
+            upload_source=upload_source,
+            is_symlink=is_symlink,
         )
         db.add(record)
-        await update_storage_bytes(db, experiment_id, project_id, file_size)
+        await update_storage_bytes(db, experiment_id, project_id, storage_delta)
         await db.commit()
         await db.refresh(record)
 
+        source_label = "instance" if upload_source == "instance" else "server"
         await log_event_standalone(
             experiment_id=experiment_id,
             user_id=user_id,
             action="fastq_uploaded",
             resource_type="fastq",
             resource_id=record.id,
-            detail=f"Imported {final_filename} from server",
+            detail=f"Imported {final_filename} from {source_label}",
         )
 
 
@@ -535,6 +542,7 @@ async def _trigger_fastqc(
     project_id: int,
     user_id: int,
     progress: ServerImportProgress,
+    upload_source: str = "server",
 ) -> None:
     """Trigger FastQC for all successfully imported files."""
     from services.fastqc_service import FastqcInput, run_fastqc_for_files
@@ -551,7 +559,7 @@ async def _trigger_fastqc(
             select(FastqFile).where(
                 FastqFile.experiment_id == experiment_id,
                 FastqFile.filename.in_(completed_filenames),
-                FastqFile.upload_source == "server",
+                FastqFile.upload_source == upload_source,
             )
         )
         records = list(result.scalars().all())
@@ -567,21 +575,22 @@ async def _create_completion_notification(
     progress: ServerImportProgress,
     user_id: int,
     experiment_id: int,
+    source_label: str = "Server",
 ) -> None:
     """Create an in-app notification for import completion."""
     async with async_session_factory() as db:
         if progress.completed_count == progress.total_count:
-            title = "Server import complete"
+            title = f"{source_label} import complete"
             message = f"Successfully imported {progress.completed_count} FASTQ file(s)"
         elif progress.completed_count > 0:
             failed = progress.total_count - progress.completed_count
-            title = "Server import partially complete"
+            title = f"{source_label} import partially complete"
             message = (
                 f"Imported {progress.completed_count} of {progress.total_count} files. "
                 f"{failed} file(s) failed."
             )
         else:
-            title = "Server import failed"
+            title = f"{source_label} import failed"
             message = f"All {progress.total_count} file(s) failed to import"
 
         await create_notification(

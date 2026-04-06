@@ -287,12 +287,13 @@ async def delete_fastq(
     if fastq is None:
         return False
 
-    # Delete FASTQ file from disk
+    # Delete FASTQ file from disk (unlink removes symlinks without affecting source)
     abs_path = Path(settings.STORAGE_ROOT) / fastq.file_path
-    if abs_path.exists():
+    if abs_path.exists() or abs_path.is_symlink():
         abs_path.unlink()
 
-    file_size = fastq.file_size_bytes or 0
+    # Symlinked files don't consume managed storage — storage delta is 0
+    file_size = 0 if fastq.is_symlink else (fastq.file_size_bytes or 0)
 
     # Delete associated FastQC report from disk
     if fastq.fastqc_report_path:

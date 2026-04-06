@@ -14,6 +14,7 @@ from routers import (
     fastq_files,
     files,
     jobs,
+    local_import,
     notifications,
     projects,
     reactions,
@@ -58,6 +59,7 @@ app.include_router(tus_upload.router, prefix="/api/v1", tags=["uploads"])
 app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["notifications"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
 app.include_router(server_import.router, prefix="/api/v1", tags=["server-import"])
+app.include_router(local_import.router, prefix="/api/v1", tags=["local-import"])
 
 
 @app.get("/api/v1/health")

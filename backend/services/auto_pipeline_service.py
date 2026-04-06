@@ -371,9 +371,7 @@ async def _queue_alignment(
     reactions = await _get_reactions(db, experiment_id)
 
     # Resolve FASTQ paths for each reaction (prefer trimmed over raw)
-    result = await db.execute(
-        select(FastqFile).where(FastqFile.experiment_id == experiment_id)
-    )
+    result = await db.execute(select(FastqFile).where(FastqFile.experiment_id == experiment_id))
     all_fastqs = result.scalars().all()
 
     # Build prefix -> {R1: path, R2: path}, preferring trimmed files

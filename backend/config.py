@@ -53,6 +53,9 @@ class Settings(BaseSettings):
     # Genomes (Phase 3)
     GENOME_INDEX_DIR: str = "/data/cleave/genomes"
 
+    # Local path import
+    LOCAL_IMPORT_DEFAULT_PATH: str = "/data"
+
     # Storage Lifecycle (Phase 7.1)
     CLEANUP_ENABLED: bool = False
     CLEANUP_INTERVAL_HOURS: float = 24.0

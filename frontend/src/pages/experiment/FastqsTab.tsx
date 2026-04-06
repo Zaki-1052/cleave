@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { ColumnDef } from '@tanstack/react-table';
-import { AlertTriangle, FileText, Server, Trash2 } from 'lucide-react';
+import { AlertTriangle, FileText, HardDrive, Server, Trash2 } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { toast } from 'sonner';
 import { Card } from '@/components/layout/Card';
@@ -12,6 +12,7 @@ import { Modal } from '@/components/ui/Modal';
 import { FileUploadZone } from '@/components/fastqs/FileUploadZone';
 import { FastqcReportModal } from '@/components/fastqs/FastqcReportModal';
 import { ServerImportModal } from '@/components/fastqs/ServerImportModal';
+import { LocalImportModal } from '@/components/fastqs/LocalImportModal';
 import { TrimConfigModal } from '@/components/fastqs/TrimConfigModal';
 import type { TrimParams } from '@/components/fastqs/TrimConfigModal';
 import { useFastqs, useDeleteFastq } from '@/hooks/useFastqs';
@@ -105,6 +106,7 @@ export default function FastqsTab() {
   const createJobMutation = useCreateJob();
   const [showUpload, setShowUpload] = useState(false);
   const [showServerImport, setShowServerImport] = useState(false);
+  const [showLocalImport, setShowLocalImport] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<FastqFile | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [fastqcTarget, setFastqcTarget] = useState<FastqFile | null>(null);
@@ -289,6 +291,13 @@ export default function FastqsTab() {
                 <Server className="mr-1 h-4 w-4" />
                 Import from Server
               </Button>
+              <Button
+                variant="outlined"
+                onClick={() => setShowLocalImport(true)}
+              >
+                <HardDrive className="mr-1 h-4 w-4" />
+                Import from Instance
+              </Button>
             </div>
           )}
         </div>
@@ -415,6 +424,12 @@ export default function FastqsTab() {
         experimentId={experiment.id}
         isOpen={showServerImport}
         onClose={() => setShowServerImport(false)}
+      />
+
+      <LocalImportModal
+        experimentId={experiment.id}
+        isOpen={showLocalImport}
+        onClose={() => setShowLocalImport(false)}
       />
     </>
   );
