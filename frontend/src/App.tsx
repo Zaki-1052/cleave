@@ -21,6 +21,7 @@ import PeakCallingTab from '@/pages/experiment/PeakCallingTab';
 import CustomHeatmapTab from '@/pages/experiment/CustomHeatmapTab';
 import PearsonCorrelationTab from '@/pages/experiment/PearsonCorrelationTab';
 import NormalizationTab from '@/pages/experiment/NormalizationTab';
+import TrimmingTab from '@/pages/experiment/TrimmingTab';
 import DiffBindTab from '@/pages/experiment/DiffBindTab';
 import HistoryTab from '@/pages/experiment/HistoryTab';
 import AllFilesTab from '@/pages/experiment/AllFilesTab';
@@ -64,6 +65,7 @@ export default function App() {
           <Route index element={<DescriptionTab />} />
           <Route path="description" element={<DescriptionTab />} />
           <Route path="fastqs" element={<FastqsTab />} />
+          <Route path="trimming/:jid" element={<TrimmingTab />} />
           <Route path="reactions" element={<ReactionsTab />} />
           <Route path="alignment/:jid" element={<AlignmentTab />} />
           <Route path="peaks/:jid" element={<PeakCallingTab />} />

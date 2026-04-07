@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link, Outlet, useParams, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  FileText, Dna, FlaskConical, AlignLeft, Mountain,
+  FileText, Dna, FlaskConical, Scissors, AlignLeft, Mountain,
   ArrowLeftRight, Grid3x3, ScatterChart, Scale, History,
   FolderTree, GraduationCap,
 } from 'lucide-react';
@@ -40,6 +40,7 @@ const TABS: { label: string; path: string; icon: LucideIcon }[] = [
   { label: 'Description', path: 'description', icon: FileText },
   { label: 'FASTQs', path: 'fastqs', icon: Dna },
   { label: 'Reactions', path: 'reactions', icon: FlaskConical },
+  { label: 'Trimming', path: 'trimming/0', icon: Scissors },
   { label: 'Alignment', path: 'alignment/0', icon: AlignLeft },
   { label: 'Peak Calling', path: 'peaks/0', icon: Mountain },
   { label: 'DiffBind', path: 'diffbind/0', icon: ArrowLeftRight },

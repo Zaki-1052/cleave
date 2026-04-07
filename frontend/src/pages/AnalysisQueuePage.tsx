@@ -34,7 +34,7 @@ const JOB_TYPE_OPTIONS = [
 
 const JOB_TYPE_TO_TAB: Record<string, string> = {
   alignment: 'alignment',
-  trimming: 'fastqs',
+  trimming: 'trimming',
   peak_calling: 'peaks',
   diffbind: 'diffbind',
   custom_heatmap: 'heatmaps',

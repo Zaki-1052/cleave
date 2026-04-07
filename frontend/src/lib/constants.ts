@@ -311,6 +311,14 @@ export const NORMALIZATION_FILE_CATEGORIES = [
   },
 ] as const;
 
+export const TRIMMING_FILE_CATEGORIES = [
+  {
+    value: 'trimmed_fastq',
+    label: 'Trimmed FASTQs',
+    description: 'Adapter-trimmed and fixed-length (42bp) paired-end FASTQ files.',
+  },
+] as const;
+
 export const HEATMAP_SORT_ORDERS = [
   { value: 'descend', label: 'Descending (default)' },
   { value: 'ascend', label: 'Ascending' },
