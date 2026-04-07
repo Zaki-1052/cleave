@@ -747,6 +747,7 @@ All file-serving endpoints validate paths stay within `STORAGE_ROOT/projects/{pr
 /experiments/:id           ExperimentView (tabbed)
   /description             DescriptionTab
   /fastqs                  FastqsTab (tus upload, FastQC)
+  /trimming/:jid           TrimmingTab (2 sub-tabs: Info, Files)
   /reactions               ReactionsTab (CRUD + CSV import)
   /alignment/:jid          AlignmentTab (5 sub-tabs: Info, Input, QC, Files, IGV)
   /peaks/:jid              PeakCallingTab (5 sub-tabs)
@@ -770,7 +771,7 @@ All file-serving endpoints validate paths stay within `STORAGE_ROOT/projects/{pr
 
 ### Component Organization (90 files)
 
-Feature-based folders: `alignment/`, `peak-calling/`, `diffbind/`, `custom-heatmap/`, `pearson-correlation/`, `normalization/`, `igv/`, `fastqs/`, `reactions/`, `experiments/`, `projects/`, `ui/`, `layout/`, `auth/`.
+Feature-based folders: `alignment/`, `peak-calling/`, `diffbind/`, `custom-heatmap/`, `pearson-correlation/`, `normalization/`, `trimming/`, `igv/`, `fastqs/`, `reactions/`, `experiments/`, `projects/`, `ui/`, `layout/`, `auth/`.
 
 Pattern per analysis type: `NewXxxWizard.tsx` + `XxxDetailsStep.tsx` + `XxxSettingsStep.tsx` + `XxxInfoPanel.tsx` + `XxxFilesPanel.tsx` + `XxxQCReportPanel.tsx`.
 

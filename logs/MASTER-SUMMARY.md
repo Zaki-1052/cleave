@@ -708,6 +708,7 @@ diffbind/          8 files: NewDiffBindWizard, 3 steps, ResultsPanel, PlotsPanel
 custom-heatmap/    5 files: NewCustomHeatmapWizard, 2 steps, PlotsPanel, FilesPanel
 pearson-correlation/ 6 files: NewPearsonCorrelationWizard, 2 steps, PlotsPanel, FilesPanel
 normalization/     6 files: NewNormalizationWizard, 2 steps, ResultsPanel, FilesPanel
+trimming/          1 file: TrimmingFilesPanel
 igv/               2 files: IGVPanel, SelectReactionsModal
 fastqs/            4 files: FileUploadZone, FastqcReportModal, TrimConfigModal, ServerImportModal
 reactions/         3 files: CsvUploadZone, ReactionFormModal, ReactionsEditor
@@ -721,7 +722,7 @@ auth/              1 file: ProtectedRoute
 ```
 LandingPage, LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage
 HomePage, ProjectDetailPage, ExperimentView, AnalysisQueuePage, SettingsPage, AdminPage
-experiment/: DescriptionTab, FastqsTab, ReactionsTab, AlignmentTab, PeakCallingTab
+experiment/: DescriptionTab, FastqsTab, TrimmingTab, ReactionsTab, AlignmentTab, PeakCallingTab
              DiffBindTab, CustomHeatmapTab, PearsonCorrelationTab, NormalizationTab
              HistoryTab, AllFilesTab
 docs/: DocsLandingPage, DocsPage
@@ -887,6 +888,7 @@ scripts/seed_reference_project.py       # Idempotent gold standard seed
 - Phase 6: DiffBind R script bugs (3), test DB cleanup (`DROP SCHEMA public CASCADE`)
 - Phase 7: DiffBind crash on no significant sites, BiocParallel macOS crash, Roman normalization bin mismatch + NA propagation, Pearson resolution mismatch
 - Phase 9: SSRF bypass vectors (0.0.0.0/8, IPv6-mapped IPv4), Trimmomatic invocation portability, `on_fastqc_complete` race condition (premature adapter evaluation)
+- Post-deploy: Trimming job white screen — missing `trimming/:jid` route (AnalysisQueuePage mapped `trimming` → `fastqs`, no `fastqs/:jid` route existed). Added dedicated TrimmingTab with Info + Files sub-tabs.
 
 ---
 
@@ -953,6 +955,7 @@ These bugs were found in the lab's scripts and fixed in Cleave:
 /experiments/:id               ExperimentView (tabbed sidebar)
   /description                 DescriptionTab
   /fastqs                      FastqsTab (tus upload, FastQC, server import, instance import)
+  /trimming/:jid               TrimmingTab (Info, Files)
   /reactions                   ReactionsTab (CRUD + CSV import)
   /alignment/:jid              AlignmentTab (Info, Input, QC Report, Files, IGV)
   /peaks/:jid                  PeakCallingTab (Info, Input, QC Report, Files, IGV)
