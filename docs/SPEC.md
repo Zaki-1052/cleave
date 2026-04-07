@@ -819,6 +819,7 @@ All settings via environment variables, loaded by Pydantic `BaseSettings`.
 |----------|---------|-------------|
 | `WORKER_POLL_INTERVAL_SECONDS` | 2.0 | Job queue poll frequency |
 | `MAX_CONCURRENT_REACTIONS` | 8 | Parallel reactions in alignment/peak calling |
+| `TRIMMOMATIC_HEAP_SIZE` | 4g | JVM heap per concurrent Trimmomatic process (prevents OOM) |
 | `SSE_KEEPALIVE_SECONDS` | 15 | SSE keepalive interval |
 
 ### File Serving

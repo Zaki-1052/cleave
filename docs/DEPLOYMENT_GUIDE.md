@@ -468,6 +468,7 @@ NGINX_INTERNAL_PREFIX=/internal-files/
 # Worker
 WORKER_POLL_INTERVAL_SECONDS=2
 MAX_CONCURRENT_REACTIONS=8
+TRIMMOMATIC_HEAP_SIZE=4g
 
 # Genomes
 GENOME_INDEX_DIR=/data2/cleave/genomes
@@ -495,6 +496,7 @@ TUS_STAGING_RETENTION_HOURS=48
 - `NGINX_FILE_SERVING=true` — Large file downloads via NGINX X-Accel-Redirect
 - `COOKIE_SECURE=true` — Required because users access via HTTPS (Cloudflare)
 - `MAX_CONCURRENT_REACTIONS=8` — Tuned for 32 vCPU instance
+- `TRIMMOMATIC_HEAP_SIZE=4g` — Caps each concurrent Trimmomatic JVM to 4GB heap (8 × 4GB = 32GB worst case). Prevents OOM when many FASTQ pairs trim in parallel while other users or processes share the instance
 
 ### 7.5 Secure the .env file
 
@@ -1175,6 +1177,18 @@ conda activate cleave
 which trimmomatic
 ```
 
+### Trimmomatic "OutOfMemoryError: Java heap space"
+
+This occurs when multiple Trimmomatic JVMs exhaust available memory — typically when many FASTQ pairs trim concurrently while other users or processes share the instance.
+
+Cleave caps each JVM's heap via `TRIMMOMATIC_HEAP_SIZE` (default `4g`). With `MAX_CONCURRENT_REACTIONS=8`, worst case is 8 × 4GB = 32GB. If you still see OOM errors:
+
+1. **Increase heap**: Set `TRIMMOMATIC_HEAP_SIZE=8g` in `.env` (64GB worst case, fine on 128GB instance)
+2. **Reduce concurrency**: Lower `MAX_CONCURRENT_REACTIONS` (e.g., `4`) to halve the number of simultaneous JVMs
+3. **Check other processes**: Run `htop` or `free -h` to see if other users' pipelines are consuming memory
+
+After changing `.env`, restart the worker: `sudo systemctl restart cleave-worker`
+
 ### "Bowtie2 index not found"
 
 Verify the symlinks resolve correctly:
@@ -1269,6 +1283,7 @@ grep client_max_body_size /etc/nginx/sites-available/cleave
 | `STORAGE_ROOT` | `/data2/cleave` |
 | `GENOME_INDEX_DIR` | `/data2/cleave/genomes` |
 | `MAX_CONCURRENT_REACTIONS` | `8` |
+| `TRIMMOMATIC_HEAP_SIZE` | `4g` |
 | `CORS_ORIGINS` | `https://cleave.nazalibhai.com` |
 
 ### Service Commands

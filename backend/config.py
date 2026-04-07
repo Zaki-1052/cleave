@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     # Pipeline concurrency
     MAX_CONCURRENT_REACTIONS: int = 8
 
+    # Trimmomatic JVM heap size (prevents OOM when many pairs trim concurrently)
+    TRIMMOMATIC_HEAP_SIZE: str = "4g"
+
     # SSE
     SSE_KEEPALIVE_SECONDS: int = 15
 

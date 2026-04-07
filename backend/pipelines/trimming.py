@@ -45,20 +45,25 @@ def _get_param(params: dict, key: str):
     return params.get(key, DEFAULTS.get(key))
 
 
-def _resolve_trimmomatic_cmd() -> list[str]:
+def _resolve_trimmomatic_cmd() -> tuple[list[str], bool]:
     """Resolve Trimmomatic invocation prefix, portable across install methods.
+
+    Returns (cmd_prefix, is_java_jar) — is_java_jar indicates whether the command
+    invokes java directly (so we can inject -Xmx), vs a wrapper that manages its own JVM.
 
     Priority:
       1. TRIMMOMATIC_JAR env var (explicit JAR path for manual installs)
       2. Conda share directory ($CONDA_PREFIX/share/trimmomatic-*/trimmomatic.jar)
       3. 'trimmomatic' on PATH called directly (handles conda wrappers, system packages)
     """
+    heap = settings.TRIMMOMATIC_HEAP_SIZE
+
     # 1. Explicit JAR path override
     jar_env = os.environ.get("TRIMMOMATIC_JAR")
     if jar_env:
         jar_path = Path(jar_env)
         if jar_path.is_file():
-            return ["java", "-jar", str(jar_path)]
+            return ["java", f"-Xmx{heap}", "-jar", str(jar_path)], True
         logger.warning("TRIMMOMATIC_JAR set but file not found", path=jar_env)
 
     # 2. Conda share directory
@@ -66,12 +71,12 @@ def _resolve_trimmomatic_cmd() -> list[str]:
     if conda_prefix:
         jars = sorted(Path(conda_prefix).glob("share/trimmomatic-*/trimmomatic.jar"))
         if jars:
-            return ["java", "-jar", str(jars[-1])]
+            return ["java", f"-Xmx{heap}", "-jar", str(jars[-1])], True
 
     # 3. trimmomatic on PATH (wrapper script or direct binary)
     trimmomatic_bin = shutil.which("trimmomatic")
     if trimmomatic_bin:
-        return [trimmomatic_bin]
+        return [trimmomatic_bin], False
 
     raise PipelineError(
         "Trimmomatic not found. Install via conda, set TRIMMOMATIC_JAR env var, "
@@ -242,7 +247,10 @@ class TrimmingStage(PipelineStage):
                 )
 
         # Resolve Trimmomatic (JAR or wrapper, depending on install method)
-        trimmomatic_cmd_prefix = _resolve_trimmomatic_cmd()
+        trimmomatic_cmd_prefix, is_java_jar = _resolve_trimmomatic_cmd()
+        # For wrapper scripts that manage their own JVM, pass heap via _JAVA_OPTIONS
+        if not is_java_jar:
+            os.environ["_JAVA_OPTIONS"] = f"-Xmx{settings.TRIMMOMATIC_HEAP_SIZE}"
 
         base_dir = working_dir / str(project_id) / str(experiment_id)
         trimmed_intermediate = base_dir / "fastqs" / "trimmed_intermediate"

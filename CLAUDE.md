@@ -165,7 +165,7 @@ Current phase tracking (update as we progress):
 
 - IgG control has intentionally low alignment rates (~29%) — this is expected, not an error.
 - `kseq_test` binary must be compiled from CUTRUNTools source (`gcc -O2 kseq_test.c -lz -o kseq_test`) or copied from lab instance. Source + pre-compiled binary in `references/cutruntools/`.
-- Trimmomatic requires Java (OpenJDK 17+).
+- Trimmomatic requires Java (OpenJDK 17+). JVM heap is capped via `TRIMMOMATIC_HEAP_SIZE` (default `4g`) to prevent OOM when multiple pairs trim concurrently on a shared instance. Applied via `-Xmx` for `java -jar` invocations and `_JAVA_OPTIONS` for wrapper scripts.
 - DiffBind R scripts (`references/DPA/diffbind.R`, `diffbind_peaklist.R`) have syntax bugs: missing `)` on `write.csv()` (line 88), malformed `cat()`/`print()` (line 91-92), missing `dev.off()` between PNG/SVG device opens. Fix when porting to clone.
 - DiffBind output column names (`Conc_X`, `Conc_Y`) are dynamic — they come from `dba.report()` based on the `Condition` column in the sample sheet CSV. Do NOT hard-code "Conc_mut"/"Conc_ctrl".
 - FASTQ processing is server-side only. Never load FASTQ data into browser memory.
