@@ -57,6 +57,41 @@ def _reaction_body(
     return body
 
 
+async def _create_rnaseq_experiment(
+    client: AsyncClient, headers: dict, project_id: int, name: str = "Bulk RNA-seq"
+) -> int:
+    """Create an RNA-seq experiment and return its ID."""
+    resp = await client.post(
+        "/api/v1/experiments",
+        params={"projectId": project_id},
+        json={"name": name, "assayType": "RNA-seq"},
+        headers=headers,
+    )
+    assert resp.status_code == 201
+    return resp.json()["id"]
+
+
+def _rnaseq_reaction_body(
+    prefix: str = "rnaseq_sample1_L001",
+    short_name: str = "ctrl-rep1",
+    organism: str = "Human",
+    **overrides,
+) -> dict:
+    """Build a camelCase RNA-seq reaction JSON body."""
+    body = {
+        "fastqPrefix": prefix,
+        "shortName": short_name,
+        "organism": organism,
+        "assayType": "RNA-seq",
+        "treatment": "DMSO",
+        "timepoint": "24h",
+        "genotype": "WT",
+        "replicateNumber": 1,
+    }
+    body.update(overrides)
+    return body
+
+
 # ---------------------------------------------------------------------------
 # CRUD tests
 # ---------------------------------------------------------------------------
@@ -690,3 +725,128 @@ async def test_csv_import_rejects_path_traversal_short_name(client: AsyncClient)
         headers=headers,
     )
     assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# RNA-seq reaction tests
+# ---------------------------------------------------------------------------
+
+
+async def test_create_rnaseq_reaction_with_fields(client: AsyncClient):
+    """Create an RNA-seq reaction with treatment/timepoint/genotype/replicateNumber."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_rnaseq_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions",
+        json=_rnaseq_reaction_body(),
+        headers=headers,
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["assayType"] == "RNA-seq"
+    assert data["treatment"] == "DMSO"
+    assert data["timepoint"] == "24h"
+    assert data["genotype"] == "WT"
+    assert data["replicateNumber"] == 1
+
+
+async def test_update_rnaseq_reaction_fields(client: AsyncClient):
+    """Partial update of RNA-seq fields preserves unchanged fields."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_rnaseq_experiment(client, headers, project_id)
+
+    create_resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions",
+        json=_rnaseq_reaction_body(),
+        headers=headers,
+    )
+    reaction_id = create_resp.json()["id"]
+
+    resp = await client.patch(
+        f"/api/v1/experiments/{exp_id}/reactions/{reaction_id}",
+        json={"treatment": "Dexamethasone", "replicateNumber": 2},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["treatment"] == "Dexamethasone"
+    assert data["replicateNumber"] == 2
+    assert data["timepoint"] == "24h"
+    assert data["genotype"] == "WT"
+
+
+async def test_import_csv_rnaseq_fields(client: AsyncClient):
+    """CSV import parses RNA-seq fields including integer replicate_number."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_rnaseq_experiment(client, headers, project_id)
+
+    csv_content = (
+        "FASTQ_Prefix,Short_Name,Organism,Assay_Type,Treatment,Timepoint,Genotype,Replicate_Number\n"
+        "sample1_L001,ctrl-rep1,Human,RNA-seq,DMSO,24h,WT,1\n"
+        "sample2_L001,treat-rep1,Human,RNA-seq,Drug,24h,KO,2\n"
+    )
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions/import-csv",
+        files={"file": ("reactions.csv", io.BytesIO(csv_content.encode()), "text/csv")},
+        headers=headers,
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["created"] == 2
+
+    ctrl = next(r for r in data["reactions"] if r["shortName"] == "ctrl-rep1")
+    treat = next(r for r in data["reactions"] if r["shortName"] == "treat-rep1")
+    assert ctrl["treatment"] == "DMSO"
+    assert ctrl["replicateNumber"] == 1
+    assert treat["treatment"] == "Drug"
+    assert treat["genotype"] == "KO"
+    assert treat["replicateNumber"] == 2
+
+
+async def test_bulk_create_rnaseq_reactions(client: AsyncClient):
+    """Bulk create RNA-seq reactions with RNA-seq-specific fields."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_rnaseq_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions/bulk",
+        json={
+            "reactions": [
+                _rnaseq_reaction_body(short_name="ctrl-rep1", replicateNumber=1),
+                _rnaseq_reaction_body(
+                    prefix="rnaseq_sample2_L001",
+                    short_name="ctrl-rep2",
+                    replicateNumber=2,
+                ),
+            ]
+        },
+        headers=headers,
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["created"] == 2
+    assert all(r["assayType"] == "RNA-seq" for r in data["reactions"])
+
+
+async def test_cutandrun_reactions_null_rnaseq_fields(client: AsyncClient):
+    """CUT&RUN reactions have null RNA-seq fields by default."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions",
+        json=_reaction_body(),
+        headers=headers,
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["treatment"] is None
+    assert data["timepoint"] is None
+    assert data["genotype"] is None
+    assert data["replicateNumber"] is None

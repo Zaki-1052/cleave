@@ -40,6 +40,24 @@ async def test_create_experiment_success(client: AsyncClient):
     assert data["assayType"] == "CUT&RUN"
     assert data["description"] == "Test experiment"
     assert data["status"] == "new"
+
+
+async def test_create_rnaseq_experiment_success(client: AsyncClient):
+    """RNA-seq is a valid assay type for experiment creation."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+
+    resp = await client.post(
+        "/api/v1/experiments",
+        params={"projectId": project_id},
+        json={"name": "Bulk RNA-seq", "assayType": "RNA-seq", "description": "RNA-seq experiment"},
+        headers=headers,
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["name"] == "Bulk RNA-seq"
+    assert data["assayType"] == "RNA-seq"
+    assert data["status"] == "new"
     assert data["projectId"] == project_id
     assert data["creator"] is not None
     assert data["creator"]["email"] == "user@example.com"

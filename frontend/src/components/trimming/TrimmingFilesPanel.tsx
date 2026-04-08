@@ -15,24 +15,24 @@ import { formatBytes } from '@/lib/utils';
 
 interface TrimmingFilesPanelProps {
   jobId: number;
+  categories?: readonly { value: string; label: string; description: string }[];
 }
 
-type TrimmingFileCategory = (typeof TRIMMING_FILE_CATEGORIES)[number]['value'];
-
-export function TrimmingFilesPanel({ jobId }: TrimmingFilesPanelProps) {
-  const [selectedCategory, setSelectedCategory] = useState<TrimmingFileCategory>(
-    TRIMMING_FILE_CATEGORIES[0].value,
+export function TrimmingFilesPanel({ jobId, categories }: TrimmingFilesPanelProps) {
+  const fileCategories = categories ?? TRIMMING_FILE_CATEGORIES;
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    fileCategories[0].value,
   );
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const { data: outputs, isLoading } = useJobOutputs(jobId, selectedCategory);
 
-  const categoryInfo = TRIMMING_FILE_CATEGORIES.find(
+  const categoryInfo = fileCategories.find(
     (c) => c.value === selectedCategory,
   );
 
   function handleCategoryChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    setSelectedCategory(e.target.value as TrimmingFileCategory);
+    setSelectedCategory(e.target.value);
     setSelectedIds(new Set());
   }
 
@@ -130,7 +130,7 @@ export function TrimmingFilesPanel({ jobId }: TrimmingFilesPanelProps) {
             onChange={handleCategoryChange}
             className="rounded-md border border-border px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           >
-            {TRIMMING_FILE_CATEGORIES.map((cat) => (
+            {fileCategories.map((cat) => (
               <option key={cat.value} value={cat.value}>
                 {cat.label}
               </option>

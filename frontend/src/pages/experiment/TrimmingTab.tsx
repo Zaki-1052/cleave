@@ -5,6 +5,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import type { AnalysisJob, Experiment } from '@/api/types';
+import { FastpReportsPanel } from '@/components/trimming/FastpReportsPanel';
 import { TrimmingFilesPanel } from '@/components/trimming/TrimmingFilesPanel';
 import { Card } from '@/components/layout/Card';
 import { DetailRow } from '@/components/ui/DetailRow';
@@ -14,12 +15,19 @@ import JobErrorDetails from '@/components/ui/JobErrorDetails';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs, useUpdateJobNotes } from '@/hooks/useJobs';
+import { RNASEQ_TRIMMING_FILE_CATEGORIES } from '@/lib/constants';
 import { formatDate, getDisplayName } from '@/lib/utils';
 
-type TrimmingSubTab = 'info' | 'files';
+type TrimmingSubTab = 'info' | 'reports' | 'files';
 
-const SUB_TABS: { key: TrimmingSubTab; label: string }[] = [
+const CUTANDRUN_SUB_TABS: { key: TrimmingSubTab; label: string }[] = [
   { key: 'info', label: 'Info' },
+  { key: 'files', label: 'Files' },
+];
+
+const RNASEQ_SUB_TABS: { key: TrimmingSubTab; label: string }[] = [
+  { key: 'info', label: 'Info' },
+  { key: 'reports', label: 'Reports' },
   { key: 'files', label: 'Files' },
 ];
 
@@ -27,11 +35,14 @@ export default function TrimmingTab() {
   const { id, jid } = useParams<{ id: string; jid: string }>();
   const { experiment } = useOutletContext<{ experiment: Experiment }>();
   const navigate = useNavigate();
+  const isRnaseq = experiment.assayType === 'RNA-seq';
+  const subTabs = isRnaseq ? RNASEQ_SUB_TABS : CUTANDRUN_SUB_TABS;
   const [activeSubTab, setActiveSubTab] = useState<TrimmingSubTab>('info');
 
+  const trimmingJobType = isRnaseq ? 'rnaseq_trimming' : 'trimming';
   const { data: jobsData, isLoading: jobsLoading } = useJobs(experiment.id, 1, 100);
   const trimmingJobs = (jobsData?.items ?? []).filter(
-    (j: AnalysisJob) => j.jobType === 'trimming',
+    (j: AnalysisJob) => j.jobType === trimmingJobType,
   );
 
   const requestedId = jid && jid !== '0' ? Number(jid) : null;
@@ -58,7 +69,9 @@ export default function TrimmingTab() {
         <EmptyState
           icon={Scissors}
           title="No trimming runs yet"
-          description='Navigate to the FASTQs tab to run trimming.'
+          description={isRnaseq
+            ? 'Navigate to the FASTQs tab to run fastp trimming.'
+            : 'Navigate to the FASTQs tab to run trimming.'}
         />
       </Card>
     );
@@ -89,7 +102,7 @@ export default function TrimmingTab() {
       {/* Sub-tab navigation */}
       {job && (
         <div className="flex border-b border-border">
-          {SUB_TABS.map((tab) => (
+          {subTabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveSubTab(tab.key)}
@@ -106,11 +119,26 @@ export default function TrimmingTab() {
       )}
 
       {/* Sub-tab content */}
-      {job && activeSubTab === 'info' && <TrimmingInfoPanel job={job} />}
+      {job && activeSubTab === 'info' && <TrimmingInfoPanel job={job} isRnaseq={isRnaseq} />}
+
+      {job && activeSubTab === 'reports' && (
+        job.status === 'complete' ? (
+          <FastpReportsPanel jobId={job.id} />
+        ) : (
+          <Card>
+            <p className="text-sm text-muted-foreground">
+              Reports will be available when the trimming run completes.
+            </p>
+          </Card>
+        )
+      )}
 
       {job && activeSubTab === 'files' && (
         job.status === 'complete' ? (
-          <TrimmingFilesPanel jobId={job.id} />
+          <TrimmingFilesPanel
+            jobId={job.id}
+            categories={isRnaseq ? RNASEQ_TRIMMING_FILE_CATEGORIES : undefined}
+          />
         ) : (
           <Card>
             <p className="text-sm text-muted-foreground">
@@ -127,7 +155,7 @@ export default function TrimmingTab() {
 // Inline Info Panel
 // ---------------------------------------------------------------------------
 
-function TrimmingInfoPanel({ job }: { job: AnalysisJob }) {
+function TrimmingInfoPanel({ job, isRnaseq }: { job: AnalysisJob; isRnaseq: boolean }) {
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(job.notes ?? '');
@@ -177,7 +205,15 @@ function TrimmingInfoPanel({ job }: { job: AnalysisJob }) {
               <StatusBadge status={job.status} />
             </DetailRow>
             <DetailRow label="Pairs Trimmed"><span className="font-mono">{String(pairCount)}</span></DetailRow>
-            <DetailRow label="Adapter File">{adapterFile}</DetailRow>
+            {!isRnaseq && (
+              <DetailRow label="Adapter File">{adapterFile}</DetailRow>
+            )}
+            {isRnaseq && params.qualified_quality_phred != null && (
+              <DetailRow label="Quality Phred"><span className="font-mono">{String(params.qualified_quality_phred as number)}</span></DetailRow>
+            )}
+            {isRnaseq && params.length_required != null && (
+              <DetailRow label="Min Length"><span className="font-mono">{String(params.length_required as number)}</span></DetailRow>
+            )}
           </div>
         </Card>
 

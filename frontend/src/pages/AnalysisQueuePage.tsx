@@ -30,6 +30,7 @@ const JOB_TYPE_OPTIONS = [
   { value: 'diffbind', label: 'DiffBind' },
   { value: 'custom_heatmap', label: 'Custom Heatmap' },
   { value: 'pearson_correlation', label: 'Correlation' },
+  { value: 'rnaseq_trimming', label: 'Trimming (fastp)' },
 ];
 
 const JOB_TYPE_TO_TAB: Record<string, string> = {
@@ -40,6 +41,7 @@ const JOB_TYPE_TO_TAB: Record<string, string> = {
   custom_heatmap: 'heatmaps',
   pearson_correlation: 'correlations',
   roman_normalization: 'normalization',
+  rnaseq_trimming: 'trimming',
 };
 
 function ActionsCell({ job }: { job: QueueJob }) {
