@@ -10,6 +10,7 @@ from pipelines.custom_heatmap import CustomHeatmapStage
 from pipelines.diffbind import DiffBindStage
 from pipelines.peak_calling import PeakCallingStage
 from pipelines.pearson_correlation import PearsonCorrelationStage
+from pipelines.rnaseq_alignment import RnaseqAlignmentStage
 from pipelines.rnaseq_trimming import RnaseqTrimmingStage
 from pipelines.roman_normalization import RomanNormalizationStage
 from pipelines.trimming import TrimmingStage
@@ -18,6 +19,7 @@ from pipelines.trimming import TrimmingStage
 _STAGES: dict[str, PipelineStage] = {
     "trimming": TrimmingStage(),
     "rnaseq_trimming": RnaseqTrimmingStage(),
+    "rnaseq_alignment": RnaseqAlignmentStage(),
     "alignment": AlignmentStage(),
     "peak_calling": PeakCallingStage(),
     "diffbind": DiffBindStage(),

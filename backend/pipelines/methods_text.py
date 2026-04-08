@@ -23,6 +23,15 @@ GENOME_DISPLAY_NAMES = {
     "sacCer3": "Yeast sacCer3",
 }
 
+# TODO(genome-versions): RNA-seq annotation versions for auto-generated methods text.
+# When updating genome annotations, change BOTH this dict AND the matching
+# "gtf_filename" in rnaseq_alignment.RNASEQ_GENOME_CONFIG.
+# Current: mouse gencode.vM10, human gencode.v29 (from lab reference scripts).
+RNASEQ_ANNOTATION_VERSIONS = {
+    "mm10": "GENCODE vM10",   # TODO(genome-versions): e.g., "GENCODE vM35"
+    "hg38": "GENCODE v29",    # TODO(genome-versions): e.g., "GENCODE v46"
+}
+
 
 def peak_calling_methods(params: dict) -> str:
     """Generate peak calling methods text matching CUTANA Cloud format.
@@ -243,6 +252,42 @@ def pearson_correlation_methods(params: dict) -> str:
         "using seaborn (cmap='Blues', 2 decimal places)."
     )
 
+    return text
+
+
+def rnaseq_alignment_methods(params: dict) -> str:
+    """Generate RNA-seq alignment methods text for manuscripts.
+
+    Reference: references/archival/rnaseq/mouse/align_reads.sh (STAR),
+               references/archival/rnaseq/mouse/salmon_quant2.sh (Salmon),
+               references/archival/rnaseq/mouse/create_bw.sh (bamCoverage)
+    """
+    genome = params.get("reference_genome", "mm10")
+    genome_display = GENOME_DISPLAY_NAMES.get(genome, genome)
+    bin_size = params.get("bam_coverage_bin_size", 20)
+    smoothed_bin_size = params.get("smoothed_bin_size", 100)
+    eff_size = EFFECTIVE_GENOME_SIZES.get(genome, 0)
+    remove_dups = params.get("remove_duplicates", False)
+
+    annotation_ver = RNASEQ_ANNOTATION_VERSIONS.get(genome, "")
+    annotation_note = f" ({annotation_ver})" if annotation_ver else ""
+
+    text = (
+        f"Paired-end RNA-seq reads were aligned to the {genome_display} reference genome"
+        f"{annotation_note} using STAR "
+        f"(--outSAMtype BAM SortedByCoordinate --quantMode TranscriptomeSAM "
+        f"--readFilesCommand zcat). "
+    )
+    if remove_dups:
+        text += "Duplicate reads were removed using SAMtools (-F 1024). "
+    text += (
+        f"Transcript-level quantification was performed using Salmon "
+        f"(--libType A --gcBias --validateMappings) with automatic library type detection. "
+        f"RPKM-normalized bigWig files were generated via deepTools bamCoverage "
+        f"(--binSize {bin_size}, effectiveGenomeSize {eff_size:,}). "
+        f"Smoothed bigWig files were generated with --binSize {smoothed_bin_size} "
+        f"for genome browser visualization."
+    )
     return text
 
 

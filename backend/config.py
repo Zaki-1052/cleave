@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     # Pipeline concurrency
     MAX_CONCURRENT_REACTIONS: int = 8
 
+    # RNA-seq pipeline concurrency (STAR loads ~30GB RAM per genome instance)
+    MAX_CONCURRENT_RNASEQ_REACTIONS: int = 2
+
     # Trimmomatic JVM heap size (prevents OOM when many pairs trim concurrently)
     TRIMMOMATIC_HEAP_SIZE: str = "4g"
 
