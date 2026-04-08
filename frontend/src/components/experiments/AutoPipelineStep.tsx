@@ -44,7 +44,7 @@ export function AutoPipelineStep({
   setIncludePearson,
 }: AutoPipelineStepProps) {
   const { data: reactionsData } = useReactions(experimentId);
-  const reactions = reactionsData?.items ?? [];
+  const reactions = useMemo(() => reactionsData?.items ?? [], [reactionsData?.items]);
 
   const detectedGenome = useMemo(() => {
     const orgs = [...new Set(reactions.map((r) => r.organism))];

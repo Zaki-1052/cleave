@@ -1,24 +1,24 @@
-// frontend/src/pages/experiment/AlignmentTab.tsx
+// frontend/src/components/rnaseq-alignment/RnaseqAlignmentTab.tsx
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { Dna } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import type { Experiment } from '@/api/types';
-import RnaseqAlignmentTab from '@/components/rnaseq-alignment/RnaseqAlignmentTab';
 import { AlignmentFilesPanel } from '@/components/alignment/AlignmentFilesPanel';
 import { AlignmentInfoPanel } from '@/components/alignment/AlignmentInfoPanel';
-import { AlignmentInputPanel } from '@/components/alignment/AlignmentInputPanel';
-import { AlignmentQCReportPanel } from '@/components/alignment/AlignmentQCReportPanel';
+import { RnaseqAlignmentInputPanel } from './RnaseqAlignmentInputPanel';
+import { RnaseqAlignmentQCReportPanel } from './RnaseqAlignmentQCReportPanel';
 import { IGVPanel } from '@/components/igv/IGVPanel';
 import { Card } from '@/components/layout/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs } from '@/hooks/useJobs';
+import { RNASEQ_ALIGNMENT_FILE_CATEGORIES } from '@/lib/constants';
 
-type AlignmentSubTab = 'info' | 'input' | 'qc-report' | 'files' | 'igv';
+type SubTab = 'info' | 'input' | 'qc-report' | 'files' | 'igv';
 
-const SUB_TABS: { key: AlignmentSubTab; label: string }[] = [
+const SUB_TABS: { key: SubTab; label: string }[] = [
   { key: 'info', label: 'Info' },
   { key: 'input', label: 'Input' },
   { key: 'qc-report', label: 'QC Report' },
@@ -26,27 +26,15 @@ const SUB_TABS: { key: AlignmentSubTab; label: string }[] = [
   { key: 'igv', label: 'IGV' },
 ];
 
-export default function AlignmentTab() {
-  const { experiment } = useOutletContext<{ experiment: Experiment }>();
-
-  if (experiment.assayType === 'RNA-seq') {
-    return <RnaseqAlignmentTab />;
-  }
-
-  return <CutandrunAlignmentTab />;
-}
-
-function CutandrunAlignmentTab() {
+export default function RnaseqAlignmentTab() {
   const { id, jid } = useParams<{ id: string; jid: string }>();
   const { experiment } = useOutletContext<{ experiment: Experiment }>();
   const navigate = useNavigate();
-  const [activeSubTab, setActiveSubTab] = useState<AlignmentSubTab>('info');
+  const [activeSubTab, setActiveSubTab] = useState<SubTab>('info');
 
-  // Fetch all jobs for this experiment, filter to alignment client-side
   const { data: jobsData, isLoading: jobsLoading } = useJobs(experiment.id, 1, 100);
-  const alignmentJobs = (jobsData?.items ?? []).filter((j) => j.jobType === 'alignment');
+  const alignmentJobs = (jobsData?.items ?? []).filter((j) => j.jobType === 'rnaseq_alignment');
 
-  // Determine which job to display
   const requestedId = jid && jid !== '0' ? Number(jid) : null;
   const latestJob = alignmentJobs.length > 0 ? alignmentJobs[0] : null;
   const activeJobId = requestedId ?? latestJob?.id ?? null;
@@ -70,8 +58,8 @@ function CutandrunAlignmentTab() {
       <Card>
         <EmptyState
           icon={Dna}
-          title="No alignment runs yet"
-          description='Click "New Analysis" above to create an alignment run.'
+          title="No RNA-seq alignment runs yet"
+          description='Click "New Analysis" above to launch a STAR + Salmon alignment.'
         />
       </Card>
     );
@@ -123,7 +111,7 @@ function CutandrunAlignmentTab() {
 
       {job && activeSubTab === 'qc-report' && (
         job.status === 'complete' ? (
-          <AlignmentQCReportPanel jobId={job.id} job={job} />
+          <RnaseqAlignmentQCReportPanel jobId={job.id} />
         ) : (
           <Card>
             <p className="text-sm text-muted-foreground">
@@ -134,12 +122,12 @@ function CutandrunAlignmentTab() {
       )}
 
       {job && activeSubTab === 'input' && (
-        <AlignmentInputPanel job={job} experimentId={experiment.id} />
+        <RnaseqAlignmentInputPanel job={job} experimentId={experiment.id} />
       )}
 
       {job && activeSubTab === 'files' && (
         job.status === 'complete' ? (
-          <AlignmentFilesPanel jobId={job.id} />
+          <AlignmentFilesPanel jobId={job.id} categories={RNASEQ_ALIGNMENT_FILE_CATEGORIES} />
         ) : (
           <Card>
             <p className="text-sm text-muted-foreground">

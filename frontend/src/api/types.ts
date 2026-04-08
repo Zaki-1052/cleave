@@ -222,6 +222,33 @@ export interface AlignmentQCReport {
   spikeInResults: SpikeInReactionResult[] | null;
 }
 
+export interface RnaseqAlignmentReactionMetrics {
+  shortName: string;
+  totalInputReads: number;
+  uniquelyMappedReads: number;
+  uniqueMappingRate: number;
+  multiMappedRate: number;
+  unmappedRate: number;
+  averageMappedLength: number;
+  numSplices: number;
+  numSplicesAnnotated: number;
+  numSplicesGtAg: number;
+  numSplicesGcAg: number;
+  numSplicesAtAc: number;
+  numSplicesNonCanonical: number;
+  mismatchRate: number;
+  salmonMappingRate: number;
+  salmonLibraryType: string;
+  salmonNumProcessed: number;
+  salmonFragLengthMean: number;
+  salmonFragLengthSd: number;
+}
+
+export interface RnaseqAlignmentQCReport {
+  referenceGenome: string;
+  metrics: RnaseqAlignmentReactionMetrics[];
+}
+
 export interface PeakCallingReactionMetrics {
   shortName: string;
   controlShortName: string;

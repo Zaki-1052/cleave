@@ -28,8 +28,8 @@ GENOME_DISPLAY_NAMES = {
 # "gtf_filename" in rnaseq_alignment.RNASEQ_GENOME_CONFIG.
 # Current: mouse gencode.vM10, human gencode.v29 (from lab reference scripts).
 RNASEQ_ANNOTATION_VERSIONS = {
-    "mm10": "GENCODE vM10",   # TODO(genome-versions): e.g., "GENCODE vM35"
-    "hg38": "GENCODE v29",    # TODO(genome-versions): e.g., "GENCODE v46"
+    "mm10": "GENCODE vM10",  # TODO(genome-versions): e.g., "GENCODE vM35"
+    "hg38": "GENCODE v29",  # TODO(genome-versions): e.g., "GENCODE v46"
 }
 
 

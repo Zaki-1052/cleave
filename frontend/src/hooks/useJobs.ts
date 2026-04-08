@@ -67,6 +67,14 @@ export function useQCReport(jobId: number | null) {
   });
 }
 
+export function useRnaseqQCReport(jobId: number | null) {
+  return useQuery({
+    queryKey: ['rnaseq-qc-report', jobId],
+    queryFn: () => jobsApi.getRnaseqQCReport(jobId!),
+    enabled: jobId !== null,
+  });
+}
+
 export function usePeakCallingQCReport(jobId: number | null) {
   return useQuery({
     queryKey: ['peak-qc-report', jobId],

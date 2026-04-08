@@ -10,6 +10,7 @@ import type {
   PeakCallingQCReport,
   PearsonCorrelationReport,
   QueueJob,
+  RnaseqAlignmentQCReport,
   RomanNormalizationReport,
 } from './types';
 
@@ -213,6 +214,24 @@ export async function downloadDiffBindCounts(jobId: number): Promise<void> {
     responseType: 'blob',
   });
   _downloadBlob(response.data as Blob, 'normalized_counts.csv');
+}
+
+// ---------------------------------------------------------------------------
+// RNA-seq Alignment QC
+// ---------------------------------------------------------------------------
+
+export async function getRnaseqQCReport(jobId: number): Promise<RnaseqAlignmentQCReport> {
+  const { data } = await client.get<RnaseqAlignmentQCReport>(
+    `/jobs/${jobId}/rnaseq-qc-report`,
+  );
+  return data;
+}
+
+export async function downloadRnaseqQCCsv(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/rnaseq-qc-report/download`, {
+    responseType: 'blob',
+  });
+  _downloadBlob(response.data as Blob, 'rnaseq_alignment_metrics.csv');
 }
 
 // ---------------------------------------------------------------------------

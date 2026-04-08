@@ -337,6 +337,59 @@ export const RNASEQ_TRIMMING_FILE_CATEGORIES = [
   },
 ] as const;
 
+export const RNASEQ_ALIGNMENT_FILE_CATEGORIES = [
+  {
+    value: 'sorted_bam',
+    label: 'Sorted BAM',
+    description: 'Coordinate-sorted BAM files from STAR alignment, indexed with samtools.',
+  },
+  {
+    value: 'bam_index',
+    label: 'BAM Index',
+    description: 'BAI index files for the sorted BAM files.',
+  },
+  {
+    value: 'transcriptome_bam',
+    label: 'Transcriptome BAM',
+    description: 'STAR TranscriptomeSAM output BAMs for downstream Salmon/RSEM quantification.',
+  },
+  {
+    value: 'bigwig',
+    label: 'bigWig',
+    description: 'RPKM-normalized signal tracks with bin size 20, suitable for precise downstream analyses.',
+  },
+  {
+    value: 'smoothed_bigwig',
+    label: 'Smoothed bigWig',
+    description: 'Smoothed RPKM-normalized signal tracks with bin size 100, optimized for IGV visualization.',
+  },
+  {
+    value: 'salmon_quant',
+    label: 'Salmon Quantification',
+    description: 'Salmon quant.sf files containing transcript-level TPM and estimated counts.',
+  },
+  {
+    value: 'star_log',
+    label: 'STAR Logs',
+    description: 'STAR alignment log files including Log.final.out with mapping statistics.',
+  },
+  {
+    value: 'qc_report',
+    label: 'QC Report',
+    description: 'Alignment QC metrics CSV with STAR and Salmon statistics per reaction.',
+  },
+  {
+    value: 'master_log',
+    label: 'Pipeline Log',
+    description: 'Master pipeline execution log with timestamps for all processing steps.',
+  },
+] as const;
+
+export const RNASEQ_REFERENCE_GENOMES: Record<string, { value: string; label: string }[]> = {
+  Human: [{ value: 'hg38', label: 'Human GRCh38/hg38' }],
+  Mouse: [{ value: 'mm10', label: 'Mouse mm10' }],
+};
+
 export const HEATMAP_SORT_ORDERS = [
   { value: 'descend', label: 'Descending (default)' },
   { value: 'ascend', label: 'Ascending' },

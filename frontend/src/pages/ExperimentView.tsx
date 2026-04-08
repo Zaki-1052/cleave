@@ -19,6 +19,7 @@ import { NewCustomHeatmapWizard } from '@/components/custom-heatmap/NewCustomHea
 import { NewDiffBindWizard } from '@/components/diffbind/NewDiffBindWizard';
 import { NewPearsonCorrelationWizard } from '@/components/pearson-correlation/NewPearsonCorrelationWizard';
 import { NewNormalizationWizard } from '@/components/normalization/NewNormalizationWizard';
+import { NewRnaseqAlignmentWizard } from '@/components/rnaseq-alignment/NewRnaseqAlignmentWizard';
 import { AutoPipelineModal } from '@/components/experiments/AutoPipelineModal';
 import { AutoPipelineBanner } from '@/components/experiments/AutoPipelineBanner';
 import { useExperiment } from '@/hooks/useExperiments';
@@ -88,6 +89,7 @@ export default function ExperimentView() {
   const [showPearsonCorrelationWizard, setShowPearsonCorrelationWizard] = useState(false);
   const [showNormalizationWizard, setShowNormalizationWizard] = useState(false);
   const [showAutoPipelineModal, setShowAutoPipelineModal] = useState(false);
+  const [showRnaseqAlignmentWizard, setShowRnaseqAlignmentWizard] = useState(false);
   const { data: reactionsData } = useReactions(Number(id));
   const reactions = reactionsData?.items ?? [];
 
@@ -148,6 +150,7 @@ export default function ExperimentView() {
               onCustomHeatmapClick={() => setShowCustomHeatmapWizard(true)}
               onPearsonCorrelationClick={() => setShowPearsonCorrelationWizard(true)}
               onNormalizationClick={() => setShowNormalizationWizard(true)}
+              onRnaseqAlignmentClick={() => setShowRnaseqAlignmentWizard(true)}
             />
           </div>
         )}
@@ -211,6 +214,15 @@ export default function ExperimentView() {
           <Outlet context={{ experiment, isReadOnly, isTrainingProject }} />
         </div>
       </div>
+
+      {isRnaseq && (
+        <NewRnaseqAlignmentWizard
+          isOpen={showRnaseqAlignmentWizard}
+          onClose={() => setShowRnaseqAlignmentWizard(false)}
+          experiment={experiment}
+          isTrainingProject={isTrainingProject}
+        />
+      )}
 
       {!isRnaseq && (
         <>

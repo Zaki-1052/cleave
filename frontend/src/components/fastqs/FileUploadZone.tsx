@@ -118,13 +118,10 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
     let completedCount = 0;
     const totalFiles = stagedEntries.length;
     const queue = [...stagedEntries];
-    let activeCount = 0;
 
     function startNext() {
       const entry = queue.shift();
       if (!entry) return;
-      activeCount++;
-
       const { idx, file } = entry;
 
       const upload = new tus.Upload(file, {
@@ -191,7 +188,6 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
     }
 
     function onUploadDone() {
-      activeCount--;
       completedCount++;
       if (queue.length > 0) startNext();
       if (completedCount === totalFiles) onUploadComplete();

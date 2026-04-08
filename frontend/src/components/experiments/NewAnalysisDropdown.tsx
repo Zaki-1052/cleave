@@ -28,6 +28,7 @@ interface NewAnalysisDropdownProps {
   onCustomHeatmapClick: () => void;
   onPearsonCorrelationClick: () => void;
   onNormalizationClick: () => void;
+  onRnaseqAlignmentClick?: () => void;
 }
 
 export function NewAnalysisDropdown({
@@ -38,6 +39,7 @@ export function NewAnalysisDropdown({
   onCustomHeatmapClick,
   onPearsonCorrelationClick,
   onNormalizationClick,
+  onRnaseqAlignmentClick,
 }: NewAnalysisDropdownProps) {
   return (
     <DropdownMenu>
@@ -50,7 +52,7 @@ export function NewAnalysisDropdown({
       <DropdownMenuContent align="end" className="w-48">
         {assayType === 'RNA-seq' ? (
           <>
-            <DropdownMenuItem disabled>
+            <DropdownMenuItem onSelect={onRnaseqAlignmentClick} disabled={!onRnaseqAlignmentClick}>
               <AlignLeft className="h-4 w-4" />
               Alignment (STAR)
             </DropdownMenuItem>

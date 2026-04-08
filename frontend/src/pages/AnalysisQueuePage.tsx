@@ -31,6 +31,7 @@ const JOB_TYPE_OPTIONS = [
   { value: 'custom_heatmap', label: 'Custom Heatmap' },
   { value: 'pearson_correlation', label: 'Correlation' },
   { value: 'rnaseq_trimming', label: 'Trimming (fastp)' },
+  { value: 'rnaseq_alignment', label: 'Alignment (STAR)' },
 ];
 
 const JOB_TYPE_TO_TAB: Record<string, string> = {
@@ -42,6 +43,7 @@ const JOB_TYPE_TO_TAB: Record<string, string> = {
   pearson_correlation: 'correlations',
   roman_normalization: 'normalization',
   rnaseq_trimming: 'trimming',
+  rnaseq_alignment: 'alignment',
 };
 
 function ActionsCell({ job }: { job: QueueJob }) {

@@ -15,22 +15,22 @@ import { formatBytes } from '@/lib/utils';
 
 interface AlignmentFilesPanelProps {
   jobId: number;
+  categories?: readonly { value: string; label: string; description: string }[];
 }
 
-type AlignmentFileCategory = (typeof ALIGNMENT_FILE_CATEGORIES)[number]['value'];
-
-export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
-  const [selectedCategory, setSelectedCategory] = useState<AlignmentFileCategory>(
-    ALIGNMENT_FILE_CATEGORIES[0].value,
+export function AlignmentFilesPanel({ jobId, categories }: AlignmentFilesPanelProps) {
+  const fileCategories = categories ?? ALIGNMENT_FILE_CATEGORIES;
+  const [selectedCategory, setSelectedCategory] = useState(
+    fileCategories[0].value,
   );
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const { data: outputs, isLoading } = useJobOutputs(jobId, selectedCategory);
 
-  const categoryInfo = ALIGNMENT_FILE_CATEGORIES.find((c) => c.value === selectedCategory);
+  const categoryInfo = fileCategories.find((c) => c.value === selectedCategory);
 
   function handleCategoryChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    setSelectedCategory(e.target.value as AlignmentFileCategory);
+    setSelectedCategory(e.target.value);
     setSelectedIds(new Set());
   }
 
@@ -129,7 +129,7 @@ export function AlignmentFilesPanel({ jobId }: AlignmentFilesPanelProps) {
             onChange={handleCategoryChange}
             className="rounded-md border border-border px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           >
-            {ALIGNMENT_FILE_CATEGORIES.map((cat) => (
+            {fileCategories.map((cat) => (
               <option key={cat.value} value={cat.value}>
                 {cat.label}
               </option>
