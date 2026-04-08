@@ -15,6 +15,8 @@ import { ServerImportModal } from '@/components/fastqs/ServerImportModal';
 import { LocalImportModal } from '@/components/fastqs/LocalImportModal';
 import { TrimConfigModal } from '@/components/fastqs/TrimConfigModal';
 import type { TrimParams } from '@/components/fastqs/TrimConfigModal';
+import { FastpConfigModal } from '@/components/fastqs/FastpConfigModal';
+import type { FastpParams } from '@/components/fastqs/FastpConfigModal';
 import { useFastqs, useDeleteFastq } from '@/hooks/useFastqs';
 import { useCreateJob, useJob } from '@/hooks/useJobs';
 import { formatBytes, formatDate } from '@/lib/utils';
@@ -58,12 +60,7 @@ const staticColumns: ColumnDef<FastqFile, unknown>[] = [
   },
 ];
 
-function buildTrimJobParams(
-  experiment: Experiment,
-  rawFastqs: FastqFile[],
-  trimParams?: TrimParams,
-) {
-  // Group raw FASTQs by prefix to form R1/R2 pairs
+function buildFastqPairs(rawFastqs: FastqFile[]) {
   const pairMap = new Map<string, { r1?: FastqFile; r2?: FastqFile }>();
   for (const f of rawFastqs) {
     if (f.isTrimmed) continue;
@@ -72,8 +69,7 @@ function buildTrimJobParams(
     else if (f.readDirection === 'R2') entry.r2 = f;
     pairMap.set(f.prefix, entry);
   }
-
-  const fastqPairs = Array.from(pairMap.entries())
+  return Array.from(pairMap.entries())
     .filter(([, pair]) => pair.r1 && pair.r2)
     .map(([prefix, pair]) => ({
       prefix,
@@ -82,7 +78,14 @@ function buildTrimJobParams(
       r1_id: pair.r1!.id,
       r2_id: pair.r2!.id,
     }));
+}
 
+function buildTrimJobParams(
+  experiment: Experiment,
+  rawFastqs: FastqFile[],
+  trimParams?: TrimParams,
+) {
+  const fastqPairs = buildFastqPairs(rawFastqs);
   return {
     experiment_id: experiment.id,
     project_id: experiment.projectId,
@@ -95,6 +98,28 @@ function buildTrimJobParams(
       slidingwindow: trimParams.slidingwindow,
       minlen: trimParams.minlen,
       kseq_length: trimParams.kseqLength,
+    }),
+  };
+}
+
+function buildFastpJobParams(
+  experiment: Experiment,
+  rawFastqs: FastqFile[],
+  fastpParams?: FastpParams,
+) {
+  const fastqPairs = buildFastqPairs(rawFastqs);
+  return {
+    experiment_id: experiment.id,
+    project_id: experiment.projectId,
+    fastq_pairs: fastqPairs,
+    ...(fastpParams && {
+      qualified_quality_phred: fastpParams.qualifiedQualityPhred,
+      length_required: fastpParams.lengthRequired,
+      cut_front: fastpParams.cutFront,
+      cut_tail: fastpParams.cutTail,
+      cut_window_size: fastpParams.cutWindowSize,
+      cut_mean_quality: fastpParams.cutMeanQuality,
+      detect_adapter_for_pe: fastpParams.detectAdapterForPe,
     }),
   };
 }
@@ -148,14 +173,19 @@ export default function FastqsTab() {
     }
   }
 
+  const isRnaseq = experiment.assayType === 'RNA-seq';
+  const trimJobType = isRnaseq ? 'rnaseq_trimming' : 'trimming';
+
   function handleQuickTrim() {
-    const params = buildTrimJobParams(experiment, adapterState.rawFastqs);
+    const params = isRnaseq
+      ? buildFastpJobParams(experiment, adapterState.rawFastqs)
+      : buildTrimJobParams(experiment, adapterState.rawFastqs);
     createJobMutation.mutate(
       {
         experimentId: experiment.id,
         payload: {
-          jobType: 'trimming',
-          name: 'Auto Trim',
+          jobType: trimJobType,
+          name: isRnaseq ? 'fastp Trim' : 'Auto Trim',
           params,
         },
       },
@@ -177,6 +207,28 @@ export default function FastqsTab() {
         payload: {
           jobType: 'trimming',
           name: 'Configured Trim',
+          params,
+        },
+      },
+      {
+        onSuccess: (job) => {
+          setTrimmingJobId(job.id);
+          setShowTrimConfig(false);
+          toast.success('Trimming job queued');
+        },
+        onError: () => toast.error('Failed to start trimming'),
+      },
+    );
+  }
+
+  function handleConfiguredFastp(fastpParams: FastpParams) {
+    const params = buildFastpJobParams(experiment, adapterState.rawFastqs, fastpParams);
+    createJobMutation.mutate(
+      {
+        experimentId: experiment.id,
+        payload: {
+          jobType: 'rnaseq_trimming',
+          name: 'Configured fastp Trim',
           params,
         },
       },
@@ -413,12 +465,21 @@ export default function FastqsTab() {
         filename={fastqcTarget?.filename ?? ''}
       />
 
-      <TrimConfigModal
-        isOpen={showTrimConfig}
-        onClose={() => setShowTrimConfig(false)}
-        onSubmit={handleConfiguredTrim}
-        isSubmitting={createJobMutation.isPending}
-      />
+      {isRnaseq ? (
+        <FastpConfigModal
+          isOpen={showTrimConfig}
+          onClose={() => setShowTrimConfig(false)}
+          onSubmit={handleConfiguredFastp}
+          isSubmitting={createJobMutation.isPending}
+        />
+      ) : (
+        <TrimConfigModal
+          isOpen={showTrimConfig}
+          onClose={() => setShowTrimConfig(false)}
+          onSubmit={handleConfiguredTrim}
+          isSubmitting={createJobMutation.isPending}
+        />
+      )}
 
       <ServerImportModal
         experimentId={experiment.id}

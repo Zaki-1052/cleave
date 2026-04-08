@@ -54,3 +54,28 @@ Implemented the full frontend for RNA-seq alignment: a 3-step wizard to launch S
 - B.4: Auto-pipeline RNA-seq chain (fastp → STAR+Salmon)
 - B.5: Tests for rnaseq_alignment pipeline (mock_run, validation, methods text)
 - Backend tests not run in this session (frontend-only changes, no backend modifications beyond formatting)
+
+---
+
+# Fix: RNA-seq Trimming Not Working from FASTQs Tab
+
+**Date**: 2026-04-08 (same session, post-B.3)
+
+## Problem
+
+Trimming buttons ("Trim" and "Configure") in the FASTQs tab adapter detection banner always submitted `jobType: 'trimming'` (Trimmomatic + kseq 42bp) regardless of experiment assay type. RNA-seq experiments need `jobType: 'rnaseq_trimming'` (fastp) with different parameters. The `FastqsTab.tsx` had zero RNA-seq awareness.
+
+## What Was Done
+
+### Files Created (1)
+
+- **`frontend/src/components/fastqs/FastpConfigModal.tsx`** — fastp-specific config modal with parameters: quality threshold (Phred), min read length, sliding window size/quality, auto-detect adapters toggle, cut front/tail toggles. No kseq, no ILLUMINACLIP, no adapter file selector.
+
+### Files Modified (1)
+
+- **`frontend/src/pages/experiment/FastqsTab.tsx`** — Added `isRnaseq` detection from `experiment.assayType`. Quick trim button now submits `'rnaseq_trimming'` with fastp params for RNA-seq. "Configure" button opens `FastpConfigModal` for RNA-seq, `TrimConfigModal` for CUT&RUN. Extracted `buildFastqPairs()` helper (DRY). Added `buildFastpJobParams()` and `handleConfiguredFastp()`.
+
+## Verification
+
+- `npx tsc --noEmit`: clean
+- `npm run build`: clean (3.84s)
