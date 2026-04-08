@@ -281,14 +281,22 @@ async def poll_and_run() -> None:
 
         # Post-pipeline output persistence
         if pipeline_result and pipeline_result.get("outputs"):
-            if job_type == "trimming":
-                # Trimming has its own specialized handler (creates FastqFile + JobOutput + FastQC)
+            if job_type in ("trimming", "rnaseq_trimming"):
+                # Trimming stages create FastqFile + JobOutput + trigger FastQC
                 await create_trimmed_fastq_records(
                     experiment_id=experiment_id,
                     project_id=job_params.get("project_id", project_id),
                     job_id=job_id,
                     trimmed_outputs=pipeline_result["outputs"],
                 )
+                # RNA-seq trimming also produces fastp HTML/JSON reports
+                if pipeline_result.get("fastp_reports"):
+                    await persist_job_outputs(
+                        job_id=job_id,
+                        experiment_id=experiment_id,
+                        project_id=project_id,
+                        outputs=pipeline_result["fastp_reports"],
+                    )
             else:
                 # Generic handler for alignment and future pipelines
                 await persist_job_outputs(
