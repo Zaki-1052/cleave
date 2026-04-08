@@ -32,7 +32,7 @@ export const EMAIL_NOTIFICATION_OPTIONS = [
   { value: 'never', label: 'Never' },
 ] as const;
 
-export const ASSAY_TYPES = ['CUT&RUN', 'CUT&Tag'] as const;
+export const ASSAY_TYPES = ['CUT&RUN', 'CUT&Tag', 'RNA-seq'] as const;
 
 export const ORGANISMS = ['Human', 'Mouse', 'Drosophila', 'Yeast'] as const;
 

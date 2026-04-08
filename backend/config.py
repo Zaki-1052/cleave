@@ -56,6 +56,11 @@ class Settings(BaseSettings):
     # Genomes (Phase 3)
     GENOME_INDEX_DIR: str = "/data/cleave/genomes"
 
+    # RNA-seq genome indices (Phase A)
+    STAR_INDEX_DIR: str = "/data/cleave/genomes/star"
+    SALMON_INDEX_DIR: str = "/data/cleave/genomes/salmon"
+    GENCODE_GTF_DIR: str = "/data/cleave/genomes/gtf"
+
     # Local path import
     LOCAL_IMPORT_DEFAULT_PATH: str = "/data"
 

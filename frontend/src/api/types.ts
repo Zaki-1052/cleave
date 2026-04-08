@@ -60,6 +60,10 @@ export interface Reaction {
   antibodyLotNo: string | null;
   cutanaSpikeIn2: string | null;
   cutanaSpikeInTarget2: string | null;
+  treatment: string | null;
+  timepoint: string | null;
+  genotype: string | null;
+  replicateNumber: number | null;
 }
 
 export interface PrefixInfo {
@@ -91,6 +95,10 @@ export interface ReactionCreatePayload {
   antibodyLotNo?: string | null;
   cutanaSpikeIn2?: string | null;
   cutanaSpikeInTarget2?: string | null;
+  treatment?: string | null;
+  timepoint?: string | null;
+  genotype?: string | null;
+  replicateNumber?: number | null;
 }
 
 export interface ReactionUpdatePayload {
@@ -110,6 +118,10 @@ export interface ReactionUpdatePayload {
   antibodyLotNo?: string | null;
   cutanaSpikeIn2?: string | null;
   cutanaSpikeInTarget2?: string | null;
+  treatment?: string | null;
+  timepoint?: string | null;
+  genotype?: string | null;
+  replicateNumber?: number | null;
 }
 
 export interface FastqFile {

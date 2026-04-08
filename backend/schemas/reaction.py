@@ -54,6 +54,10 @@ class ReactionCreate(CamelModel):
     antibody_lot_no: str | None = None
     cutana_spike_in_2: str | None = None
     cutana_spike_in_target_2: str | None = None
+    treatment: str | None = None
+    timepoint: str | None = None
+    genotype: str | None = None
+    replicate_number: int | None = None
 
     @field_validator("short_name")
     @classmethod
@@ -97,6 +101,10 @@ class ReactionRead(CamelModel):
     antibody_lot_no: str | None = None
     cutana_spike_in_2: str | None = None
     cutana_spike_in_target_2: str | None = None
+    treatment: str | None = None
+    timepoint: str | None = None
+    genotype: str | None = None
+    replicate_number: int | None = None
 
 
 class ReactionUpdate(CamelModel):
@@ -116,6 +124,10 @@ class ReactionUpdate(CamelModel):
     antibody_lot_no: str | None = None
     cutana_spike_in_2: str | None = None
     cutana_spike_in_target_2: str | None = None
+    treatment: str | None = None
+    timepoint: str | None = None
+    genotype: str | None = None
+    replicate_number: int | None = None
 
     @field_validator("short_name")
     @classmethod

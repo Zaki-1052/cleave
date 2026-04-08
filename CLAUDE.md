@@ -11,6 +11,7 @@
 @logs/MASTER-SUMMARY.md
 @docs/cleave-user-guide.md
 @docs/DEPLOYMENT.md
+@docs/RNASEQ-PLAN.md
 
 ## Tech Stack
 

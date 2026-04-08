@@ -7,7 +7,7 @@ from pydantic import ConfigDict, Field
 from schemas.common import CamelModel
 from schemas.project import UserBrief
 
-AssayTypeValue = Literal["CUT&RUN", "CUT&Tag"]
+AssayTypeValue = Literal["CUT&RUN", "CUT&Tag", "RNA-seq"]
 
 
 class ExperimentCreate(CamelModel):

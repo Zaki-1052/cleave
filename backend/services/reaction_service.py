@@ -267,6 +267,10 @@ _CSV_HEADER_MAP: dict[str, str] = {
     "cutana_spike_in_target": "cutana_spike_in_target",
     "cutana_spike_in_2": "cutana_spike_in_2",
     "cutana_spike_in_target_2": "cutana_spike_in_target_2",
+    "treatment": "treatment",
+    "timepoint": "timepoint",
+    "genotype": "genotype",
+    "replicate_number": "replicate_number",
 }
 
 _IGNORED_CSV_COLUMNS = {"reference_genome"}
@@ -338,7 +342,7 @@ def parse_reaction_csv(
             continue
 
         # Build kwargs for ReactionCreate (Pydantic validates types at construction)
-        kwargs: dict[str, str | bool | None] = {}  # type: ignore[assignment]
+        kwargs: dict[str, str | bool | int | None] = {}  # type: ignore[assignment]
         for csv_header, model_field in header_mapping.items():
             raw_value = (row.get(csv_header) or "").strip()
 
@@ -348,6 +352,15 @@ def parse_reaction_csv(
                 except ValueError as e:
                     errors.append(str(e))
                     continue
+            elif model_field == "replicate_number":
+                if raw_value:
+                    try:
+                        kwargs[model_field] = int(raw_value)
+                    except ValueError:
+                        errors.append(
+                            f"Row {row_num}: Replicate_Number must be an integer, got '{raw_value}'"
+                        )
+                        continue
             elif raw_value == "":
                 # Only set optional fields to None; skip required fields so
                 # Pydantic validation catches them
@@ -396,6 +409,10 @@ def generate_csv_template() -> str:
         "Antibody_Lot_No",
         "CUTANA_Spike_in_2",
         "CUTANA_Spike_in_Target_2",
+        "Treatment",
+        "Timepoint",
+        "Genotype",
+        "Replicate_Number",
     ]
     output = io.StringIO()
     writer = csv.writer(output)

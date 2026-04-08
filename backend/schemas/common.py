@@ -44,6 +44,7 @@ class ProjectRole(StrEnum):
 class AssayType(StrEnum):
     CUT_AND_RUN = "CUT&RUN"
     CUT_AND_TAG = "CUT&Tag"
+    RNA_SEQ = "RNA-seq"
 
 
 class Organism(StrEnum):

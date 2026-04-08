@@ -92,20 +92,24 @@ async def run_fastqc_for_files(
                 filename=inp["filename"],
             )
 
-    # Send notification when all files are processed
+    # Send notification when all files are processed (best-effort)
     if user_id and completed_count > 0:
-        from services.notification_service import create_notification
+        try:
+            from services.notification_service import create_notification
 
-        exp_label = f' in experiment "{experiment_name}"' if experiment_name else ""
-        async with async_session_factory() as db:
-            await create_notification(
-                db,
-                user_id=user_id,
-                type="fastqc_complete",
-                title="FastQC Complete",
-                message=f"FastQC finished for {completed_count}/{total_count} file(s){exp_label}.",
-                link_target=f"/experiments/{experiment_id}/fastqs",
-            )
+            exp_label = f' in experiment "{experiment_name}"' if experiment_name else ""
+            msg = f"FastQC finished for {completed_count}/{total_count} file(s){exp_label}."
+            async with async_session_factory() as db:
+                await create_notification(
+                    db,
+                    user_id=user_id,
+                    type="fastqc_complete",
+                    title="FastQC Complete",
+                    message=msg,
+                    link_target=f"/experiments/{experiment_id}/fastqs",
+                )
+        except Exception:
+            logger.exception("fastqc.notification_failed", experiment_id=experiment_id)
 
     # Auto-pipeline: trigger next step if experiment has auto-pipeline enabled
     if completed_count > 0:

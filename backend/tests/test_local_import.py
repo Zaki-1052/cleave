@@ -1,8 +1,6 @@
 # backend/tests/test_local_import.py
 """Tests for local filesystem import — path validation, browse, import."""
 
-from pathlib import Path
-
 import pytest
 from httpx import AsyncClient
 

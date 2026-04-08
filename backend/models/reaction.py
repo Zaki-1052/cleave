@@ -1,5 +1,5 @@
 # backend/models/reaction.py
-from sqlalchemy import Boolean, ForeignKey, String, UniqueConstraint
+from sqlalchemy import Boolean, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -31,6 +31,10 @@ class Reaction(Base):
     antibody_lot_no: Mapped[str | None] = mapped_column(String)
     cutana_spike_in_2: Mapped[str | None] = mapped_column(String)
     cutana_spike_in_target_2: Mapped[str | None] = mapped_column(String)
+    treatment: Mapped[str | None] = mapped_column(String)
+    timepoint: Mapped[str | None] = mapped_column(String)
+    genotype: Mapped[str | None] = mapped_column(String)
+    replicate_number: Mapped[int | None] = mapped_column(Integer)
 
     experiment: Mapped["Experiment"] = relationship(  # noqa: F821
         back_populates="reactions"
