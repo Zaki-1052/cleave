@@ -43,16 +43,23 @@ export function ReactionFormModal({
   const [cutanaSpikeIn, setCutanaSpikeIn] = useState('None');
   const [cutanaSpikeInTarget, setCutanaSpikeInTarget] = useState<string>('');
   const [ecoliSpikeIn, setEcoliSpikeIn] = useState(false);
-  // Optional fields
+  // Optional fields (shared)
   const [cellType, setCellType] = useState('');
   const [cellNumber, setCellNumber] = useState('');
   const [samplePrep, setSamplePrep] = useState('');
   const [experimentalCondition, setExperimentalCondition] = useState('');
+  // Optional fields (CUT&RUN/CUT&Tag only)
   const [antibodyVendor, setAntibodyVendor] = useState('');
   const [antibodyCatNo, setAntibodyCatNo] = useState('');
   const [antibodyLotNo, setAntibodyLotNo] = useState('');
   const [cutanaSpikeIn2, setCutanaSpikeIn2] = useState('');
   const [cutanaSpikeInTarget2, setCutanaSpikeInTarget2] = useState('');
+  // Optional fields (RNA-seq only)
+  const [treatment, setTreatment] = useState('');
+  const [timepoint, setTimepoint] = useState('');
+  const [genotype, setGenotype] = useState('');
+  const [replicateNumber, setReplicateNumber] = useState('');
+  const isRnaseq = assayType === 'RNA-seq';
 
   // Reset form when modal opens
   useEffect(() => {
@@ -75,12 +82,18 @@ export function ReactionFormModal({
       setAntibodyLotNo(existingReaction.antibodyLotNo ?? '');
       setCutanaSpikeIn2(existingReaction.cutanaSpikeIn2 ?? '');
       setCutanaSpikeInTarget2(existingReaction.cutanaSpikeInTarget2 ?? '');
+      setTreatment(existingReaction.treatment ?? '');
+      setTimepoint(existingReaction.timepoint ?? '');
+      setGenotype(existingReaction.genotype ?? '');
+      setReplicateNumber(existingReaction.replicateNumber != null ? String(existingReaction.replicateNumber) : '');
       // Show "More Fields" section if any optional fields are populated
       const hasOptional = existingReaction.cellType || existingReaction.cellNumber ||
         existingReaction.samplePrep || existingReaction.experimentalCondition ||
         existingReaction.antibodyVendor || existingReaction.antibodyCatNo ||
         existingReaction.antibodyLotNo || existingReaction.cutanaSpikeIn2 ||
-        existingReaction.cutanaSpikeInTarget2;
+        existingReaction.cutanaSpikeInTarget2 || existingReaction.treatment ||
+        existingReaction.timepoint || existingReaction.genotype ||
+        existingReaction.replicateNumber != null;
       if (hasOptional) setShowMore(true);
     } else {
       setFastqPrefix(prefixes[0]?.prefix ?? '');
@@ -98,6 +111,10 @@ export function ReactionFormModal({
       setAntibodyLotNo('');
       setCutanaSpikeIn2('');
       setCutanaSpikeInTarget2('');
+      setTreatment('');
+      setTimepoint('');
+      setGenotype('');
+      setReplicateNumber('');
     }
   }, [isOpen, existingReaction, prefixes]);
 
@@ -107,18 +124,22 @@ export function ReactionFormModal({
       shortName,
       organism,
       assayType,
-      cutanaSpikeIn,
-      cutanaSpikeInTarget: cutanaSpikeIn === 'None' ? null : (cutanaSpikeInTarget || null),
-      ecoliSpikeIn,
+      cutanaSpikeIn: isRnaseq ? 'None' : cutanaSpikeIn,
+      cutanaSpikeInTarget: isRnaseq ? null : (cutanaSpikeIn === 'None' ? null : (cutanaSpikeInTarget || null)),
+      ecoliSpikeIn: isRnaseq ? false : ecoliSpikeIn,
       cellType: cellType || null,
       cellNumber: cellNumber || null,
       samplePrep: samplePrep || null,
       experimentalCondition: experimentalCondition || null,
-      antibodyVendor: antibodyVendor || null,
-      antibodyCatNo: antibodyCatNo || null,
-      antibodyLotNo: antibodyLotNo || null,
-      cutanaSpikeIn2: cutanaSpikeIn2 || null,
-      cutanaSpikeInTarget2: cutanaSpikeInTarget2 || null,
+      antibodyVendor: isRnaseq ? null : (antibodyVendor || null),
+      antibodyCatNo: isRnaseq ? null : (antibodyCatNo || null),
+      antibodyLotNo: isRnaseq ? null : (antibodyLotNo || null),
+      cutanaSpikeIn2: isRnaseq ? null : (cutanaSpikeIn2 || null),
+      cutanaSpikeInTarget2: isRnaseq ? null : (cutanaSpikeInTarget2 || null),
+      treatment: treatment || null,
+      timepoint: timepoint || null,
+      genotype: genotype || null,
+      replicateNumber: replicateNumber ? parseInt(replicateNumber, 10) : null,
     };
   }
 
@@ -228,53 +249,57 @@ export function ReactionFormModal({
           </select>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="rxn-cutana-spike" className={labelClass}>CUTANA Spike in</label>
-            <select
-              id="rxn-cutana-spike"
-              value={cutanaSpikeIn}
-              onChange={(e) => {
-                setCutanaSpikeIn(e.target.value);
-                if (e.target.value === 'None') setCutanaSpikeInTarget('');
-              }}
-              className={selectClass}
-            >
-              {CUTANA_SPIKE_IN_OPTIONS.map((o) => (
-                <option key={o} value={o}>{o}</option>
-              ))}
-            </select>
-          </div>
+        {!isRnaseq && (
+          <>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="rxn-cutana-spike" className={labelClass}>CUTANA Spike in</label>
+                <select
+                  id="rxn-cutana-spike"
+                  value={cutanaSpikeIn}
+                  onChange={(e) => {
+                    setCutanaSpikeIn(e.target.value);
+                    if (e.target.value === 'None') setCutanaSpikeInTarget('');
+                  }}
+                  className={selectClass}
+                >
+                  {CUTANA_SPIKE_IN_OPTIONS.map((o) => (
+                    <option key={o} value={o}>{o}</option>
+                  ))}
+                </select>
+              </div>
 
-          <div>
-            <label htmlFor="rxn-cutana-target" className={labelClass}>CUTANA Spike in Target</label>
-            <select
-              id="rxn-cutana-target"
-              value={cutanaSpikeInTarget}
-              onChange={(e) => setCutanaSpikeInTarget(e.target.value)}
-              disabled={cutanaSpikeIn === 'None'}
-              className={`${selectClass} ${cutanaSpikeIn === 'None' ? 'bg-muted text-muted-foreground' : ''}`}
-            >
-              <option value="">Select target</option>
-              {CUTANA_SPIKE_IN_TARGETS.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
-        </div>
+              <div>
+                <label htmlFor="rxn-cutana-target" className={labelClass}>CUTANA Spike in Target</label>
+                <select
+                  id="rxn-cutana-target"
+                  value={cutanaSpikeInTarget}
+                  onChange={(e) => setCutanaSpikeInTarget(e.target.value)}
+                  disabled={cutanaSpikeIn === 'None'}
+                  className={`${selectClass} ${cutanaSpikeIn === 'None' ? 'bg-muted text-muted-foreground' : ''}`}
+                >
+                  <option value="">Select target</option>
+                  {CUTANA_SPIKE_IN_TARGETS.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-        <div>
-          <label htmlFor="rxn-ecoli-spike" className={labelClass}>E.coli Spike in</label>
-          <select
-            id="rxn-ecoli-spike"
-            value={ecoliSpikeIn ? 'Yes' : 'No'}
-            onChange={(e) => setEcoliSpikeIn(e.target.value === 'Yes')}
-            className={selectClass}
-          >
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-          </select>
-        </div>
+            <div>
+              <label htmlFor="rxn-ecoli-spike" className={labelClass}>E.coli Spike in</label>
+              <select
+                id="rxn-ecoli-spike"
+                value={ecoliSpikeIn ? 'Yes' : 'No'}
+                onChange={(e) => setEcoliSpikeIn(e.target.value === 'Yes')}
+                className={selectClass}
+              >
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+          </>
+        )}
 
         <div>
           <button
@@ -289,6 +314,30 @@ export function ReactionFormModal({
 
         {showMore && (
           <div className="space-y-4 border-t pt-4">
+            {isRnaseq && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="rxn-treatment" className={labelClass}>Treatment</label>
+                    <input id="rxn-treatment" type="text" value={treatment} onChange={(e) => setTreatment(e.target.value)} placeholder="e.g., DMSO, Drug_1uM" className={inputClass} />
+                  </div>
+                  <div>
+                    <label htmlFor="rxn-timepoint" className={labelClass}>Timepoint</label>
+                    <input id="rxn-timepoint" type="text" value={timepoint} onChange={(e) => setTimepoint(e.target.value)} placeholder="e.g., 0h, 24h, 7d" className={inputClass} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="rxn-genotype" className={labelClass}>Genotype</label>
+                    <input id="rxn-genotype" type="text" value={genotype} onChange={(e) => setGenotype(e.target.value)} placeholder="e.g., WT, KO, Het" className={inputClass} />
+                  </div>
+                  <div>
+                    <label htmlFor="rxn-replicate-number" className={labelClass}>Replicate Number</label>
+                    <input id="rxn-replicate-number" type="number" min="1" value={replicateNumber} onChange={(e) => setReplicateNumber(e.target.value)} placeholder="e.g., 1, 2, 3" className={inputClass} />
+                  </div>
+                </div>
+              </>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="rxn-cell-type" className={labelClass}>Cell Type</label>
@@ -309,40 +358,44 @@ export function ReactionFormModal({
                 <input id="rxn-exp-condition" type="text" value={experimentalCondition} onChange={(e) => setExperimentalCondition(e.target.value)} className={inputClass} />
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="rxn-ab-vendor" className={labelClass}>Antibody Vendor</label>
-                <input id="rxn-ab-vendor" type="text" value={antibodyVendor} onChange={(e) => setAntibodyVendor(e.target.value)} className={inputClass} />
-              </div>
-              <div>
-                <label htmlFor="rxn-ab-cat" className={labelClass}>Antibody Cat No</label>
-                <input id="rxn-ab-cat" type="text" value={antibodyCatNo} onChange={(e) => setAntibodyCatNo(e.target.value)} className={inputClass} />
-              </div>
-              <div>
-                <label htmlFor="rxn-ab-lot" className={labelClass}>Antibody Lot No</label>
-                <input id="rxn-ab-lot" type="text" value={antibodyLotNo} onChange={(e) => setAntibodyLotNo(e.target.value)} className={inputClass} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="rxn-cutana-spike2" className={labelClass}>CUTANA Spike in 2</label>
-                <select id="rxn-cutana-spike2" value={cutanaSpikeIn2} onChange={(e) => setCutanaSpikeIn2(e.target.value)} className={selectClass}>
-                  <option value="">None</option>
-                  {CUTANA_SPIKE_IN_OPTIONS.filter((o) => o !== 'None').map((o) => (
-                    <option key={o} value={o}>{o}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="rxn-cutana-target2" className={labelClass}>CUTANA Spike in Target 2</label>
-                <select id="rxn-cutana-target2" value={cutanaSpikeInTarget2} onChange={(e) => setCutanaSpikeInTarget2(e.target.value)} className={selectClass}>
-                  <option value="">Select target</option>
-                  {CUTANA_SPIKE_IN_TARGETS.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
+            {!isRnaseq && (
+              <>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label htmlFor="rxn-ab-vendor" className={labelClass}>Antibody Vendor</label>
+                    <input id="rxn-ab-vendor" type="text" value={antibodyVendor} onChange={(e) => setAntibodyVendor(e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label htmlFor="rxn-ab-cat" className={labelClass}>Antibody Cat No</label>
+                    <input id="rxn-ab-cat" type="text" value={antibodyCatNo} onChange={(e) => setAntibodyCatNo(e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label htmlFor="rxn-ab-lot" className={labelClass}>Antibody Lot No</label>
+                    <input id="rxn-ab-lot" type="text" value={antibodyLotNo} onChange={(e) => setAntibodyLotNo(e.target.value)} className={inputClass} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="rxn-cutana-spike2" className={labelClass}>CUTANA Spike in 2</label>
+                    <select id="rxn-cutana-spike2" value={cutanaSpikeIn2} onChange={(e) => setCutanaSpikeIn2(e.target.value)} className={selectClass}>
+                      <option value="">None</option>
+                      {CUTANA_SPIKE_IN_OPTIONS.filter((o) => o !== 'None').map((o) => (
+                        <option key={o} value={o}>{o}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="rxn-cutana-target2" className={labelClass}>CUTANA Spike in Target 2</label>
+                    <select id="rxn-cutana-target2" value={cutanaSpikeInTarget2} onChange={(e) => setCutanaSpikeInTarget2(e.target.value)} className={selectClass}>
+                      <option value="">Select target</option>
+                      {CUTANA_SPIKE_IN_TARGETS.map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
 

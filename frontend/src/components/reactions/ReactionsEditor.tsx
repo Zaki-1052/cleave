@@ -12,7 +12,9 @@ import { ReactionFormModal } from './ReactionFormModal';
 import { useReactions, usePrefixes, useDeleteReaction } from '@/hooks/useReactions';
 import type { PrefixInfo, Reaction } from '@/api/types';
 
-const OPTIONAL_COLUMNS: { key: keyof Reaction; label: string }[] = [
+type OptionalColumn = { key: keyof Reaction; label: string };
+
+const CUTANDRUN_OPTIONAL_COLUMNS: OptionalColumn[] = [
   { key: 'cutanaSpikeIn', label: 'CUTANA Spike in' },
   { key: 'cutanaSpikeInTarget', label: 'CUTANA Spike in Target' },
   { key: 'ecoliSpikeIn', label: 'E.coli Spike in' },
@@ -25,6 +27,17 @@ const OPTIONAL_COLUMNS: { key: keyof Reaction; label: string }[] = [
   { key: 'antibodyLotNo', label: 'Antibody Lot No' },
   { key: 'cutanaSpikeIn2', label: 'CUTANA Spike in 2' },
   { key: 'cutanaSpikeInTarget2', label: 'CUTANA Spike in Target 2' },
+];
+
+const RNASEQ_OPTIONAL_COLUMNS: OptionalColumn[] = [
+  { key: 'treatment', label: 'Treatment' },
+  { key: 'timepoint', label: 'Timepoint' },
+  { key: 'genotype', label: 'Genotype' },
+  { key: 'replicateNumber', label: 'Replicate Number' },
+  { key: 'cellType', label: 'Cell Type' },
+  { key: 'cellNumber', label: 'Cell Number' },
+  { key: 'samplePrep', label: 'Sample Prep' },
+  { key: 'experimentalCondition', label: 'Experimental Condition' },
 ];
 
 interface ReactionsEditorProps {
@@ -45,6 +58,9 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
   const [showColumnPicker, setShowColumnPicker] = useState(false);
 
   const reactions = reactionsData?.items ?? [];
+  const optionalColumns = assayType === 'RNA-seq'
+    ? RNASEQ_OPTIONAL_COLUMNS
+    : CUTANDRUN_OPTIONAL_COLUMNS;
   const prefixList = useMemo<PrefixInfo[]>(() => prefixes ?? [], [prefixes]);
 
   // Lookup map: prefix string → PrefixInfo
@@ -82,7 +98,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
     ];
 
     // Add optional columns that are toggled on
-    for (const col of OPTIONAL_COLUMNS) {
+    for (const col of optionalColumns) {
       if (visibleOptional.has(col.key)) {
         base.push({
           accessorKey: col.key,
@@ -90,6 +106,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
           cell: (info) => {
             const val = info.getValue();
             if (typeof val === 'boolean') return val ? 'Yes' : 'No';
+            if (typeof val === 'number') return String(val);
             return (val as string | null) ?? '\u2014';
           },
         });
@@ -126,7 +143,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
     });
 
     return base;
-  }, [prefixMap, visibleOptional]);
+  }, [prefixMap, visibleOptional, optionalColumns]);
 
   function toggleColumn(key: string) {
     setVisibleOptional((prev) => {
@@ -197,7 +214,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
                   <div className="mb-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Optional Columns
                   </div>
-                  {OPTIONAL_COLUMNS.map((col) => (
+                  {optionalColumns.map((col) => (
                     <label
                       key={col.key}
                       className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"

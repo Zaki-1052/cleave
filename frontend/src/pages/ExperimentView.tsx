@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   FileText, Dna, FlaskConical, Scissors, AlignLeft, Mountain,
   ArrowLeftRight, Grid3x3, ScatterChart, Scale, History,
-  FolderTree, GraduationCap,
+  FolderTree, GraduationCap, BarChart3, Share2,
 } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import type { LucideIcon } from 'lucide-react';
@@ -34,9 +34,17 @@ const JOB_TYPE_LABELS: Record<string, string> = {
   custom_heatmap: 'Custom Heatmap',
   pearson_correlation: 'Correlation',
   roman_normalization: 'Normalization',
+  rnaseq_trimming: 'Trimming (fastp)',
+  rnaseq_alignment: 'Alignment (STAR)',
+  rnaseq_feature_counts: 'featureCounts',
+  rnaseq_de: 'DE Analysis',
+  rnaseq_qc: 'QC Dashboard',
+  rnaseq_pathway: 'Pathway Analysis',
 };
 
-const TABS: { label: string; path: string; icon: LucideIcon }[] = [
+type Tab = { label: string; path: string; icon: LucideIcon };
+
+const CUTANDRUN_TABS: Tab[] = [
   { label: 'Description', path: 'description', icon: FileText },
   { label: 'FASTQs', path: 'fastqs', icon: Dna },
   { label: 'Reactions', path: 'reactions', icon: FlaskConical },
@@ -47,6 +55,19 @@ const TABS: { label: string; path: string; icon: LucideIcon }[] = [
   { label: 'Normalization', path: 'normalization/0', icon: Scale },
   { label: 'Heatmaps', path: 'heatmaps/0', icon: Grid3x3 },
   { label: 'Correlation', path: 'correlations/0', icon: ScatterChart },
+  { label: 'History', path: 'history', icon: History },
+  { label: 'All Files', path: 'files', icon: FolderTree },
+];
+
+const RNASEQ_TABS: Tab[] = [
+  { label: 'Description', path: 'description', icon: FileText },
+  { label: 'FASTQs', path: 'fastqs', icon: Dna },
+  { label: 'Reactions', path: 'reactions', icon: FlaskConical },
+  { label: 'Trimming', path: 'trimming/0', icon: Scissors },
+  { label: 'Alignment', path: 'alignment/0', icon: AlignLeft },
+  { label: 'DE Analysis', path: 'de/0', icon: ArrowLeftRight },
+  { label: 'QC Dashboard', path: 'rnaseq-qc/0', icon: BarChart3 },
+  { label: 'Pathway', path: 'pathway/0', icon: Share2 },
   { label: 'History', path: 'history', icon: History },
   { label: 'All Files', path: 'files', icon: FolderTree },
 ];
@@ -69,6 +90,9 @@ export default function ExperimentView() {
   const [showAutoPipelineModal, setShowAutoPipelineModal] = useState(false);
   const { data: reactionsData } = useReactions(Number(id));
   const reactions = reactionsData?.items ?? [];
+
+  const isRnaseq = experiment?.assayType === 'RNA-seq';
+  const tabs = isRnaseq ? RNASEQ_TABS : CUTANDRUN_TABS;
 
   const lastJob = jobsData?.items?.[0] ?? null;
   const lastJobLabel = lastJob
@@ -108,7 +132,7 @@ export default function ExperimentView() {
         </div>
         {!isReadOnly && (
           <div className="flex items-center gap-2">
-            {!isTrainingProject && (!experiment.autoPipelineStatus || experiment.autoPipelineStatus === 'cancelled') && reactions.length > 0 && (
+            {!isRnaseq && !isTrainingProject && (!experiment.autoPipelineStatus || experiment.autoPipelineStatus === 'cancelled') && reactions.length > 0 && (
               <Button
                 variant="success"
                 onClick={() => setShowAutoPipelineModal(true)}
@@ -117,6 +141,7 @@ export default function ExperimentView() {
               </Button>
             )}
             <NewAnalysisDropdown
+              assayType={experiment.assayType}
               onAlignmentClick={() => setShowAlignmentWizard(true)}
               onPeakCallingClick={() => setShowPeakCallingWizard(true)}
               onDiffBindClick={() => setShowDiffBindWizard(true)}
@@ -143,7 +168,7 @@ export default function ExperimentView() {
         </div>
       )}
 
-      {experiment.autoPipelineStatus && (
+      {!isRnaseq && experiment.autoPipelineStatus && (
         <AutoPipelineBanner
           experiment={experiment}
           onCancelled={() => {
@@ -161,7 +186,7 @@ export default function ExperimentView() {
       <div className="flex gap-6">
         <aside className="w-48 shrink-0">
           <Card className="p-0">
-            {TABS.map((tab) => {
+            {tabs.map((tab) => {
               const isActive = pathname.includes(tab.path) ||
                 (tab.path === 'description' && pathname.endsWith(`/experiments/${id}`));
               return (
@@ -187,54 +212,58 @@ export default function ExperimentView() {
         </div>
       </div>
 
-      <NewAlignmentWizard
-        isOpen={showAlignmentWizard}
-        onClose={() => setShowAlignmentWizard(false)}
-        experiment={experiment}
-        isTrainingProject={isTrainingProject}
-      />
+      {!isRnaseq && (
+        <>
+          <NewAlignmentWizard
+            isOpen={showAlignmentWizard}
+            onClose={() => setShowAlignmentWizard(false)}
+            experiment={experiment}
+            isTrainingProject={isTrainingProject}
+          />
 
-      <NewPeakCallingWizard
-        isOpen={showPeakCallingWizard}
-        onClose={() => setShowPeakCallingWizard(false)}
-        experiment={experiment}
-        isTrainingProject={isTrainingProject}
-      />
+          <NewPeakCallingWizard
+            isOpen={showPeakCallingWizard}
+            onClose={() => setShowPeakCallingWizard(false)}
+            experiment={experiment}
+            isTrainingProject={isTrainingProject}
+          />
 
-      <NewDiffBindWizard
-        isOpen={showDiffBindWizard}
-        onClose={() => setShowDiffBindWizard(false)}
-        experiment={experiment}
-        isTrainingProject={isTrainingProject}
-      />
+          <NewDiffBindWizard
+            isOpen={showDiffBindWizard}
+            onClose={() => setShowDiffBindWizard(false)}
+            experiment={experiment}
+            isTrainingProject={isTrainingProject}
+          />
 
-      <NewCustomHeatmapWizard
-        isOpen={showCustomHeatmapWizard}
-        onClose={() => setShowCustomHeatmapWizard(false)}
-        experiment={experiment}
-      />
+          <NewCustomHeatmapWizard
+            isOpen={showCustomHeatmapWizard}
+            onClose={() => setShowCustomHeatmapWizard(false)}
+            experiment={experiment}
+          />
 
-      <NewPearsonCorrelationWizard
-        isOpen={showPearsonCorrelationWizard}
-        onClose={() => setShowPearsonCorrelationWizard(false)}
-        experiment={experiment}
-      />
+          <NewPearsonCorrelationWizard
+            isOpen={showPearsonCorrelationWizard}
+            onClose={() => setShowPearsonCorrelationWizard(false)}
+            experiment={experiment}
+          />
 
-      <NewNormalizationWizard
-        isOpen={showNormalizationWizard}
-        onClose={() => setShowNormalizationWizard(false)}
-        experiment={experiment}
-      />
+          <NewNormalizationWizard
+            isOpen={showNormalizationWizard}
+            onClose={() => setShowNormalizationWizard(false)}
+            experiment={experiment}
+          />
 
-      <AutoPipelineModal
-        isOpen={showAutoPipelineModal}
-        onClose={() => setShowAutoPipelineModal(false)}
-        experiment={experiment}
-        reactions={reactions}
-        onStarted={() => {
-          // Refetch experiment to pick up new auto_pipeline_status
-        }}
-      />
+          <AutoPipelineModal
+            isOpen={showAutoPipelineModal}
+            onClose={() => setShowAutoPipelineModal(false)}
+            experiment={experiment}
+            reactions={reactions}
+            onStarted={() => {
+              // Refetch experiment to pick up new auto_pipeline_status
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }

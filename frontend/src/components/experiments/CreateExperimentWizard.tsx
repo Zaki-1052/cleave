@@ -190,8 +190,8 @@ export function CreateExperimentWizard({
         />
       ) : null,
     },
-    // Pipeline step hidden for training projects
-    ...(!isTrainingProject
+    // Pipeline step hidden for training projects and RNA-seq experiments
+    ...(!isTrainingProject && assayType !== 'RNA-seq'
       ? [
           {
             label: 'Pipeline',

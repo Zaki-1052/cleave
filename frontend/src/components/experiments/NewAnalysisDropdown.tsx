@@ -8,6 +8,10 @@ import {
   Grid3x3,
   ScatterChart,
   Scale,
+  AlignLeft,
+  ListOrdered,
+  BarChart3,
+  Share2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -17,6 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 interface NewAnalysisDropdownProps {
+  assayType: string;
   onAlignmentClick: () => void;
   onPeakCallingClick: () => void;
   onDiffBindClick: () => void;
@@ -26,6 +31,7 @@ interface NewAnalysisDropdownProps {
 }
 
 export function NewAnalysisDropdown({
+  assayType,
   onAlignmentClick,
   onPeakCallingClick,
   onDiffBindClick,
@@ -42,30 +48,57 @@ export function NewAnalysisDropdown({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem onSelect={onAlignmentClick}>
-          <Dna className="h-4 w-4" />
-          Alignment
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={onPeakCallingClick}>
-          <Mountain className="h-4 w-4" />
-          Peak Calling
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={onDiffBindClick}>
-          <ArrowLeftRight className="h-4 w-4" />
-          DiffBind
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={onNormalizationClick}>
-          <Scale className="h-4 w-4" />
-          Normalization
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={onCustomHeatmapClick}>
-          <Grid3x3 className="h-4 w-4" />
-          Custom Heatmap
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={onPearsonCorrelationClick}>
-          <ScatterChart className="h-4 w-4" />
-          Correlation
-        </DropdownMenuItem>
+        {assayType === 'RNA-seq' ? (
+          <>
+            <DropdownMenuItem disabled>
+              <AlignLeft className="h-4 w-4" />
+              Alignment (STAR)
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled>
+              <ListOrdered className="h-4 w-4" />
+              featureCounts
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled>
+              <ArrowLeftRight className="h-4 w-4" />
+              DE Analysis
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled>
+              <BarChart3 className="h-4 w-4" />
+              QC Dashboard
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled>
+              <Share2 className="h-4 w-4" />
+              Pathway Analysis
+            </DropdownMenuItem>
+          </>
+        ) : (
+          <>
+            <DropdownMenuItem onSelect={onAlignmentClick}>
+              <Dna className="h-4 w-4" />
+              Alignment
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={onPeakCallingClick}>
+              <Mountain className="h-4 w-4" />
+              Peak Calling
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={onDiffBindClick}>
+              <ArrowLeftRight className="h-4 w-4" />
+              DiffBind
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={onNormalizationClick}>
+              <Scale className="h-4 w-4" />
+              Normalization
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={onCustomHeatmapClick}>
+              <Grid3x3 className="h-4 w-4" />
+              Custom Heatmap
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={onPearsonCorrelationClick}>
+              <ScatterChart className="h-4 w-4" />
+              Correlation
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
