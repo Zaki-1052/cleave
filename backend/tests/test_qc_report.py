@@ -651,3 +651,355 @@ async def test_download_peak_annotation_csv(client: AsyncClient):
     assert "Short_Name" in text
     assert "Promoter" in text
     assert "K4me3_ctrl1" in text
+
+
+# ---------------------------------------------------------------------------
+# RNA-seq Alignment QC Report Tests
+# ---------------------------------------------------------------------------
+
+RNASEQ_QC_CSV_HEADERS = [
+    "Short_Name",
+    "Total_Input_Reads",
+    "Uniquely_Mapped_Reads",
+    "Unique_Mapping_Rate(%)",
+    "Multi_Mapped_Rate(%)",
+    "Unmapped_Rate(%)",
+    "Average_Mapped_Length",
+    "Num_Splices",
+    "Num_Splices_Annotated",
+    "Num_Splices_GT_AG",
+    "Num_Splices_GC_AG",
+    "Num_Splices_AT_AC",
+    "Num_Splices_Non_Canonical",
+    "Mismatch_Rate(%)",
+    "Salmon_Mapping_Rate(%)",
+    "Salmon_Library_Type",
+    "Salmon_Num_Processed",
+    "Salmon_Frag_Length_Mean",
+    "Salmon_Frag_Length_SD",
+]
+
+SAMPLE_RNASEQ_QC_ROWS = [
+    {
+        "Short_Name": "WT_rep1",
+        "Total_Input_Reads": "10000000",
+        "Uniquely_Mapped_Reads": "9435272",
+        "Unique_Mapping_Rate(%)": "94.35",
+        "Multi_Mapped_Rate(%)": "3.97",
+        "Unmapped_Rate(%)": "1.68",
+        "Average_Mapped_Length": "199.19",
+        "Num_Splices": "7218019",
+        "Num_Splices_Annotated": "6503217",
+        "Num_Splices_GT_AG": "7139825",
+        "Num_Splices_GC_AG": "52341",
+        "Num_Splices_AT_AC": "7521",
+        "Num_Splices_Non_Canonical": "18332",
+        "Mismatch_Rate(%)": "0.22",
+        "Salmon_Mapping_Rate(%)": "92.50",
+        "Salmon_Library_Type": "ISR",
+        "Salmon_Num_Processed": "10000000",
+        "Salmon_Frag_Length_Mean": "234.50",
+        "Salmon_Frag_Length_SD": "48.20",
+    },
+    {
+        "Short_Name": "KO_rep1",
+        "Total_Input_Reads": "8500000",
+        "Uniquely_Mapped_Reads": "7820000",
+        "Unique_Mapping_Rate(%)": "92.00",
+        "Multi_Mapped_Rate(%)": "5.12",
+        "Unmapped_Rate(%)": "2.88",
+        "Average_Mapped_Length": "197.50",
+        "Num_Splices": "6100000",
+        "Num_Splices_Annotated": "5500000",
+        "Num_Splices_GT_AG": "6020000",
+        "Num_Splices_GC_AG": "45000",
+        "Num_Splices_AT_AC": "6500",
+        "Num_Splices_Non_Canonical": "28500",
+        "Mismatch_Rate(%)": "0.31",
+        "Salmon_Mapping_Rate(%)": "89.75",
+        "Salmon_Library_Type": "ISR",
+        "Salmon_Num_Processed": "8500000",
+        "Salmon_Frag_Length_Mean": "228.30",
+        "Salmon_Frag_Length_SD": "52.10",
+    },
+]
+
+# Old 12-column format for backward compatibility testing
+RNASEQ_QC_CSV_HEADERS_OLD = [
+    "Short_Name",
+    "Total_Input_Reads",
+    "Uniquely_Mapped_Reads",
+    "Unique_Mapping_Rate(%)",
+    "Multi_Mapped_Rate(%)",
+    "Unmapped_Rate(%)",
+    "Average_Mapped_Length",
+    "Num_Splices",
+    "Mismatch_Rate(%)",
+    "Salmon_Mapping_Rate(%)",
+    "Salmon_Library_Type",
+    "Salmon_Num_Processed",
+]
+
+SAMPLE_RNASEQ_QC_ROWS_OLD = [
+    {
+        "Short_Name": "WT_rep1",
+        "Total_Input_Reads": "10000000",
+        "Uniquely_Mapped_Reads": "9435272",
+        "Unique_Mapping_Rate(%)": "94.35",
+        "Multi_Mapped_Rate(%)": "3.97",
+        "Unmapped_Rate(%)": "1.68",
+        "Average_Mapped_Length": "199.19",
+        "Num_Splices": "7218019",
+        "Mismatch_Rate(%)": "0.22",
+        "Salmon_Mapping_Rate(%)": "92.50",
+        "Salmon_Library_Type": "ISR",
+        "Salmon_Num_Processed": "10000000",
+    },
+]
+
+
+async def _create_rnaseq_experiment(client: AsyncClient, headers: dict, project_id: int) -> int:
+    resp = await client.post(
+        "/api/v1/experiments",
+        params={"projectId": project_id},
+        json={"name": "RNA-seq Test", "assayType": "RNA-seq"},
+        headers=headers,
+    )
+    assert resp.status_code == 201
+    return resp.json()["id"]
+
+
+async def _create_rnaseq_alignment_job(
+    client: AsyncClient,
+    headers: dict,
+    experiment_id: int,
+    project_id: int,
+) -> int:
+    resp = await client.post(
+        f"/api/v1/experiments/{experiment_id}/jobs",
+        json={
+            "jobType": "rnaseq_alignment",
+            "name": "Test STAR+Salmon",
+            "params": {
+                "experiment_id": experiment_id,
+                "project_id": project_id,
+                "reference_genome": "mm10",
+                "reactions": [
+                    {"reaction_id": 1, "short_name": "WT_rep1"},
+                    {"reaction_id": 2, "short_name": "KO_rep1"},
+                ],
+            },
+        },
+        headers=headers,
+    )
+    assert resp.status_code == 201
+    return resp.json()["id"]
+
+
+def _write_rnaseq_qc_csv(csv_path: Path, *, headers=None, rows=None) -> None:
+    """Write RNA-seq QC CSV to disk."""
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    use_headers = headers or RNASEQ_QC_CSV_HEADERS
+    use_rows = rows or SAMPLE_RNASEQ_QC_ROWS
+    buf = io.StringIO()
+    writer = csv.DictWriter(buf, fieldnames=use_headers)
+    writer.writeheader()
+    for row in use_rows:
+        writer.writerow(row)
+    csv_path.write_text(buf.getvalue())
+
+
+async def _complete_rnaseq_job_with_qc(
+    job_id: int,
+    project_id: int,
+    experiment_id: int,
+    *,
+    csv_headers=None,
+    csv_rows=None,
+) -> None:
+    """Write RNA-seq QC CSV to disk and mark job as complete."""
+    from sqlalchemy import update
+
+    from models.analysis_job import AnalysisJob
+    from models.job_output import JobOutput
+    from tests.conftest import test_session_factory
+
+    rel_path = (
+        f"projects/{project_id}/{experiment_id}/jobs/{job_id}/qc/rnaseq_alignment_metrics.csv"
+    )
+    abs_path = Path(settings.STORAGE_ROOT) / rel_path
+    _write_rnaseq_qc_csv(abs_path, headers=csv_headers, rows=csv_rows)
+
+    async with test_session_factory() as db:
+        await db.execute(
+            update(AnalysisJob).where(AnalysisJob.id == job_id).values(status="complete")
+        )
+        output = JobOutput(
+            job_id=job_id,
+            reaction_id=None,
+            file_category="qc_report",
+            filename="rnaseq_alignment_metrics.csv",
+            file_path=rel_path,
+            file_type="csv",
+            file_size_bytes=abs_path.stat().st_size,
+        )
+        db.add(output)
+        await db.commit()
+
+
+# --- RNA-seq QC Tests ---
+
+
+async def test_get_rnaseq_qc_report_success(client: AsyncClient):
+    """GET /jobs/{id}/rnaseq-qc-report returns structured QC data."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_rnaseq_experiment(client, headers, project_id)
+    job_id = await _create_rnaseq_alignment_job(client, headers, exp_id, project_id)
+
+    await _complete_rnaseq_job_with_qc(job_id, project_id, exp_id)
+
+    resp = await client.get(f"/api/v1/jobs/{job_id}/rnaseq-qc-report", headers=headers)
+    assert resp.status_code == 200
+
+    data = resp.json()
+    assert data["referenceGenome"] == "mm10"
+    assert len(data["metrics"]) == 2
+
+    wt = data["metrics"][0]
+    assert wt["shortName"] == "WT_rep1"
+    assert wt["totalInputReads"] == 10000000
+    assert wt["uniquelyMappedReads"] == 9435272
+    assert wt["uniqueMappingRate"] == 94.35
+    assert wt["multiMappedRate"] == 3.97
+    assert wt["unmappedRate"] == 1.68
+    assert wt["averageMappedLength"] == 199.19
+    assert wt["numSplices"] == 7218019
+    assert wt["numSplicesAnnotated"] == 6503217
+    assert wt["numSplicesGtAg"] == 7139825
+    assert wt["numSplicesGcAg"] == 52341
+    assert wt["numSplicesAtAc"] == 7521
+    assert wt["numSplicesNonCanonical"] == 18332
+    assert wt["mismatchRate"] == 0.22
+    assert wt["salmonMappingRate"] == 92.50
+    assert wt["salmonLibraryType"] == "ISR"
+    assert wt["salmonNumProcessed"] == 10000000
+    assert wt["salmonFragLengthMean"] == 234.50
+    assert wt["salmonFragLengthSd"] == 48.20
+
+    ko = data["metrics"][1]
+    assert ko["shortName"] == "KO_rep1"
+    assert ko["totalInputReads"] == 8500000
+
+
+async def test_get_rnaseq_qc_report_download(client: AsyncClient):
+    """GET /jobs/{id}/rnaseq-qc-report/download returns the raw CSV file."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_rnaseq_experiment(client, headers, project_id)
+    job_id = await _create_rnaseq_alignment_job(client, headers, exp_id, project_id)
+
+    await _complete_rnaseq_job_with_qc(job_id, project_id, exp_id)
+
+    resp = await client.get(f"/api/v1/jobs/{job_id}/rnaseq-qc-report/download", headers=headers)
+    assert resp.status_code == 200
+    assert "text/csv" in resp.headers.get("content-type", "")
+
+    text = resp.text
+    assert "Short_Name" in text
+    assert "WT_rep1" in text
+    assert "KO_rep1" in text
+
+
+async def test_get_rnaseq_qc_report_not_found(client: AsyncClient):
+    """GET /jobs/99999/rnaseq-qc-report returns 404 for non-existent job."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    resp = await client.get("/api/v1/jobs/99999/rnaseq-qc-report", headers=headers)
+    assert resp.status_code == 404
+
+
+async def test_get_rnaseq_qc_report_not_complete(client: AsyncClient):
+    """GET /jobs/{id}/rnaseq-qc-report returns 409 for a queued job."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_rnaseq_experiment(client, headers, project_id)
+    job_id = await _create_rnaseq_alignment_job(client, headers, exp_id, project_id)
+
+    resp = await client.get(f"/api/v1/jobs/{job_id}/rnaseq-qc-report", headers=headers)
+    assert resp.status_code == 409
+
+
+async def test_get_rnaseq_qc_report_unauthorized(client: AsyncClient):
+    """Non-member cannot access RNA-seq QC report."""
+    headers1 = await _register_and_get_headers(client, "owner@example.com")
+    headers2 = await _register_and_get_headers(client, "stranger@example.com")
+    project_id = await _create_project(client, headers1)
+    exp_id = await _create_rnaseq_experiment(client, headers1, project_id)
+    job_id = await _create_rnaseq_alignment_job(client, headers1, exp_id, project_id)
+
+    await _complete_rnaseq_job_with_qc(job_id, project_id, exp_id)
+
+    resp = await client.get(f"/api/v1/jobs/{job_id}/rnaseq-qc-report", headers=headers2)
+    assert resp.status_code == 404
+
+
+async def test_download_rnaseq_qc_csv_not_complete(client: AsyncClient):
+    """GET /jobs/{id}/rnaseq-qc-report/download returns 409 for a queued job."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_rnaseq_experiment(client, headers, project_id)
+    job_id = await _create_rnaseq_alignment_job(client, headers, exp_id, project_id)
+
+    resp = await client.get(f"/api/v1/jobs/{job_id}/rnaseq-qc-report/download", headers=headers)
+    assert resp.status_code == 409
+
+
+async def test_get_rnaseq_qc_report_wrong_job_type(client: AsyncClient):
+    """GET /jobs/{id}/rnaseq-qc-report returns 409 for a CUT&RUN alignment job."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+    job_id = await _create_alignment_job(client, headers, exp_id, project_id)
+
+    await _complete_job_with_qc(job_id, project_id, exp_id)
+
+    resp = await client.get(f"/api/v1/jobs/{job_id}/rnaseq-qc-report", headers=headers)
+    assert resp.status_code == 409
+
+
+async def test_get_rnaseq_qc_report_backward_compat(client: AsyncClient):
+    """Old 12-column CSV (without splice breakdown and fragment length) parses with defaults."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_rnaseq_experiment(client, headers, project_id)
+    job_id = await _create_rnaseq_alignment_job(client, headers, exp_id, project_id)
+
+    await _complete_rnaseq_job_with_qc(
+        job_id,
+        project_id,
+        exp_id,
+        csv_headers=RNASEQ_QC_CSV_HEADERS_OLD,
+        csv_rows=SAMPLE_RNASEQ_QC_ROWS_OLD,
+    )
+
+    resp = await client.get(f"/api/v1/jobs/{job_id}/rnaseq-qc-report", headers=headers)
+    assert resp.status_code == 200
+
+    data = resp.json()
+    assert len(data["metrics"]) == 1
+
+    wt = data["metrics"][0]
+    # Original fields parsed correctly
+    assert wt["shortName"] == "WT_rep1"
+    assert wt["totalInputReads"] == 10000000
+    assert wt["numSplices"] == 7218019
+    assert wt["salmonMappingRate"] == 92.50
+
+    # New fields default to 0
+    assert wt["numSplicesAnnotated"] == 0
+    assert wt["numSplicesGtAg"] == 0
+    assert wt["numSplicesGcAg"] == 0
+    assert wt["numSplicesAtAc"] == 0
+    assert wt["numSplicesNonCanonical"] == 0
+    assert wt["salmonFragLengthMean"] == 0.0
+    assert wt["salmonFragLengthSd"] == 0.0

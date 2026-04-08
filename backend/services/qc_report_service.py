@@ -27,6 +27,8 @@ from schemas.qc_report import (
     PeakCallingReactionMetrics,
     PearsonCorrelationPlotInfo,
     PearsonCorrelationReport,
+    RnaseqAlignmentQCReport,
+    RnaseqAlignmentReactionMetrics,
     RomanNormalizationReport,
     SpikeInPTMResult,
     SpikeInReactionResult,
@@ -301,6 +303,110 @@ async def get_qc_csv_path(
         raise FileNotFoundError(f"QC report CSV not found for job {job_id}")
 
     return csv_path
+
+
+# ---------------------------------------------------------------------------
+# RNA-seq Alignment QC Report
+# ---------------------------------------------------------------------------
+
+
+def _parse_rnaseq_qc_csv(csv_path: Path) -> list[RnaseqAlignmentReactionMetrics]:
+    """Parse an RNA-seq alignment metrics CSV into Pydantic models."""
+    metrics: list[RnaseqAlignmentReactionMetrics] = []
+    with open(csv_path, newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            metrics.append(
+                RnaseqAlignmentReactionMetrics(
+                    short_name=row["Short_Name"],
+                    total_input_reads=int(row["Total_Input_Reads"]),
+                    uniquely_mapped_reads=int(row["Uniquely_Mapped_Reads"]),
+                    unique_mapping_rate=float(row["Unique_Mapping_Rate(%)"]),
+                    multi_mapped_rate=float(row["Multi_Mapped_Rate(%)"]),
+                    unmapped_rate=float(row["Unmapped_Rate(%)"]),
+                    average_mapped_length=float(row["Average_Mapped_Length"]),
+                    num_splices=int(row["Num_Splices"]),
+                    num_splices_annotated=int(row.get("Num_Splices_Annotated", 0)),
+                    num_splices_gt_ag=int(row.get("Num_Splices_GT_AG", 0)),
+                    num_splices_gc_ag=int(row.get("Num_Splices_GC_AG", 0)),
+                    num_splices_at_ac=int(row.get("Num_Splices_AT_AC", 0)),
+                    num_splices_non_canonical=int(row.get("Num_Splices_Non_Canonical", 0)),
+                    mismatch_rate=float(row["Mismatch_Rate(%)"]),
+                    salmon_mapping_rate=float(row["Salmon_Mapping_Rate(%)"]),
+                    salmon_library_type=row["Salmon_Library_Type"],
+                    salmon_num_processed=int(row["Salmon_Num_Processed"]),
+                    salmon_frag_length_mean=float(row.get("Salmon_Frag_Length_Mean", 0.0)),
+                    salmon_frag_length_sd=float(row.get("Salmon_Frag_Length_SD", 0.0)),
+                )
+            )
+    return metrics
+
+
+async def get_rnaseq_alignment_qc_report(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> RnaseqAlignmentQCReport | None:
+    """Return structured QC report data for an RNA-seq alignment job.
+
+    Returns None if the job is not found or the user lacks access.
+    Raises ValueError if the job is not a completed rnaseq_alignment.
+    Raises FileNotFoundError if the QC CSV is missing from disk.
+    """
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    if job.job_type != "rnaseq_alignment" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed RNA-seq alignment "
+            f"(type={job.job_type}, status={job.status})"
+        )
+
+    csv_path = _resolve_qc_csv_path(job)
+    if csv_path is None:
+        raise FileNotFoundError(f"QC report CSV not found for job {job_id}")
+
+    genome = job.params.get("reference_genome", "unknown") if job.params else "unknown"
+    metrics = _parse_rnaseq_qc_csv(csv_path)
+
+    return RnaseqAlignmentQCReport(
+        reference_genome=genome,
+        metrics=metrics,
+    )
+
+
+async def get_rnaseq_qc_csv_path(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> Path | None:
+    """Return the absolute path to the RNA-seq QC CSV file for download.
+
+    Returns None if the job is not found or the user lacks access.
+    Raises ValueError if the job is not a completed rnaseq_alignment.
+    Raises FileNotFoundError if the QC CSV is missing from disk.
+    """
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    if job.job_type != "rnaseq_alignment" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed RNA-seq alignment "
+            f"(type={job.job_type}, status={job.status})"
+        )
+
+    csv_path = _resolve_qc_csv_path(job)
+    if csv_path is None:
+        raise FileNotFoundError(f"QC report CSV not found for job {job_id}")
+
+    return csv_path
+
+
+# ---------------------------------------------------------------------------
+# Peak Calling QC Report
+# ---------------------------------------------------------------------------
 
 
 def _parse_peak_qc_csv(csv_path: Path) -> list[PeakCallingReactionMetrics]:

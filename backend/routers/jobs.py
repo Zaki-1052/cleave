@@ -21,6 +21,7 @@ from schemas.qc_report import (
     DiffBindReport,
     PeakCallingQCReport,
     PearsonCorrelationReport,
+    RnaseqAlignmentQCReport,
     RomanNormalizationReport,
 )
 from services.download_token_service import create_download_token
@@ -49,6 +50,8 @@ from services.qc_report_service import (
     get_pearson_correlation_report,
     get_pearson_coverage_matrix_path,
     get_qc_csv_path,
+    get_rnaseq_alignment_qc_report,
+    get_rnaseq_qc_csv_path,
     get_roman_normalization_factors_path,
     get_roman_normalization_report,
     get_top_peaks_csv_path,
@@ -408,6 +411,55 @@ async def download_qc_csv(
         csv_path,
         media_type="text/csv",
         filename="alignment_metrics.csv",
+    )
+
+
+# ---------------------------------------------------------------------------
+# RNA-seq Alignment QC Report endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get("/jobs/{job_id}/rnaseq-qc-report", response_model=RnaseqAlignmentQCReport)
+async def get_rnaseq_qc_report(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        report = await get_rnaseq_alignment_qc_report(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return report
+
+
+@router.get("/jobs/{job_id}/rnaseq-qc-report/download")
+async def download_rnaseq_qc_csv(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        csv_path = await get_rnaseq_qc_csv_path(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if csv_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return FileResponse(
+        csv_path,
+        media_type="text/csv",
+        filename="rnaseq_alignment_metrics.csv",
     )
 
 

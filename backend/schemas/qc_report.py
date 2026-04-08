@@ -57,6 +57,44 @@ class AlignmentQCReport(CamelModel):
 
 
 # ---------------------------------------------------------------------------
+# RNA-seq Alignment QC Report
+# ---------------------------------------------------------------------------
+
+
+class RnaseqAlignmentReactionMetrics(CamelModel):
+    """Per-reaction RNA-seq alignment QC metrics (STAR + Salmon)."""
+
+    short_name: str
+    # STAR metrics
+    total_input_reads: int
+    uniquely_mapped_reads: int
+    unique_mapping_rate: float
+    multi_mapped_rate: float
+    unmapped_rate: float
+    average_mapped_length: float
+    num_splices: int
+    num_splices_annotated: int = 0
+    num_splices_gt_ag: int = 0
+    num_splices_gc_ag: int = 0
+    num_splices_at_ac: int = 0
+    num_splices_non_canonical: int = 0
+    mismatch_rate: float
+    # Salmon metrics
+    salmon_mapping_rate: float
+    salmon_library_type: str
+    salmon_num_processed: int
+    salmon_frag_length_mean: float = 0.0
+    salmon_frag_length_sd: float = 0.0
+
+
+class RnaseqAlignmentQCReport(CamelModel):
+    """Full RNA-seq alignment QC report for an rnaseq_alignment job."""
+
+    reference_genome: str
+    metrics: list[RnaseqAlignmentReactionMetrics]
+
+
+# ---------------------------------------------------------------------------
 # Peak Calling QC Report
 # ---------------------------------------------------------------------------
 

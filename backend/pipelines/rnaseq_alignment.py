@@ -58,14 +58,14 @@ logger = structlog.get_logger(__name__)
 
 RNASEQ_GENOME_CONFIG: dict[str, dict[str, str]] = {
     "mm10": {
-        "star_index_subdir": "mm10",       # → {STAR_INDEX_DIR}/mm10/
-        "salmon_index_subdir": "mm10",     # → {SALMON_INDEX_DIR}/mm10/
+        "star_index_subdir": "mm10",  # → {STAR_INDEX_DIR}/mm10/
+        "salmon_index_subdir": "mm10",  # → {SALMON_INDEX_DIR}/mm10/
         "gtf_filename": "gencode.vM10.annotation.gtf",  # TODO(genome-versions)
     },
     "hg38": {
-        "star_index_subdir": "hg38",       # → {STAR_INDEX_DIR}/hg38/
-        "salmon_index_subdir": "hg38",     # → {SALMON_INDEX_DIR}/hg38/
-        "gtf_filename": "gencode.v29.annotation.gtf",   # TODO(genome-versions)
+        "star_index_subdir": "hg38",  # → {STAR_INDEX_DIR}/hg38/
+        "salmon_index_subdir": "hg38",  # → {SALMON_INDEX_DIR}/hg38/
+        "gtf_filename": "gencode.v29.annotation.gtf",  # TODO(genome-versions)
     },
 }
 
@@ -79,10 +79,17 @@ _QC_CSV_HEADERS = [
     "Unmapped_Rate(%)",
     "Average_Mapped_Length",
     "Num_Splices",
+    "Num_Splices_Annotated",
+    "Num_Splices_GT_AG",
+    "Num_Splices_GC_AG",
+    "Num_Splices_AT_AC",
+    "Num_Splices_Non_Canonical",
     "Mismatch_Rate(%)",
     "Salmon_Mapping_Rate(%)",
     "Salmon_Library_Type",
     "Salmon_Num_Processed",
+    "Salmon_Frag_Length_Mean",
+    "Salmon_Frag_Length_SD",
 ]
 
 
@@ -106,6 +113,11 @@ def _parse_star_log(log_path: Path) -> dict:
         "unmapped_rate": 0.0,
         "average_mapped_length": 0.0,
         "num_splices": 0,
+        "num_splices_annotated": 0,
+        "num_splices_gt_ag": 0,
+        "num_splices_gc_ag": 0,
+        "num_splices_at_ac": 0,
+        "num_splices_non_canonical": 0,
         "mismatch_rate": 0.0,
     }
 
@@ -128,6 +140,11 @@ def _parse_star_log(log_path: Path) -> dict:
     result["unique_mapping_rate"] = _extract_float(r"Uniquely mapped reads %")
     result["average_mapped_length"] = _extract_float(r"Average mapped length")
     result["num_splices"] = _extract_int(r"Number of splices:\s*Total")
+    result["num_splices_annotated"] = _extract_int(r"Number of splices:\s*Annotated \(sjdb\)")
+    result["num_splices_gt_ag"] = _extract_int(r"Number of splices:\s*GT/AG")
+    result["num_splices_gc_ag"] = _extract_int(r"Number of splices:\s*GC/AG")
+    result["num_splices_at_ac"] = _extract_int(r"Number of splices:\s*AT/AC")
+    result["num_splices_non_canonical"] = _extract_int(r"Number of splices:\s*Non-canonical")
     result["mismatch_rate"] = _extract_float(r"Mismatch rate per base, %")
 
     # Multi-mapped: sum of "multiple loci" and "too many loci"
@@ -150,6 +167,8 @@ def _parse_salmon_meta(meta_path: Path) -> dict:
         "salmon_mapping_rate": 0.0,
         "salmon_library_type": "unknown",
         "salmon_num_processed": 0,
+        "salmon_frag_length_mean": 0.0,
+        "salmon_frag_length_sd": 0.0,
     }
 
     if not meta_path.exists():
@@ -169,6 +188,8 @@ def _parse_salmon_meta(meta_path: Path) -> dict:
     result["salmon_library_type"] = lib_types[0] if lib_types else "unknown"
 
     result["salmon_num_processed"] = int(data.get("num_processed", 0))
+    result["salmon_frag_length_mean"] = round(float(data.get("frag_length_mean", 0.0)), 2)
+    result["salmon_frag_length_sd"] = round(float(data.get("frag_length_sd", 0.0)), 2)
 
     return result
 
@@ -189,10 +210,17 @@ def _write_rnaseq_qc_csv(metrics_list: list[dict], output_path: Path) -> None:
                 "Unmapped_Rate(%)": round(m["unmapped_rate"], 2),
                 "Average_Mapped_Length": round(m["average_mapped_length"], 2),
                 "Num_Splices": m["num_splices"],
+                "Num_Splices_Annotated": m["num_splices_annotated"],
+                "Num_Splices_GT_AG": m["num_splices_gt_ag"],
+                "Num_Splices_GC_AG": m["num_splices_gc_ag"],
+                "Num_Splices_AT_AC": m["num_splices_at_ac"],
+                "Num_Splices_Non_Canonical": m["num_splices_non_canonical"],
                 "Mismatch_Rate(%)": round(m["mismatch_rate"], 2),
                 "Salmon_Mapping_Rate(%)": round(m["salmon_mapping_rate"], 2),
                 "Salmon_Library_Type": m["salmon_library_type"],
                 "Salmon_Num_Processed": m["salmon_num_processed"],
+                "Salmon_Frag_Length_Mean": round(m["salmon_frag_length_mean"], 2),
+                "Salmon_Frag_Length_SD": round(m["salmon_frag_length_sd"], 2),
             }
         )
     output_path.write_text(buf.getvalue())
@@ -827,6 +855,8 @@ class RnaseqAlignmentStage(PipelineStage):
                         "num_mapped": 9250000,
                         "percent_mapped": 92.50,
                         "library_types": ["ISR"],
+                        "frag_length_mean": 234.5,
+                        "frag_length_sd": 48.2,
                     },
                     indent=2,
                 )
@@ -842,6 +872,11 @@ class RnaseqAlignmentStage(PipelineStage):
                 "                        Uniquely mapped reads % |\t94.35%\n"
                 "                          Average mapped length |\t199.19\n"
                 "                       Number of splices: Total |\t7218019\n"
+                "            Number of splices: Annotated (sjdb) |\t6503217\n"
+                "                    Number of splices: GT/AG |\t7139825\n"
+                "                    Number of splices: GC/AG |\t52341\n"
+                "                    Number of splices: AT/AC |\t7521\n"
+                "               Number of splices: Non-canonical |\t18332\n"
                 "                      Mismatch rate per base, % |\t0.22%\n"
                 "             % of reads mapped to multiple loci |\t3.91%\n"
                 "             % of reads mapped to too many loci |\t0.06%\n"
