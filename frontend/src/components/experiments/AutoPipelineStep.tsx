@@ -1,11 +1,12 @@
 // frontend/src/components/experiments/AutoPipelineStep.tsx
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Zap } from 'lucide-react';
 import { AutoPipelineConfigPanel } from './AutoPipelineConfigPanel';
 import { useReactions } from '@/hooks/useReactions';
 
 interface AutoPipelineStepProps {
   experimentId: number;
+  assayType: string;
   enabled: boolean;
   setEnabled: (v: boolean) => void;
   referenceGenome: string;
@@ -26,6 +27,7 @@ interface AutoPipelineStepProps {
 
 export function AutoPipelineStep({
   experimentId,
+  assayType,
   enabled,
   setEnabled,
   referenceGenome,
@@ -43,8 +45,11 @@ export function AutoPipelineStep({
   includePearson,
   setIncludePearson,
 }: AutoPipelineStepProps) {
+  const isRnaseq = assayType === 'RNA-seq';
   const { data: reactionsData } = useReactions(experimentId);
   const reactions = useMemo(() => reactionsData?.items ?? [], [reactionsData?.items]);
+  const [removeDuplicates, setRemoveDuplicates] = useState(false);
+  const [includeDe, setIncludeDe] = useState(true);
 
   const detectedGenome = useMemo(() => {
     const orgs = [...new Set(reactions.map((r) => r.organism))];
@@ -65,6 +70,10 @@ export function AutoPipelineStep({
     }
   }, [enabled, referenceGenome, detectedGenome, setReferenceGenome]);
 
+  const description = isRnaseq
+    ? 'Automatically run FastQC, trimming (fastp), alignment (STAR+Salmon), and DE analysis after creating this experiment.'
+    : 'Automatically run FastQC, trimming, alignment, and peak calling after creating this experiment.';
+
   return (
     <div className="space-y-5">
       <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-4 transition-colors hover:bg-muted/50">
@@ -80,7 +89,7 @@ export function AutoPipelineStep({
             Run Full Pipeline when done
           </span>
           <p className="text-xs text-muted-foreground">
-            Automatically run FastQC, trimming, alignment, and peak calling after creating this experiment.
+            {description}
           </p>
         </div>
       </label>
@@ -88,6 +97,7 @@ export function AutoPipelineStep({
       {enabled ? (
         <AutoPipelineConfigPanel
           reactions={reactions}
+          assayType={assayType}
           referenceGenome={referenceGenome}
           setReferenceGenome={setReferenceGenome}
           peakCaller={peakCaller}
@@ -102,6 +112,10 @@ export function AutoPipelineStep({
           setIncludeHeatmap={setIncludeHeatmap}
           includePearson={includePearson}
           setIncludePearson={setIncludePearson}
+          removeDuplicates={removeDuplicates}
+          setRemoveDuplicates={setRemoveDuplicates}
+          includeDe={includeDe}
+          setIncludeDe={setIncludeDe}
         />
       ) : (
         <div className="rounded-lg border border-dashed border-border p-6 text-center">

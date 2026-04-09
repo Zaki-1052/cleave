@@ -90,6 +90,7 @@ def patch_worker_sessions(monkeypatch):
     Only used by tests that exercise the worker or job_output_service.
     """
     import database
+    import services.auto_pipeline_service
     import services.cleanup_service
     import services.event_service
     import services.fastqc_service
@@ -113,6 +114,9 @@ def patch_worker_sessions(monkeypatch):
     )
     monkeypatch.setattr(
         services.local_import_service, "async_session_factory", test_session_factory
+    )
+    monkeypatch.setattr(
+        services.auto_pipeline_service, "async_session_factory", test_session_factory
     )
 
 

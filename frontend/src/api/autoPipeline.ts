@@ -4,6 +4,7 @@ import type { AnalysisJob } from './types';
 
 export interface AutoPipelineConfig {
   referenceGenome: string;
+  // CUT&RUN fields
   peakCaller?: string;
   peakSize?: string;
   macs2Qvalue?: number;
@@ -12,6 +13,9 @@ export interface AutoPipelineConfig {
   includeDiffbind?: boolean;
   includeHeatmap?: boolean;
   includePearson?: boolean;
+  // RNA-seq fields
+  removeDuplicates?: boolean;
+  includeDe?: boolean;
 }
 
 export async function startAutoPipeline(

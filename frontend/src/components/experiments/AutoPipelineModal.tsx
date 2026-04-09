@@ -21,6 +21,8 @@ export function AutoPipelineModal({
   reactions,
   onStarted,
 }: AutoPipelineModalProps) {
+  const isRnaseq = experiment.assayType === 'RNA-seq';
+
   const detectedGenome = useMemo(() => {
     const orgs = [...new Set(reactions.map((r) => r.organism))];
     if (orgs.length === 1) {
@@ -34,12 +36,17 @@ export function AutoPipelineModal({
   }, [reactions]);
 
   const [referenceGenome, setReferenceGenome] = useState(detectedGenome);
+  // CUT&RUN state
   const [peakCaller, setPeakCaller] = useState('SEACR');
   const [peakSize, setPeakSize] = useState('stringent');
   const [includeNormalization, setIncludeNormalization] = useState(true);
   const [includeDiffbind, setIncludeDiffbind] = useState(true);
   const [includeHeatmap, setIncludeHeatmap] = useState(true);
   const [includePearson, setIncludePearson] = useState(true);
+  // RNA-seq state
+  const [removeDuplicates, setRemoveDuplicates] = useState(false);
+  const [includeDe, setIncludeDe] = useState(true);
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,17 +56,23 @@ export function AutoPipelineModal({
     setSubmitting(true);
     setError(null);
     try {
-      const config: AutoPipelineConfig = {
-        referenceGenome,
-        peakCaller,
-        peakSize,
-        macs2Qvalue: 0.01,
-        fragmentFilter: true,
-        includeNormalization: isMouse && includeNormalization,
-        includeDiffbind,
-        includeHeatmap,
-        includePearson,
-      };
+      const config: AutoPipelineConfig = isRnaseq
+        ? {
+            referenceGenome,
+            removeDuplicates,
+            includeDe,
+          }
+        : {
+            referenceGenome,
+            peakCaller,
+            peakSize,
+            macs2Qvalue: 0.01,
+            fragmentFilter: true,
+            includeNormalization: isMouse && includeNormalization,
+            includeDiffbind,
+            includeHeatmap,
+            includePearson,
+          };
       await startAutoPipeline(experiment.id, config);
       onStarted();
       onClose();
@@ -75,6 +88,7 @@ export function AutoPipelineModal({
       <div className="space-y-5 p-6">
         <AutoPipelineConfigPanel
           reactions={reactions}
+          assayType={experiment.assayType}
           referenceGenome={referenceGenome}
           setReferenceGenome={setReferenceGenome}
           peakCaller={peakCaller}
@@ -89,6 +103,10 @@ export function AutoPipelineModal({
           setIncludeHeatmap={setIncludeHeatmap}
           includePearson={includePearson}
           setIncludePearson={setIncludePearson}
+          removeDuplicates={removeDuplicates}
+          setRemoveDuplicates={setRemoveDuplicates}
+          includeDe={includeDe}
+          setIncludeDe={setIncludeDe}
         />
 
         {error && (

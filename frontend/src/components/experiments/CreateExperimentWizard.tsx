@@ -131,17 +131,24 @@ export function CreateExperimentWizard({
     if (autoPipelineEnabled && createdExperiment) {
       setPipelineSubmitting(true);
       try {
-        const config: AutoPipelineConfig = {
-          referenceGenome,
-          peakCaller,
-          peakSize,
-          macs2Qvalue: 0.01,
-          fragmentFilter: true,
-          includeNormalization: referenceGenome === 'mm10' && includeNormalization,
-          includeDiffbind,
-          includeHeatmap,
-          includePearson,
-        };
+        const isRnaseq = assayType === 'RNA-seq';
+        const config: AutoPipelineConfig = isRnaseq
+          ? {
+              referenceGenome,
+              removeDuplicates: false,
+              includeDe: true,
+            }
+          : {
+              referenceGenome,
+              peakCaller,
+              peakSize,
+              macs2Qvalue: 0.01,
+              fragmentFilter: true,
+              includeNormalization: referenceGenome === 'mm10' && includeNormalization,
+              includeDiffbind,
+              includeHeatmap,
+              includePearson,
+            };
         await startAutoPipeline(createdExperiment.id, config);
       } catch {
         toast.error('Failed to start auto-pipeline. You can start it from the experiment page.');
@@ -190,14 +197,15 @@ export function CreateExperimentWizard({
         />
       ) : null,
     },
-    // Pipeline step hidden for training projects and RNA-seq experiments
-    ...(!isTrainingProject && assayType !== 'RNA-seq'
+    // Pipeline step hidden for training projects
+    ...(!isTrainingProject
       ? [
           {
             label: 'Pipeline',
             content: createdExperiment ? (
               <AutoPipelineStep
                 experimentId={createdExperiment.id}
+                assayType={assayType}
                 enabled={autoPipelineEnabled}
                 setEnabled={setAutoPipelineEnabled}
                 referenceGenome={referenceGenome}

@@ -17,6 +17,7 @@ interface AutoPipelineBannerProps {
 }
 
 const STEP_ORDER: Record<string, number> = {
+  // CUT&RUN / CUT&Tag
   trimming: 1,
   alignment: 2,
   peak_calling: 3,
@@ -24,9 +25,14 @@ const STEP_ORDER: Record<string, number> = {
   diffbind: 5,
   custom_heatmap: 6,
   pearson_correlation: 7,
+  // RNA-seq
+  rnaseq_trimming: 1,
+  rnaseq_alignment: 2,
+  rnaseq_de: 3,
 };
 
 const STEP_LABELS: Record<string, string> = {
+  // CUT&RUN / CUT&Tag
   trimming: 'Trimming',
   alignment: 'Alignment',
   peak_calling: 'Peak Calling',
@@ -34,6 +40,10 @@ const STEP_LABELS: Record<string, string> = {
   diffbind: 'DiffBind',
   custom_heatmap: 'Heatmaps',
   pearson_correlation: 'Pearson',
+  // RNA-seq
+  rnaseq_trimming: 'Trimming (fastp)',
+  rnaseq_alignment: 'Alignment (STAR+Salmon)',
+  rnaseq_de: 'DE Analysis',
 };
 
 type StepState = 'complete' | 'running' | 'queued' | 'error' | 'pending';
@@ -58,15 +68,23 @@ export function AutoPipelineBanner({
 
   const steps = useMemo(() => {
     const config = experiment.autoPipelineConfig ?? {};
-    const allSteps = [
-      { key: 'trimming', always: false },
-      { key: 'alignment', always: true },
-      { key: 'peak_calling', always: true },
-      { key: 'roman_normalization', always: false },
-      { key: 'diffbind', always: false },
-      { key: 'custom_heatmap', always: false },
-      { key: 'pearson_correlation', always: false },
-    ];
+    const isRnaseq = experiment.assayType === 'RNA-seq';
+
+    const allSteps = isRnaseq
+      ? [
+          { key: 'rnaseq_trimming', always: false },
+          { key: 'rnaseq_alignment', always: true },
+          { key: 'rnaseq_de', always: false },
+        ]
+      : [
+          { key: 'trimming', always: false },
+          { key: 'alignment', always: true },
+          { key: 'peak_calling', always: true },
+          { key: 'roman_normalization', always: false },
+          { key: 'diffbind', always: false },
+          { key: 'custom_heatmap', always: false },
+          { key: 'pearson_correlation', always: false },
+        ];
 
     return allSteps
       .filter((s) => {
@@ -78,6 +96,7 @@ export function AutoPipelineBanner({
         if (s.key === 'diffbind') return config.include_diffbind;
         if (s.key === 'custom_heatmap') return config.include_heatmap;
         if (s.key === 'pearson_correlation') return config.include_pearson;
+        if (s.key === 'rnaseq_de') return config.include_de;
         return true;
       })
       .map((s) => {
@@ -95,7 +114,7 @@ export function AutoPipelineBanner({
           state,
         };
       });
-  }, [autoJobs, experiment.autoPipelineConfig]);
+  }, [autoJobs, experiment.autoPipelineConfig, experiment.assayType]);
 
   if (!status || status === 'complete') return null;
 

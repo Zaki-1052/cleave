@@ -2,9 +2,14 @@
 """
 Auto-pipeline orchestrator: chains all analysis steps sequentially.
 
-Flow: FastQC → Trimming (if adapters) → Alignment → Peak Calling →
-      Roman Normalization (mouse) → DiffBind (if conditions) →
-      Custom Heatmaps → Pearson Correlation
+CUT&RUN/CUT&Tag flow:
+  FastQC → Trimming (if adapters) → Alignment → Peak Calling →
+  Roman Normalization (mouse) → DiffBind (if conditions) →
+  Custom Heatmaps → Pearson Correlation
+
+RNA-seq flow:
+  FastQC → fastp Trimming (always) → STAR+Salmon Alignment →
+  DE Analysis (if conditions detected) → Complete
 """
 
 import re
@@ -29,6 +34,11 @@ _CONDITION_PATTERNS = {
 }
 
 
+def _is_rnaseq(config: dict) -> bool:
+    """Check if this auto-pipeline is for an RNA-seq experiment."""
+    return config.get("assay_type") == "RNA-seq"
+
+
 async def start_auto_pipeline(
     db: AsyncSession,
     experiment_id: int,
@@ -36,11 +46,16 @@ async def start_auto_pipeline(
     config: dict,
 ) -> None:
     """Enable auto-pipeline on an experiment."""
-    project_id = (
-        await db.execute(select(Experiment.project_id).where(Experiment.id == experiment_id))
-    ).scalar_one()
+    row = (
+        await db.execute(
+            select(Experiment.project_id, Experiment.assay_type).where(
+                Experiment.id == experiment_id
+            )
+        )
+    ).one()
 
-    config["project_id"] = project_id
+    config["project_id"] = row.project_id
+    config["assay_type"] = row.assay_type
     config["launched_by"] = user_id
 
     await db.execute(
@@ -122,17 +137,24 @@ async def _evaluate_fastqc_and_queue(
     )
     if trimmed_result.scalars().first():
         logger.info("auto_pipeline.trimming_already_done", experiment_id=experiment_id)
-        await _queue_alignment(db, experiment_id, config, parent_job_id=None)
+        if _is_rnaseq(config):
+            await _queue_rnaseq_alignment(db, experiment_id, config, parent_job_id=None)
+        else:
+            await _queue_alignment(db, experiment_id, config, parent_job_id=None)
         return
 
-    adapters_detected = any(f.adapter_status in ("warn", "fail") for f in raw_fastqs)
-
-    if adapters_detected:
-        logger.info("auto_pipeline.adapters_detected", experiment_id=experiment_id)
-        await _queue_trimming(db, experiment_id, config)
+    if _is_rnaseq(config):
+        # RNA-seq always trims with fastp (standard practice)
+        logger.info("auto_pipeline.rnaseq_queue_fastp", experiment_id=experiment_id)
+        await _queue_rnaseq_trimming(db, experiment_id, config)
     else:
-        logger.info("auto_pipeline.no_adapters", experiment_id=experiment_id)
-        await _queue_alignment(db, experiment_id, config, parent_job_id=None)
+        adapters_detected = any(f.adapter_status in ("warn", "fail") for f in raw_fastqs)
+        if adapters_detected:
+            logger.info("auto_pipeline.adapters_detected", experiment_id=experiment_id)
+            await _queue_trimming(db, experiment_id, config)
+        else:
+            logger.info("auto_pipeline.no_adapters", experiment_id=experiment_id)
+            await _queue_alignment(db, experiment_id, config, parent_job_id=None)
 
 
 async def on_job_complete(experiment_id: int, job_id: int, job_type: str) -> None:
@@ -155,6 +177,29 @@ async def on_job_complete(experiment_id: int, job_id: int, job_type: str) -> Non
 
         if job_type == "trimming":
             await _queue_alignment(db, experiment_id, config, parent_job_id=job_id)
+
+        elif job_type == "rnaseq_trimming":
+            await _queue_rnaseq_alignment(db, experiment_id, config, parent_job_id=job_id)
+
+        elif job_type == "rnaseq_alignment":
+            # Cache alignment job ID for downstream DE analysis
+            config["_rnaseq_alignment_job_id"] = job_id
+            await db.execute(
+                update(Experiment)
+                .where(Experiment.id == experiment_id)
+                .values(auto_pipeline_config=config)
+            )
+            await db.commit()
+            # Queue DE analysis if conditions are detectable
+            if config.get("include_de", True):
+                can_de = await _can_run_rnaseq_de(db, experiment_id)
+                if can_de:
+                    await _queue_rnaseq_de(db, experiment_id, config, alignment_job_id=job_id)
+                    return
+            await _mark_complete(db, experiment_id)
+
+        elif job_type == "rnaseq_de":
+            await _mark_complete(db, experiment_id)
 
         elif job_type == "alignment":
             await _queue_peak_calling(db, experiment_id, config, alignment_job_id=job_id)
@@ -362,6 +407,143 @@ async def _queue_trimming(db: AsyncSession, experiment_id: int, config: dict) ->
         "fastq_pairs": fastq_pairs,
     }
     await _create_auto_job(db, experiment_id, "trimming", "Auto: Trimming", params, config)
+
+
+async def _queue_rnaseq_trimming(db: AsyncSession, experiment_id: int, config: dict) -> None:
+    """Queue an RNA-seq fastp trimming job."""
+    result = await db.execute(
+        select(FastqFile)
+        .where(FastqFile.experiment_id == experiment_id)
+        .where(FastqFile.is_trimmed.is_(False))
+    )
+    raw_fastqs = result.scalars().all()
+
+    pairs_map: dict[str, dict] = {}
+    for f in raw_fastqs:
+        if f.prefix not in pairs_map:
+            pairs_map[f.prefix] = {"prefix": f.prefix}
+        if f.read_direction == "R1":
+            pairs_map[f.prefix]["r1_path"] = f.file_path
+            pairs_map[f.prefix]["r1_id"] = f.id
+        elif f.read_direction == "R2":
+            pairs_map[f.prefix]["r2_path"] = f.file_path
+            pairs_map[f.prefix]["r2_id"] = f.id
+
+    fastq_pairs = [p for p in pairs_map.values() if "r1_path" in p and "r2_path" in p]
+
+    params = {
+        "experiment_id": experiment_id,
+        "project_id": config["project_id"],
+        "fastq_pairs": fastq_pairs,
+    }
+    await _create_auto_job(
+        db, experiment_id, "rnaseq_trimming", "Auto: Trimming (fastp)", params, config
+    )
+
+
+async def _queue_rnaseq_alignment(
+    db: AsyncSession, experiment_id: int, config: dict, parent_job_id: int | None
+) -> None:
+    """Queue an RNA-seq alignment job (STAR + Salmon + BigWigs)."""
+    reactions = await _get_reactions(db, experiment_id)
+
+    result = await db.execute(select(FastqFile).where(FastqFile.experiment_id == experiment_id))
+    all_fastqs = result.scalars().all()
+
+    # Build prefix -> {R1: path, R2: path}, preferring trimmed files
+    prefix_paths: dict[str, dict[str, str]] = {}
+    for f in all_fastqs:
+        key = f.prefix
+        if key not in prefix_paths:
+            prefix_paths[key] = {}
+        direction = f.read_direction
+        if direction not in prefix_paths[key] or f.is_trimmed:
+            prefix_paths[key][direction] = f.file_path
+
+    reaction_params = []
+    for r in reactions:
+        paths = prefix_paths.get(r.fastq_prefix, {})
+        rp: dict = {"reaction_id": r.id, "short_name": r.short_name}
+        if "R1" in paths:
+            rp["r1_path"] = paths["R1"]
+        if "R2" in paths:
+            rp["r2_path"] = paths["R2"]
+        reaction_params.append(rp)
+
+    params = {
+        "experiment_id": experiment_id,
+        "project_id": config["project_id"],
+        "reference_genome": config["reference_genome"],
+        "remove_duplicates": config.get("remove_duplicates", False),
+        "bam_coverage_bin_size": 20,
+        "smoothed_bin_size": 100,
+        "reactions": reaction_params,
+    }
+    await _create_auto_job(
+        db,
+        experiment_id,
+        "rnaseq_alignment",
+        "Auto: Alignment (STAR+Salmon)",
+        params,
+        config,
+        parent_job_id,
+    )
+
+
+async def _can_run_rnaseq_de(db: AsyncSession, experiment_id: int) -> bool:
+    """Check if DE analysis can run (>=2 conditions with >=2 replicates each)."""
+    reactions = await _get_reactions(db, experiment_id)
+    conditions = _detect_conditions(reactions)
+    valid_conditions = {c: rs for c, rs in conditions.items() if len(rs) >= 2}
+    return len(valid_conditions) >= 2
+
+
+async def _queue_rnaseq_de(
+    db: AsyncSession, experiment_id: int, config: dict, alignment_job_id: int
+) -> None:
+    """Queue RNA-seq DE analysis with auto-detected conditions."""
+    reactions = await _get_reactions(db, experiment_id)
+    conditions = _detect_conditions(reactions)
+    valid_conditions = {c: rs for c, rs in conditions.items() if len(rs) >= 2}
+
+    # Resolve Salmon quant paths from alignment outputs
+    quant_result = await db.execute(
+        select(JobOutput)
+        .where(JobOutput.job_id == alignment_job_id)
+        .where(JobOutput.file_category == "salmon_quant")
+    )
+    quant_map = {o.reaction_id: o.file_path for o in quant_result.scalars().all()}
+
+    sample_params = []
+    for condition, rxns in valid_conditions.items():
+        for rep_num, r in enumerate(rxns, 1):
+            sample_params.append(
+                {
+                    "reaction_id": r.id,
+                    "short_name": r.short_name,
+                    "condition": condition,
+                    "replicate": rep_num,
+                    "salmon_quant_path": quant_map.get(r.id, ""),
+                }
+            )
+
+    params = {
+        "experiment_id": experiment_id,
+        "project_id": config["project_id"],
+        "reference_genome": config["reference_genome"],
+        "alignment_job_id": alignment_job_id,
+        "quantification_source": "salmon",
+        "samples": sample_params,
+    }
+    await _create_auto_job(
+        db,
+        experiment_id,
+        "rnaseq_de",
+        "Auto: DE Analysis (DESeq2)",
+        params,
+        config,
+        alignment_job_id,
+    )
 
 
 async def _queue_alignment(
@@ -774,7 +956,13 @@ async def _resolve_best_bigwig_source(
 
 
 def _detect_conditions(reactions: list) -> dict[str, list]:
-    """Auto-detect conditions from reaction metadata or short_name patterns."""
+    """Auto-detect conditions from reaction metadata or short_name patterns.
+
+    Three-tier detection:
+      1. explicit ``experimental_condition`` field
+      2. ``treatment`` field (RNA-seq reactions populate this)
+      3. short_name regex patterns (ctrl/control/wt, mut/mutant/ko)
+    """
     conditions: dict[str, list] = {}
 
     for r in reactions:
@@ -787,7 +975,11 @@ def _detect_conditions(reactions: list) -> dict[str, list]:
         if r.experimental_condition:
             condition = r.experimental_condition.strip()
 
-        # Tier 2: parse short_name for common patterns
+        # Tier 2: treatment field (RNA-seq reactions)
+        if not condition and getattr(r, "treatment", None):
+            condition = r.treatment.strip()
+
+        # Tier 3: parse short_name for common patterns
         if not condition:
             for cond_name, pattern in _CONDITION_PATTERNS.items():
                 if pattern.search(r.short_name):

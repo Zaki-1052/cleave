@@ -134,7 +134,7 @@ export default function ExperimentView() {
         </div>
         {!isReadOnly && (
           <div className="flex items-center gap-2">
-            {!isRnaseq && !isTrainingProject && (!experiment.autoPipelineStatus || experiment.autoPipelineStatus === 'cancelled') && reactions.length > 0 && (
+            {!isTrainingProject && (!experiment.autoPipelineStatus || experiment.autoPipelineStatus === 'cancelled') && reactions.length > 0 && (
               <Button
                 variant="success"
                 onClick={() => setShowAutoPipelineModal(true)}
@@ -171,7 +171,7 @@ export default function ExperimentView() {
         </div>
       )}
 
-      {!isRnaseq && experiment.autoPipelineStatus && (
+      {experiment.autoPipelineStatus && (
         <AutoPipelineBanner
           experiment={experiment}
           onCancelled={() => {
@@ -264,18 +264,18 @@ export default function ExperimentView() {
             onClose={() => setShowNormalizationWizard(false)}
             experiment={experiment}
           />
-
-          <AutoPipelineModal
-            isOpen={showAutoPipelineModal}
-            onClose={() => setShowAutoPipelineModal(false)}
-            experiment={experiment}
-            reactions={reactions}
-            onStarted={() => {
-              // Refetch experiment to pick up new auto_pipeline_status
-            }}
-          />
         </>
       )}
+
+      <AutoPipelineModal
+        isOpen={showAutoPipelineModal}
+        onClose={() => setShowAutoPipelineModal(false)}
+        experiment={experiment}
+        reactions={reactions}
+        onStarted={() => {
+          void queryClient.invalidateQueries({ queryKey: ['experiments', experiment.id] });
+        }}
+      />
     </div>
   );
 }
