@@ -291,6 +291,34 @@ def rnaseq_alignment_methods(params: dict) -> str:
     return text
 
 
+def rnaseq_feature_counts_methods(params: dict) -> str:
+    """Generate featureCounts methods text for manuscripts."""
+    genome = params.get("reference_genome", "mm10")
+    genome_display = GENOME_DISPLAY_NAMES.get(genome, genome)
+    strandedness = params.get("strandedness", 0)
+    reactions = params.get("reactions", [])
+    n_samples = len(reactions)
+
+    annotation_ver = RNASEQ_ANNOTATION_VERSIONS.get(genome, "")
+    annotation_note = f" ({annotation_ver})" if annotation_ver else ""
+
+    strand_desc = {0: "unstranded", 1: "forward-stranded", 2: "reverse-stranded"}.get(
+        strandedness, "unstranded"
+    )
+
+    return (
+        f"Gene-level read counts were generated from coordinate-sorted BAMs using "
+        f"featureCounts (Subread package) with the {genome_display} "
+        f"annotation{annotation_note}. "
+        f"Paired-end reads were counted using fragment-level assignment "
+        f"(-p --countReadPairs) in {strand_desc} mode (-s {strandedness}) "
+        f"with primary alignments only (--primary). "
+        f"{n_samples} sample{'s' if n_samples != 1 else ''} "
+        f"{'were' if n_samples != 1 else 'was'} quantified in a single invocation "
+        f"producing a combined gene-by-sample count matrix."
+    )
+
+
 def roman_normalization_methods(params: dict) -> str:
     """Generate methods text for Roman normalization."""
     samples = params.get("samples", [])

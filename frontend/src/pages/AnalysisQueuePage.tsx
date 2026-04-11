@@ -32,6 +32,7 @@ const JOB_TYPE_OPTIONS = [
   { value: 'pearson_correlation', label: 'Correlation' },
   { value: 'rnaseq_trimming', label: 'Trimming (fastp)' },
   { value: 'rnaseq_alignment', label: 'Alignment (STAR)' },
+  { value: 'rnaseq_feature_counts', label: 'featureCounts' },
 ];
 
 const JOB_TYPE_TO_TAB: Record<string, string> = {
@@ -44,6 +45,7 @@ const JOB_TYPE_TO_TAB: Record<string, string> = {
   roman_normalization: 'normalization',
   rnaseq_trimming: 'trimming',
   rnaseq_alignment: 'alignment',
+  rnaseq_feature_counts: 'feature-counts',
 };
 
 function ActionsCell({ job }: { job: QueueJob }) {

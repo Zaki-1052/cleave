@@ -29,6 +29,7 @@ interface NewAnalysisDropdownProps {
   onPearsonCorrelationClick: () => void;
   onNormalizationClick: () => void;
   onRnaseqAlignmentClick?: () => void;
+  onFeatureCountsClick?: () => void;
 }
 
 export function NewAnalysisDropdown({
@@ -40,6 +41,7 @@ export function NewAnalysisDropdown({
   onPearsonCorrelationClick,
   onNormalizationClick,
   onRnaseqAlignmentClick,
+  onFeatureCountsClick,
 }: NewAnalysisDropdownProps) {
   return (
     <DropdownMenu>
@@ -56,7 +58,7 @@ export function NewAnalysisDropdown({
               <AlignLeft className="h-4 w-4" />
               Alignment (STAR)
             </DropdownMenuItem>
-            <DropdownMenuItem disabled>
+            <DropdownMenuItem onSelect={onFeatureCountsClick} disabled={!onFeatureCountsClick}>
               <ListOrdered className="h-4 w-4" />
               featureCounts
             </DropdownMenuItem>

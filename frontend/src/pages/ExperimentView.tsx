@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   FileText, Dna, FlaskConical, Scissors, AlignLeft, Mountain,
   ArrowLeftRight, Grid3x3, ScatterChart, Scale, History,
-  FolderTree, GraduationCap, BarChart3, Share2,
+  FolderTree, GraduationCap, BarChart3, Share2, ListOrdered,
 } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import type { LucideIcon } from 'lucide-react';
@@ -20,6 +20,7 @@ import { NewDiffBindWizard } from '@/components/diffbind/NewDiffBindWizard';
 import { NewPearsonCorrelationWizard } from '@/components/pearson-correlation/NewPearsonCorrelationWizard';
 import { NewNormalizationWizard } from '@/components/normalization/NewNormalizationWizard';
 import { NewRnaseqAlignmentWizard } from '@/components/rnaseq-alignment/NewRnaseqAlignmentWizard';
+import { NewFeatureCountsWizard } from '@/components/rnaseq-feature-counts/NewFeatureCountsWizard';
 import { AutoPipelineModal } from '@/components/experiments/AutoPipelineModal';
 import { AutoPipelineBanner } from '@/components/experiments/AutoPipelineBanner';
 import { useExperiment } from '@/hooks/useExperiments';
@@ -66,6 +67,7 @@ const RNASEQ_TABS: Tab[] = [
   { label: 'Reactions', path: 'reactions', icon: FlaskConical },
   { label: 'Trimming', path: 'trimming/0', icon: Scissors },
   { label: 'Alignment', path: 'alignment/0', icon: AlignLeft },
+  { label: 'featureCounts', path: 'feature-counts/0', icon: ListOrdered },
   { label: 'DE Analysis', path: 'de/0', icon: ArrowLeftRight },
   { label: 'QC Dashboard', path: 'rnaseq-qc/0', icon: BarChart3 },
   { label: 'Pathway', path: 'pathway/0', icon: Share2 },
@@ -90,6 +92,7 @@ export default function ExperimentView() {
   const [showNormalizationWizard, setShowNormalizationWizard] = useState(false);
   const [showAutoPipelineModal, setShowAutoPipelineModal] = useState(false);
   const [showRnaseqAlignmentWizard, setShowRnaseqAlignmentWizard] = useState(false);
+  const [showFeatureCountsWizard, setShowFeatureCountsWizard] = useState(false);
   const { data: reactionsData } = useReactions(Number(id));
   const reactions = reactionsData?.items ?? [];
 
@@ -151,6 +154,7 @@ export default function ExperimentView() {
               onPearsonCorrelationClick={() => setShowPearsonCorrelationWizard(true)}
               onNormalizationClick={() => setShowNormalizationWizard(true)}
               onRnaseqAlignmentClick={() => setShowRnaseqAlignmentWizard(true)}
+              onFeatureCountsClick={() => setShowFeatureCountsWizard(true)}
             />
           </div>
         )}
@@ -216,12 +220,19 @@ export default function ExperimentView() {
       </div>
 
       {isRnaseq && (
-        <NewRnaseqAlignmentWizard
-          isOpen={showRnaseqAlignmentWizard}
-          onClose={() => setShowRnaseqAlignmentWizard(false)}
-          experiment={experiment}
-          isTrainingProject={isTrainingProject}
-        />
+        <>
+          <NewRnaseqAlignmentWizard
+            isOpen={showRnaseqAlignmentWizard}
+            onClose={() => setShowRnaseqAlignmentWizard(false)}
+            experiment={experiment}
+            isTrainingProject={isTrainingProject}
+          />
+          <NewFeatureCountsWizard
+            isOpen={showFeatureCountsWizard}
+            onClose={() => setShowFeatureCountsWizard(false)}
+            experiment={experiment}
+          />
+        </>
       )}
 
       {!isRnaseq && (

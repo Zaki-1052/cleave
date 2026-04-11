@@ -390,6 +390,39 @@ export const RNASEQ_REFERENCE_GENOMES: Record<string, { value: string; label: st
   Mouse: [{ value: 'mm10', label: 'Mouse mm10' }],
 };
 
+export const RNASEQ_FEATURE_COUNTS_FILE_CATEGORIES = [
+  {
+    value: 'count_matrix',
+    label: 'Count Matrix',
+    description: 'Gene-level read counts (genes x samples) produced by featureCounts.',
+  },
+  {
+    value: 'count_summary',
+    label: 'Assignment Summary',
+    description: 'featureCounts read assignment statistics (assigned, unassigned, ambiguous).',
+  },
+  {
+    value: 'master_log',
+    label: 'Pipeline Log',
+    description: 'Execution log with timestamps.',
+  },
+] as const;
+
+export const SALMON_LIB_TYPE_TO_STRANDEDNESS: Record<string, number> = {
+  ISR: 2,
+  SR: 2,
+  ISF: 1,
+  SF: 1,
+  IU: 0,
+  U: 0,
+};
+
+export const STRANDEDNESS_OPTIONS = [
+  { value: 0, label: '0 — Unstranded' },
+  { value: 1, label: '1 — Forward (sense)' },
+  { value: 2, label: '2 — Reverse (antisense)' },
+] as const;
+
 export const HEATMAP_SORT_ORDERS = [
   { value: 'descend', label: 'Descending (default)' },
   { value: 'ascend', label: 'Ascending' },
