@@ -188,6 +188,38 @@ class DiffBindReport(CamelModel):
 
 
 # ---------------------------------------------------------------------------
+# RNA-seq DE Report
+# ---------------------------------------------------------------------------
+
+
+class RnaseqDEPlotInfo(CamelModel):
+    """Metadata for an RNA-seq DE plot output (PNG + SVG pair)."""
+
+    plot_type: str  # volcano, ma, pca, distance_heatmap, gene_heatmap
+    output_id_png: int | None = None
+    output_id_svg: int | None = None
+
+
+class RnaseqDEReport(CamelModel):
+    """Full RNA-seq DESeq2 results report.
+
+    column_names and results_preview follow the same dynamic pattern as DiffBind.
+    """
+
+    quantification_source: str  # "salmon" or "featurecounts"
+    conditions: list[str]
+    reference_condition: str | None = None
+    column_names: list[str]
+    total_genes: int
+    significant_genes_005: int
+    significant_genes_001: int
+    upregulated: int
+    downregulated: int
+    results_preview: list[dict[str, str | float]]
+    plot_outputs: list[RnaseqDEPlotInfo]
+
+
+# ---------------------------------------------------------------------------
 # Custom Heatmap Report
 # ---------------------------------------------------------------------------
 

@@ -29,6 +29,8 @@ from schemas.qc_report import (
     PearsonCorrelationReport,
     RnaseqAlignmentQCReport,
     RnaseqAlignmentReactionMetrics,
+    RnaseqDEPlotInfo,
+    RnaseqDEReport,
     RomanNormalizationReport,
     SpikeInPTMResult,
     SpikeInReactionResult,
@@ -767,6 +769,171 @@ async def get_diffbind_counts_path(
         return None
     if job.job_type != "diffbind" or job.status != "complete":
         raise ValueError(f"Job {job_id} is not a completed diffbind job")
+    path = _resolve_output_path(job, "normalized_counts", "csv")
+    if path is None:
+        raise FileNotFoundError(f"Normalized counts not found for job {job_id}")
+    return path
+
+
+# ---------------------------------------------------------------------------
+# RNA-seq DE report
+# ---------------------------------------------------------------------------
+
+_RNASEQ_DE_PLOT_CATEGORIES = {
+    "volcano": "volcano_plot",
+    "ma": "ma_plot",
+    "pca": "pca_plot",
+    "distance_heatmap": "distance_heatmap",
+    "gene_heatmap": "gene_heatmap",
+}
+
+
+def _parse_rnaseq_de_results_tsv(
+    tsv_path: Path,
+    max_rows: int = 100,
+) -> tuple[list[str], list[dict[str, str | float]], int, int, int, int, int]:
+    """Parse RNA-seq DE results TSV. Returns (columns, preview_rows,
+    total_genes, sig_005, sig_001, upregulated, downregulated)."""
+    columns: list[str] = []
+    rows: list[dict[str, str | float]] = []
+    total = 0
+    sig_005 = 0
+    sig_001 = 0
+    up = 0
+    down = 0
+
+    with open(tsv_path, newline="") as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        columns = list(reader.fieldnames or [])
+        for row in reader:
+            total += 1
+            padj_str = row.get("padj", "1")
+            lfc_str = row.get("log2FoldChange", "0")
+            try:
+                padj = float(padj_str)
+            except ValueError:
+                padj = 1.0
+            try:
+                lfc = float(lfc_str)
+            except ValueError:
+                lfc = 0.0
+            if padj < 0.05:
+                sig_005 += 1
+                if lfc > 0:
+                    up += 1
+                elif lfc < 0:
+                    down += 1
+            if padj < 0.01:
+                sig_001 += 1
+            if total <= max_rows:
+                parsed: dict[str, str | float] = {}
+                for col in columns:
+                    val = row.get(col, "")
+                    try:
+                        parsed[col] = float(val)
+                    except ValueError:
+                        parsed[col] = val
+                rows.append(parsed)
+
+    return columns, rows, total, sig_005, sig_001, up, down
+
+
+def _find_de_plot_output_ids(
+    job: AnalysisJob,
+) -> list[RnaseqDEPlotInfo]:
+    """Match job outputs to RNA-seq DE plot types (PNG + SVG pairs)."""
+    plot_infos: list[RnaseqDEPlotInfo] = []
+    for plot_type, category in _RNASEQ_DE_PLOT_CATEGORIES.items():
+        png_id = None
+        svg_id = None
+        for output in job.outputs:
+            if output.file_category == category:
+                if output.file_type == "png":
+                    png_id = output.id
+                elif output.file_type == "svg":
+                    svg_id = output.id
+        if png_id or svg_id:
+            plot_infos.append(
+                RnaseqDEPlotInfo(
+                    plot_type=plot_type,
+                    output_id_png=png_id,
+                    output_id_svg=svg_id,
+                )
+            )
+    return plot_infos
+
+
+async def get_rnaseq_de_report(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> RnaseqDEReport | None:
+    """Return structured DE report for a completed rnaseq_de job."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    if job.job_type != "rnaseq_de" or job.status != "complete":
+        raise ValueError(
+            f"Job {job_id} is not a completed rnaseq_de job "
+            f"(type={job.job_type}, status={job.status})"
+        )
+
+    tsv_path = _resolve_output_path(job, "de_results", "tsv")
+    if tsv_path is None:
+        raise FileNotFoundError(f"DE results TSV not found for job {job_id}")
+
+    columns, preview, total, sig_005, sig_001, up, down = _parse_rnaseq_de_results_tsv(tsv_path)
+
+    params = job.params or {}
+    conditions = sorted({s["condition"] for s in params.get("samples", [])})
+    source = params.get("quantification_source", "salmon")
+    ref_cond = params.get("reference_condition")
+    plot_infos = _find_de_plot_output_ids(job)
+
+    return RnaseqDEReport(
+        quantification_source=source,
+        conditions=conditions,
+        reference_condition=ref_cond,
+        column_names=columns,
+        total_genes=total,
+        significant_genes_005=sig_005,
+        significant_genes_001=sig_001,
+        upregulated=up,
+        downregulated=down,
+        results_preview=preview,
+        plot_outputs=plot_infos,
+    )
+
+
+async def get_rnaseq_de_results_path(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> Path | None:
+    """Return absolute path to DE results TSV for download."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+    if job.job_type != "rnaseq_de" or job.status != "complete":
+        raise ValueError(f"Job {job_id} is not a completed rnaseq_de job")
+    path = _resolve_output_path(job, "de_results", "tsv")
+    if path is None:
+        raise FileNotFoundError(f"DE results not found for job {job_id}")
+    return path
+
+
+async def get_rnaseq_de_counts_path(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> Path | None:
+    """Return absolute path to normalized counts CSV for download."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+    if job.job_type != "rnaseq_de" or job.status != "complete":
+        raise ValueError(f"Job {job_id} is not a completed rnaseq_de job")
     path = _resolve_output_path(job, "normalized_counts", "csv")
     if path is None:
         raise FileNotFoundError(f"Normalized counts not found for job {job_id}")

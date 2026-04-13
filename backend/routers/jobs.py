@@ -22,6 +22,7 @@ from schemas.qc_report import (
     PeakCallingQCReport,
     PearsonCorrelationReport,
     RnaseqAlignmentQCReport,
+    RnaseqDEReport,
     RomanNormalizationReport,
 )
 from services.download_token_service import create_download_token
@@ -51,6 +52,9 @@ from services.qc_report_service import (
     get_pearson_coverage_matrix_path,
     get_qc_csv_path,
     get_rnaseq_alignment_qc_report,
+    get_rnaseq_de_counts_path,
+    get_rnaseq_de_report,
+    get_rnaseq_de_results_path,
     get_rnaseq_qc_csv_path,
     get_roman_normalization_factors_path,
     get_roman_normalization_report,
@@ -520,6 +524,79 @@ async def download_diffbind_counts(
 ):
     try:
         csv_path = await get_diffbind_counts_path(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if csv_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return FileResponse(
+        csv_path,
+        media_type="text/csv",
+        filename="normalized_counts.csv",
+    )
+
+
+# ---------------------------------------------------------------------------
+# RNA-seq DE report endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get("/jobs/{job_id}/rnaseq-de-report", response_model=RnaseqDEReport)
+async def get_rnaseq_de_report_endpoint(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        report = await get_rnaseq_de_report(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return report
+
+
+@router.get("/jobs/{job_id}/rnaseq-de-report/download-results")
+async def download_rnaseq_de_results(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        tsv_path = await get_rnaseq_de_results_path(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if tsv_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return FileResponse(
+        tsv_path,
+        media_type="text/tab-separated-values",
+        filename="de_results.tsv",
+    )
+
+
+@router.get("/jobs/{job_id}/rnaseq-de-report/download-counts")
+async def download_rnaseq_de_counts(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        csv_path = await get_rnaseq_de_counts_path(db, job_id, user.id)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
     except FileNotFoundError as exc:

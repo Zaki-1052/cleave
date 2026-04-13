@@ -319,6 +319,47 @@ def rnaseq_feature_counts_methods(params: dict) -> str:
     )
 
 
+def rnaseq_de_methods(params: dict) -> str:
+    """Generate DESeq2 differential expression methods text for manuscripts."""
+    genome = params.get("reference_genome", "unknown")
+    genome_display = GENOME_DISPLAY_NAMES.get(genome, genome)
+    source = params.get("quantification_source", "salmon")
+    samples = params.get("samples", [])
+    conditions = sorted(set(s.get("condition", "") for s in samples))
+    reference_condition = params.get("reference_condition")
+
+    annotation_ver = RNASEQ_ANNOTATION_VERSIONS.get(genome, "")
+    annotation_note = f" ({annotation_ver})" if annotation_ver else ""
+
+    text = "Differential expression analysis was performed using DESeq2 (Love et al., 2014). "
+
+    if source == "salmon":
+        text += (
+            "Transcript-level abundance estimates from Salmon were imported "
+            "to gene-level counts using tximport (Soneson et al., 2015). "
+        )
+    elif source == "featurecounts":
+        text += (
+            "Gene-level read counts from featureCounts (Subread package) were used "
+            "as input for differential expression analysis. "
+        )
+
+    text += (
+        f"The design formula ~condition was used to test for differential "
+        f"expression between {' and '.join(conditions)}"
+    )
+    if reference_condition:
+        text += f" with {reference_condition} as the reference level"
+    text += ". "
+
+    text += (
+        f"Genes with an adjusted p-value (Benjamini-Hochberg) < 0.05 were "
+        f"considered significantly differentially expressed. "
+        f"Reference genome: {genome_display}{annotation_note}."
+    )
+    return text
+
+
 def roman_normalization_methods(params: dict) -> str:
     """Generate methods text for Roman normalization."""
     samples = params.get("samples", [])
