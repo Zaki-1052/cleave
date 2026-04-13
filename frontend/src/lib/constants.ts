@@ -408,6 +408,59 @@ export const RNASEQ_FEATURE_COUNTS_FILE_CATEGORIES = [
   },
 ] as const;
 
+export const RNASEQ_DE_FILE_CATEGORIES = [
+  {
+    value: 'de_results',
+    label: 'DE Results',
+    description: 'Full DESeq2 results table with gene names, fold changes, p-values, and FDR.',
+  },
+  {
+    value: 'normalized_counts',
+    label: 'Normalized Counts',
+    description: 'DESeq2-normalized read counts matrix (genes x samples).',
+  },
+  {
+    value: 'volcano_plot',
+    label: 'Volcano Plot',
+    description: 'Log2 fold change vs. -log10(adjusted p-value) with labeled top hits.',
+  },
+  {
+    value: 'ma_plot',
+    label: 'MA Plot',
+    description: 'Log2 fold change vs. mean normalized counts (DESeq2 plotMA).',
+  },
+  {
+    value: 'pca_plot',
+    label: 'PCA Plot',
+    description: 'Principal component analysis of regularized log-transformed counts.',
+  },
+  {
+    value: 'distance_heatmap',
+    label: 'Sample Distance Heatmap',
+    description: 'Euclidean distance heatmap between all samples.',
+  },
+  {
+    value: 'gene_heatmap',
+    label: 'Top Genes Heatmap',
+    description: 'Heatmap of top 50 differentially expressed genes by adjusted p-value.',
+  },
+  {
+    value: 'de_sample_sheet',
+    label: 'Sample Sheet',
+    description: 'The sample metadata CSV used for the DESeq2 analysis.',
+  },
+  {
+    value: 'log',
+    label: 'Logs',
+    description: 'Pipeline execution log files.',
+  },
+] as const;
+
+export const RNASEQ_DE_QUANTIFICATION_SOURCES = [
+  { value: 'salmon', label: 'Salmon (tximport)' },
+  { value: 'featurecounts', label: 'featureCounts' },
+] as const;
+
 export const SALMON_LIB_TYPE_TO_STRANDEDNESS: Record<string, number> = {
   ISR: 2,
   SR: 2,

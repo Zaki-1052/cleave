@@ -27,6 +27,7 @@ import HistoryTab from '@/pages/experiment/HistoryTab';
 import AllFilesTab from '@/pages/experiment/AllFilesTab';
 import PlaceholderTab from '@/pages/experiment/PlaceholderTab';
 import FeatureCountsTab from '@/components/rnaseq-feature-counts/FeatureCountsTab';
+import DEAnalysisTab from '@/pages/experiment/DEAnalysisTab';
 import AnalysisQueuePage from '@/pages/AnalysisQueuePage';
 import SettingsPage from '@/pages/SettingsPage';
 import AdminPage from '@/pages/AdminPage';
@@ -76,7 +77,7 @@ export default function App() {
           <Route path="correlations/:jid" element={<PearsonCorrelationTab />} />
           <Route path="normalization/:jid" element={<NormalizationTab />} />
           <Route path="feature-counts/:jid" element={<FeatureCountsTab />} />
-          <Route path="de/:jid" element={<PlaceholderTab label="DE Analysis" />} />
+          <Route path="de/:jid" element={<DEAnalysisTab />} />
           <Route path="rnaseq-qc/:jid" element={<PlaceholderTab label="QC Dashboard" />} />
           <Route path="pathway/:jid" element={<PlaceholderTab label="Pathway Analysis" />} />
           <Route path="history" element={<HistoryTab />} />

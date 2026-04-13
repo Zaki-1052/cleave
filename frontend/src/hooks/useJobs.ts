@@ -99,6 +99,14 @@ export function useDiffBindReport(jobId: number | null) {
   });
 }
 
+export function useRnaseqDEReport(jobId: number | null) {
+  return useQuery({
+    queryKey: ['rnaseq-de-report', jobId],
+    queryFn: () => jobsApi.getRnaseqDEReport(jobId!),
+    enabled: jobId !== null,
+  });
+}
+
 export function useCustomHeatmapReport(jobId: number | null) {
   return useQuery({
     queryKey: ['custom-heatmap-report', jobId],

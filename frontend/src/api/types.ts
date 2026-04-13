@@ -303,6 +303,26 @@ export interface DiffBindReport {
   plotOutputs: DiffBindPlotInfo[];
 }
 
+export interface RnaseqDEPlotInfo {
+  plotType: string;
+  outputIdPng: number | null;
+  outputIdSvg: number | null;
+}
+
+export interface RnaseqDEReport {
+  quantificationSource: string;
+  conditions: string[];
+  referenceCondition: string | null;
+  columnNames: string[];
+  totalGenes: number;
+  significantGenes005: number;
+  significantGenes001: number;
+  upregulated: number;
+  downregulated: number;
+  resultsPreview: Record<string, string | number>[];
+  plotOutputs: RnaseqDEPlotInfo[];
+}
+
 export interface CustomHeatmapPlotInfo {
   outputIdPng: number | null;
   outputIdSvg: number | null;

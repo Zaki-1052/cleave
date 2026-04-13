@@ -30,6 +30,7 @@ interface NewAnalysisDropdownProps {
   onNormalizationClick: () => void;
   onRnaseqAlignmentClick?: () => void;
   onFeatureCountsClick?: () => void;
+  onDeseq2Click?: () => void;
 }
 
 export function NewAnalysisDropdown({
@@ -42,6 +43,7 @@ export function NewAnalysisDropdown({
   onNormalizationClick,
   onRnaseqAlignmentClick,
   onFeatureCountsClick,
+  onDeseq2Click,
 }: NewAnalysisDropdownProps) {
   return (
     <DropdownMenu>
@@ -62,7 +64,7 @@ export function NewAnalysisDropdown({
               <ListOrdered className="h-4 w-4" />
               featureCounts
             </DropdownMenuItem>
-            <DropdownMenuItem disabled>
+            <DropdownMenuItem onSelect={onDeseq2Click} disabled={!onDeseq2Click}>
               <ArrowLeftRight className="h-4 w-4" />
               DE Analysis
             </DropdownMenuItem>

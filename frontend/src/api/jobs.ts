@@ -11,6 +11,7 @@ import type {
   PearsonCorrelationReport,
   QueueJob,
   RnaseqAlignmentQCReport,
+  RnaseqDEReport,
   RomanNormalizationReport,
 } from './types';
 
@@ -232,6 +233,31 @@ export async function downloadRnaseqQCCsv(jobId: number): Promise<void> {
     responseType: 'blob',
   });
   _downloadBlob(response.data as Blob, 'rnaseq_alignment_metrics.csv');
+}
+
+// ---------------------------------------------------------------------------
+// RNA-seq DE Analysis (DESeq2)
+// ---------------------------------------------------------------------------
+
+export async function getRnaseqDEReport(jobId: number): Promise<RnaseqDEReport> {
+  const { data } = await client.get<RnaseqDEReport>(
+    `/jobs/${jobId}/rnaseq-de-report`,
+  );
+  return data;
+}
+
+export async function downloadRnaseqDEResults(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/rnaseq-de-report/download-results`, {
+    responseType: 'blob',
+  });
+  _downloadBlob(response.data as Blob, 'de_results.tsv');
+}
+
+export async function downloadRnaseqDECounts(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/rnaseq-de-report/download-counts`, {
+    responseType: 'blob',
+  });
+  _downloadBlob(response.data as Blob, 'normalized_counts.csv');
 }
 
 // ---------------------------------------------------------------------------
