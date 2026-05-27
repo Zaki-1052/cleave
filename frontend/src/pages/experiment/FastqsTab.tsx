@@ -80,16 +80,25 @@ function buildFastqPairs(rawFastqs: FastqFile[]) {
     }));
 }
 
+function detectReadLength(rawFastqs: FastqFile[]): number | undefined {
+  const lengths = rawFastqs
+    .filter((f) => f.readDirection === 'R1' && f.sequenceLength != null)
+    .map((f) => f.sequenceLength as number);
+  return lengths.length > 0 ? Math.max(...lengths) : undefined;
+}
+
 function buildTrimJobParams(
   experiment: Experiment,
   rawFastqs: FastqFile[],
   trimParams?: TrimParams,
 ) {
   const fastqPairs = buildFastqPairs(rawFastqs);
+  const detectedLength = detectReadLength(rawFastqs);
   return {
     experiment_id: experiment.id,
     project_id: experiment.projectId,
     fastq_pairs: fastqPairs,
+    ...(detectedLength && !trimParams && { kseq_length: detectedLength }),
     ...(trimParams && {
       adapter_file: trimParams.adapterFile,
       illuminaclip: trimParams.illuminaclip,
@@ -154,12 +163,10 @@ export default function FastqsTab() {
     return { rawFastqs, filesWithAdapters, hasTrimmedFiles, fastqcPending };
   }, [fastqs]);
 
-  const detectedReadLength = useMemo(() => {
-    const lengths = adapterState.rawFastqs
-      .filter((f) => f.readDirection === 'R1' && f.sequenceLength != null)
-      .map((f) => f.sequenceLength as number);
-    return lengths.length > 0 ? Math.max(...lengths) : undefined;
-  }, [adapterState.rawFastqs]);
+  const detectedReadLength = useMemo(
+    () => detectReadLength(adapterState.rawFastqs),
+    [adapterState.rawFastqs],
+  );
 
   const showAdapterBanner =
     adapterState.filesWithAdapters.length > 0 &&
