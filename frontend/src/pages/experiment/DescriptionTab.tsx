@@ -68,8 +68,8 @@ export default function DescriptionTab() {
   }
 
   function saveDesc() {
-    const value = draftDesc.trim() || null;
-    if (value === (experiment.description ?? null)) {
+    const value = draftDesc.trim() || undefined;
+    if (value === (experiment.description ?? undefined)) {
       setEditingDesc(false);
       return;
     }
