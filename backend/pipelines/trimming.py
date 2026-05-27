@@ -260,9 +260,10 @@ class TrimmingStage(PipelineStage):
         trimmed_final.mkdir(parents=True, exist_ok=True)
         log_dir.mkdir(parents=True, exist_ok=True)
 
-        # Divide threads among concurrent pairs
+        # Divide threads among concurrent pairs; cap at 8 per Trimmomatic
+        # invocation to avoid its SelfThreadedParser race condition on gzipped input
         concurrent_count = min(settings.MAX_CONCURRENT_REACTIONS, len(fastq_pairs))
-        threads_per_pair = max(2, total_threads // concurrent_count)
+        threads_per_pair = min(8, max(2, total_threads // concurrent_count))
 
         logger.info(
             "trimming.run_start",
