@@ -68,6 +68,7 @@ async def run_fastqc_for_files(
                     .where(FastqFile.id == inp["fastq_id"])
                     .values(
                         total_reads=result.total_reads,
+                        sequence_length=result.sequence_length,
                         fastqc_report_path=report_relative,
                         adapter_status=result.adapter_status,
                     )

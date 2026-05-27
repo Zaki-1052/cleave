@@ -67,6 +67,36 @@ def test_parse_fastqc_data_minimal(tmp_path: Path):
     assert result.total_reads == 12345
     assert result.adapter_status == "warn"
     assert result.module_summaries["Basic Statistics"] == "pass"
+    assert result.sequence_length is None
+
+
+def test_parse_fastqc_data_sequence_length_scalar(tmp_path: Path):
+    """Sequence length parsed as a single integer."""
+    txt = tmp_path / "fastqc_data.txt"
+    txt.write_text(
+        ">>Basic Statistics\tpass\nTotal Sequences\t50000\nSequence length\t101\n>>END_MODULE\n"
+    )
+    result = parse_fastqc_data(txt)
+    assert result.sequence_length == 101
+    assert result.total_reads == 50000
+
+
+def test_parse_fastqc_data_sequence_length_range(tmp_path: Path):
+    """Sequence length range (e.g. '35-101') returns the maximum."""
+    txt = tmp_path / "fastqc_data.txt"
+    txt.write_text(
+        ">>Basic Statistics\tpass\nTotal Sequences\t50000\nSequence length\t35-101\n>>END_MODULE\n"
+    )
+    result = parse_fastqc_data(txt)
+    assert result.sequence_length == 101
+
+
+def test_parse_fastqc_data_sequence_length_missing(tmp_path: Path):
+    """Missing Sequence length line returns None."""
+    txt = tmp_path / "fastqc_data.txt"
+    txt.write_text(">>Basic Statistics\tpass\nTotal Sequences\t50000\n>>END_MODULE\n")
+    result = parse_fastqc_data(txt)
+    assert result.sequence_length is None
 
 
 # --- Unit Tests: Mock Run ---

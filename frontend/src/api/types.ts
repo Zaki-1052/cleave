@@ -132,6 +132,7 @@ export interface FastqFile {
   readDirection: string;
   fileSizeBytes: number | null;
   totalReads: number | null;
+  sequenceLength: number | null;
   filePath: string;
   fastqcReportPath: string | null;
   isTrimmed: boolean;

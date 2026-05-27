@@ -35,6 +35,7 @@ class FastqcResult:
     """Parsed result from a FastQC run."""
 
     total_reads: int | None = None
+    sequence_length: int | None = None
     report_html_path: str = ""  # relative path from STORAGE_ROOT
     adapter_status: str | None = None  # "pass", "warn", or "fail"
     module_summaries: dict[str, str] = field(default_factory=dict)
@@ -55,6 +56,7 @@ def parse_fastqc_data(txt_path: Path) -> FastqcResult:
     Extracts Total Sequences and per-module pass/fail/warn statuses.
     """
     total_reads = None
+    sequence_length = None
     adapter_status = None
     module_summaries: dict[str, str] = {}
 
@@ -70,15 +72,25 @@ def parse_fastqc_data(txt_path: Path) -> FastqcResult:
                     if parts[0] == "Adapter Content":
                         adapter_status = parts[1]
 
-            # Total Sequences line inside Basic Statistics section
             if line.startswith("Total Sequences\t"):
                 try:
                     total_reads = int(line.split("\t")[1])
                 except (IndexError, ValueError):
                     pass
 
+            if line.startswith("Sequence length\t"):
+                try:
+                    raw_val = line.split("\t")[1].strip()
+                    if "-" in raw_val:
+                        sequence_length = max(int(x) for x in raw_val.split("-"))
+                    else:
+                        sequence_length = int(raw_val)
+                except (IndexError, ValueError):
+                    pass
+
     return FastqcResult(
         total_reads=total_reads,
+        sequence_length=sequence_length,
         adapter_status=adapter_status,
         module_summaries=module_summaries,
     )

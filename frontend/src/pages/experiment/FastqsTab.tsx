@@ -154,6 +154,13 @@ export default function FastqsTab() {
     return { rawFastqs, filesWithAdapters, hasTrimmedFiles, fastqcPending };
   }, [fastqs]);
 
+  const detectedReadLength = useMemo(() => {
+    const lengths = adapterState.rawFastqs
+      .filter((f) => f.readDirection === 'R1' && f.sequenceLength != null)
+      .map((f) => f.sequenceLength as number);
+    return lengths.length > 0 ? Math.max(...lengths) : undefined;
+  }, [adapterState.rawFastqs]);
+
   const showAdapterBanner =
     adapterState.filesWithAdapters.length > 0 &&
     !adapterState.hasTrimmedFiles &&
@@ -478,6 +485,7 @@ export default function FastqsTab() {
           onClose={() => setShowTrimConfig(false)}
           onSubmit={handleConfiguredTrim}
           isSubmitting={createJobMutation.isPending}
+          defaultKseqLength={detectedReadLength}
         />
       )}
 

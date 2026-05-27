@@ -401,11 +401,20 @@ async def _queue_trimming(db: AsyncSession, experiment_id: int, config: dict) ->
 
     fastq_pairs = [p for p in pairs_map.values() if "r1_path" in p and "r2_path" in p]
 
-    params = {
+    r1_lengths = [
+        f.sequence_length
+        for f in raw_fastqs
+        if f.read_direction == "R1" and f.sequence_length is not None
+    ]
+
+    params: dict = {
         "experiment_id": experiment_id,
         "project_id": config["project_id"],
         "fastq_pairs": fastq_pairs,
     }
+    if r1_lengths:
+        params["kseq_length"] = max(r1_lengths)
+
     await _create_auto_job(db, experiment_id, "trimming", "Auto: Trimming", params, config)
 
 

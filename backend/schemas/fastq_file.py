@@ -16,6 +16,7 @@ class FastqFileRead(CamelModel):
     read_direction: str
     file_size_bytes: int | None = None
     total_reads: int | None = None
+    sequence_length: int | None = None
     file_path: str
     fastqc_report_path: str | None = None
     is_trimmed: bool = False

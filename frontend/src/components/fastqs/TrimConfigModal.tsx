@@ -35,6 +35,7 @@ interface TrimConfigModalProps {
   onClose: () => void;
   onSubmit: (params: TrimParams) => void;
   isSubmitting?: boolean;
+  defaultKseqLength?: number;
 }
 
 export function TrimConfigModal({
@@ -42,8 +43,12 @@ export function TrimConfigModal({
   onClose,
   onSubmit,
   isSubmitting = false,
+  defaultKseqLength,
 }: TrimConfigModalProps) {
-  const [params, setParams] = useState<TrimParams>(DEFAULT_PARAMS);
+  const [params, setParams] = useState<TrimParams>({
+    ...DEFAULT_PARAMS,
+    kseqLength: defaultKseqLength ?? DEFAULT_PARAMS.kseqLength,
+  });
 
   function handleChange(key: keyof TrimParams, value: string | number) {
     setParams((prev) => ({ ...prev, [key]: value }));
@@ -155,7 +160,7 @@ export function TrimConfigModal({
             className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none"
           />
           <p className="mt-1 text-xs text-muted-foreground">
-            Fixed-length trim after adapter removal (default 42bp)
+            Sequencing read length for kseq_test 3&apos; adapter trim{defaultKseqLength ? ` (detected: ${defaultKseqLength}bp)` : ' (default 42bp)'}
           </p>
         </div>
       </div>

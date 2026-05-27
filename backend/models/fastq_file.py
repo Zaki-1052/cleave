@@ -1,7 +1,7 @@
 # backend/models/fastq_file.py
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, String, func
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -19,6 +19,7 @@ class FastqFile(Base):
     read_direction: Mapped[str] = mapped_column(String, nullable=False)
     file_size_bytes: Mapped[int | None] = mapped_column(BigInteger)
     total_reads: Mapped[int | None] = mapped_column(BigInteger)
+    sequence_length: Mapped[int | None] = mapped_column(Integer)
     file_path: Mapped[str] = mapped_column(String, nullable=False)
     is_trimmed: Mapped[bool] = mapped_column(Boolean, default=False)
     adapter_status: Mapped[str | None] = mapped_column(String)
