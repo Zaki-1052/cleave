@@ -14,8 +14,10 @@ from database import async_session_factory
 from logging_config import setup_logging
 from models.analysis_job import AnalysisJob
 from models.experiment import Experiment
+from models.fastq_file import FastqFile
 from models.notification import Notification
 from models.project import Project
+from models.reaction import Reaction
 from models.user import User
 from pipelines import run as pipeline_run
 from pipelines.base import TerminatedError
@@ -50,6 +52,74 @@ def _sync_check_terminated(job_id: int) -> bool:
             {"id": job_id},
         ).fetchone()
         return row is not None and row[0] is not None
+
+
+async def _resolve_alignment_fastqs(job_params: dict) -> dict:
+    """Re-resolve FASTQ paths from the DB for alignment jobs, preferring trimmed.
+
+    Job params bake in FASTQ paths at submission time.  If the user later trims,
+    re-uploads, or deletes FASTQs, the baked-in paths become stale.  This queries
+    the current FastqFile records and patches each reaction's r1_path / r2_path
+    with the best available file (trimmed preferred over raw).
+    """
+    reactions = job_params.get("reactions")
+    experiment_id = job_params.get("experiment_id")
+    if not reactions or not experiment_id:
+        return job_params
+
+    async with async_session_factory() as db:
+        result = await db.execute(
+            select(FastqFile).where(FastqFile.experiment_id == experiment_id)
+        )
+        all_fastqs = result.scalars().all()
+
+    if not all_fastqs:
+        return job_params
+
+    # Build prefix → {R1: path, R2: path}, preferring trimmed
+    prefix_paths: dict[str, dict[str, str]] = {}
+    for f in all_fastqs:
+        key = f.prefix
+        if key not in prefix_paths:
+            prefix_paths[key] = {}
+        direction = f.read_direction
+        if direction not in prefix_paths[key] or f.is_trimmed:
+            prefix_paths[key][direction] = f.file_path
+
+    # Match reactions to FASTQ files by reaction_id → reaction → fastq_prefix
+    reaction_ids = [r["reaction_id"] for r in reactions if "reaction_id" in r]
+    async with async_session_factory() as db:
+        result = await db.execute(
+            select(Reaction).where(Reaction.id.in_(reaction_ids))
+        )
+        db_reactions = {r.id: r for r in result.scalars().all()}
+
+    updated = False
+    for rxn in reactions:
+        db_rxn = db_reactions.get(rxn.get("reaction_id"))
+        if not db_rxn:
+            continue
+        paths = prefix_paths.get(db_rxn.fastq_prefix, {})
+        if "R1" in paths and "R2" in paths:
+            old_r1 = rxn.get("r1_path", "")
+            new_r1 = paths["R1"]
+            new_r2 = paths["R2"]
+            if old_r1 != new_r1:
+                logger.info(
+                    "worker.fastq_path_refreshed",
+                    reaction_id=rxn["reaction_id"],
+                    short_name=rxn.get("short_name"),
+                    old_r1=old_r1,
+                    new_r1=new_r1,
+                )
+                updated = True
+            rxn["r1_path"] = new_r1
+            rxn["r2_path"] = new_r2
+
+    if updated:
+        logger.info("worker.alignment_paths_resolved", experiment_id=experiment_id)
+
+    return job_params
 
 
 async def _update_experiment_status(experiment_id: int, job_status: str) -> None:
@@ -242,6 +312,11 @@ async def poll_and_run() -> None:
 
     # Build cancellation callback for pipeline stages
     cancelled = lambda: _sync_check_terminated(job_id)  # noqa: E731
+
+    # Re-resolve FASTQ paths for alignment jobs so retried/stale jobs
+    # pick up trimmed files even if the original params pointed to raw.
+    if job_type in ("alignment", "rnaseq_alignment"):
+        job_params = await _resolve_alignment_fastqs(job_params)
 
     # Run pipeline outside the DB session to avoid long-held connections
     run_params = {**job_params, "job_id": job_id}
