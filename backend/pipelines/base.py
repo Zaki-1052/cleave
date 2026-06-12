@@ -207,10 +207,10 @@ def resolve_fastq_paths(rxn: dict, storage_root: str) -> tuple[Path, Path]:
     if not trimmed_dir.is_dir():
         return r1_submitted, r2_submitted
 
-    # Look for trimmed files matching this prefix
-    prefix = rxn.get("prefix") or rxn.get("short_name", "")
+    # Look for trimmed files matching this prefix.
+    # Alignment params have no "prefix" key, so extract it from the raw filename.
+    prefix = rxn.get("prefix", "")
     if not prefix:
-        # Extract prefix from the raw filename by stripping _R1/R2 suffix
         stem = r1_submitted.name
         for tag in ("_R1_001", "_R2_001", "_R1", "_R2"):
             idx = stem.find(tag)
@@ -222,6 +222,11 @@ def resolve_fastq_paths(rxn: dict, storage_root: str) -> tuple[Path, Path]:
         r1_trimmed = trimmed_dir / f"{prefix}_R1_001_trimmed.fastq.gz"
         r2_trimmed = trimmed_dir / f"{prefix}_R2_001_trimmed.fastq.gz"
         if r1_trimmed.exists() and r2_trimmed.exists():
+            logger.info(
+                "resolve_fastq_paths.using_trimmed",
+                prefix=prefix,
+                r1=str(r1_trimmed),
+            )
             return r1_trimmed, r2_trimmed
 
     return r1_submitted, r2_submitted
