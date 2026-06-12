@@ -184,6 +184,49 @@ def count_bam_reads(bam_path: Path) -> int:
         return 0
 
 
+def resolve_fastq_paths(rxn: dict, storage_root: str) -> tuple[Path, Path]:
+    """Resolve the best R1/R2 FASTQ paths for a reaction, preferring trimmed over raw.
+
+    Job params bake in FASTQ paths at submission time.  If trimmed files exist
+    on disk under the same experiment's ``fastqs/trimmed/`` directory, use those
+    instead of whatever was recorded in the params — the whole point of trimming
+    is that downstream steps consume the trimmed output.
+    """
+    root = Path(storage_root)
+    r1_submitted = root / rxn["r1_path"]
+    r2_submitted = root / rxn["r2_path"]
+
+    # If submitted paths are already trimmed, use them directly
+    if "/fastqs/trimmed/" in rxn["r1_path"]:
+        return r1_submitted, r2_submitted
+
+    # Derive the trimmed directory from the raw path:
+    # .../projects/{pid}/{eid}/fastqs/raw/X  →  .../projects/{pid}/{eid}/fastqs/trimmed/
+    raw_dir = r1_submitted.parent
+    trimmed_dir = raw_dir.parent / "trimmed"
+    if not trimmed_dir.is_dir():
+        return r1_submitted, r2_submitted
+
+    # Look for trimmed files matching this prefix
+    prefix = rxn.get("prefix") or rxn.get("short_name", "")
+    if not prefix:
+        # Extract prefix from the raw filename by stripping _R1/R2 suffix
+        stem = r1_submitted.name
+        for tag in ("_R1_001", "_R2_001", "_R1", "_R2"):
+            idx = stem.find(tag)
+            if idx != -1:
+                prefix = stem[:idx]
+                break
+
+    if prefix:
+        r1_trimmed = trimmed_dir / f"{prefix}_R1_001_trimmed.fastq.gz"
+        r2_trimmed = trimmed_dir / f"{prefix}_R2_001_trimmed.fastq.gz"
+        if r1_trimmed.exists() and r2_trimmed.exists():
+            return r1_trimmed, r2_trimmed
+
+    return r1_submitted, r2_submitted
+
+
 def resolve_blacklist(genome: str, blacklist_type: str = "encode_dac") -> Path | None:
     """Find the blacklist BED file for the given genome and type.
 

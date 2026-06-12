@@ -30,6 +30,7 @@ from pipelines.base import (
     TerminatedError,
     append_to_master_log,
     get_threads,
+    resolve_fastq_paths,
     run_cmd,
 )
 from pipelines.methods_text import EFFECTIVE_GENOME_SIZES, rnaseq_alignment_methods
@@ -312,8 +313,7 @@ def _process_reaction(rxn: dict, ctx: _RnaseqAlignmentContext, reaction_log: Pat
     """
     short_name = rxn["short_name"]
     reaction_id = rxn["reaction_id"]
-    r1_abs = Path(settings.STORAGE_ROOT) / rxn["r1_path"]
-    r2_abs = Path(settings.STORAGE_ROOT) / rxn["r2_path"]
+    r1_abs, r2_abs = resolve_fastq_paths(rxn, settings.STORAGE_ROOT)
 
     if not r1_abs.exists():
         raise PipelineError(f"R1 FASTQ not found: {r1_abs}")

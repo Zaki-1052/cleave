@@ -32,6 +32,7 @@ from pipelines.base import (
     count_bam_reads,
     get_threads,
     resolve_blacklist,
+    resolve_fastq_paths,
     run_cmd,
     run_piped_cmd,
 )
@@ -280,8 +281,7 @@ def _process_reaction(rxn: dict, ctx: _AlignmentContext, reaction_log: Path) -> 
     """
     short_name = rxn["short_name"]
     reaction_id = rxn["reaction_id"]
-    r1_abs = Path(settings.STORAGE_ROOT) / rxn["r1_path"]
-    r2_abs = Path(settings.STORAGE_ROOT) / rxn["r2_path"]
+    r1_abs, r2_abs = resolve_fastq_paths(rxn, settings.STORAGE_ROOT)
 
     if not r1_abs.exists():
         raise PipelineError(f"R1 FASTQ not found: {r1_abs}")

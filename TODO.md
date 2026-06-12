@@ -15,6 +15,7 @@
 
 ## Feature Gaps / Tech Debt
 
+- [ ] **Parallelize FastQC on trimmed files** — `run_fastqc_for_files` processes files sequentially; 4 files × ~4 min each = 16 min blocking the worker before auto-pipeline chains to alignment. Use `asyncio.gather` or `ThreadPoolExecutor` to run concurrently
 - [ ] **Heatmap/Pearson/Normalization tabs lack Terminate/Retry buttons** — only available via the Analysis Queue page
 - [ ] **Per-project storage quotas** — global quota only; no per-project limit
 - [ ] **DiffBind custom peakset upload** — currently only selects BED from existing peak calling outputs; can't upload a new one directly in the wizard
