@@ -7,6 +7,7 @@ import type {
   Reaction,
   ReactionCreatePayload,
   ReactionUpdatePayload,
+  SuggestReactionsResponse,
 } from './types';
 
 export async function getReactions(
@@ -74,6 +75,18 @@ export async function downloadTemplate(experimentId: number): Promise<void> {
 export async function getPrefixes(experimentId: number): Promise<PrefixInfo[]> {
   const { data } = await client.get<PrefixInfo[]>(
     `/experiments/${experimentId}/reactions/prefixes`,
+  );
+  return data;
+}
+
+export async function suggestReactions(
+  experimentId: number,
+  organism: string,
+  assayType: string,
+): Promise<SuggestReactionsResponse> {
+  const { data } = await client.post<SuggestReactionsResponse>(
+    `/experiments/${experimentId}/reactions/suggest`,
+    { organism, assayType },
   );
   return data;
 }

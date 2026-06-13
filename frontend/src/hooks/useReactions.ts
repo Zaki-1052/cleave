@@ -19,6 +19,20 @@ export function usePrefixes(experimentId: number) {
   });
 }
 
+export function useSuggestReactions() {
+  return useMutation({
+    mutationFn: ({
+      experimentId,
+      organism,
+      assayType,
+    }: {
+      experimentId: number;
+      organism: string;
+      assayType: string;
+    }) => reactionsApi.suggestReactions(experimentId, organism, assayType),
+  });
+}
+
 export function useCreateReaction() {
   const queryClient = useQueryClient();
   return useMutation({

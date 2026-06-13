@@ -172,3 +172,36 @@ class CsvImportResponse(CamelModel):
     created: int
     reactions: list[ReactionRead]
     warnings: list[str]
+
+
+class ReactionSuggestion(CamelModel):
+    fastq_prefix: str
+    short_name: str
+    organism: str
+    assay_type: str
+    experimental_condition: str | None = None
+    replicate_number: int | None = None
+    antibody_vendor: str | None = None
+    has_r1: bool
+    has_r2: bool
+    auto_detected_fields: list[str] = []
+
+
+class SuggestReactionsRequest(CamelModel):
+    organism: str
+    assay_type: str
+
+    @field_validator("organism")
+    @classmethod
+    def check_organism(cls, v: str) -> str:
+        return _validate_organism(v)
+
+    @field_validator("assay_type")
+    @classmethod
+    def check_assay_type(cls, v: str) -> str:
+        return _validate_assay_type(v)
+
+
+class SuggestReactionsResponse(CamelModel):
+    suggestions: list[ReactionSuggestion]
+    skipped_prefixes: list[str]

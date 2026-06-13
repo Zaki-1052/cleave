@@ -16,6 +16,8 @@ from schemas.reaction import (
     ReactionCreate,
     ReactionRead,
     ReactionUpdate,
+    SuggestReactionsRequest,
+    SuggestReactionsResponse,
 )
 from services.reaction_service import (
     bulk_create_reactions,
@@ -25,6 +27,7 @@ from services.reaction_service import (
     get_fastq_prefixes,
     list_reactions,
     parse_reaction_csv,
+    suggest_reactions_from_prefixes,
     update_reaction,
 )
 
@@ -187,6 +190,36 @@ async def download_template_endpoint(
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=reaction_template.csv"},
     )
+
+
+# ---------------------------------------------------------------------------
+# Suggest reactions from FASTQ filenames
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/experiments/{experiment_id}/reactions/suggest",
+    response_model=SuggestReactionsResponse,
+)
+async def suggest_reactions_endpoint(
+    experiment_id: int,
+    body: SuggestReactionsRequest,
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await suggest_reactions_from_prefixes(
+        db,
+        experiment_id,
+        current_user.id,
+        body.organism,
+        body.assay_type,
+    )
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Experiment not found or not authorized",
+        )
+    return result
 
 
 # ---------------------------------------------------------------------------

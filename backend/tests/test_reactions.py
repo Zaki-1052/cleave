@@ -3,6 +3,8 @@ import io
 
 from httpx import AsyncClient
 
+from services.reaction_service import parse_prefix_metadata
+
 
 async def _register_and_get_headers(client: AsyncClient, email: str) -> dict:
     """Register a user and return auth headers."""
@@ -850,3 +852,258 @@ async def test_cutandrun_reactions_null_rnaseq_fields(client: AsyncClient):
     assert data["timepoint"] is None
     assert data["genotype"] is None
     assert data["replicateNumber"] is None
+
+
+# ---------------------------------------------------------------------------
+# parse_prefix_metadata unit tests (pure function, no DB)
+# ---------------------------------------------------------------------------
+
+
+def test_parse_prefix_strips_boilerplate():
+    result = parse_prefix_metadata("260417_index_32_Bap1_Math1_adult_mut2_CTCF_NEB_S27_L002")
+    assert result["short_name"] == "Bap1_Math1_adult_mut2_CTCF_NEB"
+
+
+def test_parse_prefix_detects_mut_condition_and_replicate():
+    result = parse_prefix_metadata("260417_index_32_Bap1_Math1_adult_mut2_CTCF_NEB_S27_L002")
+    assert result["experimental_condition"] == "mut"
+    assert result["replicate_number"] == 2
+
+
+def test_parse_prefix_detects_ctrl_condition():
+    result = parse_prefix_metadata("250724_index_41_Bap1_Math1_P90_ctrl1_GST-MeCP2_S47_L007")
+    assert result["experimental_condition"] == "ctrl"
+    assert result["replicate_number"] == 1
+    assert result["short_name"] == "Bap1_Math1_P90_ctrl1_GST-MeCP2"
+
+
+def test_parse_prefix_detects_ko_as_mut():
+    result = parse_prefix_metadata("index_41_APC7_ko_2_H3K9me3_S17_L001")
+    assert result["experimental_condition"] == "mut"
+    assert result["replicate_number"] == 2
+
+
+def test_parse_prefix_detects_ctrl_no_replicate():
+    result = parse_prefix_metadata("2401216_index_9_HCC38_Ctrl_H3K27ac_S9_L003")
+    assert result["experimental_condition"] == "ctrl"
+    assert result["replicate_number"] is None
+
+
+def test_parse_prefix_igg_clears_condition():
+    result = parse_prefix_metadata("230301_index_25_ctrl_1_IgG_S5_L001")
+    assert result["experimental_condition"] is None
+    assert result["replicate_number"] is None
+
+
+def test_parse_prefix_detects_vendor():
+    result = parse_prefix_metadata("260417_index_32_sample_NEB_S27_L002")
+    assert result["antibody_vendor"] == "NEB"
+
+
+def test_parse_prefix_detects_wt_as_ctrl():
+    result = parse_prefix_metadata("simple_wt_sample")
+    assert result["experimental_condition"] == "ctrl"
+
+
+def test_parse_prefix_detects_het_condition():
+    result = parse_prefix_metadata("230301_index_5_gene_het1_H3K4me3_S3_L001")
+    assert result["experimental_condition"] == "het"
+    assert result["replicate_number"] == 1
+
+
+def test_parse_prefix_no_condition():
+    result = parse_prefix_metadata("230301_index_5_random_sample_S3_L001")
+    assert result["experimental_condition"] is None
+    assert result["replicate_number"] is None
+
+
+def test_parse_prefix_auto_detected_fields():
+    result = parse_prefix_metadata("260417_index_32_Bap1_mut2_CTCF_NEB_S27_L002")
+    assert "experimental_condition" in result["auto_detected_fields"]
+    assert "replicate_number" in result["auto_detected_fields"]
+    assert "antibody_vendor" in result["auto_detected_fields"]
+
+
+def test_parse_prefix_fallback_short_name():
+    """If stripping produces empty string, fall back to full prefix."""
+    result = parse_prefix_metadata("S1_L001")
+    assert result["short_name"]
+    assert len(result["short_name"]) > 0
+
+
+# ---------------------------------------------------------------------------
+# Suggest reactions endpoint tests (integration, needs DB + uploads)
+# ---------------------------------------------------------------------------
+
+
+async def _upload_fastqs(
+    client: AsyncClient, headers: dict, exp_id: int, prefixes: list[str], tmp_path
+):
+    """Upload paired FASTQ stubs for a list of prefixes."""
+    for prefix in prefixes:
+        r1_path = tmp_path / f"{prefix}_R1_001.fastq.gz"
+        r2_path = tmp_path / f"{prefix}_R2_001.fastq.gz"
+        r1_path.write_bytes(b"\x1f\x8b" + b"\x00" * 20)
+        r2_path.write_bytes(b"\x1f\x8b" + b"\x00" * 20)
+
+        with open(r1_path, "rb") as f1, open(r2_path, "rb") as f2:
+            await client.post(
+                f"/api/v1/experiments/{exp_id}/fastqs/upload",
+                files=[
+                    ("files", (f"{prefix}_R1_001.fastq.gz", f1, "application/gzip")),
+                    ("files", (f"{prefix}_R2_001.fastq.gz", f2, "application/gzip")),
+                ],
+                headers=headers,
+            )
+
+
+async def test_suggest_reactions_basic(client: AsyncClient, tmp_path):
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    await _upload_fastqs(
+        client,
+        headers,
+        exp_id,
+        [
+            "250724_index_41_Math1_ctrl1_H3K4me3_S47_L007",
+            "250724_index_42_Math1_mut1_H3K4me3_S48_L007",
+        ],
+        tmp_path,
+    )
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions/suggest",
+        json={"organism": "Mouse", "assayType": "CUT&RUN"},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data["suggestions"]) == 2
+    assert data["skippedPrefixes"] == []
+
+    names = {s["shortName"] for s in data["suggestions"]}
+    assert "Math1_ctrl1_H3K4me3" in names
+    assert "Math1_mut1_H3K4me3" in names
+
+    for s in data["suggestions"]:
+        assert s["organism"] == "Mouse"
+        assert s["assayType"] == "CUT&RUN"
+        assert s["hasR1"] is True
+        assert s["hasR2"] is True
+
+
+async def test_suggest_reactions_skips_existing(client: AsyncClient, tmp_path):
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    await _upload_fastqs(
+        client,
+        headers,
+        exp_id,
+        ["sample_ctrl1_S1_L001", "sample_mut1_S2_L001"],
+        tmp_path,
+    )
+
+    # Create a reaction for one prefix
+    await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions",
+        json=_reaction_body(prefix="sample_ctrl1_S1_L001", short_name="ctrl1"),
+        headers=headers,
+    )
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions/suggest",
+        json={"organism": "Mouse", "assayType": "CUT&RUN"},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data["suggestions"]) == 1
+    assert data["suggestions"][0]["shortName"] == "sample_mut1"
+    assert "sample_ctrl1_S1_L001" in data["skippedPrefixes"]
+
+
+async def test_suggest_reactions_empty_no_fastqs(client: AsyncClient):
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions/suggest",
+        json={"organism": "Mouse", "assayType": "CUT&RUN"},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["suggestions"] == []
+    assert data["skippedPrefixes"] == []
+
+
+async def test_suggest_reactions_condition_detection(client: AsyncClient, tmp_path):
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    await _upload_fastqs(
+        client,
+        headers,
+        exp_id,
+        ["260417_index_32_Bap1_mut2_CTCF_NEB_S27_L002"],
+        tmp_path,
+    )
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions/suggest",
+        json={"organism": "Mouse", "assayType": "CUT&RUN"},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    s = resp.json()["suggestions"][0]
+    assert s["experimentalCondition"] == "mut"
+    assert s["replicateNumber"] == 2
+    assert s["antibodyVendor"] == "NEB"
+    assert "experimentalCondition" in s["autoDetectedFields"]
+    assert "replicateNumber" in s["autoDetectedFields"]
+    assert "antibodyVendor" in s["autoDetectedFields"]
+
+
+async def test_suggest_reactions_invalid_organism(client: AsyncClient):
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions/suggest",
+        json={"organism": "Alien", "assayType": "CUT&RUN"},
+        headers=headers,
+    )
+    assert resp.status_code == 422
+
+
+async def test_suggest_reactions_deduplicates_short_names(client: AsyncClient, tmp_path):
+    """Prefixes producing identical short names get disambiguated."""
+    headers = await _register_and_get_headers(client, "user@example.com")
+    project_id = await _create_project(client, headers)
+    exp_id = await _create_experiment(client, headers, project_id)
+
+    # Both will strip to "sample_ctrl" after boilerplate removal
+    await _upload_fastqs(
+        client,
+        headers,
+        exp_id,
+        ["250101_index_1_sample_ctrl_S1_L001", "250202_index_2_sample_ctrl_S2_L001"],
+        tmp_path,
+    )
+
+    resp = await client.post(
+        f"/api/v1/experiments/{exp_id}/reactions/suggest",
+        json={"organism": "Mouse", "assayType": "CUT&RUN"},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    names = [s["shortName"] for s in resp.json()["suggestions"]]
+    assert len(names) == 2
+    assert len(set(names)) == 2  # all unique

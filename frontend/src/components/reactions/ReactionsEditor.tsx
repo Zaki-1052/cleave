@@ -1,12 +1,13 @@
 // frontend/src/components/reactions/ReactionsEditor.tsx
 import { useMemo, useState } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Check, Pencil, Trash2 } from 'lucide-react';
+import { Check, Pencil, Sparkles, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { Modal } from '@/components/ui/Modal';
+import { AutoFillReactionsModal } from './AutoFillReactionsModal';
 import { CsvUploadZone } from './CsvUploadZone';
 import { ReactionFormModal } from './ReactionFormModal';
 import { useReactions, usePrefixes, useDeleteReaction } from '@/hooks/useReactions';
@@ -51,6 +52,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
   const deleteMutation = useDeleteReaction();
 
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showAutoFill, setShowAutoFill] = useState(false);
   const [editTarget, setEditTarget] = useState<Reaction | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Reaction | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -231,6 +233,12 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
                 </div>
               )}
             </div>
+            {prefixList.length > 0 && (
+              <Button variant="outlined" onClick={() => setShowAutoFill(true)}>
+                <Sparkles className="mr-1.5 h-4 w-4" />
+                Auto-fill from Filenames
+              </Button>
+            )}
             <Button variant="primary" onClick={() => setShowAddForm(true)}>
               + Add Reaction
             </Button>
@@ -292,6 +300,14 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
           </Button>
         </div>
       </Modal>
+
+      {/* Auto-fill from Filenames Modal */}
+      <AutoFillReactionsModal
+        isOpen={showAutoFill}
+        onClose={() => setShowAutoFill(false)}
+        experimentId={experimentId}
+        assayType={assayType}
+      />
     </div>
   );
 }

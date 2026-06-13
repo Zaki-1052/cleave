@@ -1,6 +1,7 @@
 # backend/services/reaction_service.py
 import csv
 import io
+import re
 
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -456,3 +457,171 @@ async def get_fastq_prefixes(
             prefix_map[prefix]["has_r2"] = True
 
     return [{"prefix": prefix, **flags} for prefix, flags in sorted(prefix_map.items())]
+
+
+# ---------------------------------------------------------------------------
+# FASTQ prefix → reaction metadata parsing
+# ---------------------------------------------------------------------------
+
+_BOILERPLATE_PATTERNS = [
+    re.compile(r"^\d{6,8}_"),
+    re.compile(r"index_\d+_?"),
+    re.compile(r"_S\d+"),
+    re.compile(r"_L\d{3,}"),
+    re.compile(r"_001$"),
+]
+
+_CONDITION_REPLICATE_RE = re.compile(
+    r"(?:^|_)(ctrl|control|wt|wildtype|wild_type"
+    r"|mut|mutant|ko|knockout|knock_out"
+    r"|het|heterozygous"
+    r"|treated|untreated|vehicle|sham)"
+    r"[_-]?(\d*)(?=_|$)",
+    re.IGNORECASE,
+)
+
+_CTRL_LABELS = frozenset(
+    {"ctrl", "control", "wt", "wildtype", "wild_type", "untreated", "vehicle", "sham"}
+)
+_MUT_LABELS = frozenset({"mut", "mutant", "ko", "knockout", "knock_out"})
+_HET_LABELS = frozenset({"het", "heterozygous"})
+
+_VENDOR_RE = re.compile(
+    r"(?:^|_)(NEB|CST|Abcam|EpiCypher|Millipore|ActiveMotif|Diagenode)(?=_|$)",
+    re.IGNORECASE,
+)
+
+_IGG_RE = re.compile(r"(?:^|_)igg(?=_|$)", re.IGNORECASE)
+
+_SAFE_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_\-\.]{0,99}$")
+
+
+def parse_prefix_metadata(prefix: str) -> dict:
+    """Parse a FASTQ prefix into suggested reaction metadata.
+
+    Returns a dict with ``short_name``, ``experimental_condition``,
+    ``replicate_number``, ``antibody_vendor``, and ``auto_detected_fields``.
+    All values are best-effort; undetected fields are ``None``.
+    """
+    short = prefix
+    for pat in _BOILERPLATE_PATTERNS:
+        short = pat.sub("", short)
+    short = short.strip("_")
+    short = re.sub(r"_+", "_", short)
+    if not short or not _SAFE_NAME_RE.match(short):
+        short = prefix
+
+    condition: str | None = None
+    replicate: int | None = None
+    auto_detected: list[str] = []
+
+    is_igg = bool(_IGG_RE.search(prefix))
+
+    if not is_igg:
+        m = _CONDITION_REPLICATE_RE.search(prefix)
+        if m:
+            raw = m.group(1).lower()
+            if raw in _CTRL_LABELS:
+                condition = "ctrl"
+            elif raw in _MUT_LABELS:
+                condition = "mut"
+            elif raw in _HET_LABELS:
+                condition = "het"
+            else:
+                condition = raw
+            auto_detected.append("experimental_condition")
+
+            rep_str = m.group(2)
+            if rep_str:
+                replicate = int(rep_str)
+                auto_detected.append("replicate_number")
+
+    vendor: str | None = None
+    vm = _VENDOR_RE.search(prefix)
+    if vm:
+        vendor = vm.group(1)
+        auto_detected.append("antibody_vendor")
+
+    return {
+        "short_name": short,
+        "experimental_condition": condition,
+        "replicate_number": replicate,
+        "antibody_vendor": vendor,
+        "auto_detected_fields": auto_detected,
+    }
+
+
+def _deduplicate_short_names(suggestions: list[dict]) -> None:
+    """Append alphabetic suffixes to duplicate short_name values in-place."""
+    counts: dict[str, int] = {}
+    for s in suggestions:
+        name = s["short_name"]
+        counts[name] = counts.get(name, 0) + 1
+
+    duplicates = {name for name, count in counts.items() if count > 1}
+    if not duplicates:
+        return
+
+    counters: dict[str, int] = {}
+    for s in suggestions:
+        name = s["short_name"]
+        if name in duplicates:
+            idx = counters.get(name, 0)
+            suffix = chr(ord("a") + idx)
+            s["short_name"] = f"{name}_{suffix}"
+            counters[name] = idx + 1
+
+
+async def suggest_reactions_from_prefixes(
+    db: AsyncSession,
+    experiment_id: int,
+    user_id: int,
+    organism: str,
+    assay_type: str,
+) -> dict | None:
+    """Generate suggested reaction metadata from FASTQ prefixes.
+
+    Returns ``None`` if not authorized.  Otherwise returns a dict with
+    ``suggestions`` (list of dicts) and ``skipped_prefixes`` (list of str).
+    """
+    experiment = await check_experiment_membership(db, experiment_id, user_id)
+    if experiment is None:
+        return None
+
+    prefix_infos = await get_fastq_prefixes(db, experiment_id, user_id)
+    if prefix_infos is None:
+        return None
+
+    existing_result = await db.execute(
+        select(Reaction.fastq_prefix).where(Reaction.experiment_id == experiment_id)
+    )
+    existing_prefixes = {row[0] for row in existing_result.all()}
+
+    suggestions: list[dict] = []
+    skipped: list[str] = []
+
+    for pi in prefix_infos:
+        prefix = pi["prefix"]
+        if prefix in existing_prefixes:
+            skipped.append(prefix)
+            continue
+
+        parsed = parse_prefix_metadata(prefix)
+        suggestions.append(
+            {
+                "fastq_prefix": prefix,
+                "short_name": parsed["short_name"],
+                "organism": organism,
+                "assay_type": assay_type,
+                "experimental_condition": parsed["experimental_condition"],
+                "replicate_number": parsed["replicate_number"],
+                "antibody_vendor": parsed["antibody_vendor"],
+                "has_r1": pi["has_r1"],
+                "has_r2": pi["has_r2"],
+                "auto_detected_fields": parsed["auto_detected_fields"],
+            }
+        )
+
+    _deduplicate_short_names(suggestions)
+
+    return {"suggestions": suggestions, "skipped_prefixes": skipped}

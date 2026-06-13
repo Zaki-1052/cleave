@@ -78,6 +78,24 @@ export interface CsvImportResponse {
   warnings: string[];
 }
 
+export interface ReactionSuggestion {
+  fastqPrefix: string;
+  shortName: string;
+  organism: string;
+  assayType: string;
+  experimentalCondition: string | null;
+  replicateNumber: number | null;
+  antibodyVendor: string | null;
+  hasR1: boolean;
+  hasR2: boolean;
+  autoDetectedFields: string[];
+}
+
+export interface SuggestReactionsResponse {
+  suggestions: ReactionSuggestion[];
+  skippedPrefixes: string[];
+}
+
 export interface ReactionCreatePayload {
   fastqPrefix: string;
   shortName: string;
