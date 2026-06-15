@@ -112,7 +112,7 @@ export default function DEAnalysisTab() {
 
       {job && activeSubTab === 'results' && (
         job.status === 'complete' ? (
-          <DEResultsPanel jobId={job.id} />
+          <DEResultsPanel jobId={job.id} organism={(job.params as Record<string, unknown>)?.reference_genome as string ?? null} />
         ) : (
           <Card>
             <p className="text-sm text-muted-foreground">

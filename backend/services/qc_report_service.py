@@ -795,7 +795,7 @@ _RNASEQ_DE_PLOT_CATEGORIES = {
 
 def _parse_rnaseq_de_results_tsv(
     tsv_path: Path,
-    max_rows: int = 100,
+    max_rows: int = 500,
 ) -> tuple[list[str], list[dict[str, str | float]], int, int, int, int, int]:
     """Parse RNA-seq DE results TSV. Returns (columns, preview_rows,
     total_genes, sig_005, sig_001, upregulated, downregulated)."""
