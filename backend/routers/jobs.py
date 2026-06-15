@@ -19,6 +19,7 @@ from schemas.qc_report import (
     AlignmentQCReport,
     CustomHeatmapReport,
     DiffBindReport,
+    PathwayReport,
     PeakCallingQCReport,
     PearsonCorrelationReport,
     RnaseqAlignmentQCReport,
@@ -45,6 +46,10 @@ from services.qc_report_service import (
     get_diffbind_counts_path,
     get_diffbind_report,
     get_diffbind_results_path,
+    get_pathway_gene_list_path,
+    get_pathway_go_csv_path,
+    get_pathway_kegg_csv_path,
+    get_pathway_report,
     get_peak_annotation_csv,
     get_peak_calling_qc_csv_path,
     get_peak_calling_qc_report,
@@ -655,6 +660,103 @@ async def download_rnaseq_de_counts(
         csv_path,
         media_type="text/csv",
         filename="normalized_counts.csv",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Pathway Analysis report endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get("/jobs/{job_id}/pathway-report", response_model=PathwayReport)
+async def get_pathway_report_endpoint(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        report = await get_pathway_report(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return report
+
+
+@router.get("/jobs/{job_id}/pathway-report/download-go")
+async def download_pathway_go_results(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        csv_path = await get_pathway_go_csv_path(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if csv_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return FileResponse(
+        csv_path,
+        media_type="text/tab-separated-values",
+        filename="go_results.csv",
+    )
+
+
+@router.get("/jobs/{job_id}/pathway-report/download-kegg")
+async def download_pathway_kegg_results(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        csv_path = await get_pathway_kegg_csv_path(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if csv_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return FileResponse(
+        csv_path,
+        media_type="text/tab-separated-values",
+        filename="kegg_results.csv",
+    )
+
+
+@router.get("/jobs/{job_id}/pathway-report/download-gene-list")
+async def download_pathway_gene_list(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(current_active_user),
+):
+    try:
+        tsv_path = await get_pathway_gene_list_path(db, job_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if tsv_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found",
+        )
+    return FileResponse(
+        tsv_path,
+        media_type="text/tab-separated-values",
+        filename="gene_list.tsv",
     )
 
 

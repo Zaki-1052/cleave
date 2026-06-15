@@ -417,6 +417,30 @@ export interface RomanNormalizationReport {
   factorsCsvOutputId: number | null;
 }
 
+export interface PathwayPlotInfo {
+  plotType: string;
+  outputIdPng: number | null;
+}
+
+export interface PathwayReport {
+  geneListSource: string;
+  fdrThreshold: number;
+  totalInputGenes: number;
+  mappedEntrezGenes: number;
+  unmappedGenes: number;
+  goBpTerms: number;
+  goMfTerms: number;
+  goCcTerms: number;
+  keggPathways: number;
+  gseaEnabled: boolean;
+  gseaTerms: number;
+  goColumnNames: string[];
+  keggColumnNames: string[];
+  goPreview: Record<string, string | number>[];
+  keggPreview: Record<string, string | number>[];
+  plotOutputs: PathwayPlotInfo[];
+}
+
 export interface Notification {
   id: number;
   userId: number;

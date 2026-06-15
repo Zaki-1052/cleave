@@ -8,6 +8,7 @@ import type {
   JobOutput,
   PaginatedResponse,
   PeakCallingQCReport,
+  PathwayReport,
   PearsonCorrelationReport,
   QueueJob,
   RnaseqAlignmentQCReport,
@@ -259,6 +260,38 @@ export async function downloadRnaseqDECounts(jobId: number): Promise<void> {
     responseType: 'blob',
   });
   _downloadBlob(response.data as Blob, 'normalized_counts.csv');
+}
+
+// ---------------------------------------------------------------------------
+// Pathway Analysis (clusterProfiler)
+// ---------------------------------------------------------------------------
+
+export async function getPathwayReport(jobId: number): Promise<PathwayReport> {
+  const { data } = await client.get<PathwayReport>(
+    `/jobs/${jobId}/pathway-report`,
+  );
+  return data;
+}
+
+export async function downloadPathwayGOResults(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/pathway-report/download-go`, {
+    responseType: 'blob',
+  });
+  _downloadBlob(response.data as Blob, 'go_results.csv');
+}
+
+export async function downloadPathwayKEGGResults(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/pathway-report/download-kegg`, {
+    responseType: 'blob',
+  });
+  _downloadBlob(response.data as Blob, 'kegg_results.csv');
+}
+
+export async function downloadPathwayGeneList(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/pathway-report/download-gene-list`, {
+    responseType: 'blob',
+  });
+  _downloadBlob(response.data as Blob, 'gene_list.tsv');
 }
 
 // ---------------------------------------------------------------------------

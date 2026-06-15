@@ -3,6 +3,7 @@
 
 import csv
 import io
+import json
 from pathlib import Path
 
 from sqlalchemy import and_, or_, select
@@ -22,6 +23,8 @@ from schemas.qc_report import (
     DiffBindPlotInfo,
     DiffBindReport,
     NormalizationFactorEntry,
+    PathwayPlotInfo,
+    PathwayReport,
     PeakAnnotationResult,
     PeakCallingQCReport,
     PeakCallingReactionMetrics,
@@ -1297,4 +1300,169 @@ async def get_rnaseq_qc_dashboard_csv_path(
     path = _resolve_output_path(job, "rseqc_metrics", "csv")
     if path is None:
         raise FileNotFoundError(f"RSeQC metrics CSV not found for job {job_id}")
+    return path
+
+
+# ---------------------------------------------------------------------------
+# RNA-seq Pathway Analysis report
+# ---------------------------------------------------------------------------
+
+_PATHWAY_PLOT_CATEGORIES = {
+    "go_bp": "go_bp_plot",
+    "go_mf": "go_mf_plot",
+    "go_cc": "go_cc_plot",
+    "kegg": "kegg_plot",
+    "gsea": "gsea_plot",
+}
+
+
+def _parse_pathway_csv(
+    csv_path: Path,
+    max_rows: int = 50,
+) -> tuple[list[str], list[dict[str, str | float | int]]]:
+    """Parse GO or KEGG results CSV. Returns (column_names, preview_rows)."""
+    columns: list[str] = []
+    rows: list[dict[str, str | float | int]] = []
+    with open(csv_path, newline="") as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        columns = list(reader.fieldnames or [])
+        for i, row in enumerate(reader):
+            if i >= max_rows:
+                break
+            parsed: dict[str, str | float | int] = {}
+            for col in columns:
+                val = row.get(col, "")
+                try:
+                    parsed[col] = float(val)
+                except ValueError:
+                    try:
+                        parsed[col] = int(val)
+                    except ValueError:
+                        parsed[col] = val
+            rows.append(parsed)
+    return columns, rows
+
+
+def _find_pathway_plot_output_ids(
+    job: AnalysisJob,
+) -> list[PathwayPlotInfo]:
+    """Match job outputs to pathway plot types (PNG only)."""
+    plot_infos: list[PathwayPlotInfo] = []
+    for plot_type, category in _PATHWAY_PLOT_CATEGORIES.items():
+        png_id = None
+        for output in job.outputs:
+            if output.file_category == category and output.file_type == "png":
+                png_id = output.id
+        if png_id is not None:
+            plot_infos.append(PathwayPlotInfo(plot_type=plot_type, output_id_png=png_id))
+    return plot_infos
+
+
+async def get_pathway_report(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> PathwayReport | None:
+    """Return structured pathway report for a completed rnaseq_pathway job."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    if job.job_type != "rnaseq_pathway":
+        raise ValueError(f"Job {job_id} is not an rnaseq_pathway job (got {job.job_type})")
+    if job.status != "complete":
+        raise ValueError(f"Job {job_id} is not complete (status: {job.status})")
+
+    params = job.params or {}
+
+    # Read summary JSON
+    summary_path = _resolve_output_path(job, "pathway_summary", "json")
+    summary: dict = {}
+    if summary_path is not None:
+        summary = json.loads(summary_path.read_text())
+
+    # Read GO preview
+    go_columns: list[str] = []
+    go_preview: list[dict[str, str | float | int]] = []
+    go_csv = _resolve_output_path(job, "go_results", "csv")
+    if go_csv is not None:
+        go_columns, go_preview = _parse_pathway_csv(go_csv)
+
+    # Read KEGG preview
+    kegg_columns: list[str] = []
+    kegg_preview: list[dict[str, str | float | int]] = []
+    kegg_csv = _resolve_output_path(job, "kegg_results", "csv")
+    if kegg_csv is not None:
+        kegg_columns, kegg_preview = _parse_pathway_csv(kegg_csv)
+
+    plot_infos = _find_pathway_plot_output_ids(job)
+
+    return PathwayReport(
+        gene_list_source=params.get("gene_list_source", "both"),
+        fdr_threshold=float(params.get("fdr_threshold", 0.05)),
+        total_input_genes=summary.get("total_input_genes", 0),
+        mapped_entrez_genes=summary.get("mapped_entrez_genes", 0),
+        unmapped_genes=summary.get("unmapped_genes", 0),
+        go_bp_terms=summary.get("go_bp_terms", 0),
+        go_mf_terms=summary.get("go_mf_terms", 0),
+        go_cc_terms=summary.get("go_cc_terms", 0),
+        kegg_pathways=summary.get("kegg_pathways", 0),
+        gsea_enabled=summary.get("gsea_enabled", False),
+        gsea_terms=summary.get("gsea_terms", 0),
+        go_column_names=go_columns,
+        kegg_column_names=kegg_columns,
+        go_preview=go_preview,
+        kegg_preview=kegg_preview,
+        plot_outputs=plot_infos,
+    )
+
+
+async def get_pathway_go_csv_path(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> Path | None:
+    """Return absolute path to GO results CSV for download."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+    if job.job_type != "rnaseq_pathway" or job.status != "complete":
+        raise ValueError(f"Job {job_id} is not a completed rnaseq_pathway job")
+    path = _resolve_output_path(job, "go_results", "csv")
+    if path is None:
+        raise FileNotFoundError(f"GO results not found for job {job_id}")
+    return path
+
+
+async def get_pathway_kegg_csv_path(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> Path | None:
+    """Return absolute path to KEGG results CSV for download."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+    if job.job_type != "rnaseq_pathway" or job.status != "complete":
+        raise ValueError(f"Job {job_id} is not a completed rnaseq_pathway job")
+    path = _resolve_output_path(job, "kegg_results", "csv")
+    if path is None:
+        raise FileNotFoundError(f"KEGG results not found for job {job_id}")
+    return path
+
+
+async def get_pathway_gene_list_path(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> Path | None:
+    """Return absolute path to filtered gene list TSV for download."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+    if job.job_type != "rnaseq_pathway" or job.status != "complete":
+        raise ValueError(f"Job {job_id} is not a completed rnaseq_pathway job")
+    path = _resolve_output_path(job, "gene_list", "tsv")
+    if path is None:
+        raise FileNotFoundError(f"Gene list not found for job {job_id}")
     return path

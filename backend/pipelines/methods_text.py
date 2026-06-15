@@ -401,6 +401,46 @@ def rnaseq_qc_methods(params: dict) -> str:
     )
 
 
+def rnaseq_pathway_methods(params: dict) -> str:
+    """Generate clusterProfiler pathway analysis methods text for manuscripts."""
+    genome = params.get("reference_genome", "unknown")
+    genome_display = GENOME_DISPLAY_NAMES.get(genome, genome)
+    source = params.get("gene_list_source", "both")
+    fdr = params.get("fdr_threshold", 0.05)
+
+    direction_text = {
+        "upregulated": "upregulated",
+        "downregulated": "downregulated",
+        "both": "differentially expressed",
+    }.get(source, "differentially expressed")
+
+    annotation_ver = RNASEQ_ANNOTATION_VERSIONS.get(genome, "")
+    annotation_note = f" ({annotation_ver})" if annotation_ver else ""
+
+    organism_db = {"mm10": "org.Mm.eg.db", "hg38": "org.Hs.eg.db"}.get(genome, "")
+    db_note = f" using {organism_db}" if organism_db else ""
+
+    text = (
+        f"Gene ontology (GO) enrichment analysis was performed on {direction_text} "
+        f"genes (adjusted p-value < {fdr}) using clusterProfiler (Yu et al., 2012). "
+        f"Ensembl gene identifiers were converted to Entrez IDs using bitr(){db_note}. "
+        f"GO enrichment was assessed separately for Biological Process (BP), "
+        f"Molecular Function (MF), and Cellular Component (CC) ontologies "
+        f"using enrichGO() with Benjamini-Hochberg correction (p-value cutoff {fdr}). "
+        f"KEGG pathway enrichment was assessed using enrichKEGG(). "
+    )
+
+    enable_gsea = params.get("enable_gsea", False)
+    if enable_gsea:
+        text += (
+            "Gene set enrichment analysis (GSEA) was additionally performed on "
+            "the full ranked gene list (by log2 fold change) using gseGO(). "
+        )
+
+    text += f"Reference genome: {genome_display}{annotation_note}."
+    return text
+
+
 def roman_normalization_methods(params: dict) -> str:
     """Generate methods text for Roman normalization."""
     samples = params.get("samples", [])

@@ -35,6 +35,7 @@ const JOB_TYPE_OPTIONS = [
   { value: 'rnaseq_feature_counts', label: 'featureCounts' },
   { value: 'rnaseq_de', label: 'DE Analysis' },
   { value: 'rnaseq_qc', label: 'QC Dashboard' },
+  { value: 'rnaseq_pathway', label: 'Pathway Analysis' },
 ];
 
 const JOB_TYPE_TO_TAB: Record<string, string> = {
@@ -50,6 +51,7 @@ const JOB_TYPE_TO_TAB: Record<string, string> = {
   rnaseq_feature_counts: 'feature-counts',
   rnaseq_de: 'de',
   rnaseq_qc: 'rnaseq-qc',
+  rnaseq_pathway: 'pathway',
 };
 
 function ActionsCell({ job }: { job: QueueJob }) {

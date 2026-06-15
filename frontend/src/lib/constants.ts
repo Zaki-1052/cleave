@@ -519,6 +519,25 @@ export const RNASEQ_QC_FILE_CATEGORIES = [
   },
 ] as const;
 
+export const RNASEQ_PATHWAY_FILE_CATEGORIES = [
+  { value: 'go_results', label: 'GO Results', description: 'Combined GO enrichment results (BP, MF, CC).' },
+  { value: 'kegg_results', label: 'KEGG Results', description: 'KEGG pathway enrichment results.' },
+  { value: 'pathway_summary', label: 'Summary', description: 'Pathway analysis summary statistics.' },
+  { value: 'go_bp_plot', label: 'GO BP Plot', description: 'Biological Process dot plot.' },
+  { value: 'go_mf_plot', label: 'GO MF Plot', description: 'Molecular Function dot plot.' },
+  { value: 'go_cc_plot', label: 'GO CC Plot', description: 'Cellular Component dot plot.' },
+  { value: 'kegg_plot', label: 'KEGG Plot', description: 'KEGG pathway dot plot.' },
+  { value: 'gsea_plot', label: 'GSEA Plot', description: 'GSEA enrichment dot plot.' },
+  { value: 'gene_list', label: 'Gene List', description: 'Filtered input gene list.' },
+  { value: 'master_log', label: 'Log', description: 'Pipeline execution log.' },
+] as const;
+
+export const PATHWAY_GENE_LIST_OPTIONS = [
+  { value: 'both', label: 'All DE Genes (up + down)' },
+  { value: 'upregulated', label: 'Upregulated Only (log2FC > 0)' },
+  { value: 'downregulated', label: 'Downregulated Only (log2FC < 0)' },
+] as const;
+
 export const HEATMAP_SORT_ORDERS = [
   { value: 'descend', label: 'Descending (default)' },
   { value: 'ascend', label: 'Ascending' },

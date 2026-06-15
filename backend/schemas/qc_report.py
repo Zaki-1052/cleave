@@ -323,3 +323,36 @@ class RomanNormalizationReport(CamelModel):
     plot_output_id_png: int | None = None
     plot_output_id_svg: int | None = None
     factors_csv_output_id: int | None = None
+
+
+# ---------------------------------------------------------------------------
+# RNA-seq Pathway Analysis Report
+# ---------------------------------------------------------------------------
+
+
+class PathwayPlotInfo(CamelModel):
+    """Metadata for a pathway analysis plot output (PNG)."""
+
+    plot_type: str  # go_bp, go_mf, go_cc, kegg, gsea
+    output_id_png: int | None = None
+
+
+class PathwayReport(CamelModel):
+    """Full pathway analysis report (clusterProfiler GO + KEGG)."""
+
+    gene_list_source: str  # "upregulated", "downregulated", "both"
+    fdr_threshold: float
+    total_input_genes: int
+    mapped_entrez_genes: int
+    unmapped_genes: int
+    go_bp_terms: int
+    go_mf_terms: int
+    go_cc_terms: int
+    kegg_pathways: int
+    gsea_enabled: bool
+    gsea_terms: int
+    go_column_names: list[str]
+    kegg_column_names: list[str]
+    go_preview: list[dict[str, str | float | int]]
+    kegg_preview: list[dict[str, str | float | int]]
+    plot_outputs: list[PathwayPlotInfo]

@@ -32,6 +32,7 @@ interface NewAnalysisDropdownProps {
   onFeatureCountsClick?: () => void;
   onDeseq2Click?: () => void;
   onRnaseqQCClick?: () => void;
+  onPathwayClick?: () => void;
 }
 
 export function NewAnalysisDropdown({
@@ -46,6 +47,7 @@ export function NewAnalysisDropdown({
   onFeatureCountsClick,
   onDeseq2Click,
   onRnaseqQCClick,
+  onPathwayClick,
 }: NewAnalysisDropdownProps) {
   return (
     <DropdownMenu>
@@ -74,7 +76,7 @@ export function NewAnalysisDropdown({
               <BarChart3 className="h-4 w-4" />
               QC Dashboard
             </DropdownMenuItem>
-            <DropdownMenuItem disabled>
+            <DropdownMenuItem onSelect={onPathwayClick} disabled={!onPathwayClick}>
               <Share2 className="h-4 w-4" />
               Pathway Analysis
             </DropdownMenuItem>

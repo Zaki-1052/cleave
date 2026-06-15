@@ -25,7 +25,7 @@ import TrimmingTab from '@/pages/experiment/TrimmingTab';
 import DiffBindTab from '@/pages/experiment/DiffBindTab';
 import HistoryTab from '@/pages/experiment/HistoryTab';
 import AllFilesTab from '@/pages/experiment/AllFilesTab';
-import PlaceholderTab from '@/pages/experiment/PlaceholderTab';
+import PathwayAnalysisTab from '@/pages/experiment/PathwayAnalysisTab';
 import FeatureCountsTab from '@/components/rnaseq-feature-counts/FeatureCountsTab';
 import DEAnalysisTab from '@/pages/experiment/DEAnalysisTab';
 import RnaseqQCTab from '@/pages/experiment/RnaseqQCTab';
@@ -80,7 +80,7 @@ export default function App() {
           <Route path="feature-counts/:jid" element={<FeatureCountsTab />} />
           <Route path="de/:jid" element={<DEAnalysisTab />} />
           <Route path="rnaseq-qc/:jid" element={<RnaseqQCTab />} />
-          <Route path="pathway/:jid" element={<PlaceholderTab label="Pathway Analysis" />} />
+          <Route path="pathway/:jid" element={<PathwayAnalysisTab />} />
           <Route path="history" element={<HistoryTab />} />
           <Route path="files" element={<AllFilesTab />} />
         </Route>

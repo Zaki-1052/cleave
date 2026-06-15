@@ -107,6 +107,14 @@ export function useRnaseqDEReport(jobId: number | null) {
   });
 }
 
+export function usePathwayReport(jobId: number | null) {
+  return useQuery({
+    queryKey: ['pathway-report', jobId],
+    queryFn: () => jobsApi.getPathwayReport(jobId!),
+    enabled: jobId !== null,
+  });
+}
+
 export function useRnaseqQCDashboardReport(jobId: number | null) {
   return useQuery({
     queryKey: ['rnaseq-qc-dashboard-report', jobId],
