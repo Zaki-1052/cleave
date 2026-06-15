@@ -34,6 +34,7 @@ const JOB_TYPE_OPTIONS = [
   { value: 'rnaseq_alignment', label: 'Alignment (STAR)' },
   { value: 'rnaseq_feature_counts', label: 'featureCounts' },
   { value: 'rnaseq_de', label: 'DE Analysis' },
+  { value: 'rnaseq_qc', label: 'QC Dashboard' },
 ];
 
 const JOB_TYPE_TO_TAB: Record<string, string> = {
@@ -48,6 +49,7 @@ const JOB_TYPE_TO_TAB: Record<string, string> = {
   rnaseq_alignment: 'alignment',
   rnaseq_feature_counts: 'feature-counts',
   rnaseq_de: 'de',
+  rnaseq_qc: 'rnaseq-qc',
 };
 
 function ActionsCell({ job }: { job: QueueJob }) {

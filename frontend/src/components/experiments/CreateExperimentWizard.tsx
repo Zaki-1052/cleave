@@ -136,6 +136,7 @@ export function CreateExperimentWizard({
           ? {
               referenceGenome,
               removeDuplicates: false,
+              includeQc: true,
               includeDe: true,
             }
           : {

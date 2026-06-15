@@ -342,6 +342,29 @@ export interface RnaseqDEReport {
   plotOutputs: RnaseqDEPlotInfo[];
 }
 
+export interface RSeQCReactionMetrics {
+  shortName: string;
+  fractionSense: number;
+  fractionAntisense: number;
+  fractionUndetermined: number;
+  inferredStrandedness: string;
+  cdsExonsTags: number;
+  fiveUtrExonsTags: number;
+  threeUtrExonsTags: number;
+  intronTags: number;
+  intergenicTags: number;
+  coverageSkewness: number;
+  innerDistanceMean: number;
+  innerDistanceSd: number;
+}
+
+export interface RnaseqQCDashboardReport {
+  referenceGenome: string;
+  modulesRun: string[];
+  metrics: RSeQCReactionMetrics[];
+  multiqcOutputId: number | null;
+}
+
 export interface CustomHeatmapPlotInfo {
   outputIdPng: number | null;
   outputIdSvg: number | null;

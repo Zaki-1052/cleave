@@ -15,6 +15,7 @@ export interface AutoPipelineConfig {
   includePearson?: boolean;
   // RNA-seq fields
   removeDuplicates?: boolean;
+  includeQc?: boolean;
   includeDe?: boolean;
 }
 

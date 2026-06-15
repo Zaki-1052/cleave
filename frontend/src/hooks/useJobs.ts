@@ -107,6 +107,14 @@ export function useRnaseqDEReport(jobId: number | null) {
   });
 }
 
+export function useRnaseqQCDashboardReport(jobId: number | null) {
+  return useQuery({
+    queryKey: ['rnaseq-qc-dashboard-report', jobId],
+    queryFn: () => jobsApi.getRnaseqQCDashboardReport(jobId!),
+    enabled: jobId !== null,
+  });
+}
+
 export function useCustomHeatmapReport(jobId: number | null) {
   return useQuery({
     queryKey: ['custom-heatmap-report', jobId],

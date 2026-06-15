@@ -45,6 +45,7 @@ export function AutoPipelineModal({
   const [includePearson, setIncludePearson] = useState(true);
   // RNA-seq state
   const [removeDuplicates, setRemoveDuplicates] = useState(false);
+  const [includeQc, setIncludeQc] = useState(true);
   const [includeDe, setIncludeDe] = useState(true);
 
   const [submitting, setSubmitting] = useState(false);
@@ -60,6 +61,7 @@ export function AutoPipelineModal({
         ? {
             referenceGenome,
             removeDuplicates,
+            includeQc,
             includeDe,
           }
         : {
@@ -105,6 +107,8 @@ export function AutoPipelineModal({
           setIncludePearson={setIncludePearson}
           removeDuplicates={removeDuplicates}
           setRemoveDuplicates={setRemoveDuplicates}
+          includeQc={includeQc}
+          setIncludeQc={setIncludeQc}
           includeDe={includeDe}
           setIncludeDe={setIncludeDe}
         />

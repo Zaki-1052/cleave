@@ -49,6 +49,7 @@ export function AutoPipelineStep({
   const { data: reactionsData } = useReactions(experimentId);
   const reactions = useMemo(() => reactionsData?.items ?? [], [reactionsData?.items]);
   const [removeDuplicates, setRemoveDuplicates] = useState(false);
+  const [includeQc, setIncludeQc] = useState(true);
   const [includeDe, setIncludeDe] = useState(true);
 
   const detectedGenome = useMemo(() => {
@@ -114,6 +115,8 @@ export function AutoPipelineStep({
           setIncludePearson={setIncludePearson}
           removeDuplicates={removeDuplicates}
           setRemoveDuplicates={setRemoveDuplicates}
+          includeQc={includeQc}
+          setIncludeQc={setIncludeQc}
           includeDe={includeDe}
           setIncludeDe={setIncludeDe}
         />

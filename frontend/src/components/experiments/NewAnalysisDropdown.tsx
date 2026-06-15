@@ -31,6 +31,7 @@ interface NewAnalysisDropdownProps {
   onRnaseqAlignmentClick?: () => void;
   onFeatureCountsClick?: () => void;
   onDeseq2Click?: () => void;
+  onRnaseqQCClick?: () => void;
 }
 
 export function NewAnalysisDropdown({
@@ -44,6 +45,7 @@ export function NewAnalysisDropdown({
   onRnaseqAlignmentClick,
   onFeatureCountsClick,
   onDeseq2Click,
+  onRnaseqQCClick,
 }: NewAnalysisDropdownProps) {
   return (
     <DropdownMenu>
@@ -68,7 +70,7 @@ export function NewAnalysisDropdown({
               <ArrowLeftRight className="h-4 w-4" />
               DE Analysis
             </DropdownMenuItem>
-            <DropdownMenuItem disabled>
+            <DropdownMenuItem onSelect={onRnaseqQCClick} disabled={!onRnaseqQCClick}>
               <BarChart3 className="h-4 w-4" />
               QC Dashboard
             </DropdownMenuItem>

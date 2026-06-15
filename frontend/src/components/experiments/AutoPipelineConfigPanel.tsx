@@ -23,6 +23,8 @@ interface AutoPipelineConfigPanelProps {
   // RNA-seq-specific
   removeDuplicates: boolean;
   setRemoveDuplicates: (v: boolean) => void;
+  includeQc: boolean;
+  setIncludeQc: (v: boolean) => void;
   includeDe: boolean;
   setIncludeDe: (v: boolean) => void;
 }
@@ -46,6 +48,8 @@ export function AutoPipelineConfigPanel({
   setIncludePearson,
   removeDuplicates,
   setRemoveDuplicates,
+  includeQc,
+  setIncludeQc,
   includeDe,
   setIncludeDe,
 }: AutoPipelineConfigPanelProps) {
@@ -63,6 +67,8 @@ export function AutoPipelineConfigPanel({
       setReferenceGenome={setReferenceGenome}
       removeDuplicates={removeDuplicates}
       setRemoveDuplicates={setRemoveDuplicates}
+      includeQc={includeQc}
+      setIncludeQc={setIncludeQc}
       includeDe={includeDe}
       setIncludeDe={setIncludeDe}
     />;
@@ -230,6 +236,8 @@ interface RnaseqConfigPanelProps {
   setReferenceGenome: (v: string) => void;
   removeDuplicates: boolean;
   setRemoveDuplicates: (v: boolean) => void;
+  includeQc: boolean;
+  setIncludeQc: (v: boolean) => void;
   includeDe: boolean;
   setIncludeDe: (v: boolean) => void;
 }
@@ -240,6 +248,8 @@ function RnaseqConfigPanel({
   setReferenceGenome,
   removeDuplicates,
   setRemoveDuplicates,
+  includeQc,
+  setIncludeQc,
   includeDe,
   setIncludeDe,
 }: RnaseqConfigPanelProps) {
@@ -247,6 +257,7 @@ function RnaseqConfigPanel({
     { name: 'FastQC', included: true, note: 'Already runs on upload' },
     { name: 'Trimming (fastp)', included: true, note: 'Adapter + quality trimming' },
     { name: 'Alignment (STAR + Salmon)', included: true, note: `${referenceGenome || '?'} + BigWigs` },
+    { name: 'QC Dashboard (RSeQC+MultiQC)', included: includeQc, note: 'Read distribution, coverage, strandedness' },
     { name: 'DE Analysis (DESeq2)', included: includeDe, note: 'If conditions detectable' },
   ];
 
@@ -298,6 +309,20 @@ function RnaseqConfigPanel({
         <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
           Optional Analysis Steps
         </h3>
+        <label className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            checked={includeQc}
+            onChange={(e) => setIncludeQc(e.target.checked)}
+            className="rounded text-primary"
+          />
+          <div>
+            <span className="text-sm font-medium text-foreground">QC Dashboard</span>
+            <span className="ml-2 text-xs text-muted-foreground">
+              (RSeQC read distribution, coverage, strandedness + MultiQC)
+            </span>
+          </div>
+        </label>
         <label className="flex items-center gap-3">
           <input
             type="checkbox"

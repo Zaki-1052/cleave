@@ -476,6 +476,49 @@ export const STRANDEDNESS_OPTIONS = [
   { value: 2, label: '2 — Reverse (antisense)' },
 ] as const;
 
+export const RNASEQ_QC_FILE_CATEGORIES = [
+  {
+    value: 'multiqc_report',
+    label: 'MultiQC Report',
+    description: 'Aggregated HTML QC report.',
+  },
+  {
+    value: 'rseqc_infer_experiment',
+    label: 'Infer Experiment',
+    description: 'Strandedness inference output.',
+  },
+  {
+    value: 'rseqc_read_distribution',
+    label: 'Read Distribution',
+    description: 'Read distribution across genomic features.',
+  },
+  {
+    value: 'rseqc_genebody_coverage',
+    label: 'Gene Body Coverage',
+    description: 'Coverage uniformity plots.',
+  },
+  {
+    value: 'rseqc_inner_distance',
+    label: 'Inner Distance',
+    description: 'Fragment size distribution.',
+  },
+  {
+    value: 'rseqc_junction_saturation',
+    label: 'Junction Saturation',
+    description: 'Splice junction saturation curves.',
+  },
+  {
+    value: 'rseqc_metrics',
+    label: 'RSeQC Metrics',
+    description: 'Aggregate per-sample metrics CSV.',
+  },
+  {
+    value: 'master_log',
+    label: 'Pipeline Log',
+    description: 'Pipeline execution log.',
+  },
+] as const;
+
 export const HEATMAP_SORT_ORDERS = [
   { value: 'descend', label: 'Descending (default)' },
   { value: 'ascend', label: 'Ascending' },

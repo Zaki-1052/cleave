@@ -28,7 +28,8 @@ const STEP_ORDER: Record<string, number> = {
   // RNA-seq
   rnaseq_trimming: 1,
   rnaseq_alignment: 2,
-  rnaseq_de: 3,
+  rnaseq_qc: 3,
+  rnaseq_de: 4,
 };
 
 const STEP_LABELS: Record<string, string> = {
@@ -43,6 +44,7 @@ const STEP_LABELS: Record<string, string> = {
   // RNA-seq
   rnaseq_trimming: 'Trimming (fastp)',
   rnaseq_alignment: 'Alignment (STAR+Salmon)',
+  rnaseq_qc: 'QC Dashboard',
   rnaseq_de: 'DE Analysis',
 };
 
@@ -74,6 +76,7 @@ export function AutoPipelineBanner({
       ? [
           { key: 'rnaseq_trimming', always: false },
           { key: 'rnaseq_alignment', always: true },
+          { key: 'rnaseq_qc', always: false },
           { key: 'rnaseq_de', always: false },
         ]
       : [
@@ -96,6 +99,7 @@ export function AutoPipelineBanner({
         if (s.key === 'diffbind') return config.include_diffbind;
         if (s.key === 'custom_heatmap') return config.include_heatmap;
         if (s.key === 'pearson_correlation') return config.include_pearson;
+        if (s.key === 'rnaseq_qc') return config.include_qc;
         if (s.key === 'rnaseq_de') return config.include_de;
         return true;
       })

@@ -22,6 +22,7 @@ import { NewNormalizationWizard } from '@/components/normalization/NewNormalizat
 import { NewRnaseqAlignmentWizard } from '@/components/rnaseq-alignment/NewRnaseqAlignmentWizard';
 import { NewFeatureCountsWizard } from '@/components/rnaseq-feature-counts/NewFeatureCountsWizard';
 import { NewDeseq2Wizard } from '@/components/rnaseq-de/NewDeseq2Wizard';
+import { NewRnaseqQCWizard } from '@/components/rnaseq-qc/NewRnaseqQCWizard';
 import { AutoPipelineModal } from '@/components/experiments/AutoPipelineModal';
 import { AutoPipelineBanner } from '@/components/experiments/AutoPipelineBanner';
 import { useExperiment } from '@/hooks/useExperiments';
@@ -95,6 +96,7 @@ export default function ExperimentView() {
   const [showRnaseqAlignmentWizard, setShowRnaseqAlignmentWizard] = useState(false);
   const [showFeatureCountsWizard, setShowFeatureCountsWizard] = useState(false);
   const [showDeseq2Wizard, setShowDeseq2Wizard] = useState(false);
+  const [showRnaseqQCWizard, setShowRnaseqQCWizard] = useState(false);
   const { data: reactionsData } = useReactions(Number(id));
   const reactions = reactionsData?.items ?? [];
 
@@ -158,6 +160,7 @@ export default function ExperimentView() {
               onRnaseqAlignmentClick={() => setShowRnaseqAlignmentWizard(true)}
               onFeatureCountsClick={() => setShowFeatureCountsWizard(true)}
               onDeseq2Click={() => setShowDeseq2Wizard(true)}
+              onRnaseqQCClick={() => setShowRnaseqQCWizard(true)}
             />
           </div>
         )}
@@ -240,6 +243,11 @@ export default function ExperimentView() {
             onClose={() => setShowDeseq2Wizard(false)}
             experiment={experiment}
             isTrainingProject={isTrainingProject}
+          />
+          <NewRnaseqQCWizard
+            isOpen={showRnaseqQCWizard}
+            onClose={() => setShowRnaseqQCWizard(false)}
+            experiment={experiment}
           />
         </>
       )}

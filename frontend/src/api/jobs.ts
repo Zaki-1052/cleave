@@ -12,6 +12,7 @@ import type {
   QueueJob,
   RnaseqAlignmentQCReport,
   RnaseqDEReport,
+  RnaseqQCDashboardReport,
   RomanNormalizationReport,
 } from './types';
 
@@ -258,6 +259,24 @@ export async function downloadRnaseqDECounts(jobId: number): Promise<void> {
     responseType: 'blob',
   });
   _downloadBlob(response.data as Blob, 'normalized_counts.csv');
+}
+
+// ---------------------------------------------------------------------------
+// RSeQC + MultiQC QC Dashboard
+// ---------------------------------------------------------------------------
+
+export async function getRnaseqQCDashboardReport(jobId: number): Promise<RnaseqQCDashboardReport> {
+  const { data } = await client.get<RnaseqQCDashboardReport>(
+    `/jobs/${jobId}/rnaseq-qc-dashboard-report`,
+  );
+  return data;
+}
+
+export async function downloadRnaseqQCDashboardCsv(jobId: number): Promise<void> {
+  const response = await client.get(`/jobs/${jobId}/rnaseq-qc-dashboard-report/download`, {
+    responseType: 'blob',
+  });
+  _downloadBlob(response.data as Blob, `rnaseq-qc-metrics-${jobId}.csv`);
 }
 
 // ---------------------------------------------------------------------------
