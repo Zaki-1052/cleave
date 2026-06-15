@@ -182,7 +182,7 @@ async def on_job_complete(experiment_id: int, job_id: int, job_type: str) -> Non
             await _queue_rnaseq_alignment(db, experiment_id, config, parent_job_id=job_id)
 
         elif job_type == "rnaseq_alignment":
-            # Cache alignment job ID for downstream DE analysis
+            # Cache alignment job ID for downstream QC/DE analysis
             config["_rnaseq_alignment_job_id"] = job_id
             await db.execute(
                 update(Experiment)
@@ -190,11 +190,26 @@ async def on_job_complete(experiment_id: int, job_id: int, job_type: str) -> Non
                 .values(auto_pipeline_config=config)
             )
             await db.commit()
-            # Queue DE analysis if conditions are detectable
+            # Queue QC before DE (if enabled)
+            if config.get("include_qc", True):
+                await _queue_rnaseq_qc(db, experiment_id, config, alignment_job_id=job_id)
+                return
+            # Skip QC — proceed directly to DE or complete
             if config.get("include_de", True):
                 can_de = await _can_run_rnaseq_de(db, experiment_id)
                 if can_de:
                     await _queue_rnaseq_de(db, experiment_id, config, alignment_job_id=job_id)
+                    return
+            await _mark_complete(db, experiment_id)
+
+        elif job_type == "rnaseq_qc":
+            alignment_job_id = config.get("_rnaseq_alignment_job_id", 0)
+            if config.get("include_de", True) and alignment_job_id:
+                can_de = await _can_run_rnaseq_de(db, experiment_id)
+                if can_de:
+                    await _queue_rnaseq_de(
+                        db, experiment_id, config, alignment_job_id=alignment_job_id
+                    )
                     return
             await _mark_complete(db, experiment_id)
 
@@ -549,6 +564,79 @@ async def _queue_rnaseq_de(
         experiment_id,
         "rnaseq_de",
         "Auto: DE Analysis (DESeq2)",
+        params,
+        config,
+        alignment_job_id,
+    )
+
+
+async def _queue_rnaseq_qc(
+    db: AsyncSession, experiment_id: int, config: dict, alignment_job_id: int
+) -> None:
+    """Queue RNA-seq QC (RSeQC + MultiQC) job."""
+    reactions = await _get_reactions(db, experiment_id)
+
+    bam_result = await db.execute(
+        select(JobOutput)
+        .where(JobOutput.job_id == alignment_job_id)
+        .where(JobOutput.file_category == "sorted_bam")
+        .where(JobOutput.file_type == "bam")
+    )
+    bam_map = {o.reaction_id: o.file_path for o in bam_result.scalars().all()}
+
+    star_log_result = await db.execute(
+        select(JobOutput)
+        .where(JobOutput.job_id == alignment_job_id)
+        .where(JobOutput.file_category == "star_log")
+    )
+    star_log_paths = [o.file_path for o in star_log_result.scalars().all()]
+
+    reaction_params = [
+        {
+            "reaction_id": r.id,
+            "short_name": r.short_name,
+            "bam_path": bam_map.get(r.id, ""),
+        }
+        for r in reactions
+    ]
+
+    fastp_paths: list[str] = []
+    trim_job = await _find_latest_auto_job(db, experiment_id, "rnaseq_trimming")
+    if trim_job:
+        fp_result = await db.execute(
+            select(JobOutput)
+            .where(JobOutput.job_id == trim_job.id)
+            .where(JobOutput.file_category == "fastp_json")
+        )
+        fastp_paths = [o.file_path for o in fp_result.scalars().all()]
+
+    fc_summary_path: str | None = None
+    fc_job = await _find_latest_auto_job(db, experiment_id, "rnaseq_feature_counts")
+    if fc_job:
+        fc_result = await db.execute(
+            select(JobOutput)
+            .where(JobOutput.job_id == fc_job.id)
+            .where(JobOutput.file_category == "count_summary")
+        )
+        fc_out = fc_result.scalar_one_or_none()
+        if fc_out:
+            fc_summary_path = fc_out.file_path
+
+    params = {
+        "experiment_id": experiment_id,
+        "project_id": config["project_id"],
+        "reference_genome": config["reference_genome"],
+        "alignment_job_id": alignment_job_id,
+        "reactions": reaction_params,
+        "star_log_paths": star_log_paths,
+        "fastp_report_paths": fastp_paths,
+        "featurecounts_summary_path": fc_summary_path,
+    }
+    await _create_auto_job(
+        db,
+        experiment_id,
+        "rnaseq_qc",
+        "Auto: QC (RSeQC+MultiQC)",
         params,
         config,
         alignment_job_id,

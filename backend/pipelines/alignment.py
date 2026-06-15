@@ -835,7 +835,7 @@ class AlignmentStage(PipelineStage):
                 else:
                     errors.append(f"Genome index directory not found: {idx_dir}")
 
-            for tool in ["bowtie2", "samtools"]:
+            for tool in ["bowtie2", "samtools", "bamCoverage"]:
                 if not shutil.which(tool):
                     errors.append(f"Required tool not found in PATH: {tool}")
 

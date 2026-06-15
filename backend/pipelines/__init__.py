@@ -13,6 +13,7 @@ from pipelines.pearson_correlation import PearsonCorrelationStage
 from pipelines.rnaseq_alignment import RnaseqAlignmentStage
 from pipelines.rnaseq_de import RnaseqDEStage
 from pipelines.rnaseq_feature_counts import FeatureCountsStage
+from pipelines.rnaseq_qc import RnaseqQCStage
 from pipelines.rnaseq_trimming import RnaseqTrimmingStage
 from pipelines.roman_normalization import RomanNormalizationStage
 from pipelines.trimming import TrimmingStage
@@ -24,6 +25,7 @@ _STAGES: dict[str, PipelineStage] = {
     "rnaseq_alignment": RnaseqAlignmentStage(),
     "rnaseq_de": RnaseqDEStage(),
     "rnaseq_feature_counts": FeatureCountsStage(),
+    "rnaseq_qc": RnaseqQCStage(),
     "alignment": AlignmentStage(),
     "peak_calling": PeakCallingStage(),
     "diffbind": DiffBindStage(),

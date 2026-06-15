@@ -360,6 +360,47 @@ def rnaseq_de_methods(params: dict) -> str:
     return text
 
 
+def rnaseq_trimming_methods(params: dict) -> str:
+    """Generate fastp trimming methods text for manuscripts."""
+    phred = params.get("qualified_quality_phred", 20)
+    min_len = params.get("length_required", 25)
+    win_size = params.get("cut_window_size", 4)
+    win_qual = params.get("cut_mean_quality", 15)
+
+    return (
+        f"Adapter sequences were detected and removed using fastp "
+        f"(--detect_adapter_for_pe) with quality filtering "
+        f"(qualified_quality_phred {phred}, length_required {min_len}). "
+        f"Sliding window trimming was applied from both ends "
+        f"(window size {win_size}, mean quality {win_qual})."
+    )
+
+
+def rnaseq_qc_methods(params: dict) -> str:
+    """Generate RSeQC + MultiQC QC methods text for manuscripts."""
+    genome = params.get("reference_genome", "mm10")
+    genome_display = GENOME_DISPLAY_NAMES.get(genome, genome)
+    reactions = params.get("reactions", [])
+    n_samples = len(reactions)
+
+    annotation_ver = RNASEQ_ANNOTATION_VERSIONS.get(genome, "")
+    annotation_note = f" ({annotation_ver})" if annotation_ver else ""
+
+    return (
+        f"RNA-seq quality control was performed on {n_samples} "
+        f"sample{'s' if n_samples != 1 else ''} using RSeQC against the "
+        f"{genome_display} gene model{annotation_note}. "
+        f"Strandedness was inferred using infer_experiment.py. "
+        f"Read distribution across genomic features (CDS, UTR, intron, intergenic) "
+        f"was assessed by read_distribution.py. "
+        f"Gene body coverage uniformity, insert size distribution, and splice "
+        f"junction saturation were evaluated using geneBody_coverage.py, "
+        f"inner_distance.py, and junction_saturation.py, respectively. "
+        f"Results from RSeQC, STAR, Salmon, and fastp were aggregated into "
+        f"an interactive report using MultiQC."
+    )
+
+
 def roman_normalization_methods(params: dict) -> str:
     """Generate methods text for Roman normalization."""
     samples = params.get("samples", [])

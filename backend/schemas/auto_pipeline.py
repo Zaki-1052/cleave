@@ -21,6 +21,7 @@ class AutoPipelineConfig(CamelModel):
     include_pearson: bool = True
     # RNA-seq fields (unused for CUT&RUN)
     remove_duplicates: bool = False
+    include_qc: bool = True
     include_de: bool = True
 
 

@@ -95,6 +95,38 @@ class RnaseqAlignmentQCReport(CamelModel):
 
 
 # ---------------------------------------------------------------------------
+# RSeQC + MultiQC QC Dashboard Report
+# ---------------------------------------------------------------------------
+
+
+class RSeQCReactionMetrics(CamelModel):
+    """Per-reaction RSeQC metrics."""
+
+    short_name: str
+    fraction_sense: float
+    fraction_antisense: float
+    fraction_undetermined: float
+    inferred_strandedness: str
+    cds_exons_tags: int
+    five_utr_exons_tags: int
+    three_utr_exons_tags: int
+    intron_tags: int
+    intergenic_tags: int
+    coverage_skewness: float = 0.0
+    inner_distance_mean: float = 0.0
+    inner_distance_sd: float = 0.0
+
+
+class RnaseqQCDashboardReport(CamelModel):
+    """Full RSeQC + MultiQC QC dashboard report."""
+
+    reference_genome: str
+    modules_run: list[str]
+    metrics: list[RSeQCReactionMetrics]
+    multiqc_output_id: int | None = None
+
+
+# ---------------------------------------------------------------------------
 # Peak Calling QC Report
 # ---------------------------------------------------------------------------
 

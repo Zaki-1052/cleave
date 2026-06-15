@@ -24,7 +24,7 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 5) {
   stop(
     "Usage: Rscript rnaseq_deseq2_fc.R <sample_metadata.csv> <count_matrix.txt> ",
-    "<results_dir> <plots_dir> <reference_condition>"
+    "<results_dir> <plots_dir> <reference_condition> [gene_mapping.tsv]"
   )
 }
 
@@ -33,6 +33,7 @@ count_matrix_file    <- args[2]
 results_dir          <- args[3]
 plots_dir            <- args[4]
 reference_condition  <- args[5]
+gene_mapping_file    <- if (length(args) >= 6) args[6] else NULL
 
 for (f in c(sample_metadata_file, count_matrix_file)) {
   if (!file.exists(f)) stop(paste("Error: file not found:", f))
@@ -130,8 +131,21 @@ rld <- tryCatch({
 
 res_df <- as.data.frame(res)
 res_df$gene_id <- rownames(res_df)
-# featureCounts gene IDs are typically ENSEMBL IDs; use as gene_name fallback
-res_df$gene_name <- res_df$gene_id
+
+# Map gene IDs to gene symbols via GTF-derived mapping; fall back to gene_id
+if (!is.null(gene_mapping_file) && file.exists(gene_mapping_file)) {
+  gene_map <- read.delim(gene_mapping_file, stringsAsFactors = FALSE)
+  name_lookup <- setNames(gene_map$GENENAME, gene_map$GENEID)
+  res_df$gene_name <- ifelse(
+    res_df$gene_id %in% names(name_lookup),
+    name_lookup[res_df$gene_id],
+    res_df$gene_id
+  )
+  cat(sprintf("Gene name mapping: %d of %d genes mapped to symbols\n",
+              sum(res_df$gene_name != res_df$gene_id), nrow(res_df)))
+} else {
+  res_df$gene_name <- res_df$gene_id
+}
 
 # Sort by padj
 res_df <- res_df[order(res_df$padj, na.last = TRUE), ]

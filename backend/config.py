@@ -63,6 +63,7 @@ class Settings(BaseSettings):
     STAR_INDEX_DIR: str = "/data/cleave/genomes/star"
     SALMON_INDEX_DIR: str = "/data/cleave/genomes/salmon"
     GENCODE_GTF_DIR: str = "/data/cleave/genomes/gtf"
+    RSEQC_BED_DIR: str = "/data/cleave/genomes/rseqc"
 
     # Local path import
     LOCAL_IMPORT_DEFAULT_PATH: str = "/data"

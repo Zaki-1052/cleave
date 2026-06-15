@@ -1,7 +1,7 @@
 # backend/tests/test_rnaseq_auto_pipeline.py
 """Tests for RNA-seq auto-pipeline chain.
 
-Verifies: FastQC -> fastp -> STAR+Salmon -> [DE Analysis] -> complete.
+Verifies: FastQC -> fastp -> STAR+Salmon -> [RSeQC+MultiQC] -> [DE Analysis] -> complete.
 Uses direct service function calls against the test database.
 """
 
@@ -238,8 +238,8 @@ async def test_rnaseq_alignment_params_correct(setup_db, patch_worker_sessions):
     assert len(params["reactions"]) == 4
 
 
-async def test_rnaseq_alignment_complete_queues_de(setup_db, patch_worker_sessions):
-    """Completing rnaseq_alignment queues rnaseq_de when conditions are detected."""
+async def test_rnaseq_alignment_complete_queues_qc(setup_db, patch_worker_sessions):
+    """Completing rnaseq_alignment queues rnaseq_qc (not DE directly)."""
     from services.auto_pipeline_service import on_job_complete, start_auto_pipeline
 
     ids = await _setup_rnaseq_experiment(with_fastqc=True, with_conditions=True)
@@ -272,27 +272,24 @@ async def test_rnaseq_alignment_complete_queues_de(setup_db, patch_worker_sessio
     await on_job_complete(ids["experiment_id"], align_jobs[0].id, "rnaseq_alignment")
 
     all_jobs = await _get_auto_jobs(ids["experiment_id"])
+    qc_jobs = [j for j in all_jobs if j.job_type == "rnaseq_qc"]
+    assert len(qc_jobs) == 1
+    assert qc_jobs[0].name == "Auto: QC (RSeQC+MultiQC)"
     de_jobs = [j for j in all_jobs if j.job_type == "rnaseq_de"]
-    assert len(de_jobs) == 1
-    assert de_jobs[0].name == "Auto: DE Analysis (DESeq2)"
-    assert de_jobs[0].params["quantification_source"] == "salmon"
-    assert len(de_jobs[0].params["samples"]) == 4
+    assert len(de_jobs) == 0
 
 
-async def test_rnaseq_alignment_complete_without_conditions_marks_done(
-    setup_db, patch_worker_sessions
-):
-    """Without detectable conditions, pipeline marks complete after alignment."""
+async def test_rnaseq_qc_complete_queues_de_with_conditions(setup_db, patch_worker_sessions):
+    """Completing rnaseq_qc queues rnaseq_de when conditions are detected."""
     from services.auto_pipeline_service import on_job_complete, start_auto_pipeline
 
-    # No conditions assigned to reactions
-    ids = await _setup_rnaseq_experiment(with_fastqc=True, with_conditions=False)
+    ids = await _setup_rnaseq_experiment(with_fastqc=True, with_conditions=True)
 
     async with test_session_factory() as db:
         config = {"reference_genome": "mm10", "include_de": True}
         await start_auto_pipeline(db, ids["experiment_id"], ids["user_id"], config)
 
-    # Fast-forward: trim complete -> alignment created
+    # Fast-forward: trim -> alignment -> QC
     trim_jobs = await _get_auto_jobs(ids["experiment_id"])
     async with test_session_factory() as db:
         await db.execute(
@@ -315,13 +312,108 @@ async def test_rnaseq_alignment_complete_without_conditions_marks_done(
         await db.commit()
     await on_job_complete(ids["experiment_id"], align_jobs[0].id, "rnaseq_alignment")
 
+    qc_jobs = [j for j in await _get_auto_jobs(ids["experiment_id"]) if j.job_type == "rnaseq_qc"]
+    async with test_session_factory() as db:
+        await db.execute(
+            sa_update(AnalysisJob).where(AnalysisJob.id == qc_jobs[0].id).values(status="complete")
+        )
+        await db.commit()
+    await on_job_complete(ids["experiment_id"], qc_jobs[0].id, "rnaseq_qc")
+
+    all_jobs = await _get_auto_jobs(ids["experiment_id"])
+    de_jobs = [j for j in all_jobs if j.job_type == "rnaseq_de"]
+    assert len(de_jobs) == 1
+    assert de_jobs[0].name == "Auto: DE Analysis (DESeq2)"
+    assert de_jobs[0].params["quantification_source"] == "salmon"
+    assert len(de_jobs[0].params["samples"]) == 4
+
+
+async def test_rnaseq_qc_complete_without_conditions_marks_done(setup_db, patch_worker_sessions):
+    """Without detectable conditions, pipeline marks complete after QC."""
+    from services.auto_pipeline_service import on_job_complete, start_auto_pipeline
+
+    ids = await _setup_rnaseq_experiment(with_fastqc=True, with_conditions=False)
+
+    async with test_session_factory() as db:
+        config = {"reference_genome": "mm10", "include_de": True}
+        await start_auto_pipeline(db, ids["experiment_id"], ids["user_id"], config)
+
+    # Fast-forward: trim -> alignment -> QC
+    trim_jobs = await _get_auto_jobs(ids["experiment_id"])
+    async with test_session_factory() as db:
+        await db.execute(
+            sa_update(AnalysisJob)
+            .where(AnalysisJob.id == trim_jobs[0].id)
+            .values(status="complete")
+        )
+        await db.commit()
+    await on_job_complete(ids["experiment_id"], trim_jobs[0].id, "rnaseq_trimming")
+
+    align_jobs = [
+        j for j in await _get_auto_jobs(ids["experiment_id"]) if j.job_type == "rnaseq_alignment"
+    ]
+    async with test_session_factory() as db:
+        await db.execute(
+            sa_update(AnalysisJob)
+            .where(AnalysisJob.id == align_jobs[0].id)
+            .values(status="complete")
+        )
+        await db.commit()
+    await on_job_complete(ids["experiment_id"], align_jobs[0].id, "rnaseq_alignment")
+
+    qc_jobs = [j for j in await _get_auto_jobs(ids["experiment_id"]) if j.job_type == "rnaseq_qc"]
+    async with test_session_factory() as db:
+        await db.execute(
+            sa_update(AnalysisJob).where(AnalysisJob.id == qc_jobs[0].id).values(status="complete")
+        )
+        await db.commit()
+    await on_job_complete(ids["experiment_id"], qc_jobs[0].id, "rnaseq_qc")
+
     exp = await _get_experiment(ids["experiment_id"])
     assert exp.auto_pipeline_status == "complete"
 
-    # No DE job should exist
     all_jobs = await _get_auto_jobs(ids["experiment_id"])
     de_jobs = [j for j in all_jobs if j.job_type == "rnaseq_de"]
     assert len(de_jobs) == 0
+
+
+async def test_rnaseq_alignment_skips_qc_when_disabled(setup_db, patch_worker_sessions):
+    """With include_qc=False, alignment completion skips QC and queues DE directly."""
+    from services.auto_pipeline_service import on_job_complete, start_auto_pipeline
+
+    ids = await _setup_rnaseq_experiment(with_fastqc=True, with_conditions=True)
+
+    async with test_session_factory() as db:
+        config = {"reference_genome": "mm10", "include_de": True, "include_qc": False}
+        await start_auto_pipeline(db, ids["experiment_id"], ids["user_id"], config)
+
+    trim_jobs = await _get_auto_jobs(ids["experiment_id"])
+    async with test_session_factory() as db:
+        await db.execute(
+            sa_update(AnalysisJob)
+            .where(AnalysisJob.id == trim_jobs[0].id)
+            .values(status="complete")
+        )
+        await db.commit()
+    await on_job_complete(ids["experiment_id"], trim_jobs[0].id, "rnaseq_trimming")
+
+    align_jobs = [
+        j for j in await _get_auto_jobs(ids["experiment_id"]) if j.job_type == "rnaseq_alignment"
+    ]
+    async with test_session_factory() as db:
+        await db.execute(
+            sa_update(AnalysisJob)
+            .where(AnalysisJob.id == align_jobs[0].id)
+            .values(status="complete")
+        )
+        await db.commit()
+    await on_job_complete(ids["experiment_id"], align_jobs[0].id, "rnaseq_alignment")
+
+    all_jobs = await _get_auto_jobs(ids["experiment_id"])
+    qc_jobs = [j for j in all_jobs if j.job_type == "rnaseq_qc"]
+    assert len(qc_jobs) == 0
+    de_jobs = [j for j in all_jobs if j.job_type == "rnaseq_de"]
+    assert len(de_jobs) == 1
 
 
 async def test_rnaseq_de_complete_marks_done(setup_db, patch_worker_sessions):

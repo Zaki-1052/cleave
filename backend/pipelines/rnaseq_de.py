@@ -117,6 +117,33 @@ def _generate_tx2gene(gtf_path: Path, output_path: Path) -> None:
     logger.info("tx2gene generated", path=str(output_path), transcripts=count)
 
 
+def _generate_gene_mapping(gtf_path: Path, output_path: Path) -> None:
+    """Parse GENCODE GTF to create gene_id-to-gene_name mapping TSV.
+
+    Extracts unique gene_id → gene_name pairs from gene-level features.
+    Used by the featureCounts DE path where tx2gene is not available.
+    Writes TSV with columns: GENEID, GENENAME.
+    """
+    count = 0
+    seen: set[str] = set()
+    with open(gtf_path) as fin, open(output_path, "w") as fout:
+        fout.write("GENEID\tGENENAME\n")
+        for line in fin:
+            if line.startswith("#"):
+                continue
+            parts = line.split("\t")
+            if len(parts) < 9 or parts[2] != "gene":
+                continue
+            attrs = dict(_GTF_ATTR_RE.findall(parts[8]))
+            gene_id = attrs.get("gene_id", "")
+            gene_name = attrs.get("gene_name", gene_id)
+            if gene_id and gene_id not in seen:
+                fout.write(f"{gene_id}\t{gene_name}\n")
+                seen.add(gene_id)
+                count += 1
+    logger.info("gene_mapping generated", path=str(output_path), genes=count)
+
+
 class RnaseqDEStage(PipelineStage):
     """DESeq2 differential expression with Salmon or featureCounts input."""
 
@@ -298,6 +325,10 @@ class RnaseqDEStage(PipelineStage):
             count_matrix_abs = Path(settings.STORAGE_ROOT) / params["count_matrix_path"]
             if not count_matrix_abs.exists():
                 raise PipelineError(f"Count matrix not found: {count_matrix_abs}")
+            # Generate gene_id → gene_name mapping from GTF for symbol lookup
+            gene_mapping_path = job_dir / "gene_mapping.tsv"
+            _generate_gene_mapping(_resolve_gtf(genome), gene_mapping_path)
+            append_to_master_log(master_log, "gene_mapping generated", str(gene_mapping_path))
             cmd = [
                 "Rscript",
                 str(script_path),
@@ -306,6 +337,7 @@ class RnaseqDEStage(PipelineStage):
                 str(results_dir),
                 str(plots_dir),
                 ref_cond,
+                str(gene_mapping_path),
             ]
 
         run_cmd(
@@ -392,11 +424,15 @@ class RnaseqDEStage(PipelineStage):
         )
 
         # Log files
+        log_categories = {
+            master_log.name: "master_log",
+            "rscript_output.log": "log",
+        }
         for log_file in [master_log, logs_dir / "rscript_output.log"]:
             if log_file.exists():
                 outputs.append(
                     {
-                        "file_category": "log",
+                        "file_category": log_categories.get(log_file.name, "log"),
                         "filename": log_file.name,
                         "file_path": f"{rel_job}/logs/{log_file.name}",
                         "file_type": "txt",

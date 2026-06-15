@@ -31,7 +31,9 @@ from schemas.qc_report import (
     RnaseqAlignmentReactionMetrics,
     RnaseqDEPlotInfo,
     RnaseqDEReport,
+    RnaseqQCDashboardReport,
     RomanNormalizationReport,
+    RSeQCReactionMetrics,
     SpikeInPTMResult,
     SpikeInReactionResult,
     TopCalledPeak,
@@ -1202,4 +1204,97 @@ async def get_roman_normalization_factors_path(
     path = _resolve_output_path(job, "normalization_factors", "csv")
     if path is None:
         raise FileNotFoundError(f"Normalization factors not found for job {job_id}")
+    return path
+
+
+# ---------------------------------------------------------------------------
+# RSeQC + MultiQC QC Dashboard
+# ---------------------------------------------------------------------------
+
+
+def _parse_rseqc_metrics_csv(csv_path: Path) -> list[RSeQCReactionMetrics]:
+    """Parse the aggregate RSeQC metrics CSV into Pydantic models."""
+    metrics: list[RSeQCReactionMetrics] = []
+    with open(csv_path, newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            metrics.append(
+                RSeQCReactionMetrics(
+                    short_name=row.get("Short_Name", ""),
+                    fraction_sense=float(row.get("Fraction_Sense", 0)),
+                    fraction_antisense=float(row.get("Fraction_Antisense", 0)),
+                    fraction_undetermined=float(row.get("Fraction_Undetermined", 0)),
+                    inferred_strandedness=row.get("Inferred_Strandedness", ""),
+                    cds_exons_tags=int(float(row.get("CDS_Exons_Tags", 0))),
+                    five_utr_exons_tags=int(float(row.get("5UTR_Exons_Tags", 0))),
+                    three_utr_exons_tags=int(float(row.get("3UTR_Exons_Tags", 0))),
+                    intron_tags=int(float(row.get("Intron_Tags", 0))),
+                    intergenic_tags=int(float(row.get("Intergenic_Tags", 0))),
+                    coverage_skewness=float(row.get("Coverage_Skewness", 0)),
+                    inner_distance_mean=float(row.get("Inner_Distance_Mean", 0)),
+                    inner_distance_sd=float(row.get("Inner_Distance_SD", 0)),
+                )
+            )
+    return metrics
+
+
+async def get_rnaseq_qc_dashboard_report(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> RnaseqQCDashboardReport | None:
+    """Build the full RSeQC + MultiQC QC dashboard report."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+
+    if job.job_type != "rnaseq_qc":
+        raise ValueError(f"Job {job_id} is not an rnaseq_qc job (got {job.job_type})")
+    if job.status != "complete":
+        raise ValueError(f"Job {job_id} is not complete (status: {job.status})")
+
+    csv_path = _resolve_output_path(job, "rseqc_metrics", "csv")
+    if csv_path is None:
+        raise FileNotFoundError(f"RSeQC metrics CSV not found for job {job_id}")
+
+    metrics = _parse_rseqc_metrics_csv(csv_path)
+
+    multiqc_output_id: int | None = None
+    for output in job.outputs:
+        if output.file_category == "multiqc_report" and output.file_type == "html":
+            multiqc_output_id = output.id
+            break
+
+    genome = (job.params or {}).get("reference_genome", "")
+
+    return RnaseqQCDashboardReport(
+        reference_genome=genome,
+        modules_run=[
+            "infer_experiment",
+            "read_distribution",
+            "geneBody_coverage",
+            "inner_distance",
+            "junction_saturation",
+        ],
+        metrics=metrics,
+        multiqc_output_id=multiqc_output_id,
+    )
+
+
+async def get_rnaseq_qc_dashboard_csv_path(
+    db: AsyncSession,
+    job_id: int,
+    user_id: int,
+) -> Path | None:
+    """Return absolute path to the RSeQC metrics CSV for download."""
+    job = await _get_authorized_job(db, job_id, user_id)
+    if job is None:
+        return None
+    if job.job_type != "rnaseq_qc":
+        raise ValueError(f"Job {job_id} is not an rnaseq_qc job (got {job.job_type})")
+    if job.status != "complete":
+        raise ValueError(f"Job {job_id} is not complete (status: {job.status})")
+    path = _resolve_output_path(job, "rseqc_metrics", "csv")
+    if path is None:
+        raise FileNotFoundError(f"RSeQC metrics CSV not found for job {job_id}")
     return path

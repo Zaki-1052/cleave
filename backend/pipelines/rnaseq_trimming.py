@@ -14,6 +14,7 @@ import structlog
 
 from config import settings
 from pipelines.base import PipelineError, PipelineStage, TerminatedError
+from pipelines.methods_text import rnaseq_trimming_methods
 
 logger = structlog.get_logger(__name__)
 
@@ -402,15 +403,4 @@ class RnaseqTrimmingStage(PipelineStage):
         }
 
     def generate_methods_text(self, params: dict) -> str:
-        phred = _get_param(params, "qualified_quality_phred")
-        min_len = _get_param(params, "length_required")
-        win_size = _get_param(params, "cut_window_size")
-        win_qual = _get_param(params, "cut_mean_quality")
-
-        return (
-            f"Adapter sequences were detected and removed using fastp "
-            f"(--detect_adapter_for_pe) with quality filtering "
-            f"(qualified_quality_phred {phred}, length_required {min_len}). "
-            f"Sliding window trimming was applied from both ends "
-            f"(window size {win_size}, mean quality {win_qual})."
-        )
+        return rnaseq_trimming_methods(params)

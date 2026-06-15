@@ -477,7 +477,7 @@ def _process_reaction(rxn: dict, ctx: _RnaseqAlignmentContext, reaction_log: Pat
     }
 
     # ---- Register outputs ----
-    _add_output(sorted_bam, "sorted_bam", "bam")
+    _add_output(final_bam, "sorted_bam", "bam")
     _add_output(bam_index, "bam_index", "bai")
     _add_output(transcriptome_bam, "transcriptome_bam", "bam")
     _add_output(unsmoothed_bw, "bigwig", "bw")
@@ -490,7 +490,7 @@ def _process_reaction(rxn: dict, ctx: _RnaseqAlignmentContext, reaction_log: Pat
     # STAR Log.final.out
     _add_output(star_log_final, "star_log", "txt")
 
-    # If dups were removed, register the dedup BAM too
+    # If dups were removed, also register the original STAR sorted BAM
     if ctx.remove_dups:
         _add_output(sorted_bam, "star_sorted_bam", "bam")
 
@@ -521,14 +521,9 @@ class RnaseqAlignmentStage(PipelineStage):
             errors.append("Missing required parameter: project_id")
         if "reference_genome" not in params:
             errors.append("Missing required parameter: reference_genome")
-        elif params["reference_genome"] not in EFFECTIVE_GENOME_SIZES:
-            errors.append(
-                f"Unsupported reference genome: {params['reference_genome']}. "
-                f"Supported: {', '.join(EFFECTIVE_GENOME_SIZES.keys())}"
-            )
         elif params["reference_genome"] not in RNASEQ_GENOME_CONFIG:
             errors.append(
-                f"No RNA-seq index configuration for genome: {params['reference_genome']}. "
+                f"Unsupported RNA-seq reference genome: {params['reference_genome']}. "
                 f"Supported: {', '.join(RNASEQ_GENOME_CONFIG.keys())}"
             )
 
@@ -548,7 +543,7 @@ class RnaseqAlignmentStage(PipelineStage):
 
         # Check tools and indices exist in real mode only
         if settings.PIPELINE_MODE == "real":
-            for tool in ["STAR", "samtools", "salmon"]:
+            for tool in ["STAR", "samtools", "salmon", "bamCoverage"]:
                 if not shutil.which(tool):
                     errors.append(f"Required tool not found in PATH: {tool}")
 

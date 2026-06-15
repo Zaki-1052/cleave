@@ -44,7 +44,7 @@ export function DEPlotsPanel({ jobId }: DEPlotsPanelProps) {
   if (error || !report) {
     return (
       <Card>
-        <p className="text-sm text-red-600">
+        <p className="text-sm text-red-600 dark:text-red-400">
           {error instanceof Error ? error.message : 'Failed to load DE plots.'}
         </p>
       </Card>

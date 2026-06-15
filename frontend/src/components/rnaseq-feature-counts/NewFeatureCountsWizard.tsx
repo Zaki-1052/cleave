@@ -180,7 +180,7 @@ export function NewFeatureCountsWizard({
                 id="fc-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 rows={2}
               />
             </div>

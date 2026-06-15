@@ -97,7 +97,7 @@ def test_validate_unsupported_genome(stage):
         "reactions": [{"reaction_id": 1, "short_name": "s1", "r1_path": "x", "r2_path": "y"}],
     }
     errors = stage.validate(params)
-    assert any("RNA-seq index" in e or "No RNA-seq" in e for e in errors)
+    assert any("Unsupported RNA-seq" in e or "RNA-seq index" in e or "No RNA-seq" in e for e in errors)
     assert "dm6" not in RNASEQ_GENOME_CONFIG
 
 
