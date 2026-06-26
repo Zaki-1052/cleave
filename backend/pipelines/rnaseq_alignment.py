@@ -368,6 +368,8 @@ def _process_reaction(rxn: dict, ctx: _RnaseqAlignmentContext, reaction_log: Pat
         "SortedByCoordinate",
         "--quantMode",
         "TranscriptomeSAM",
+        "--limitBAMsortRAM",
+        str(settings.STAR_BAM_SORT_RAM),
         "--outFileNamePrefix",
         star_prefix,
     ]
@@ -945,4 +947,5 @@ class RnaseqAlignmentStage(PipelineStage):
         }
 
     def generate_methods_text(self, params: dict) -> str:
-        return rnaseq_alignment_methods(params)
+        p = {**params, "star_bam_sort_ram": settings.STAR_BAM_SORT_RAM}
+        return rnaseq_alignment_methods(p)

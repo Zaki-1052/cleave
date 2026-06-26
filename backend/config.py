@@ -39,8 +39,12 @@ class Settings(BaseSettings):
     # Pipeline concurrency
     MAX_CONCURRENT_REACTIONS: int = 8
 
-    # RNA-seq pipeline concurrency (STAR loads ~30GB RAM per genome instance)
+    # RNA-seq pipeline concurrency (STAR loads ~16-30GB RAM per genome instance)
     MAX_CONCURRENT_RNASEQ_REACTIONS: int = 2
+
+    # STAR BAM sort RAM limit (bytes). Caps STAR's BAM sorting memory to prevent
+    # OOM on memory-constrained instances. 8GB is safe for 24GB instances.
+    STAR_BAM_SORT_RAM: int = 8_000_000_000
 
     # Trimmomatic JVM heap size (prevents OOM when many pairs trim concurrently)
     TRIMMOMATIC_HEAP_SIZE: str = "4g"
@@ -52,6 +56,14 @@ class Settings(BaseSettings):
     AWS_SES_REGION: str = ""  # empty = SES disabled (dev/test)
     AWS_SES_FROM_EMAIL: str = ""  # must be SES-verified address in production
     APP_URL: str = "http://localhost:5173"  # frontend URL for email links
+
+    # Email (SMTP — alternative to SES, e.g. Oracle Cloud Email Delivery)
+    SMTP_HOST: str = ""  # empty = SMTP disabled
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_EMAIL: str = ""
+    SMTP_USE_TLS: bool = True
 
     # Password reset
     RESET_TOKEN_LIFETIME_SECONDS: int = 3600  # 1 hour

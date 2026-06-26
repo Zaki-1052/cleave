@@ -272,11 +272,12 @@ def rnaseq_alignment_methods(params: dict) -> str:
     annotation_ver = RNASEQ_ANNOTATION_VERSIONS.get(genome, "")
     annotation_note = f" ({annotation_ver})" if annotation_ver else ""
 
+    bam_sort_ram = params.get("star_bam_sort_ram", 8_000_000_000)
     text = (
         f"Paired-end RNA-seq reads were aligned to the {genome_display} reference genome"
         f"{annotation_note} using STAR "
         f"(--outSAMtype BAM SortedByCoordinate --quantMode TranscriptomeSAM "
-        f"--readFilesCommand zcat). "
+        f"--readFilesCommand zcat --limitBAMsortRAM {bam_sort_ram:,}). "
     )
     if remove_dups:
         text += "Duplicate reads were removed using SAMtools (-F 1024). "

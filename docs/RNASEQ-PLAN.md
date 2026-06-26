@@ -590,7 +590,7 @@ install.packages(c("ggplot2", "pheatmap"))
 
 # Build STAR indices (~1hr each, ~30GB each)
 STAR --runMode genomeGenerate --runThreadN 16 \
-  --genomeDir /data/cleave/genomes/star/mm10/ \
+  --genomeDir /data2/cleave/genomes/star/mm10/ \
   --genomeFastaFiles <mm10.fa> \
   --sjdbGTFfile <gencode.vM10.annotation.gtf> \
   --sjdbOverhang 100

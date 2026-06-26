@@ -1,7 +1,10 @@
 # backend/services/email_service.py
-"""Amazon SES email sending service."""
+"""Email sending service. Supports SMTP (any provider) and Amazon SES."""
 
 import asyncio
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from pathlib import Path
 
 import structlog
@@ -37,11 +40,33 @@ def _render_template(name: str, **kwargs) -> str:
     return _jinja_env.get_template(name).render(**kwargs)
 
 
-def _send_email_sync(to: str, subject: str, html_body: str) -> bool:
-    """Send an email via SES (synchronous). Returns True on success."""
+def _send_email_smtp_sync(to: str, subject: str, html_body: str) -> bool:
+    """Send an email via SMTP (synchronous). Returns True on success."""
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = settings.SMTP_FROM_EMAIL
+        msg["To"] = to
+        msg.attach(MIMEText(html_body, "html", "utf-8"))
+
+        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
+            if settings.SMTP_USE_TLS:
+                server.starttls()
+            if settings.SMTP_USERNAME:
+                server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+            server.send_message(msg)
+
+        logger.info("email.sent", to=to, subject=subject, transport="smtp")
+        return True
+    except Exception:
+        logger.exception("email.smtp_send_failed", to=to, subject=subject)
+        return False
+
+
+def _send_email_ses_sync(to: str, subject: str, html_body: str) -> bool:
+    """Send an email via AWS SES (synchronous). Returns True on success."""
     client = _get_ses_client()
     if client is None:
-        logger.info("email.skipped_no_ses_config", to=to, subject=subject)
         return False
     from botocore.exceptions import ClientError
 
@@ -54,11 +79,21 @@ def _send_email_sync(to: str, subject: str, html_body: str) -> bool:
                 "Body": {"Html": {"Data": html_body, "Charset": "UTF-8"}},
             },
         )
-        logger.info("email.sent", to=to, subject=subject)
+        logger.info("email.sent", to=to, subject=subject, transport="ses")
         return True
     except ClientError:
-        logger.exception("email.send_failed", to=to, subject=subject)
+        logger.exception("email.ses_send_failed", to=to, subject=subject)
         return False
+
+
+def _send_email_sync(to: str, subject: str, html_body: str) -> bool:
+    """Send an email via the first configured transport. Returns True on success."""
+    if settings.SMTP_HOST and settings.SMTP_FROM_EMAIL:
+        return _send_email_smtp_sync(to, subject, html_body)
+    if settings.AWS_SES_REGION and settings.AWS_SES_FROM_EMAIL:
+        return _send_email_ses_sync(to, subject, html_body)
+    logger.info("email.skipped_no_config", to=to, subject=subject)
+    return False
 
 
 async def send_email(to: str, subject: str, html_body: str) -> bool:
