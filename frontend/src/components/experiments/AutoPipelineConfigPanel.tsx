@@ -131,7 +131,6 @@ export function AutoPipelineConfigPanel({
               <option value="SEACR-relaxed">SEACR Relaxed</option>
               <option value="MACS2-narrow">MACS2 Narrow (q=0.01)</option>
               <option value="MACS2-broad">MACS2 Broad</option>
-              <option value="SICER2-broad">SICER2 Broad</option>
             </select>
           </div>
         </div>

@@ -74,7 +74,7 @@ export function PeakCallingDetailsStep({
               What does the pipeline do?
             </h4>
             <p>
-              The CUT&RUN/Tag Peak Calling Pipeline calls peaks with MACS2, SICER2, or SEACR and
+              The CUT&RUN/Tag Peak Calling Pipeline calls peaks with MACS2 or SEACR and
               annotates the nearest genomic feature with HOMER. It is recommended that users
               designate an IgG control to subtract background signal. All metrics, including number
               of peaks, FRiP scores, and reads in peaks are compiled into a comprehensive QC Report.

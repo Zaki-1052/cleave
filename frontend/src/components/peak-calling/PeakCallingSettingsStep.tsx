@@ -112,7 +112,7 @@ export function PeakCallingSettingsStep({
           </select>
           <TrainingHint visible={isTrainingProject}>
             SEACR is designed for CUT&RUN&apos;s low background. MACS2 is the most widely published
-            caller. SICER2 specializes in broad histone marks like H3K27me3.
+            caller. Use MACS2 broad mode for diffuse histone marks like H3K27me3.
           </TrainingHint>
         </div>
 

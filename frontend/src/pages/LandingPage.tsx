@@ -23,16 +23,16 @@ const PIPELINE_STEPS = [
   { label: "FastQC", icon: "✓", desc: "Automated quality assessment", color: C.seafoam },
   { label: "Trimming", icon: "✂", desc: "Parallel Trimmomatic + kseq_test (42bp)", color: C.lime },
   { label: "Alignment", icon: "⇶", desc: "Parallel Bowtie2 → SAMtools → Picard → deepTools", color: C.gold },
-  { label: "Peak Calling", icon: "▲", desc: "Parallel MACS2 / SICER2 / SEACR with HOMER", color: C.coral },
+  { label: "Peak Calling", icon: "▲", desc: "Parallel MACS2 / SEACR with HOMER", color: C.coral },
   { label: "Visualization", icon: "◎", desc: "IGV.js genome browser + heatmaps", color: C.lavender },
 ];
 
 const FEATURES = [
   {
-    title: "Three Peak Callers",
-    desc: "MACS2 narrow & broad, SICER2 for broad domains, and SEACR for sparse enrichment — all with fragment size filtering, FRiP scoring, and HOMER annotation.",
+    title: "Two Peak Callers",
+    desc: "MACS2 narrow & broad modes and SEACR for sparse enrichment — all with fragment size filtering, FRiP scoring, and HOMER annotation.",
     color: C.blue,
-    tags: ["MACS2", "SICER2", "SEACR", "HOMER"],
+    tags: ["MACS2", "SEACR", "HOMER"],
   },
   {
     title: "DiffBind Differential Analysis",
@@ -70,7 +70,7 @@ const COMPARISON = [
   { feature: "FASTQ Upload + FastQC", cutana: true, cleave: true },
   { feature: "Bowtie2 Alignment + QC", cutana: true, cleave: true },
   { feature: "MACS2 Narrow Peaks", cutana: true, cleave: true },
-  { feature: "SICER2 Broad Peaks", cutana: true, cleave: true },
+  { feature: "MACS2 Broad Peaks", cutana: false, cleave: true },
   { feature: "IgG Control Background Subtraction", cutana: true, cleave: true },
   { feature: "E. coli Spike-in Normalization", cutana: true, cleave: true },
   { feature: "SNAP-CUTANA Spike-in QC", cutana: true, cleave: true },
@@ -727,7 +727,7 @@ export default function LandingPage() {
             {[
               { layer: "Frontend", items: ["React 18 (Vite)", "TypeScript", "Tailwind CSS", "TanStack Query", "TanStack Table", "IGV.js", "Recharts"], color: C.blue },
               { layer: "Backend", items: ["FastAPI", "Python 3.11+", "SQLAlchemy 2.0", "Pydantic v2", "fastapi-users", "Alembic", "SSE"], color: C.seafoam },
-              { layer: "Pipeline", items: ["Bowtie2", "SAMtools", "BEDTools", "Picard / deepTools", "MACS2 / SICER2", "SEACR / HOMER", "DiffBind (R)"], color: C.lime },
+              { layer: "Pipeline", items: ["Bowtie2", "SAMtools", "BEDTools", "Picard / deepTools", "MACS2 / SEACR", "HOMER", "DiffBind (R)"], color: C.lime },
               { layer: "Infra", items: ["PostgreSQL 15+", "NGINX", "Docker Compose", "systemd", "AWS EC2", "Cloudflare DNS", "tus protocol"], color: C.gold },
             ].map((g, gi) => (
               <Reveal key={g.layer} delay={gi * 90} direction={gi < 2 ? "left" : "right"}>

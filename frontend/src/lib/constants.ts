@@ -97,7 +97,6 @@ export const ALIGNMENT_FILE_CATEGORIES = [
 
 export const PEAK_CALLERS = [
   { value: 'MACS2', label: 'MACS2' },
-  { value: 'SICER2', label: 'SICER2' },
   { value: 'SEACR', label: 'SEACR' },
 ] as const;
 
