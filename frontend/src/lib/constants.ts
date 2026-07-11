@@ -1,13 +1,15 @@
 // frontend/src/lib/constants.ts
 
+// Values are Tailwind classes coupled to the status color keys in tailwind.config.js —
+// change them together.
 export const STATUS_COLORS: Record<string, string> = {
   new: 'bg-status-new',
-  in_progress: 'bg-status-in-progress',
+  in_progress: 'bg-status-running',
   complete: 'bg-status-complete',
   error: 'bg-status-error',
   terminated: 'bg-status-terminated',
-  queued: 'bg-status-new',
-  running: 'bg-status-in-progress',
+  queued: 'bg-status-queued',
+  running: 'bg-status-running',
 };
 
 export const STATUS_LABELS: Record<string, string> = {

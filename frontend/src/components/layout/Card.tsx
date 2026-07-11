@@ -1,4 +1,5 @@
-// frontend/src/components/layout/Card.tsx
+// frontend/src/components/layout/Card.tsx — paper card: hairline border does the
+// separation work; shadow stays whisper-quiet. Interactive cards lift toward viridian.
 import type { ReactNode } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/cn';
@@ -10,7 +11,7 @@ const cardVariants = cva(
       variant: {
         default: 'shadow-sm dark:shadow-none',
         interactive:
-          'shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-primary/20 transition-all duration-200 dark:shadow-none dark:hover:border-primary/30',
+          'shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md dark:shadow-none dark:hover:border-primary/40',
       },
     },
     defaultVariants: {

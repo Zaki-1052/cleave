@@ -1,21 +1,16 @@
-// frontend/src/pages/HomePage.tsx
+// frontend/src/pages/HomePage.tsx — project dashboard. Fieldbook exemplar page:
+// PageHeader specimen label, skeleton-grid loading, shared Pagination, ember reserved
+// for the reference-data signal.
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  Crown,
-  FolderPlus,
-  Search,
-  X,
-} from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
+import { Crown, FolderPlus, Search, X } from 'lucide-react';
 import { Card } from '@/components/layout/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Pagination } from '@/components/ui/Pagination';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { CreateProjectModal } from '@/components/projects/CreateProjectModal';
 import { ProjectFilters } from '@/components/projects/ProjectFilters';
 import { useProjects, useReferenceProjects } from '@/hooks/useProjects';
@@ -60,6 +55,21 @@ function useShowReferenceGuide() {
   return { show: !dismissed, dismiss };
 }
 
+function ProjectCardSkeleton() {
+  return (
+    <Card>
+      <Skeleton className="h-5 w-2/3" />
+      <div className="mt-3 flex items-center gap-3">
+        <Skeleton className="h-3.5 w-24" />
+        <Skeleton className="h-3.5 w-16" />
+        <Skeleton className="h-5 w-20 rounded-full" />
+      </div>
+      <Skeleton className="mt-3 h-4 w-full" />
+      <Skeleton className="mt-1.5 h-4 w-4/5" />
+    </Card>
+  );
+}
+
 export default function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -92,9 +102,6 @@ export default function HomePage() {
 
   const hasReference = referenceProjects && referenceProjects.length > 0;
   const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / PER_PAGE);
-  const rangeStart = total > 0 ? (page - 1) * PER_PAGE + 1 : 0;
-  const rangeEnd = Math.min(page * PER_PAGE, total);
 
   function handleApplyFilters(newFilters: ProjectFiltersType) {
     setFilters(newFilters);
@@ -107,27 +114,27 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex gap-6">
-      <aside className="w-64 shrink-0 space-y-4">
+    <div className="flex flex-col gap-6 lg:flex-row">
+      <aside className="w-full shrink-0 space-y-4 lg:w-64">
         {hasReference && (
-          <Card className="border-l-4 border-l-amber-400 dark:border-l-amber-500">
-            <h2 className="mb-3 flex items-center gap-1.5 font-display text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
-              <Crown className="h-3.5 w-3.5" />
+          <Card className="border-l-2 border-l-ember">
+            <h2 className="mb-3 flex items-center gap-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-warning">
+              <Crown className="h-3.5 w-3.5 text-ember" />
               Reference Data
             </h2>
             {referenceProjects.map((project) => (
               <Link key={project.id} to={`/projects/${project.id}`}>
-                <div className="group -mx-2 rounded-lg p-2 transition-colors hover:bg-amber-50 dark:hover:bg-amber-950/30">
+                <div className="group -mx-2 rounded-md p-2 transition-colors duration-150 hover:bg-accent/60">
                   <div className="flex items-center gap-2">
-                    <Crown className="h-4 w-4 shrink-0 text-amber-500" />
-                    <span className="text-sm font-semibold text-foreground group-hover:text-amber-700 dark:group-hover:text-amber-300">
+                    <Crown className="h-4 w-4 shrink-0 text-ember" />
+                    <span className="text-sm font-semibold text-foreground">
                       {project.name}
                     </span>
                   </div>
                   <p className="mt-1 pl-6 text-xs text-muted-foreground">
                     Pre-analyzed CUT&RUN data with full pipeline outputs
                   </p>
-                  <span className="mt-1.5 inline-block pl-6 text-xs font-medium text-amber-600 dark:text-amber-400">
+                  <span className="mt-1.5 inline-block pl-6 text-xs font-medium text-warning">
                     Explore &rarr;
                   </span>
                 </div>
@@ -143,48 +150,55 @@ export default function HomePage() {
         />
       </aside>
 
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         {guide.show && hasReference && (
-          <div className="mb-4 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950/30">
+          <div className="mb-5 flex items-center justify-between rounded-md border border-ember/30 bg-ember/10 px-4 py-3">
             <div className="flex items-center gap-3">
-              <Crown className="h-5 w-5 shrink-0 text-amber-500" />
-              <p className="text-sm text-amber-800 dark:text-amber-200">
+              <Crown className="h-5 w-5 shrink-0 text-ember" />
+              <p className="text-sm text-foreground/85">
                 <span className="font-semibold">New to Cleave?</span>{' '}
-                Explore the Gold Standard Reference Project in the sidebar to browse pre-analyzed CUT&RUN data.
+                Explore the Gold Standard Reference Project in the sidebar to browse pre-analyzed
+                CUT&RUN data.
               </p>
             </div>
             <button
               onClick={guide.dismiss}
-              className="ml-4 shrink-0 rounded p-1 text-amber-500 hover:bg-amber-100 dark:hover:bg-amber-900"
+              aria-label="Dismiss"
+              className="ml-4 shrink-0 rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
         )}
 
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h1 className="font-display text-xl font-bold text-foreground">Projects</h1>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search projects..."
-                value={searchText}
-                onChange={(e) => {
-                  setSearchText(e.target.value);
-                  setPage(1);
-                }}
-                className="rounded-md border border-input bg-background py-1.5 pl-8 pr-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
-              />
-              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            </div>
-            <Button onClick={() => setIsCreateModalOpen(true)}>+ Create Project</Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Projects"
+          eyebrow="Workspace"
+          actions={
+            <>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search projects…"
+                  value={searchText}
+                  onChange={(e) => {
+                    setSearchText(e.target.value);
+                    setPage(1);
+                  }}
+                  className="rounded-md border border-input bg-card py-1.5 pl-8 pr-3 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
+                />
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              </div>
+              <Button onClick={() => setIsCreateModalOpen(true)}>+ Create Project</Button>
+            </>
+          }
+        />
 
         {isLoading ? (
-          <div className="flex h-40 items-center justify-center">
-            <Spinner size="lg" />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <ProjectCardSkeleton key={i} />
+            ))}
           </div>
         ) : data?.items.length === 0 ? (
           <EmptyState
@@ -195,20 +209,27 @@ export default function HomePage() {
                 ? 'Try adjusting your filters or search.'
                 : 'Create one to get started.'
             }
+            action={
+              Object.keys(activeFilters).length === 0 ? (
+                <Button onClick={() => setIsCreateModalOpen(true)}>+ Create Project</Button>
+              ) : undefined
+            }
           />
         ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {data?.items.map((project) => (
               <Link key={project.id} to={`/projects/${project.id}`}>
-                <Card variant="interactive" className="cursor-pointer">
-                  <h3 className="text-lg font-semibold text-foreground">{project.name}</h3>
-                  <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                <Card variant="interactive" className="h-full cursor-pointer">
+                  <h3 className="font-display text-lg font-semibold text-foreground">
+                    {project.name}
+                  </h3>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                     <span>Modified {formatDate(project.updatedAt)}</span>
-                    <span className="font-mono">{formatBytes(project.storageBytes)}</span>
+                    <span className="font-mono tabular-nums">{formatBytes(project.storageBytes)}</span>
                     <StatusBadge status={project.status} />
                   </div>
                   {project.description && (
-                    <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                    <p className="mt-2.5 line-clamp-2 text-sm text-muted-foreground">
                       {project.description}
                     </p>
                   )}
@@ -218,44 +239,14 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Pagination controls */}
-        {total > 0 && (
-          <div className="mt-4 flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
-            <span>Records per page: {PER_PAGE}</span>
-            <div className="flex items-center gap-2">
-              <span>
-                {rangeStart}-{rangeEnd} of {total}
-              </span>
-              <button
-                onClick={() => setPage(1)}
-                disabled={page === 1}
-                className="rounded p-1 hover:bg-muted disabled:opacity-30"
-              >
-                <ChevronsLeft className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="rounded p-1 hover:bg-muted disabled:opacity-30"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-                className="rounded p-1 hover:bg-muted disabled:opacity-30"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setPage(totalPages)}
-                disabled={page >= totalPages}
-                className="rounded p-1 hover:bg-muted disabled:opacity-30"
-              >
-                <ChevronsRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
+        {total > 0 && !isLoading && (
+          <Pagination
+            className="mt-4 rounded-lg border border-border bg-card px-4"
+            page={page}
+            pageSize={PER_PAGE}
+            totalItems={total}
+            onPageChange={setPage}
+          />
         )}
 
         <CreateProjectModal

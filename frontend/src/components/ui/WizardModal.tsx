@@ -1,4 +1,6 @@
-// frontend/src/components/ui/WizardModal.tsx
+// frontend/src/components/ui/WizardModal.tsx — multi-step creation flow. Outside clicks
+// are guarded (a stray click must never discard accumulated wizard state); Esc and the
+// close button remain as deliberate exits.
 import type { ReactNode } from 'react';
 import { Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './dialog';
@@ -51,46 +53,45 @@ export function WizardModal({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent
-        className={cn(
-          'flex h-[80vh] flex-col gap-0 overflow-hidden p-0 [&>button]:text-white [&>button]:hover:opacity-100',
-          maxWidth,
-        )}
+        className={cn('flex h-[80vh] flex-col gap-0 overflow-hidden p-0', maxWidth)}
+        onPointerDownOutside={(e) => e.preventDefault()}
       >
-        {/* Accessible title for screen readers */}
         <DialogTitle className="sr-only">{title}</DialogTitle>
         <DialogDescription className="sr-only">{title} wizard</DialogDescription>
 
-        {/* Primary-colored header */}
-        <div className="flex shrink-0 items-center justify-between border-b bg-gradient-to-r from-primary to-accent-teal px-6 py-4">
-          <h2 className="text-lg font-semibold text-white">{title}</h2>
+        {/* Header */}
+        <div className="flex shrink-0 items-center justify-between border-b border-border bg-muted/40 px-6 py-4">
+          <h2 className="font-display text-xl font-semibold text-foreground">{title}</h2>
         </div>
 
-        {/* Step indicators */}
-        <div className="flex shrink-0 items-center justify-center gap-4 border-b px-6 py-4">
-          {steps.map((step, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <span
-                className={cn(
-                  'flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold',
-                  i === currentStep
-                    ? 'bg-primary text-white'
-                    : i < currentStep
-                      ? 'bg-status-complete text-white'
-                      : 'bg-muted text-muted-foreground',
-                )}
-              >
-                {i < currentStep ? (
-                  <Check className="h-4 w-4" />
-                ) : (
-                  i + 1
-                )}
-              </span>
-              <span className={cn('text-sm', i === currentStep ? 'font-semibold text-foreground' : 'text-muted-foreground')}>
-                {step.label}
-              </span>
-              {i < steps.length - 1 && <div className="h-px w-8 bg-border" />}
-            </div>
-          ))}
+        {/* Step indicator — specimen-label voice: mono index, quiet connectors */}
+        <div className="flex shrink-0 flex-wrap items-center justify-center gap-y-1 border-b border-border px-6 py-3">
+          {steps.map((step, i) => {
+            const isCurrent = i === currentStep;
+            const isDone = i < currentStep;
+            return (
+              <div key={i} className="flex items-center">
+                <div
+                  className={cn(
+                    'flex items-center gap-2 rounded-md px-2.5 py-1.5 transition-colors duration-150',
+                    isCurrent
+                      ? 'bg-accent text-accent-foreground'
+                      : isDone
+                        ? 'text-primary'
+                        : 'text-muted-foreground',
+                  )}
+                >
+                  <span className="font-mono text-[11px] tracking-wide">
+                    {isDone ? <Check className="h-3.5 w-3.5" /> : String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span className={cn('text-xs', isCurrent ? 'font-semibold' : 'font-medium')}>
+                    {step.label}
+                  </span>
+                </div>
+                {i < steps.length - 1 && <div className="mx-1.5 h-px w-6 bg-border" />}
+              </div>
+            );
+          })}
         </div>
 
         {/* Content area */}
@@ -100,13 +101,13 @@ export function WizardModal({
         {renderFooter ? (
           renderFooter({ currentStep, isLastStep, onClose, onBack, onNext, onSubmit })
         ) : (
-          <div className="flex shrink-0 items-center justify-between border-t px-6 py-4">
-            <button onClick={onClose} className="text-sm text-muted-foreground hover:text-foreground">
+          <div className="flex shrink-0 items-center justify-between border-t border-border px-6 py-4">
+            <Button variant="ghost" onClick={onClose}>
               Cancel
-            </button>
+            </Button>
             <div className="flex gap-3">
               {currentStep > 0 && (
-                <Button variant="outlined" onClick={onBack}>
+                <Button variant="outline" onClick={onBack}>
                   Back
                 </Button>
               )}

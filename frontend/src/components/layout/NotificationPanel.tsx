@@ -1,25 +1,24 @@
-// frontend/src/components/layout/NotificationPanel.tsx
-import { useEffect, useRef } from 'react';
+// frontend/src/components/layout/NotificationPanel.tsx — bell trigger + notification
+// popover. Radix Popover supplies dismissal, focus management and Escape handling; the
+// ember badge is the unread signal.
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCircle, UserPlus, XCircle } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useNotifications, useUnreadCount, useMarkNotificationRead, useMarkAllNotificationsRead } from '@/hooks/useNotifications';
 import { formatDateTime } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import type { Notification } from '@/api/types';
-
-interface NotificationPanelProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
 
 function NotificationIcon({ type }: { type: string }) {
   if (type === 'project_invitation') {
     return <UserPlus className="h-5 w-5 text-primary" />;
   }
   if (type === 'job_complete') {
-    return <CheckCircle className="h-5 w-5 text-status-complete" />;
+    return <CheckCircle className="h-5 w-5 text-success" />;
   }
   if (type === 'job_error') {
-    return <XCircle className="h-5 w-5 text-status-error" />;
+    return <XCircle className="h-5 w-5 text-destructive" />;
   }
   // Default (welcome, etc.)
   return <Bell className="h-5 w-5 text-primary" />;
@@ -36,9 +35,10 @@ function NotificationItem({
     <button
       type="button"
       onClick={() => onClick(notification)}
-      className={`flex w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-muted ${
-        !notification.isRead ? 'bg-primary/5' : ''
-      }`}
+      className={cn(
+        'flex w-full gap-3 px-4 py-3 text-left transition-colors duration-150 hover:bg-accent/60 focus-visible:outline-none focus-visible:bg-accent/60',
+        !notification.isRead && 'bg-accent/40',
+      )}
     >
       <div className="mt-0.5 flex-shrink-0">
         <NotificationIcon type={notification.type} />
@@ -46,37 +46,26 @@ function NotificationItem({
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-foreground">{notification.title}</p>
         <p className="mt-0.5 text-sm text-muted-foreground">{notification.message}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(notification.createdAt)}</p>
+        <p className="mt-1 font-mono text-xs text-muted-foreground/80">
+          {formatDateTime(notification.createdAt)}
+        </p>
       </div>
       {!notification.isRead && (
         <div className="mt-2 flex-shrink-0">
-          <span className="inline-block h-2 w-2 rounded-full bg-primary" />
+          <span className="inline-block h-2 w-2 rounded-full bg-ember" />
         </div>
       )}
     </button>
   );
 }
 
-export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
-  const panelRef = useRef<HTMLDivElement>(null);
+export function NotificationPanel() {
+  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { data: notifications, isLoading } = useNotifications();
   const unreadCount = useUnreadCount();
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
-
-  useEffect(() => {
-    if (!isOpen) return;
-    function handleClickOutside(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
 
   function handleNotificationClick(notification: Notification) {
     if (!notification.isRead) {
@@ -85,38 +74,52 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
     if (notification.linkTarget) {
       navigate(notification.linkTarget);
     }
-    onClose();
+    setOpen(false);
   }
 
   return (
-    <div
-      ref={panelRef}
-      className="absolute right-0 top-full z-50 mt-2 w-96 overflow-hidden rounded-lg border border-border bg-card shadow-xl"
-    >
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
-        {unreadCount > 0 && (
-          <button
-            type="button"
-            onClick={() => markAllRead.mutate()}
-            className="text-xs font-medium text-primary hover:text-primary/80"
-          >
-            Mark all read
-          </button>
-        )}
-      </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="relative rounded-md p-2 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
+        >
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-ember px-1 font-mono text-[10px] font-semibold text-ember-foreground">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" sideOffset={8} className="w-96 overflow-hidden p-0">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              onClick={() => markAllRead.mutate()}
+              className="text-xs font-medium text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Mark all read
+            </button>
+          )}
+        </div>
 
-      <div className="max-h-96 overflow-y-auto">
-        {isLoading && (
-          <p className="px-4 py-8 text-center text-sm text-muted-foreground">Loading...</p>
-        )}
+        <div className="max-h-96 overflow-y-auto">
+          {isLoading && (
+            <p className="px-4 py-8 text-center text-sm text-muted-foreground">Loading…</p>
+          )}
 
-        {!isLoading && (!notifications || notifications.length === 0) && (
-          <p className="px-4 py-8 text-center text-sm text-muted-foreground">No notifications yet</p>
-        )}
+          {!isLoading && (!notifications || notifications.length === 0) && (
+            <div className="flex flex-col items-center px-4 py-10 text-center">
+              <Bell className="mb-2 h-6 w-6 text-muted-foreground/40" />
+              <p className="text-sm text-muted-foreground">No notifications yet</p>
+            </div>
+          )}
 
-        {notifications && notifications.length > 0 && (
-          <>
+          {notifications && notifications.length > 0 && (
             <div className="divide-y divide-border">
               {notifications.map((n) => (
                 <NotificationItem
@@ -126,12 +129,9 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                 />
               ))}
             </div>
-            <p className="border-t border-border px-4 py-3 text-center text-xs text-muted-foreground">
-              No more recent notifications to show
-            </p>
-          </>
-        )}
-      </div>
-    </div>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

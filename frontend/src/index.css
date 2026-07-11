@@ -1,82 +1,144 @@
-/* frontend/src/index.css */
+/* frontend/src/index.css — "Fieldbook" design tokens.
+   Single source of truth for the theme: palette, type families, motion, surfaces.
+   Re-skinning a project = editing the values in this file (see DESIGN.md). */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Cleave brand gradient (preserved) */
-    --gradient-bg: linear-gradient(
-      180deg,
-      #87ceeb 0%,
-      #7ecfcf 25%,
-      #90d5a0 50%,
-      #c5d94e 75%,
-      #e8b84b 100%
-    );
+    /* ── Type families (swap here; Tailwind maps font-display/body/mono to these) ── */
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Hanken Grotesk', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
-    /* shadcn theme tokens — light mode */
-    --background: 210 16.7% 97.6%;
-    --foreground: 220 14.3% 15.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 220 14.3% 15.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 14.3% 15.9%;
-    --primary: 198 65.3% 57.1%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220 14.3% 15.9%;
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220 14.3% 15.9%;
-    --destructive: 0 73.5% 41.4%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 198 65.3% 57.1%;
-    --radius: 0.5rem;
-    --chart-1: 198 65.3% 57.1%;
-    --chart-2: 183.1 64% 46.9%;
-    --chart-3: 230.8 48.4% 47.8%;
-    --chart-4: 37.4 91.3% 54.9%;
-    --chart-5: 122.4 39.4% 49.2%;
+    /* ── Core palette — light ("paper"). Warm neutrals; viridian is the only cool hue. ── */
+    --background: 40 25% 96.5%;
+    --foreground: 24 10% 12%;
+    --card: 40 30% 99%;
+    --card-foreground: 24 10% 12%;
+    --popover: 40 30% 99.5%;
+    --popover-foreground: 24 10% 12%;
+    --primary: 174 60% 25%;
+    --primary-foreground: 40 30% 98%;
+    --secondary: 40 15% 92%;
+    --secondary-foreground: 24 10% 18%;
+    --muted: 40 15% 92%;
+    --muted-foreground: 30 6% 38%;
+    --accent: 168 25% 91%;
+    --accent-foreground: 174 45% 16%;
+    --destructive: 8 68% 44%;
+    --destructive-foreground: 40 30% 98%;
+    --border: 35 12% 86%;
+    --input: 35 12% 79%;
+    --ring: 174 60% 30%;
+    --radius: 0.625rem;
+    --overlay: 24 15% 8%;
+
+    /* ── Semantic intents ── */
+    --success: 152 45% 30%;
+    --success-foreground: 40 30% 98%;
+    --warning: 33 85% 36%;
+    --warning-foreground: 40 30% 98%;
+    --info: 210 45% 40%;
+    --info-foreground: 40 30% 98%;
+
+    /* Ember: the live-signal accent (running jobs, unread, reference/crown).
+       Non-text uses only in light mode — for amber-ish text use --warning. */
+    --ember: 32 95% 46%;
+    --ember-foreground: 24 10% 10%;
+
+    /* ── Job/experiment status (dot = DEFAULT, badge text = -foreground on a /10 tint) ── */
+    --status-new: 210 45% 42%;
+    --status-new-foreground: 210 50% 30%;
+    --status-queued: 35 15% 50%;
+    --status-queued-foreground: 30 10% 32%;
+    --status-running: 32 95% 46%;
+    --status-running-foreground: 30 80% 30%;
+    --status-complete: 152 45% 34%;
+    --status-complete-foreground: 152 50% 22%;
+    --status-error: 8 68% 46%;
+    --status-error-foreground: 8 70% 32%;
+    --status-terminated: 30 6% 55%;
+    --status-terminated-foreground: 30 6% 35%;
+
+    /* ── Categorical chart palette — validated (dataviz six-checks) against the light
+       card surface. Fixed assignment order: teal, ember, blue, oxide, plum, moss. ── */
+    --chart-1: 172 85% 33%;
+    --chart-2: 28 92% 42%;
+    --chart-3: 212 60% 45%;
+    --chart-4: 8 65% 48%;
+    --chart-5: 315 45% 45%;
+    --chart-6: 95 45% 38%;
+
+    /* ── Atmosphere (GradientBackground / identity surfaces) ── */
+    --surface-tint-1: 174 40% 45%;
+    --surface-tint-2: 32 85% 55%;
+
+    /* ── Motion ── */
+    --duration-fast: 120ms;
+    --duration-base: 200ms;
+    --duration-slow: 320ms;
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
   }
 
   .dark {
-    --gradient-bg: linear-gradient(
-      180deg,
-      #1a2332 0%,
-      #1c2d3a 25%,
-      #1a2a2e 50%,
-      #1e2a24 75%,
-      #1f2520 100%
-    );
+    /* ── Core palette — dark ("archive"). Deep pine-charcoal, warm paper foreground. ── */
+    --background: 168 14% 7%;
+    --foreground: 40 20% 92%;
+    --card: 166 12% 9.5%;
+    --card-foreground: 40 20% 92%;
+    --popover: 166 12% 11%;
+    --popover-foreground: 40 20% 92%;
+    --primary: 172 45% 52%;
+    --primary-foreground: 170 30% 8%;
+    --secondary: 165 8% 14%;
+    --secondary-foreground: 40 15% 88%;
+    --muted: 165 8% 13%;
+    --muted-foreground: 150 5% 63%;
+    --accent: 170 15% 15%;
+    --accent-foreground: 168 25% 85%;
+    --destructive: 6 60% 50%;
+    --destructive-foreground: 10 30% 96%;
+    --border: 165 8% 17%;
+    --input: 165 8% 22%;
+    --ring: 172 45% 52%;
+    --overlay: 168 15% 3%;
 
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
-    --card: 224 71.4% 6%;
-    --card-foreground: 210 20% 98%;
-    --popover: 224 71.4% 6%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 198 65.3% 57.1%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
-    --destructive: 0 62.8% 50.6%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 198 65.3% 57.1%;
-    --chart-1: 198 65.3% 62%;
-    --chart-2: 183.1 64% 52%;
-    --chart-3: 230.8 48.4% 55%;
-    --chart-4: 37.4 91.3% 60%;
-    --chart-5: 122.4 39.4% 55%;
+    --success: 152 45% 48%;
+    --success-foreground: 160 30% 8%;
+    --warning: 36 85% 55%;
+    --warning-foreground: 30 30% 8%;
+    --info: 210 50% 60%;
+    --info-foreground: 215 30% 10%;
+
+    --ember: 36 90% 58%;
+    --ember-foreground: 30 30% 8%;
+
+    --status-new: 210 55% 62%;
+    --status-new-foreground: 210 60% 75%;
+    --status-queued: 35 12% 58%;
+    --status-queued-foreground: 35 15% 72%;
+    --status-running: 36 90% 55%;
+    --status-running-foreground: 38 90% 70%;
+    --status-complete: 152 45% 50%;
+    --status-complete-foreground: 150 50% 70%;
+    --status-error: 6 70% 58%;
+    --status-error-foreground: 6 80% 75%;
+    --status-terminated: 30 5% 50%;
+    --status-terminated-foreground: 30 6% 65%;
+
+    /* Validated against the dark card surface (same fixed order as light). */
+    --chart-1: 172 60% 38%;
+    --chart-2: 30 85% 46%;
+    --chart-3: 212 55% 52%;
+    --chart-4: 8 60% 52%;
+    --chart-5: 315 42% 52%;
+    --chart-6: 95 45% 42%;
+
+    --surface-tint-1: 172 45% 40%;
+    --surface-tint-2: 36 70% 45%;
   }
 
   * {
@@ -91,13 +153,27 @@
   }
 }
 
+@layer utilities {
+  /* Paper grain — compose over any surface (used by GradientBackground, identity pages). */
+  .bg-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    background-size: 128px 128px;
+  }
+
+  /* Terminal-style log block — deliberately dark in both themes. */
+  .terminal-block {
+    background: hsl(168 12% 8%);
+    color: hsl(40 15% 88%);
+  }
+}
+
 /* Global polish */
 html {
   scroll-behavior: smooth;
 }
 
 ::selection {
-  background: hsl(198 65% 57% / 0.3);
+  background: hsl(var(--primary) / 0.22);
 }
 
 /* Thin custom scrollbars */

@@ -1,8 +1,10 @@
-// frontend/src/components/ui/JobActions.tsx
+// frontend/src/components/ui/JobActions.tsx — terminate/retry controls for a job.
+import { useState } from 'react';
 import { toast } from 'sonner';
 import type { AnalysisJob } from '@/api/types';
 import { useTerminateJob, useRetryJob } from '@/hooks/useJobs';
 import { Button } from './Button';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface Props {
   job: AnalysisJob;
@@ -12,6 +14,7 @@ interface Props {
 export default function JobActions({ job, onRetrySuccess }: Props) {
   const terminateMutation = useTerminateJob();
   const retryMutation = useRetryJob();
+  const [confirmTerminate, setConfirmTerminate] = useState(false);
 
   const canTerminate = job.status === 'queued' || job.status === 'running';
   const canRetry = job.status === 'error' || job.status === 'terminated';
@@ -19,10 +22,15 @@ export default function JobActions({ job, onRetrySuccess }: Props) {
   if (!canTerminate && !canRetry) return null;
 
   const handleTerminate = () => {
-    if (!window.confirm(`Terminate job "${job.name}"? This cannot be undone.`)) return;
     terminateMutation.mutate(job.id, {
-      onSuccess: () => toast.success('Job terminated'),
-      onError: () => toast.error('Failed to terminate job'),
+      onSuccess: () => {
+        setConfirmTerminate(false);
+        toast.success('Job terminated');
+      },
+      onError: () => {
+        setConfirmTerminate(false);
+        toast.error('Failed to terminate job');
+      },
     });
   };
 
@@ -42,7 +50,7 @@ export default function JobActions({ job, onRetrySuccess }: Props) {
         <Button
           variant="destructive"
           size="sm"
-          onClick={handleTerminate}
+          onClick={() => setConfirmTerminate(true)}
           loading={terminateMutation.isPending}
         >
           Terminate
@@ -58,6 +66,16 @@ export default function JobActions({ job, onRetrySuccess }: Props) {
           Retry
         </Button>
       )}
+      <ConfirmDialog
+        open={confirmTerminate}
+        onOpenChange={setConfirmTerminate}
+        title="Terminate job?"
+        description={`"${job.name}" will be stopped. This cannot be undone.`}
+        confirmLabel="Terminate"
+        variant="destructive"
+        loading={terminateMutation.isPending}
+        onConfirm={handleTerminate}
+      />
     </div>
   );
 }

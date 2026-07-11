@@ -1,10 +1,10 @@
 // frontend/src/App.tsx
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GradientBackground } from '@/components/layout/GradientBackground';
 import { Navbar } from '@/components/layout/Navbar';
-import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
@@ -39,12 +39,16 @@ import { useSSE } from '@/hooks/useSSE';
 
 function AuthenticatedLayout() {
   useSSE();
+  const { pathname } = useLocation();
   return (
     <GradientBackground>
       <Navbar />
-      <Breadcrumbs />
-      <main className="mx-auto max-w-7xl px-4 py-6">
-        <ProtectedRoute />
+      <main className="mx-auto max-w-7xl px-4 py-6 md:px-6">
+        <PageHeader />
+        {/* Keyed on pathname so each route change replays the entrance. */}
+        <div key={pathname} className="animate-fade-rise">
+          <ProtectedRoute />
+        </div>
       </main>
     </GradientBackground>
   );
@@ -52,42 +56,44 @@ function AuthenticatedLayout() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/docs" element={<DocsLayout />}>
-        <Route index element={<DocsLandingPage />} />
-        <Route path=":slug" element={<DocsPage />} />
-      </Route>
-      <Route element={<ErrorBoundary><AuthenticatedLayout /></ErrorBoundary>}>
-        <Route path="/dashboard" element={<HomePage />} />
-        <Route path="/projects/:id" element={<ProjectDetailPage />} />
-        <Route path="/experiments/:id" element={<ExperimentView />}>
-          <Route index element={<DescriptionTab />} />
-          <Route path="description" element={<DescriptionTab />} />
-          <Route path="fastqs" element={<FastqsTab />} />
-          <Route path="trimming/:jid" element={<TrimmingTab />} />
-          <Route path="reactions" element={<ReactionsTab />} />
-          <Route path="alignment/:jid" element={<AlignmentTab />} />
-          <Route path="peaks/:jid" element={<PeakCallingTab />} />
-          <Route path="diffbind/:jid" element={<DiffBindTab />} />
-          <Route path="heatmaps/:jid" element={<CustomHeatmapTab />} />
-          <Route path="correlations/:jid" element={<PearsonCorrelationTab />} />
-          <Route path="normalization/:jid" element={<NormalizationTab />} />
-          <Route path="feature-counts/:jid" element={<FeatureCountsTab />} />
-          <Route path="de/:jid" element={<DEAnalysisTab />} />
-          <Route path="rnaseq-qc/:jid" element={<RnaseqQCTab />} />
-          <Route path="pathway/:jid" element={<PathwayAnalysisTab />} />
-          <Route path="history" element={<HistoryTab />} />
-          <Route path="files" element={<AllFilesTab />} />
+    <ErrorBoundary>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/docs" element={<DocsLayout />}>
+          <Route index element={<DocsLandingPage />} />
+          <Route path=":slug" element={<DocsPage />} />
         </Route>
-        <Route path="/queue" element={<AnalysisQueuePage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-      </Route>
-    </Routes>
+        <Route element={<ErrorBoundary><AuthenticatedLayout /></ErrorBoundary>}>
+          <Route path="/dashboard" element={<HomePage />} />
+          <Route path="/projects/:id" element={<ProjectDetailPage />} />
+          <Route path="/experiments/:id" element={<ExperimentView />}>
+            <Route index element={<DescriptionTab />} />
+            <Route path="description" element={<DescriptionTab />} />
+            <Route path="fastqs" element={<FastqsTab />} />
+            <Route path="trimming/:jid" element={<TrimmingTab />} />
+            <Route path="reactions" element={<ReactionsTab />} />
+            <Route path="alignment/:jid" element={<AlignmentTab />} />
+            <Route path="peaks/:jid" element={<PeakCallingTab />} />
+            <Route path="diffbind/:jid" element={<DiffBindTab />} />
+            <Route path="heatmaps/:jid" element={<CustomHeatmapTab />} />
+            <Route path="correlations/:jid" element={<PearsonCorrelationTab />} />
+            <Route path="normalization/:jid" element={<NormalizationTab />} />
+            <Route path="feature-counts/:jid" element={<FeatureCountsTab />} />
+            <Route path="de/:jid" element={<DEAnalysisTab />} />
+            <Route path="rnaseq-qc/:jid" element={<RnaseqQCTab />} />
+            <Route path="pathway/:jid" element={<PathwayAnalysisTab />} />
+            <Route path="history" element={<HistoryTab />} />
+            <Route path="files" element={<AllFilesTab />} />
+          </Route>
+          <Route path="/queue" element={<AnalysisQueuePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+        </Route>
+      </Routes>
+    </ErrorBoundary>
   );
 }

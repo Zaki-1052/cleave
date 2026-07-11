@@ -10,11 +10,11 @@ interface StorageGaugeProps {
 export function StorageGauge({ usedBytes, quotaBytes, label = 'Storage' }: StorageGaugeProps) {
   const hasQuota = quotaBytes !== undefined && quotaBytes > 0;
   const percent = hasQuota ? Math.min(100, Math.round((usedBytes / quotaBytes) * 100)) : 0;
-  const barColor = percent > 90 ? 'bg-red-500' : percent > 70 ? 'bg-amber-500' : 'bg-primary';
+  const barColor = percent > 90 ? 'bg-destructive' : percent > 70 ? 'bg-warning' : 'bg-primary';
 
   return (
     <div>
-      <p className="font-display text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
       {hasQuota ? (
         <>
           <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-muted">
