@@ -165,6 +165,26 @@
     background: hsl(168 12% 8%);
     color: hsl(40 15% 88%);
   }
+
+  /* Landing identity motion (Field Atlas) — see PLAN-landing.md. The app's one licensed
+     decorative gradient: a radial tint that ignites on hover, in the hue the card sets
+     via --tint-hue (e.g. style={{ '--tint-hue': 'var(--chart-3)' }}). Landing-only. */
+  .hover-tint {
+    position: relative;
+  }
+  .hover-tint::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(120% 90% at 50% 0%, hsl(var(--tint-hue, var(--primary)) / 0.13), transparent 70%);
+    opacity: 0;
+    transition: opacity 300ms var(--ease-standard);
+    pointer-events: none;
+  }
+  .hover-tint:hover::before {
+    opacity: 1;
+  }
 }
 
 /* Global polish */
@@ -174,6 +194,16 @@ html {
 
 ::selection {
   background: hsl(var(--primary) / 0.22);
+}
+
+/* Landing identity motion — reduced-motion backstop for the CSS-keyframe layer only.
+   (SMIL layers are disabled in JS: CSS media queries cannot pause SMIL animations.) */
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-rise,
+  .animate-particle-float,
+  .animate-cursor-blink {
+    animation: none !important;
+  }
 }
 
 /* Thin custom scrollbars */

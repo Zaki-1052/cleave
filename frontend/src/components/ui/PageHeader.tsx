@@ -28,9 +28,15 @@ function useAutoCrumbs(): Crumb[] {
   const crumbs: Crumb[] = [{ label: 'Home', href: '/dashboard' }];
   segments.forEach((segment, i) => {
     if (segment === 'dashboard') return;
+    const path = `/${segments.slice(0, i + 1).join('/')}`;
+    const isLast = i === segments.length - 1;
+    // Only linkify segments that resolve to a real route (resource-detail pages).
+    // Collection prefixes ("/projects", "/experiments") and mid-nested tab segments
+    // have no standalone route, so they render as plain text — never dead links.
+    const linkable = !isLast && /^\/(projects|experiments)\/[^/]+$/.test(path);
     crumbs.push({
       label: decodeURIComponent(segment),
-      href: i < segments.length - 1 ? `/${segments.slice(0, i + 1).join('/')}` : undefined,
+      href: linkable ? path : undefined,
     });
   });
   return crumbs;

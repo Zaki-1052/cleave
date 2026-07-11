@@ -123,9 +123,33 @@ export default {
           from: { opacity: '0', transform: 'translateY(6px)' },
           to: { opacity: '1', transform: 'none' },
         },
+        // Landing identity motion (Field Atlas) — see PLAN-landing.md. The em-relative
+        // travel keeps hero-rise proportional to the responsive wordmark size; one
+        // particle-float keyframe serves the whole field via --drift-x/--drift-y.
+        'hero-rise': {
+          from: { opacity: '0', transform: 'translateY(0.4em)' },
+          to: { opacity: '1', transform: 'none' },
+        },
+        'particle-float': {
+          '0%, 100%': { transform: 'translate(0, 0)' },
+          '25%': { transform: 'translate(calc(var(--drift-x) * 0.6), calc(var(--drift-y) * 0.8))' },
+          '50%': { transform: 'translate(calc(var(--drift-x) * -0.5), var(--drift-y))' },
+          '75%': { transform: 'translate(var(--drift-x), calc(var(--drift-y) * 0.35))' },
+        },
+        'cursor-blink': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0' },
+        },
       },
       animation: {
         'fade-rise': 'fade-rise 0.45s cubic-bezier(0.2, 0, 0, 1) both',
+        'hero-rise': 'hero-rise 0.7s cubic-bezier(0.32, 0.72, 0, 1) both',
+        'particle-float': 'particle-float 20s ease-in-out infinite',
+        'cursor-blink': 'cursor-blink 1.1s steps(1, end) infinite',
+      },
+      transitionTimingFunction: {
+        standard: 'var(--ease-standard)',
+        emphasized: 'var(--ease-emphasized)',
       },
     },
   },

@@ -19,15 +19,29 @@ import { cn } from '@/lib/cn';
 const ICON_BUTTON =
   'rounded-md p-2 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
-function NavLink({ to, active, children }: { to: string; active: boolean; children: React.ReactNode }) {
+function NavLink({
+  to,
+  active,
+  accent = false,
+  children,
+}: {
+  to: string;
+  active: boolean;
+  accent?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <Link
       to={to}
       className={cn(
-        'flex h-14 items-center gap-1.5 border-b-2 px-1 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'flex h-14 items-center gap-1.5 border-b-2 px-1 text-[15px] font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         active
-          ? 'border-primary text-foreground'
-          : 'border-transparent text-muted-foreground hover:text-foreground',
+          ? accent
+            ? 'border-warning text-warning'
+            : 'border-primary text-foreground'
+          : accent
+            ? 'border-transparent text-foreground/70 hover:text-warning'
+            : 'border-transparent text-foreground/70 hover:text-foreground',
       )}
     >
       {children}
@@ -49,7 +63,7 @@ export function Navbar() {
           <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <CleaveIcon size={18} />
           </div>
-          <span className="font-display text-lg font-semibold text-foreground">Cleave</span>
+          <span className="font-display text-xl font-semibold text-foreground">Cleave</span>
         </Link>
         <div className="hidden items-center gap-6 md:flex">
           <NavLink to="/dashboard" active={pathname === '/dashboard'}>
@@ -59,7 +73,7 @@ export function Navbar() {
             Analysis Queue
           </NavLink>
           {user?.isSuperuser && (
-            <NavLink to="/admin" active={pathname === '/admin'}>
+            <NavLink to="/admin" active={pathname === '/admin'} accent>
               <Shield className="h-3.5 w-3.5" />
               Admin
             </NavLink>
@@ -123,7 +137,7 @@ export function Navbar() {
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="hidden items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-foreground/80 transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:inline-flex">
+              <button className="hidden items-center gap-1.5 rounded-md px-2 py-1.5 text-[15px] font-medium text-foreground/80 transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:inline-flex">
                 {user.firstName ?? user.email}
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </button>
