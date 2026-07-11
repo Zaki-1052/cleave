@@ -1,6 +1,5 @@
 // frontend/src/components/pearson-correlation/PearsonCorrelationPlotsPanel.tsx
-import { Download } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
+import { Download, AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import {
@@ -10,6 +9,7 @@ import {
 } from '@/api/jobs';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { usePearsonCorrelationReport } from '@/hooks/useJobs';
 
 interface PearsonCorrelationPlotsPanelProps {
@@ -45,21 +45,31 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-8 w-32" />
         </div>
-      </Card>
+        <Card>
+          <div className="mb-2 flex items-center justify-between">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+          <Skeleton className="mb-3 h-4 w-3/4" />
+          <Skeleton className="h-80 w-full" />
+        </Card>
+      </div>
     );
   }
 
   if (error || !report) {
     return (
-      <Card>
-        <p className="text-sm text-red-600">
+      <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3">
+        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+        <p className="text-sm text-foreground/80">
           {error instanceof Error ? error.message : 'Failed to load correlation report.'}
         </p>
-      </Card>
+      </div>
     );
   }
 
@@ -105,7 +115,7 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
-          Pairwise Pearson correlation of <span className="font-mono">{report.sampleCount}</span> sample
+          Pairwise Pearson correlation of <span className="font-mono tabular-nums">{report.sampleCount}</span> sample
           {report.sampleCount !== 1 ? 's' : ''} on {report.referenceGenome}.
           {report.maskingApplied ? ' Masked regions excluded.' : ''}
           {report.restrictBedLabel
@@ -115,7 +125,7 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
         <div className="flex items-center gap-2">
           {report.correlationMatrixOutputId != null && (
             <Button
-              variant="outlined"
+              variant="outline"
               onClick={handleDownloadCorrelation}
               disabled={corrDownloading}
               className="flex items-center gap-1 text-xs"
@@ -126,7 +136,7 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
           )}
           {report.coverageMatrixOutputId != null && (
             <Button
-              variant="outlined"
+              variant="outline"
               onClick={handleDownloadCoverage}
               disabled={covDownloading}
               className="flex items-center gap-1 text-xs"
@@ -173,7 +183,7 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
 
         {imgError ? (
           <div className="flex h-48 items-center justify-center rounded border border-border bg-muted">
-            <p className="text-xs text-red-500">Failed to load plot.</p>
+            <p className="text-xs text-destructive">Failed to load plot.</p>
           </div>
         ) : pngUrl ? (
           <img
@@ -183,9 +193,7 @@ export function PearsonCorrelationPlotsPanel({ jobId }: PearsonCorrelationPlotsP
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="flex h-48 items-center justify-center">
-            <Spinner />
-          </div>
+          <Skeleton className="h-48 w-full" />
         )}
       </Card>
     </div>

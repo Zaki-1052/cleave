@@ -50,18 +50,18 @@ export function RnaseqAlignmentSettingsStep({
       <div>
         <label
           htmlFor="rnaseq-reference-genome"
-          className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+          className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground"
         >
-          Reference Genome <span className="text-red-500">*</span>
+          Reference Genome <span className="text-destructive">*</span>
         </label>
         {hasMixedOrganisms && (
-          <p className="mt-1 text-xs text-amber-600">
+          <p className="mt-1 text-xs text-warning">
             Warning: Selected reactions contain mixed organisms. All will be aligned to the same
             reference genome.
           </p>
         )}
         {genomeOptions.length === 0 && (
-          <p className="mt-1 text-xs text-red-600">
+          <p className="mt-1 text-xs text-destructive">
             No supported RNA-seq reference genomes for the selected organisms. RNA-seq alignment
             currently supports Mouse (mm10) and Human (hg38).
           </p>
@@ -70,7 +70,7 @@ export function RnaseqAlignmentSettingsStep({
           id="rnaseq-reference-genome"
           value={referenceGenome}
           onChange={(e) => setReferenceGenome(e.target.value)}
-          className="mt-1 w-full max-w-sm rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+          className="mt-1 w-full max-w-sm rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
         >
           <option value="" disabled>
             Select reference genome
@@ -99,27 +99,27 @@ export function RnaseqAlignmentSettingsStep({
 
       {/* Reactions table */}
       <div>
-        <h4 className="mb-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <h4 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Reactions
         </h4>
         <div className="overflow-x-auto rounded-md border border-border">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b bg-primary/10">
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <tr className="border-b bg-muted/50">
+                <th className="px-3 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Short Name
                 </th>
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Organism
                 </th>
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Reference Genome
                 </th>
               </tr>
             </thead>
             <tbody>
               {selectedReactions.map((r) => (
-                <tr key={r.id} className="border-b hover:bg-muted">
+                <tr key={r.id} className="border-b transition-colors duration-150 hover:bg-accent/50">
                   <td className="px-3 py-2 font-medium text-foreground">{r.shortName}</td>
                   <td className="px-3 py-2 text-foreground">{r.organism}</td>
                   <td className="px-3 py-2 text-foreground">
@@ -137,11 +137,11 @@ export function RnaseqAlignmentSettingsStep({
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+          className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-foreground transition-colors duration-150 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span>Advanced Settings</span>
           <ChevronDown
-            className={`h-4 w-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+            className={`h-4 w-4 transition-transform duration-150 ${showAdvanced ? 'rotate-180' : ''}`}
           />
         </button>
 
@@ -155,11 +155,11 @@ export function RnaseqAlignmentSettingsStep({
                     checked={removeDuplicates === true}
                     ref={(el) => { if (el) el.indeterminate = removeDuplicates === null; }}
                     onChange={(e) => setRemoveDuplicates(e.target.checked)}
-                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                    className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                   Remove Duplicate Reads
                   {removeDuplicates === null && (
-                    <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                    <span className="text-xs font-medium text-warning">
                       (choose)
                     </span>
                   )}
@@ -179,9 +179,9 @@ export function RnaseqAlignmentSettingsStep({
               <div>
                 <label
                   htmlFor="rnaseq-bam-coverage-bin-size"
-                  className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                  className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground"
                 >
-                  BAM Coverage Bin Size <span className="text-red-500">*</span>
+                  BAM Coverage Bin Size <span className="text-destructive">*</span>
                 </label>
                 <input
                   id="rnaseq-bam-coverage-bin-size"
@@ -189,16 +189,16 @@ export function RnaseqAlignmentSettingsStep({
                   min={1}
                   value={bamCoverageBinSize}
                   onChange={(e) => setBamCoverageBinSize(Number(e.target.value) || 20)}
-                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                  className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 font-mono text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="rnaseq-smoothed-bin-size"
-                  className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                  className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground"
                 >
-                  Smoothed BAM Coverage Bin Size <span className="text-red-500">*</span>
+                  Smoothed BAM Coverage Bin Size <span className="text-destructive">*</span>
                 </label>
                 <input
                   id="rnaseq-smoothed-bin-size"
@@ -206,7 +206,7 @@ export function RnaseqAlignmentSettingsStep({
                   min={1}
                   value={smoothedBinSize}
                   onChange={(e) => setSmoothedBinSize(Number(e.target.value) || 100)}
-                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                  className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 font-mono text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
                 />
               </div>
             </div>

@@ -7,8 +7,11 @@ import { DOCS_CONTENT } from '@/lib/docs-content';
 export default function DocsLandingPage() {
   return (
     <div>
-      <h1 className="font-display text-2xl font-bold text-foreground">Documentation</h1>
-      <p className="mt-2 text-muted-foreground">
+      <p className="mb-1 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+        Field Guide
+      </p>
+      <h1 className="font-display text-3xl font-semibold text-foreground">Documentation</h1>
+      <p className="mt-2 max-w-2xl text-muted-foreground">
         Platform documentation, pipeline reference, QC interpretation, and step-by-step tutorials
         for the Ferguson Lab&apos;s CUT&amp;RUN/CUT&amp;Tag analysis platform.
       </p>
@@ -24,7 +27,7 @@ export default function DocsLandingPage() {
                   <Link key={item.slug} to={`/docs/${item.slug}`}>
                     <Card variant="interactive" className="h-full p-4">
                       <div className="flex items-start gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent text-primary">
                           <item.icon className="h-4 w-4" />
                         </div>
                         <div>

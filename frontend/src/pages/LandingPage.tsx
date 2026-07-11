@@ -97,9 +97,9 @@ const STATS = [
 ];
 
 /* ─────────────── font shorthands ─────────────── */
-const serif = '"Source Serif 4", Georgia, serif';
-const mono = '"Source Code Pro", monospace';
-const sans = '"Source Sans 3", system-ui, sans-serif';
+const serif = '"Fraunces", Georgia, serif';
+const mono = '"IBM Plex Mono", monospace';
+const sans = '"Hanken Grotesk", system-ui, sans-serif';
 
 /* ─────────────── hooks ─────────────── */
 function useInView(threshold = 0.12) {
@@ -292,7 +292,7 @@ function GenomeRuler() {
           return (
             <g key={i}>
               <line x1={x} y1={major ? 6 : 10} x2={x} y2={14} stroke="rgba(255,255,255,0.08)" strokeWidth={major ? "1" : "0.5"} />
-              {major && <text x={x} y={24} textAnchor="middle" fill="rgba(255,255,255,0.12)" fontSize="7" fontFamily="'Source Code Pro', monospace">{`${(i / ticks * 200).toFixed(0)} Mb`}</text>}
+              {major && <text x={x} y={24} textAnchor="middle" fill="rgba(255,255,255,0.12)" fontSize="7" fontFamily="'IBM Plex Mono', monospace">{`${(i / ticks * 200).toFixed(0)} Mb`}</text>}
             </g>
           );
         })}
@@ -364,11 +364,11 @@ function ArchDiagram() {
           <polygon points={x1 === x2 ? `${x2-3},${y2-5} ${x2+3},${y2-5} ${x2},${y2}` : `${x2-5},${y2-3} ${x2-5},${y2+3} ${x2},${y2}`} fill="rgba(255,255,255,0.15)" />
         </g>
       ))}
-      <text x={435} y={76} textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="7" fontFamily="'Source Code Pro', monospace">SSE ↕</text>
+      <text x={435} y={76} textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="7" fontFamily="'IBM Plex Mono', monospace">SSE ↕</text>
       {boxes.map(b => (
         <g key={b.label}>
           <rect x={b.x} y={b.y} width={b.w} height={b.h} rx="8" fill={`${b.color}10`} stroke={`${b.color}30`} strokeWidth="1" />
-          <text x={b.x + b.w/2} y={b.y + b.h/2 + 4} textAnchor="middle" fill={b.color} fontSize="10" fontFamily="'Source Code Pro', monospace" fontWeight="500">{b.label}</text>
+          <text x={b.x + b.w/2} y={b.y + b.h/2 + 4} textAnchor="middle" fill={b.color} fontSize="10" fontFamily="'IBM Plex Mono', monospace" fontWeight="500">{b.label}</text>
         </g>
       ))}
     </svg>
@@ -405,7 +405,7 @@ export default function LandingPage() {
     >
       <NoiseSVG />
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500&family=Source+Sans+3:wght@400;500;600&family=Source+Serif+4:wght@600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Hanken+Grotesk:ital,wght@0,400..700;1,400..700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap');
         @keyframes floatP { 0%,100%{transform:translate(0,0)} 25%{transform:translate(10px,-20px)} 50%{transform:translate(-6px,-32px)} 75%{transform:translate(12px,-10px)} }
         @keyframes subtlePulse { 0%,100%{opacity:.55} 50%{opacity:1} }
         html { scroll-behavior: smooth }

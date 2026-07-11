@@ -88,16 +88,16 @@ export function PeakCallingSettingsStep({
   return (
     <div className="space-y-6">
       {/* Peak caller + peak size global controls */}
-      <div className="flex gap-4">
+      <div className="flex flex-col gap-4 md:flex-row">
         <div className="flex-1">
-          <label htmlFor="pc-peak-caller" className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Peak Caller <span className="text-red-500">*</span>
+          <label htmlFor="pc-peak-caller" className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+            Peak Caller <span className="text-destructive">*</span>
           </label>
           <select
             id="pc-peak-caller"
             value={peakCaller}
             onChange={(e) => handlePeakCallerChange(e.target.value)}
-            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+            className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           >
             {!peakCaller && (
               <option value="" disabled>
@@ -117,14 +117,14 @@ export function PeakCallingSettingsStep({
         </div>
 
         <div className="flex-1">
-          <label htmlFor="pc-peak-size" className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Peak Size <span className="text-red-500">*</span>
+          <label htmlFor="pc-peak-size" className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+            Peak Size <span className="text-destructive">*</span>
           </label>
           <select
             id="pc-peak-size"
             value={peakSize}
             onChange={(e) => setPeakSize(e.target.value)}
-            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+            className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           >
             {!peakSize && (
               <option value="" disabled>
@@ -144,14 +144,14 @@ export function PeakCallingSettingsStep({
         </div>
 
         <div className="flex-1">
-          <label htmlFor="pc-igg-control" className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <label htmlFor="pc-igg-control" className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             IgG Control
           </label>
           <select
             id="pc-igg-control"
             value={iggReactionId ?? ''}
             onChange={(e) => setIggReactionId(e.target.value ? Number(e.target.value) : null)}
-            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+            className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           >
             <option value="">None</option>
             {selectedReactions.map((r) => (
@@ -161,7 +161,7 @@ export function PeakCallingSettingsStep({
             ))}
           </select>
           {iggCandidates.length === 0 && (
-            <p className="mt-1 text-xs text-amber-600">
+            <p className="mt-1 text-xs text-warning">
               No IgG control detected. It is recommended to designate an IgG control for background
               subtraction.
             </p>
@@ -171,26 +171,26 @@ export function PeakCallingSettingsStep({
 
       {/* Reactions table */}
       <div>
-        <h4 className="mb-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <h4 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Reactions
         </h4>
         <div className="overflow-x-auto rounded-md border border-border">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b bg-primary/10">
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <tr className="border-b-2 border-border">
+                <th className="px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                   Short Name
                 </th>
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                   IgG Control
                 </th>
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                   Reference Genome
                 </th>
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                   Peak Caller
                 </th>
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                   Peak Size
                 </th>
               </tr>
@@ -203,7 +203,7 @@ export function PeakCallingSettingsStep({
                       '—'
                     : '—';
                 return (
-                  <tr key={r.reaction_id} className="border-b hover:bg-muted">
+                  <tr key={r.reaction_id} className="border-b border-border/70 transition-colors duration-150 hover:bg-accent/50">
                     <td className="px-3 py-2 font-medium text-foreground">{r.short_name}</td>
                     <td className="px-3 py-2 text-foreground">{iggName}</td>
                     <td className="px-3 py-2 text-foreground">
@@ -224,7 +224,7 @@ export function PeakCallingSettingsStep({
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+          className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-foreground transition-colors duration-150 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
         >
           <span>Advanced Settings</span>
           <ChevronDown
@@ -234,11 +234,11 @@ export function PeakCallingSettingsStep({
 
         {showAdvanced && (
           <div className="border-t px-4 py-4">
-            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+            <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
               {/* Threshold — conditional on peak caller + size */}
               {peakCaller === 'MACS2' && peakSize === 'narrow' && (
                 <div>
-                  <label htmlFor="pc-q-value" className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <label htmlFor="pc-q-value" className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                     Q-Value Threshold
                   </label>
                   <input
@@ -251,7 +251,7 @@ export function PeakCallingSettingsStep({
                     onChange={(e) =>
                       setQValue(Number(e.target.value) || PEAK_CALLING_DEFAULTS.q_value)
                     }
-                    className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
                     Default: 0.01 (lab standard). CUTANA Cloud uses 0.05.
@@ -261,7 +261,7 @@ export function PeakCallingSettingsStep({
 
               {peakCaller === 'MACS2' && peakSize === 'broad' && (
                 <div>
-                  <label htmlFor="pc-broad-cutoff" className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <label htmlFor="pc-broad-cutoff" className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                     Broad Cutoff
                   </label>
                   <input
@@ -276,7 +276,7 @@ export function PeakCallingSettingsStep({
                         Number(e.target.value) || PEAK_CALLING_DEFAULTS.broad_cutoff,
                       )
                     }
-                    className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
                   />
                   <p className="mt-1 text-xs text-muted-foreground">Default: 0.1</p>
                 </div>
@@ -284,7 +284,7 @@ export function PeakCallingSettingsStep({
 
               {peakCaller === 'SEACR' && (
                 <div>
-                  <label htmlFor="pc-seacr-threshold" className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <label htmlFor="pc-seacr-threshold" className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                     SEACR Threshold
                   </label>
                   <input
@@ -299,7 +299,7 @@ export function PeakCallingSettingsStep({
                         Number(e.target.value) || PEAK_CALLING_DEFAULTS.seacr_threshold,
                       )
                     }
-                    className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
                     Top fraction of regions by AUC. Default: 0.01 (top 1%).
@@ -309,7 +309,7 @@ export function PeakCallingSettingsStep({
 
               {peakCaller === 'SICER2' && (
                 <div>
-                  <label htmlFor="pc-sicer2-fdr" className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <label htmlFor="pc-sicer2-fdr" className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                     SICER2 FDR
                   </label>
                   <input
@@ -324,7 +324,7 @@ export function PeakCallingSettingsStep({
                         Number(e.target.value) || PEAK_CALLING_DEFAULTS.sicer2_fdr,
                       )
                     }
-                    className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
                   />
                   <p className="mt-1 text-xs text-muted-foreground">Default: 0.01</p>
                 </div>
@@ -338,11 +338,11 @@ export function PeakCallingSettingsStep({
                     checked={fragmentFilter === true}
                     ref={(el) => { if (el) el.indeterminate = fragmentFilter === null; }}
                     onChange={(e) => setFragmentFilter(e.target.checked)}
-                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                    className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
-                  Fragment Size Filter (&lt;{fragmentSize}bp)
+                  Fragment Size Filter (&lt;<span className="font-mono tabular-nums">{fragmentSize}</span>bp)
                   {fragmentFilter === null && (
-                    <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                    <span className="text-xs font-medium text-warning">
                       (choose)
                     </span>
                   )}
@@ -355,7 +355,7 @@ export function PeakCallingSettingsStep({
 
               {fragmentFilter === true && (
                 <div>
-                  <label htmlFor="pc-fragment-size" className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <label htmlFor="pc-fragment-size" className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                     Fragment Size (bp)
                   </label>
                   <input
@@ -368,7 +368,7 @@ export function PeakCallingSettingsStep({
                         Number(e.target.value) || PEAK_CALLING_DEFAULTS.fragment_size,
                       )
                     }
-                    className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
                     Sub-nucleosomal fragments (&lt;120bp) represent the biologically relevant
@@ -378,15 +378,15 @@ export function PeakCallingSettingsStep({
               )}
 
               {/* Blacklist selection */}
-              <div className="col-span-2">
-                <label htmlFor="pc-blacklist" className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <div className="col-span-1 sm:col-span-2">
+                <label htmlFor="pc-blacklist" className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                   Blacklist Subtraction
                 </label>
                 <select
                   id="pc-blacklist"
                   value={blacklist}
                   onChange={(e) => setBlacklist(e.target.value)}
-                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                  className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
                 >
                   {!blacklist && (
                     <option value="" disabled>

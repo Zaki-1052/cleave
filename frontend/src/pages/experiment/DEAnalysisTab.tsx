@@ -1,6 +1,5 @@
 // frontend/src/pages/experiment/DEAnalysisTab.tsx
-import { ArrowLeftRight } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
+import { ArrowLeftRight, FolderOpen, LineChart, Table2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import type { Experiment } from '@/api/types';
@@ -12,6 +11,7 @@ import { DEResultsPanel } from '@/components/rnaseq-de/DEResultsPanel';
 import { Card } from '@/components/layout/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs } from '@/hooks/useJobs';
 
@@ -44,11 +44,25 @@ export default function DEAnalysisTab() {
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-9 w-[220px]" />
+          </div>
+          <Skeleton className="h-6 w-24 rounded-full" />
         </div>
-      </Card>
+        <div className="flex gap-2 border-b border-border pb-px">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-16" />
+          ))}
+        </div>
+        <Card>
+          <Skeleton className="h-4 w-1/3" />
+          <Skeleton className="mt-4 h-4 w-full" />
+          <Skeleton className="mt-1.5 h-4 w-4/5" />
+        </Card>
+      </div>
     );
   }
 
@@ -69,7 +83,7 @@ export default function DEAnalysisTab() {
       {/* Job selector + status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             DE Analysis
           </span>
           <Select value={String(activeJobId ?? '')} onValueChange={(val) => navigate(`/experiments/${id}/de/${val}`)}>
@@ -93,10 +107,10 @@ export default function DEAnalysisTab() {
             <button
               key={tab.key}
               onClick={() => setActiveSubTab(tab.key)}
-              className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
+              className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 activeSubTab === tab.key
-                  ? 'border-b-2 border-primary text-primary bg-primary/5 rounded-t-md'
-                  : 'text-muted-foreground hover:text-foreground rounded-t-md hover:bg-muted/50'
+                  ? 'border-b-2 border-primary bg-primary/5 text-primary'
+                  : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
               }`}
             >
               {tab.label}
@@ -115,9 +129,11 @@ export default function DEAnalysisTab() {
           <DEResultsPanel jobId={job.id} organism={(job.params as Record<string, unknown>)?.reference_genome as string ?? null} />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              Results will be available when the DE analysis completes.
-            </p>
+            <EmptyState
+              icon={Table2}
+              title="Results not ready"
+              description="Results will be available when the DE analysis completes."
+            />
           </Card>
         )
       )}
@@ -127,9 +143,11 @@ export default function DEAnalysisTab() {
           <DEPlotsPanel jobId={job.id} />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              Plots will be available when the DE analysis completes.
-            </p>
+            <EmptyState
+              icon={LineChart}
+              title="Plots not ready"
+              description="Plots will be available when the DE analysis completes."
+            />
           </Card>
         )
       )}
@@ -139,9 +157,11 @@ export default function DEAnalysisTab() {
           <DEFilesPanel jobId={job.id} />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              Files will be available when the DE analysis completes.
-            </p>
+            <EmptyState
+              icon={FolderOpen}
+              title="Files not ready"
+              description="Files will be available when the DE analysis completes."
+            />
           </Card>
         )
       )}

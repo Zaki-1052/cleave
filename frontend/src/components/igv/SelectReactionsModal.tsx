@@ -1,6 +1,7 @@
 // frontend/src/components/igv/SelectReactionsModal.tsx
 import { useEffect, useRef, useState } from 'react';
 import type { Reaction } from '@/api/types';
+import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 
 interface SelectReactionsModalProps {
@@ -69,26 +70,26 @@ export function SelectReactionsModal({
           Select reactions to display in the genome browser.
         </p>
         <div className="max-h-80 overflow-y-auto rounded-md border border-border">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm tabular-nums">
             <thead className="sticky top-0">
-              <tr className="border-b bg-primary/10">
-                <th className="w-10 px-3 py-2">
+              <tr className="border-b-2 border-border bg-muted">
+                <th className="w-10 px-4 py-2.5">
                   <input
                     ref={headerCheckboxRef}
                     type="checkbox"
                     checked={allChecked}
                     onChange={handleToggleAll}
                     aria-label="Select all reactions"
-                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                    className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                 </th>
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Short Name
                 </th>
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Organism
                 </th>
-                <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Assay Type
                 </th>
               </tr>
@@ -99,23 +100,22 @@ export function SelectReactionsModal({
                 return (
                   <tr
                     key={r.id}
-                    className={`border-b transition-colors ${isSelected ? 'bg-primary/5' : 'hover:bg-muted'}`}
+                    className={`cursor-pointer border-b border-border/70 transition-colors duration-150 ${isSelected ? 'bg-accent' : 'hover:bg-accent/50'}`}
                     onClick={() => handleToggle(r.id)}
-                    style={{ cursor: 'pointer' }}
                   >
-                    <td className="px-3 py-2">
+                    <td className="px-4 py-2.5">
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => handleToggle(r.id)}
                         onClick={(e) => e.stopPropagation()}
                         aria-label={`Select ${r.shortName}`}
-                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                        className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       />
                     </td>
-                    <td className="px-3 py-2 font-medium text-foreground">{r.shortName}</td>
-                    <td className="px-3 py-2 text-foreground">{r.organism}</td>
-                    <td className="px-3 py-2 text-foreground">{r.assayType}</td>
+                    <td className="px-4 py-2.5 font-medium text-foreground">{r.shortName}</td>
+                    <td className="px-4 py-2.5 text-foreground">{r.organism}</td>
+                    <td className="px-4 py-2.5 text-foreground">{r.assayType}</td>
                   </tr>
                 );
               })}
@@ -123,25 +123,17 @@ export function SelectReactionsModal({
           </table>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          {localIds.size} of {reactions.length} reaction{reactions.length !== 1 ? 's' : ''}{' '}
-          selected
+          <span className="font-mono tabular-nums">{localIds.size}</span> of{' '}
+          <span className="font-mono tabular-nums">{reactions.length}</span> reaction
+          {reactions.length !== 1 ? 's' : ''} selected
         </p>
         <div className="mt-4 flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full border border-border px-5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
-          >
+          <Button variant="outline" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleApply}
-            disabled={localIds.size === 0}
-            className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
-          >
+          </Button>
+          <Button onClick={handleApply} disabled={localIds.size === 0}>
             Apply
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>

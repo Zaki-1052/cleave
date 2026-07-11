@@ -1,12 +1,13 @@
 // frontend/src/components/rnaseq-qc/QCPerSamplePanel.tsx
 import { type ColumnDef } from '@tanstack/react-table';
-import { Download } from 'lucide-react';
+import { Download, Inbox } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
-import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/layout/Card';
 import { DataTable } from '@/components/ui/DataTable';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { downloadRnaseqQCDashboardCsv } from '@/api/jobs';
 import { useRnaseqQCDashboardReport } from '@/hooks/useJobs';
 import type { RSeQCReactionMetrics } from '@/api/types';
@@ -52,14 +53,14 @@ export function QCPerSamplePanel({ jobId }: QCPerSamplePanelProps) {
         header: 'Strandedness',
         cell: ({ getValue }) => {
           const val = getValue() as string;
-          const colors =
+          const tint =
             val === 'sense'
-              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+              ? 'bg-success/10 text-success'
               : val === 'antisense'
-                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
-                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
+                ? 'bg-warning/10 text-warning'
+                : 'bg-muted text-muted-foreground';
           return (
-            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${colors}`}>
+            <span className={`rounded-full px-2 py-0.5 font-mono text-[11px] font-medium tracking-wide ${tint}`}>
               {val}
             </span>
           );
@@ -69,63 +70,63 @@ export function QCPerSamplePanel({ jobId }: QCPerSamplePanelProps) {
         accessorKey: 'fractionSense',
         header: 'Sense %',
         cell: ({ getValue }) => (
-          <span className="font-mono text-xs">{fmtPct(getValue() as number)}</span>
+          <span className="font-mono text-xs tabular-nums">{fmtPct(getValue() as number)}</span>
         ),
       },
       {
         accessorKey: 'fractionAntisense',
         header: 'Antisense %',
         cell: ({ getValue }) => (
-          <span className="font-mono text-xs">{fmtPct(getValue() as number)}</span>
+          <span className="font-mono text-xs tabular-nums">{fmtPct(getValue() as number)}</span>
         ),
       },
       {
         accessorKey: 'cdsExonsTags',
         header: 'CDS Reads',
         cell: ({ getValue }) => (
-          <span className="font-mono text-xs">{fmtInt(getValue() as number)}</span>
+          <span className="font-mono text-xs tabular-nums">{fmtInt(getValue() as number)}</span>
         ),
       },
       {
         accessorKey: 'fiveUtrExonsTags',
         header: "5'UTR",
         cell: ({ getValue }) => (
-          <span className="font-mono text-xs">{fmtInt(getValue() as number)}</span>
+          <span className="font-mono text-xs tabular-nums">{fmtInt(getValue() as number)}</span>
         ),
       },
       {
         accessorKey: 'threeUtrExonsTags',
         header: "3'UTR",
         cell: ({ getValue }) => (
-          <span className="font-mono text-xs">{fmtInt(getValue() as number)}</span>
+          <span className="font-mono text-xs tabular-nums">{fmtInt(getValue() as number)}</span>
         ),
       },
       {
         accessorKey: 'intronTags',
         header: 'Intron',
         cell: ({ getValue }) => (
-          <span className="font-mono text-xs">{fmtInt(getValue() as number)}</span>
+          <span className="font-mono text-xs tabular-nums">{fmtInt(getValue() as number)}</span>
         ),
       },
       {
         accessorKey: 'intergenicTags',
         header: 'Intergenic',
         cell: ({ getValue }) => (
-          <span className="font-mono text-xs">{fmtInt(getValue() as number)}</span>
+          <span className="font-mono text-xs tabular-nums">{fmtInt(getValue() as number)}</span>
         ),
       },
       {
         accessorKey: 'coverageSkewness',
         header: 'Coverage Skewness',
         cell: ({ getValue }) => (
-          <span className="font-mono text-xs">{(getValue() as number).toFixed(2)}</span>
+          <span className="font-mono text-xs tabular-nums">{(getValue() as number).toFixed(2)}</span>
         ),
       },
       {
         accessorKey: 'innerDistanceMean',
         header: 'Inner Dist. Mean',
         cell: ({ getValue }) => (
-          <span className="font-mono text-xs">{(getValue() as number).toFixed(1)}</span>
+          <span className="font-mono text-xs tabular-nums">{(getValue() as number).toFixed(1)}</span>
         ),
       },
     ],
@@ -135,9 +136,14 @@ export function QCPerSamplePanel({ jobId }: QCPerSamplePanelProps) {
   if (isLoading) {
     return (
       <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <Skeleton className="h-4 w-52" />
+            <Skeleton className="mt-2 h-3 w-40" />
+          </div>
+          <Skeleton className="h-8 w-32" />
         </div>
+        <DataTable data={[]} columns={columns} isLoading pageSize={25} />
       </Card>
     );
   }
@@ -145,7 +151,11 @@ export function QCPerSamplePanel({ jobId }: QCPerSamplePanelProps) {
   if (!report || report.metrics.length === 0) {
     return (
       <Card>
-        <p className="text-sm text-muted-foreground">No per-sample RSeQC metrics available.</p>
+        <EmptyState
+          icon={Inbox}
+          title="No per-sample metrics"
+          description="No per-sample RSeQC metrics are available for this job."
+        />
       </Card>
     );
   }
@@ -154,15 +164,15 @@ export function QCPerSamplePanel({ jobId }: QCPerSamplePanelProps) {
     <Card>
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h3 className="font-display text-sm font-semibold uppercase text-muted-foreground">
+          <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Per-Sample RSeQC Metrics
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            {report.metrics.length} reaction(s) &middot; Modules: {report.modulesRun.join(', ')}
+            <span className="font-mono tabular-nums">{report.metrics.length}</span> reaction(s) &middot; Modules: {report.modulesRun.join(', ')}
           </p>
         </div>
         <Button
-          variant="outlined"
+          variant="outline"
           onClick={handleDownload}
           disabled={downloading}
           className="text-xs"

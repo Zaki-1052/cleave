@@ -77,12 +77,12 @@ export function AutoPipelineStep({
 
   return (
     <div className="space-y-5">
-      <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-4 transition-colors hover:bg-muted/50">
+      <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-4 transition-colors duration-150 hover:bg-muted/50">
         <input
           type="checkbox"
           checked={enabled}
           onChange={(e) => setEnabled(e.target.checked)}
-          className="h-4 w-4 rounded text-primary"
+          className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
         <Zap className="h-5 w-5 text-primary" />
         <div>

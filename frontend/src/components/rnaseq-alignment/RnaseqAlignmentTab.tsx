@@ -1,8 +1,7 @@
 // frontend/src/components/rnaseq-alignment/RnaseqAlignmentTab.tsx
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { Dna } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
+import { BarChart3, Dna, FileText, LineChart } from 'lucide-react';
 import type { Experiment } from '@/api/types';
 import { AlignmentFilesPanel } from '@/components/alignment/AlignmentFilesPanel';
 import { AlignmentInfoPanel } from '@/components/alignment/AlignmentInfoPanel';
@@ -11,6 +10,7 @@ import { RnaseqAlignmentQCReportPanel } from './RnaseqAlignmentQCReportPanel';
 import { IGVPanel } from '@/components/igv/IGVPanel';
 import { Card } from '@/components/layout/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs } from '@/hooks/useJobs';
@@ -45,11 +45,21 @@ export default function RnaseqAlignmentTab() {
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-9 w-[220px] rounded-md" />
+          </div>
+          <Skeleton className="h-6 w-24 rounded-full" />
         </div>
-      </Card>
+        <Skeleton className="h-9 w-full" />
+        <Card>
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="mt-4 h-4 w-full" />
+          <Skeleton className="mt-2 h-4 w-4/5" />
+        </Card>
+      </div>
     );
   }
 
@@ -70,7 +80,7 @@ export default function RnaseqAlignmentTab() {
       {/* Job selector + status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Alignments
           </span>
           <Select value={String(activeJobId ?? '')} onValueChange={(val) => navigate(`/experiments/${id}/alignment/${val}`)}>
@@ -94,10 +104,10 @@ export default function RnaseqAlignmentTab() {
             <button
               key={tab.key}
               onClick={() => setActiveSubTab(tab.key)}
-              className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
+              className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${
                 activeSubTab === tab.key
-                  ? 'border-b-2 border-primary text-primary bg-primary/5 rounded-t-md'
-                  : 'text-muted-foreground hover:text-foreground rounded-t-md hover:bg-muted/50'
+                  ? 'border-b-2 border-primary bg-primary/5 text-primary'
+                  : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
               }`}
             >
               {tab.label}
@@ -114,9 +124,11 @@ export default function RnaseqAlignmentTab() {
           <RnaseqAlignmentQCReportPanel jobId={job.id} />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              QC report will be available when the alignment completes.
-            </p>
+            <EmptyState
+              icon={BarChart3}
+              title="QC report not ready"
+              description="The QC report will be available when the alignment completes."
+            />
           </Card>
         )
       )}
@@ -130,9 +142,11 @@ export default function RnaseqAlignmentTab() {
           <AlignmentFilesPanel jobId={job.id} categories={RNASEQ_ALIGNMENT_FILE_CATEGORIES} />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              Files will be available when the alignment completes.
-            </p>
+            <EmptyState
+              icon={FileText}
+              title="Files not ready"
+              description="Files will be available when the alignment completes."
+            />
           </Card>
         )
       )}
@@ -142,9 +156,11 @@ export default function RnaseqAlignmentTab() {
           <IGVPanel job={job} experimentId={experiment.id} mode="alignment" />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              IGV browser will be available when the alignment completes.
-            </p>
+            <EmptyState
+              icon={LineChart}
+              title="IGV not ready"
+              description="The IGV browser will be available when the alignment completes."
+            />
           </Card>
         )
       )}

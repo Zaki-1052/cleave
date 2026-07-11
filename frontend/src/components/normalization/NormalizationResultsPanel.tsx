@@ -1,5 +1,5 @@
 // frontend/src/components/normalization/NormalizationResultsPanel.tsx
-import { Download } from 'lucide-react';
+import { Download, AlertCircle } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { useEffect, useState } from 'react';
 
@@ -9,6 +9,7 @@ import {
 } from '@/api/jobs';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useRomanNormalizationReport } from '@/hooks/useJobs';
 
 interface NormalizationResultsPanelProps {
@@ -43,21 +44,36 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-72" />
+          <Skeleton className="h-8 w-28" />
         </div>
-      </Card>
+        <Card>
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="mt-3 h-3 w-2/3" />
+          <div className="mt-4 space-y-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-8 w-full" />
+            ))}
+          </div>
+        </Card>
+        <Card>
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="mt-3 h-48 w-full" />
+        </Card>
+      </div>
     );
   }
 
   if (error || !report) {
     return (
-      <Card>
-        <p className="text-sm text-red-600">
+      <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-foreground/80">
+        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+        <span>
           {error instanceof Error ? error.message : 'Failed to load normalization report.'}
-        </p>
-      </Card>
+        </span>
+      </div>
     );
   }
 
@@ -100,13 +116,14 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
         </p>
         <div className="flex items-center gap-2">
           <Button
-            variant="outlined"
+            variant="outline"
+            size="sm"
             onClick={handleDownloadFactors}
-            disabled={factorsDownloading}
-            className="flex items-center gap-1 text-xs"
+            loading={factorsDownloading}
+            className="text-xs"
           >
             <Download className="mr-1 h-3 w-3" />
-            {factorsDownloading ? 'Downloading...' : 'Factors CSV'}
+            Factors CSV
           </Button>
         </div>
       </div>
@@ -119,16 +136,16 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
           All samples are normalized relative to the reference sample (NF = 1.0).
         </p>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm tabular-nums">
             <thead>
-              <tr className="border-b border-border bg-muted">
-                <th className="px-4 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <tr className="border-b-2 border-border">
+                <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Sample Name
                 </th>
-                <th className="px-4 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <th className="px-4 py-2.5 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   99th Percentile
                 </th>
-                <th className="px-4 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <th className="px-4 py-2.5 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Normalization Factor
                 </th>
               </tr>
@@ -139,20 +156,20 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
                   key={entry.sampleName}
                   className={
                     idx === 0
-                      ? 'border-b border-border bg-blue-50'
-                      : 'border-b border-border hover:bg-muted'
+                      ? 'border-b border-border/70 bg-accent'
+                      : 'border-b border-border/70 transition-colors duration-150 hover:bg-accent/50'
                   }
                 >
-                  <td className="px-4 py-2 font-medium text-foreground">
+                  <td className="px-4 py-2.5 font-medium text-foreground">
                     {entry.sampleName}
                     {idx === 0 && (
-                      <span className="ml-2 text-xs text-blue-600">(reference)</span>
+                      <span className="ml-2 font-mono text-[11px] text-info">(reference)</span>
                     )}
                   </td>
-                  <td className="px-4 py-2 font-mono tabular-nums text-muted-foreground">
+                  <td className="px-4 py-2.5 text-right font-mono tabular-nums text-muted-foreground">
                     {entry.percentile99.toFixed(4)}
                   </td>
-                  <td className="px-4 py-2 font-mono tabular-nums text-muted-foreground">
+                  <td className="px-4 py-2.5 text-right font-mono tabular-nums text-muted-foreground">
                     {entry.normalizationFactor.toFixed(4)}
                   </td>
                 </tr>
@@ -171,7 +188,7 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
               type="button"
               onClick={handleDownloadPng}
               disabled={!pngUrl}
-              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:opacity-40"
+              className="flex items-center gap-1 rounded-sm text-xs font-medium text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
             >
               <Download className="h-3 w-3" />
               PNG
@@ -181,7 +198,7 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
                 type="button"
                 onClick={handleDownloadSvg}
                 disabled={!svgUrl}
-                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:opacity-40"
+                className="flex items-center gap-1 rounded-sm text-xs font-medium text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
               >
                 <Download className="h-3 w-3" />
                 SVG
@@ -197,14 +214,14 @@ export function NormalizationResultsPanel({ jobId }: NormalizationResultsPanelPr
         </p>
 
         {imgError ? (
-          <div className="flex h-48 items-center justify-center rounded border border-border bg-muted">
-            <p className="text-xs text-red-500">Failed to load plot.</p>
+          <div className="flex h-48 items-center justify-center rounded-md border border-border bg-muted">
+            <p className="text-xs text-destructive">Failed to load plot.</p>
           </div>
         ) : pngUrl ? (
           <img
             src={`${pngUrl}&display=inline`}
             alt="Normalization Factor Bar Chart"
-            className="w-full rounded border border-border"
+            className="w-full rounded-md border border-border"
             onError={() => setImgError(true)}
           />
         ) : (

@@ -269,17 +269,17 @@ export function NewAlignmentWizard({
       submitLabel="Start Alignment"
       maxWidth="max-w-5xl"
       renderFooter={({ currentStep: step, onClose: close, onBack: back }) => (
-        <div className="flex flex-col border-t">
+        <div className="flex flex-col border-t border-border">
           {submitError && (
-            <div className="bg-red-50 dark:bg-red-950 px-6 py-2 text-sm text-red-600 dark:text-red-400">{submitError}</div>
+            <div className="bg-destructive/10 px-6 py-2 text-sm text-destructive">{submitError}</div>
           )}
           <div className="flex items-center justify-between px-6 py-4">
-            <button onClick={close} className="text-sm text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" onClick={close}>
               Cancel
-            </button>
+            </Button>
             <div className="flex gap-3">
               {step > 0 && (
-                <Button variant="outlined" onClick={back}>
+                <Button variant="outline" onClick={back}>
                   Back
                 </Button>
               )}

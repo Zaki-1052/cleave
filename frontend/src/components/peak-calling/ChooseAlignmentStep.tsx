@@ -1,5 +1,7 @@
 // frontend/src/components/peak-calling/ChooseAlignmentStep.tsx
+import { Inbox } from 'lucide-react';
 import type { AnalysisJob } from '@/api/types';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { GENOME_DISPLAY_NAMES } from '@/lib/constants';
 import { formatDate } from '@/lib/utils';
 
@@ -18,14 +20,11 @@ export function ChooseAlignmentStep({
 
   if (completedJobs.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <h3 className="text-sm font-medium text-muted-foreground">
-          No completed alignment runs available
-        </h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Run an alignment first before creating a peak calling analysis.
-        </p>
-      </div>
+      <EmptyState
+        icon={Inbox}
+        title="No completed alignment runs available"
+        description="Run an alignment first before creating a peak calling analysis."
+      />
     );
   }
 
@@ -38,18 +37,18 @@ export function ChooseAlignmentStep({
       <div className="overflow-x-auto rounded-md border border-border">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b bg-primary/10">
+            <tr className="border-b-2 border-border">
               <th className="w-10 px-3 py-2" />
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                 Name
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                 Reference Genome
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                 Reactions
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                 Created
               </th>
             </tr>
@@ -63,8 +62,8 @@ export function ChooseAlignmentStep({
                 <tr
                   key={job.id}
                   onClick={() => onSelect(job.id)}
-                  className={`cursor-pointer border-b transition-colors ${
-                    isSelected ? 'bg-primary/5' : 'hover:bg-muted'
+                  className={`cursor-pointer border-b border-border/70 transition-colors duration-150 ${
+                    isSelected ? 'bg-accent' : 'hover:bg-accent/50'
                   }`}
                 >
                   <td className="px-3 py-2 text-center">
@@ -74,15 +73,15 @@ export function ChooseAlignmentStep({
                       checked={isSelected}
                       onChange={() => onSelect(job.id)}
                       aria-label={`Select alignment ${job.name}`}
-                      className="h-4 w-4 text-primary focus:ring-primary"
+                      className="h-4 w-4 accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     />
                   </td>
                   <td className="px-3 py-2 font-medium text-foreground">{job.name}</td>
                   <td className="px-3 py-2 text-foreground">
                     {GENOME_DISPLAY_NAMES[genome] ?? genome}
                   </td>
-                  <td className="px-3 py-2 text-foreground">{reactions.length}</td>
-                  <td className="px-3 py-2 text-foreground">{formatDate(job.createdAt)}</td>
+                  <td className="px-3 py-2 font-mono tabular-nums text-foreground">{reactions.length}</td>
+                  <td className="px-3 py-2 font-mono tabular-nums text-foreground">{formatDate(job.createdAt)}</td>
                 </tr>
               );
             })}
@@ -91,7 +90,8 @@ export function ChooseAlignmentStep({
       </div>
 
       <p className="mt-3 text-xs text-muted-foreground">
-        {completedJobs.length} completed alignment{completedJobs.length !== 1 ? 's' : ''} available
+        <span className="font-mono tabular-nums">{completedJobs.length}</span> completed alignment
+        {completedJobs.length !== 1 ? 's' : ''} available
       </p>
     </div>
   );

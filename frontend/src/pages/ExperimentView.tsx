@@ -5,13 +5,16 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   FileText, Dna, FlaskConical, Scissors, AlignLeft, Mountain,
   ArrowLeftRight, Grid3x3, ScatterChart, Scale, History,
-  FolderTree, GraduationCap, BarChart3, Share2, ListOrdered,
+  FolderTree, GraduationCap, BarChart3, Share2, ListOrdered, FileQuestion,
 } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import type { LucideIcon } from 'lucide-react';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { cn } from '@/lib/cn';
 import { NewAnalysisDropdown } from '@/components/experiments/NewAnalysisDropdown';
 import { NewAlignmentWizard } from '@/components/alignment/NewAlignmentWizard';
 import { NewPeakCallingWizard } from '@/components/peak-calling/NewPeakCallingWizard';
@@ -120,63 +123,70 @@ export default function ExperimentView() {
 
   if (!experiment) {
     return (
-      <Card>
-        <p className="text-muted-foreground">Experiment not found</p>
-      </Card>
+      <EmptyState
+        icon={FileQuestion}
+        title="Experiment not found"
+        description="This experiment may have been deleted or you may not have access to it."
+      />
     );
   }
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h1 className="font-display text-xl font-bold text-foreground">{experiment.name}</h1>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Last Job:</span>
-            {lastJob ? (
-              <span className="font-medium text-foreground">{lastJobLabel}</span>
-            ) : (
-              <span className="text-muted-foreground">None</span>
-            )}
-          </div>
-          <StatusBadge status={experiment.status} />
-        </div>
-        {!isReadOnly && (
-          <div className="flex items-center gap-2">
-            {!isTrainingProject && (!experiment.autoPipelineStatus || experiment.autoPipelineStatus === 'cancelled') && reactions.length > 0 && (
-              <Button
-                variant="success"
-                onClick={() => setShowAutoPipelineModal(true)}
-              >
-                Run Full Pipeline
-              </Button>
-            )}
-            <NewAnalysisDropdown
-              assayType={experiment.assayType}
-              onAlignmentClick={() => setShowAlignmentWizard(true)}
-              onPeakCallingClick={() => setShowPeakCallingWizard(true)}
-              onDiffBindClick={() => setShowDiffBindWizard(true)}
-              onCustomHeatmapClick={() => setShowCustomHeatmapWizard(true)}
-              onPearsonCorrelationClick={() => setShowPearsonCorrelationWizard(true)}
-              onNormalizationClick={() => setShowNormalizationWizard(true)}
-              onRnaseqAlignmentClick={() => setShowRnaseqAlignmentWizard(true)}
-              onFeatureCountsClick={() => setShowFeatureCountsWizard(true)}
-              onDeseq2Click={() => setShowDeseq2Wizard(true)}
-              onRnaseqQCClick={() => setShowRnaseqQCWizard(true)}
-              onPathwayClick={() => setShowPathwayWizard(true)}
-            />
-          </div>
-        )}
-      </div>
+      <PageHeader
+        title={experiment.name}
+        eyebrow="Experiment"
+        description={
+          <span className="flex flex-wrap items-center gap-3">
+            <StatusBadge status={experiment.status} />
+            <span className="flex items-center gap-1.5">
+              Last Job:
+              {lastJob ? (
+                <span className="font-medium text-foreground">{lastJobLabel}</span>
+              ) : (
+                <span>None</span>
+              )}
+            </span>
+          </span>
+        }
+        actions={
+          !isReadOnly ? (
+            <>
+              {!isTrainingProject && (!experiment.autoPipelineStatus || experiment.autoPipelineStatus === 'cancelled') && reactions.length > 0 && (
+                <Button
+                  variant="success"
+                  onClick={() => setShowAutoPipelineModal(true)}
+                >
+                  Run Full Pipeline
+                </Button>
+              )}
+              <NewAnalysisDropdown
+                assayType={experiment.assayType}
+                onAlignmentClick={() => setShowAlignmentWizard(true)}
+                onPeakCallingClick={() => setShowPeakCallingWizard(true)}
+                onDiffBindClick={() => setShowDiffBindWizard(true)}
+                onCustomHeatmapClick={() => setShowCustomHeatmapWizard(true)}
+                onPearsonCorrelationClick={() => setShowPearsonCorrelationWizard(true)}
+                onNormalizationClick={() => setShowNormalizationWizard(true)}
+                onRnaseqAlignmentClick={() => setShowRnaseqAlignmentWizard(true)}
+                onFeatureCountsClick={() => setShowFeatureCountsWizard(true)}
+                onDeseq2Click={() => setShowDeseq2Wizard(true)}
+                onRnaseqQCClick={() => setShowRnaseqQCWizard(true)}
+                onPathwayClick={() => setShowPathwayWizard(true)}
+              />
+            </>
+          ) : undefined
+        }
+      />
 
       {isTrainingProject && (
-        <div className="mb-4 flex items-center gap-3 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 dark:border-teal-800 dark:bg-teal-950">
-          <GraduationCap className="h-5 w-5 shrink-0 text-teal-600 dark:text-teal-400" />
+        <div className="mb-4 flex items-center gap-3 rounded-lg border border-info/25 bg-info/10 px-4 py-3">
+          <GraduationCap className="h-5 w-5 shrink-0 text-info" />
           <div>
-            <p className="text-sm font-medium text-teal-800 dark:text-teal-200">
+            <p className="text-sm font-medium text-foreground">
               Training Project
             </p>
-            <p className="text-xs text-teal-600 dark:text-teal-400">
+            <p className="text-xs text-foreground/80">
               This is your first project. Auto-pipeline is disabled so you can learn each analysis
               step. Defaults have been cleared — read the hints and choose your own parameters.
             </p>
@@ -199,31 +209,34 @@ export default function ExperimentView() {
         />
       )}
 
-      <div className="flex gap-6">
-        <aside className="w-48 shrink-0">
+      <div className="flex flex-col gap-6 md:flex-row">
+        <aside className="shrink-0 md:w-48">
           <Card className="p-0">
-            {tabs.map((tab) => {
-              const isActive = pathname.includes(tab.path) ||
-                (tab.path === 'description' && pathname.endsWith(`/experiments/${id}`));
-              return (
-                <Link
-                  key={tab.path}
-                  to={`/experiments/${id}/${tab.path}`}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm transition-all duration-150 ${
-                    isActive
-                      ? 'border-l-2 border-primary bg-primary/5 dark:bg-primary/10 font-semibold text-primary'
-                      : 'border-l-2 border-transparent text-muted-foreground hover:bg-card/50 hover:text-foreground'
-                  }`}
-                >
-                  <tab.icon className="h-4 w-4" />
-                  {tab.label}
-                </Link>
-              );
-            })}
+            <nav className="flex overflow-x-auto md:flex-col">
+              {tabs.map((tab) => {
+                const isActive = pathname.includes(tab.path) ||
+                  (tab.path === 'description' && pathname.endsWith(`/experiments/${id}`));
+                return (
+                  <Link
+                    key={tab.path}
+                    to={`/experiments/${id}/${tab.path}`}
+                    className={cn(
+                      'flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm transition-colors duration-150 md:border-b-0 md:border-l-2',
+                      isActive
+                        ? 'border-primary bg-accent font-semibold text-primary'
+                        : 'border-transparent text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+                    )}
+                  >
+                    <tab.icon className="h-4 w-4 shrink-0" />
+                    {tab.label}
+                  </Link>
+                );
+              })}
+            </nav>
           </Card>
         </aside>
 
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <Outlet context={{ experiment, isReadOnly, isTrainingProject }} />
         </div>
       </div>

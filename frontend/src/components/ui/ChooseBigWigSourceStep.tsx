@@ -71,10 +71,10 @@ export function ChooseBigWigSourceStep({
       {hasNormalization && (
         <Card>
           <div className="mb-3 flex items-center gap-2">
-            <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Normalized BigWigs
             </h3>
-            <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900 dark:text-green-300">
+            <span className="rounded-full bg-success/10 px-2 py-0.5 font-mono text-[11px] font-medium text-success ring-1 ring-inset ring-success/25">
               Recommended
             </span>
           </div>
@@ -89,7 +89,7 @@ export function ChooseBigWigSourceStep({
               return (
                 <label
                   key={job.id}
-                  className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${
+                  className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors duration-150 ${
                     bigwigSource === 'normalization' &&
                     selectedNormalizationJobId === job.id
                       ? 'border-primary bg-primary/5'
@@ -113,7 +113,7 @@ export function ChooseBigWigSourceStep({
                     <span className="ml-3 text-xs text-muted-foreground">
                       {new Date(job.createdAt).toLocaleDateString()}
                     </span>
-                    <span className="ml-2 text-xs text-green-600">50bp rnorm</span>
+                    <span className="ml-2 font-mono text-xs text-success">50bp rnorm</span>
                   </div>
                 </label>
               );
@@ -124,12 +124,12 @@ export function ChooseBigWigSourceStep({
 
       {/* Alignment jobs (fallback) */}
       <Card>
-        <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           {hasNormalization ? 'Alignment BigWigs (Fallback)' : 'Select an Alignment Run'}
         </h3>
 
         {showResolutionWarning && hasNormalization && bigwigSource === 'alignment' && (
-          <div className="mb-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+          <div className="mb-3 rounded-md border border-warning/25 bg-warning/10 px-3 py-2 text-sm text-foreground/80">
             {alignmentWarningText}
           </div>
         )}
@@ -138,7 +138,7 @@ export function ChooseBigWigSourceStep({
           {alignmentJobs.map((job) => (
             <label
               key={job.id}
-              className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${
+              className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors duration-150 ${
                 bigwigSource === 'alignment' && selectedAlignmentJobId === job.id
                   ? 'border-primary bg-primary/5'
                   : 'border-border hover:border-primary/50'
@@ -155,10 +155,10 @@ export function ChooseBigWigSourceStep({
               />
               <div className="flex-1">
                 <span className="font-medium text-foreground">{job.name}</span>
-                <span className="ml-3 text-xs text-muted-foreground">
+                <span className="ml-3 font-mono text-xs tabular-nums text-muted-foreground">
                   {new Date(job.createdAt).toLocaleDateString()}
                 </span>
-                <span className="ml-2 text-xs text-muted-foreground">20bp raw</span>
+                <span className="ml-2 font-mono text-xs text-muted-foreground">20bp raw</span>
               </div>
             </label>
           ))}

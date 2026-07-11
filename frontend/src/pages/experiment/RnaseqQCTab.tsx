@@ -1,12 +1,12 @@
 // frontend/src/pages/experiment/RnaseqQCTab.tsx
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, Clock } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import type { Experiment } from '@/api/types';
 import { Card } from '@/components/layout/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Spinner } from '@/components/ui/Spinner';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs } from '@/hooks/useJobs';
 import { QCOverviewPanel } from '@/components/rnaseq-qc/QCOverviewPanel';
@@ -41,11 +41,20 @@ export default function RnaseqQCTab() {
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-9 w-[220px]" />
+          </div>
+          <Skeleton className="h-6 w-20 rounded-full" />
         </div>
-      </Card>
+        <Card>
+          <Skeleton className="h-4 w-1/3" />
+          <Skeleton className="mt-3 h-4 w-full" />
+          <Skeleton className="mt-1.5 h-4 w-4/5" />
+        </Card>
+      </div>
     );
   }
 
@@ -66,7 +75,7 @@ export default function RnaseqQCTab() {
       {/* Job selector + status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             QC Dashboard
           </span>
           <Select
@@ -99,7 +108,7 @@ export default function RnaseqQCTab() {
               key={tab.key}
               type="button"
               onClick={() => setActiveSubTab(tab.key)}
-              className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
+              className={`px-4 py-2 text-sm font-medium transition-colors duration-150 ${
                 activeSubTab === tab.key
                   ? 'border-b-2 border-primary text-primary bg-primary/5 rounded-t-md'
                   : 'text-muted-foreground hover:text-foreground rounded-t-md hover:bg-muted/50'
@@ -117,9 +126,11 @@ export default function RnaseqQCTab() {
           <QCOverviewPanel jobId={job.id} />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              MultiQC report will be available when the QC job completes.
-            </p>
+            <EmptyState
+              icon={Clock}
+              title="Report not ready"
+              description="MultiQC report will be available when the QC job completes."
+            />
           </Card>
         )
       )}
@@ -129,9 +140,11 @@ export default function RnaseqQCTab() {
           <QCPerSamplePanel jobId={job.id} />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              RSeQC metrics will be available when the QC job completes.
-            </p>
+            <EmptyState
+              icon={Clock}
+              title="Metrics not ready"
+              description="RSeQC metrics will be available when the QC job completes."
+            />
           </Card>
         )
       )}

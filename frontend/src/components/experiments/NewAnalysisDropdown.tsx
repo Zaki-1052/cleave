@@ -61,50 +61,50 @@ export function NewAnalysisDropdown({
         {assayType === 'RNA-seq' ? (
           <>
             <DropdownMenuItem onSelect={onRnaseqAlignmentClick} disabled={!onRnaseqAlignmentClick}>
-              <AlignLeft className="h-4 w-4" />
+              <AlignLeft className="h-4 w-4 text-muted-foreground" />
               Alignment (STAR)
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={onFeatureCountsClick} disabled={!onFeatureCountsClick}>
-              <ListOrdered className="h-4 w-4" />
+              <ListOrdered className="h-4 w-4 text-muted-foreground" />
               featureCounts
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={onDeseq2Click} disabled={!onDeseq2Click}>
-              <ArrowLeftRight className="h-4 w-4" />
+              <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
               DE Analysis
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={onRnaseqQCClick} disabled={!onRnaseqQCClick}>
-              <BarChart3 className="h-4 w-4" />
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
               QC Dashboard
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={onPathwayClick} disabled={!onPathwayClick}>
-              <Share2 className="h-4 w-4" />
+              <Share2 className="h-4 w-4 text-muted-foreground" />
               Pathway Analysis
             </DropdownMenuItem>
           </>
         ) : (
           <>
             <DropdownMenuItem onSelect={onAlignmentClick}>
-              <Dna className="h-4 w-4" />
+              <Dna className="h-4 w-4 text-muted-foreground" />
               Alignment
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={onPeakCallingClick}>
-              <Mountain className="h-4 w-4" />
+              <Mountain className="h-4 w-4 text-muted-foreground" />
               Peak Calling
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={onDiffBindClick}>
-              <ArrowLeftRight className="h-4 w-4" />
+              <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
               DiffBind
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={onNormalizationClick}>
-              <Scale className="h-4 w-4" />
+              <Scale className="h-4 w-4 text-muted-foreground" />
               Normalization
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={onCustomHeatmapClick}>
-              <Grid3x3 className="h-4 w-4" />
+              <Grid3x3 className="h-4 w-4 text-muted-foreground" />
               Custom Heatmap
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={onPearsonCorrelationClick}>
-              <ScatterChart className="h-4 w-4" />
+              <ScatterChart className="h-4 w-4 text-muted-foreground" />
               Correlation
             </DropdownMenuItem>
           </>

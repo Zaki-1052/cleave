@@ -11,9 +11,6 @@ export default {
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
-          // Keep-alive shim: legacy `*-primary-dark` sites are retinted during fan-out,
-          // then this key is deleted in the final sweep. Points at the viridian token.
-          dark: 'hsl(var(--primary))',
         },
         // Job/experiment status. Dot = DEFAULT; badge text = foreground on a /10 tint.
         status: {
@@ -45,10 +42,6 @@ export default {
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
-          // Keep-alive shims: legacy `*-accent-teal` / `*-accent-gold` sites are retinted
-          // during fan-out, then these keys are deleted in the final sweep.
-          teal: 'hsl(var(--primary))',
-          gold: 'hsl(var(--ember))',
         },
         // Semantic intents
         success: {

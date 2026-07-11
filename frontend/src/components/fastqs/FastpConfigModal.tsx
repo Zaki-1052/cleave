@@ -51,7 +51,7 @@ export function FastpConfigModal({
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="fastp-qual-phred" className="mb-1 block font-display text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <label htmlFor="fastp-qual-phred" className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Quality Threshold (Phred)
             </label>
             <input
@@ -59,11 +59,11 @@ export function FastpConfigModal({
               type="number"
               value={params.qualifiedQualityPhred}
               onChange={(e) => handleChange('qualifiedQualityPhred', Number(e.target.value))}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 font-mono text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
             />
           </div>
           <div>
-            <label htmlFor="fastp-min-len" className="mb-1 block font-display text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <label htmlFor="fastp-min-len" className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Min Read Length
             </label>
             <input
@@ -71,14 +71,14 @@ export function FastpConfigModal({
               type="number"
               value={params.lengthRequired}
               onChange={(e) => handleChange('lengthRequired', Number(e.target.value))}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 font-mono text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="fastp-win-size" className="mb-1 block font-display text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <label htmlFor="fastp-win-size" className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Sliding Window Size
             </label>
             <input
@@ -86,11 +86,11 @@ export function FastpConfigModal({
               type="number"
               value={params.cutWindowSize}
               onChange={(e) => handleChange('cutWindowSize', Number(e.target.value))}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 font-mono text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
             />
           </div>
           <div>
-            <label htmlFor="fastp-win-qual" className="mb-1 block font-display text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <label htmlFor="fastp-win-qual" className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Window Mean Quality
             </label>
             <input
@@ -98,7 +98,7 @@ export function FastpConfigModal({
               type="number"
               value={params.cutMeanQuality}
               onChange={(e) => handleChange('cutMeanQuality', Number(e.target.value))}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 font-mono text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
             />
           </div>
         </div>
@@ -109,7 +109,7 @@ export function FastpConfigModal({
               type="checkbox"
               checked={params.detectAdapterForPe}
               onChange={(e) => handleChange('detectAdapterForPe', e.target.checked)}
-              className="rounded border-border"
+              className="rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Auto-detect adapters"
             />
             Auto-detect adapters for paired-end reads
@@ -119,7 +119,7 @@ export function FastpConfigModal({
               type="checkbox"
               checked={params.cutFront}
               onChange={(e) => handleChange('cutFront', e.target.checked)}
-              className="rounded border-border"
+              className="rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Cut front low-quality bases"
             />
             Cut low-quality bases from read front
@@ -129,7 +129,7 @@ export function FastpConfigModal({
               type="checkbox"
               checked={params.cutTail}
               onChange={(e) => handleChange('cutTail', e.target.checked)}
-              className="rounded border-border"
+              className="rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Cut tail low-quality bases"
             />
             Cut low-quality bases from read tail
@@ -138,7 +138,7 @@ export function FastpConfigModal({
       </div>
 
       <div className="mt-6 flex justify-end gap-3">
-        <Button variant="outlined" onClick={onClose}>
+        <Button variant="outline" onClick={onClose}>
           Cancel
         </Button>
         <Button onClick={() => onSubmit(params)} disabled={isSubmitting}>

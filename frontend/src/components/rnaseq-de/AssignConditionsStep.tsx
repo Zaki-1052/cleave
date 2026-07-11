@@ -1,5 +1,7 @@
 // frontend/src/components/rnaseq-de/AssignConditionsStep.tsx
+import { FlaskConical } from 'lucide-react';
 import { useEffect, useRef } from 'react';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface AlignmentReaction {
   reaction_id: number;
@@ -129,12 +131,11 @@ export function AssignConditionsStep({
 
   if (reactions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <h3 className="text-sm font-medium text-muted-foreground">No reactions available</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          The selected alignment run has no reactions.
-        </p>
-      </div>
+      <EmptyState
+        icon={FlaskConical}
+        title="No reactions available"
+        description="The selected alignment run has no reactions."
+      />
     );
   }
 
@@ -148,7 +149,7 @@ export function AssignConditionsStep({
       <div className="overflow-x-auto rounded-md border border-border">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b bg-primary/10">
+            <tr className="border-b-2 border-border">
               <th className="w-10 px-3 py-2">
                 <input
                   ref={headerCheckboxRef}
@@ -156,17 +157,17 @@ export function AssignConditionsStep({
                   checked={allChecked}
                   onChange={onToggleAll}
                   aria-label="Select all reactions"
-                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Short Name
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Condition <span className="text-red-500">*</span>
+              <th className="px-3 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Condition <span className="text-destructive">*</span>
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Replicate <span className="text-red-500">*</span>
+              <th className="px-3 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Replicate <span className="text-destructive">*</span>
               </th>
             </tr>
           </thead>
@@ -177,8 +178,8 @@ export function AssignConditionsStep({
               return (
                 <tr
                   key={rxn.reaction_id}
-                  className={`border-b transition-colors ${
-                    isSelected ? 'bg-primary/5' : 'hover:bg-muted'
+                  className={`border-b transition-colors duration-150 ${
+                    isSelected ? 'bg-primary/5' : 'hover:bg-accent/50'
                   }`}
                 >
                   <td className="px-3 py-2">
@@ -187,7 +188,7 @@ export function AssignConditionsStep({
                       checked={isSelected}
                       onChange={() => onToggle(rxn.reaction_id)}
                       aria-label={`Select ${rxn.short_name}`}
-                      className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                      className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     />
                   </td>
                   <td className="px-3 py-2 font-medium text-foreground">{rxn.short_name}</td>
@@ -198,7 +199,7 @@ export function AssignConditionsStep({
                       onChange={(e) => handleConditionChange(rxn.reaction_id, e.target.value)}
                       disabled={!isSelected}
                       placeholder="e.g. ctrl, treated"
-                      className="w-full rounded-md border border-border px-2 py-1 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:bg-muted disabled:text-muted-foreground"
+                      className="w-full rounded-md border border-input bg-card px-2 py-1 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25 disabled:bg-muted disabled:text-muted-foreground"
                     />
                   </td>
                   <td className="w-24 px-3 py-2">
@@ -210,7 +211,7 @@ export function AssignConditionsStep({
                         handleReplicateChange(rxn.reaction_id, Number(e.target.value) || 1)
                       }
                       disabled={!isSelected}
-                      className="w-full rounded-md border border-border px-2 py-1 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:bg-muted disabled:text-muted-foreground"
+                      className="w-full rounded-md border border-input bg-card px-2 py-1 text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25 disabled:bg-muted disabled:text-muted-foreground"
                     />
                   </td>
                 </tr>
@@ -222,13 +223,14 @@ export function AssignConditionsStep({
 
       <div className="mt-3 flex items-start justify-between">
         <p className="text-xs text-muted-foreground">
-          {selectedIds.size} of {reactions.length} reaction{reactions.length !== 1 ? 's' : ''}{' '}
+          <span className="font-mono tabular-nums">{selectedIds.size}</span> of{' '}
+          <span className="font-mono tabular-nums">{reactions.length}</span> reaction{reactions.length !== 1 ? 's' : ''}{' '}
           selected
         </p>
         {validationMessages.length > 0 && (
           <div className="ml-4 space-y-0.5">
             {validationMessages.map((msg, i) => (
-              <p key={i} className="text-xs text-amber-600">
+              <p key={i} className="text-xs text-warning">
                 {msg}
               </p>
             ))}

@@ -2,10 +2,13 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Inbox } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { WizardModal } from '@/components/ui/WizardModal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Field } from '@/components/ui/Field';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { FeatureCountsSettingsStep } from './FeatureCountsSettingsStep';
 import { useCreateJob, useJobs, useJob, useJobOutputs, useRnaseqQCReport } from '@/hooks/useJobs';
 import { SALMON_LIB_TYPE_TO_STRANDEDNESS } from '@/lib/constants';
@@ -162,47 +165,44 @@ export function NewFeatureCountsWizard({
       ) : (
         <div className="space-y-6">
           <div className="space-y-4">
-            <div>
-              <Input
-                id="fc-name"
-                label="Run Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., featureCounts-v1"
-                maxLength={30}
-              />
-            </div>
-            <div>
-              <label htmlFor="fc-notes" className="font-display text-sm font-medium text-foreground">
-                Notes <span className="text-muted-foreground">(optional)</span>
-              </label>
+            <Input
+              id="fc-name"
+              label="Run Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g., featureCounts-v1"
+              maxLength={30}
+            />
+            <Field label="Notes" htmlFor="fc-notes" help="Optional">
               <textarea
                 id="fc-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
                 rows={2}
               />
-            </div>
+            </Field>
           </div>
 
           <div>
-            <h3 className="font-display text-sm font-semibold text-foreground mb-2">
+            <h3 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Choose Alignment Run
             </h3>
             {completedAlignments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No completed RNA-seq alignment runs available. Run a STAR alignment first.
-              </p>
+              <EmptyState
+                icon={Inbox}
+                title="No completed alignment runs"
+                description="Run a STAR RNA-seq alignment first, then return to count its output."
+              />
             ) : (
               <div className="space-y-2">
                 {completedAlignments.map((j) => (
                   <label
                     key={j.id}
-                    className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                    className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors duration-150 ${
                       selectedAlignmentJobId === j.id
                         ? 'border-primary bg-primary/5'
-                        : 'border-border hover:bg-muted/50'
+                        : 'border-border hover:bg-accent'
                     }`}
                   >
                     <input
@@ -210,11 +210,11 @@ export function NewFeatureCountsWizard({
                       name="alignment-job"
                       checked={selectedAlignmentJobId === j.id}
                       onChange={() => handleSelectAlignment(j)}
-                      className="accent-primary"
+                      className="accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     />
                     <div className="flex-1">
                       <span className="text-sm font-medium text-foreground">{j.name}</span>
-                      <span className="ml-2 text-xs text-muted-foreground">#{j.id}</span>
+                      <span className="ml-2 font-mono text-xs tabular-nums text-muted-foreground">#{j.id}</span>
                     </div>
                   </label>
                 ))}
@@ -252,19 +252,19 @@ export function NewFeatureCountsWizard({
       submitLabel="Start featureCounts"
       maxWidth="max-w-3xl"
       renderFooter={({ currentStep: step, onClose: close, onBack: back }) => (
-        <div className="flex flex-col border-t">
+        <div className="flex flex-col border-t border-border">
           {submitError && (
-            <div className="bg-red-50 dark:bg-red-950 px-6 py-2 text-sm text-red-600 dark:text-red-400">
+            <div className="bg-destructive/10 px-6 py-2 text-sm text-destructive">
               {submitError}
             </div>
           )}
           <div className="flex items-center justify-between px-6 py-4">
-            <button onClick={close} className="text-sm text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" onClick={close}>
               Cancel
-            </button>
+            </Button>
             <div className="flex gap-3">
               {step > 0 && (
-                <Button variant="outlined" onClick={back}>
+                <Button variant="outline" onClick={back}>
                   Back
                 </Button>
               )}

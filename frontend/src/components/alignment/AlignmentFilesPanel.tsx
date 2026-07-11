@@ -2,7 +2,6 @@
 import { type ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { Download } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
 
 import { batchDownloadJobFiles } from '@/api/jobs';
 import type { JobOutput } from '@/api/types';
@@ -82,7 +81,7 @@ export function AlignmentFilesPanel({ jobId, categories }: AlignmentFilesPanelPr
             checked={outputs != null && outputs.length > 0 && selectedIds.size === outputs.length}
             onChange={toggleAll}
             aria-label="Select all files"
-            className="h-4 w-4 rounded border-border"
+            className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         ),
         cell: ({ row }) => (
@@ -91,20 +90,28 @@ export function AlignmentFilesPanel({ jobId, categories }: AlignmentFilesPanelPr
             checked={selectedIds.has(row.original.id)}
             onChange={() => toggleSelection(row.original.id)}
             aria-label={`Select ${row.original.filename}`}
-            className="h-4 w-4 rounded border-border"
+            className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         ),
         size: 40,
         enableSorting: false,
       },
-      { accessorKey: 'filename', header: 'Filename' },
+      {
+        accessorKey: 'filename',
+        header: 'Filename',
+        cell: ({ getValue }) => <span className="font-mono text-xs">{getValue() as string}</span>,
+      },
       { accessorKey: 'fileType', header: 'Type' },
       {
         accessorKey: 'fileSizeBytes',
         header: 'Size',
         cell: ({ getValue }) => {
           const bytes = getValue() as number | null;
-          return bytes != null ? <span className="font-mono">{formatBytes(bytes)}</span> : '--';
+          return bytes != null ? (
+            <span className="font-mono tabular-nums">{formatBytes(bytes)}</span>
+          ) : (
+            '--'
+          );
         },
       },
     ],
@@ -119,7 +126,7 @@ export function AlignmentFilesPanel({ jobId, categories }: AlignmentFilesPanelPr
         <div className="shrink-0">
           <label
             htmlFor="alignment-file-category"
-            className="mb-1 block font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+            className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground"
           >
             Files
           </label>
@@ -127,7 +134,7 @@ export function AlignmentFilesPanel({ jobId, categories }: AlignmentFilesPanelPr
             id="alignment-file-category"
             value={selectedCategory}
             onChange={handleCategoryChange}
-            className="rounded-md border border-border px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            className="rounded-md border border-input bg-card px-3 py-1.5 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           >
             {fileCategories.map((cat) => (
               <option key={cat.value} value={cat.value}>
@@ -144,7 +151,7 @@ export function AlignmentFilesPanel({ jobId, categories }: AlignmentFilesPanelPr
       {/* Toolbar */}
       <div className="mb-3 flex items-center gap-2">
         <Button
-          variant="outlined"
+          variant="outline"
           onClick={handleDownload}
           disabled={selectedIds.size === 0 || downloading}
           className="text-xs"
@@ -155,13 +162,7 @@ export function AlignmentFilesPanel({ jobId, categories }: AlignmentFilesPanelPr
       </div>
 
       {/* Files table */}
-      {isLoading ? (
-        <div className="flex h-20 items-center justify-center">
-          <Spinner />
-        </div>
-      ) : (
-        <DataTable data={outputs ?? []} columns={columns} pageSize={25} />
-      )}
+      <DataTable data={outputs ?? []} columns={columns} pageSize={25} isLoading={isLoading} />
     </Card>
   );
 }

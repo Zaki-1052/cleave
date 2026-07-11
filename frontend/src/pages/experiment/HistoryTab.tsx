@@ -2,9 +2,11 @@
 import { type ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
+import { History } from 'lucide-react';
 
 import { Card } from '@/components/layout/Card';
 import { DataTable } from '@/components/ui/DataTable';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { useExperimentHistory } from '@/hooks/useExperimentHistory';
 import { formatDateTime, getDisplayName } from '@/lib/utils';
 import type { Experiment, ExperimentEvent } from '@/api/types';
@@ -23,15 +25,15 @@ const ACTION_LABELS: Record<string, string> = {
 };
 
 const ACTION_COLORS: Record<string, string> = {
-  fastq_uploaded: 'text-blue-600',
-  fastq_deleted: 'text-red-600',
-  reaction_created: 'text-green-600',
-  reactions_imported: 'text-blue-600',
+  fastq_uploaded: 'text-info',
+  fastq_deleted: 'text-destructive',
+  reaction_created: 'text-success',
+  reactions_imported: 'text-info',
   reaction_updated: 'text-muted-foreground',
-  reaction_deleted: 'text-red-600',
-  job_launched: 'text-blue-600',
-  job_completed: 'text-green-600',
-  job_failed: 'text-red-600',
+  reaction_deleted: 'text-destructive',
+  job_launched: 'text-info',
+  job_completed: 'text-success',
+  job_failed: 'text-destructive',
   metadata_updated: 'text-muted-foreground',
 };
 
@@ -44,7 +46,11 @@ export default function HistoryTab() {
       {
         accessorKey: 'createdAt',
         header: 'Date',
-        cell: (info) => formatDateTime(info.getValue<string>()),
+        cell: (info) => (
+          <span className="font-mono text-xs text-muted-foreground">
+            {formatDateTime(info.getValue<string>())}
+          </span>
+        ),
       },
       {
         id: 'user',
@@ -74,27 +80,21 @@ export default function HistoryTab() {
     [],
   );
 
-  if (isLoading) {
-    return (
-      <Card>
-        <p className="py-8 text-center text-sm text-muted-foreground">Loading history...</p>
-      </Card>
-    );
-  }
-
   const events = data?.items ?? [];
 
   return (
     <Card>
-      <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
         History
       </h3>
-      {events.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          No history events yet
-        </p>
+      {!isLoading && events.length === 0 ? (
+        <EmptyState
+          icon={History}
+          title="No history yet"
+          description="Events will appear here as work happens on this experiment."
+        />
       ) : (
-        <DataTable data={events} columns={columns} pageSize={25} />
+        <DataTable data={events} columns={columns} pageSize={25} isLoading={isLoading} />
       )}
     </Card>
   );

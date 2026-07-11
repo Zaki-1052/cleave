@@ -26,7 +26,11 @@ const columns: ColumnDef<InputRow, unknown>[] = [
   { accessorKey: 'shortName', header: 'Short Name' },
   { accessorKey: 'assayType', header: 'Assay Type' },
   { accessorKey: 'organism', header: 'Organism' },
-  { accessorKey: 'referenceGenome', header: 'Reference Genome' },
+  {
+    accessorKey: 'referenceGenome',
+    header: 'Reference Genome',
+    cell: ({ getValue }) => <span className="font-mono">{getValue() as string}</span>,
+  },
   { accessorKey: 'cutanaSpikeIn', header: 'CUTANA Spike in' },
   { accessorKey: 'ecoliSpikeIn', header: 'E.coli Spike in' },
 ];
@@ -62,7 +66,7 @@ export function AlignmentInputPanel({ job, experimentId }: AlignmentInputPanelPr
 
   return (
     <Card>
-      <h3 className="font-display mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
         Reactions
       </h3>
       <DataTable data={rows} columns={columns} pageSize={25} />

@@ -1,5 +1,7 @@
 // frontend/src/components/peak-calling/PeakCallingInputPanel.tsx
+import { ListX } from 'lucide-react';
 import type { AnalysisJob } from '@/api/types';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { GENOME_DISPLAY_NAMES } from '@/lib/constants';
 
 interface PeakCallingInputPanelProps {
@@ -21,33 +23,40 @@ export function PeakCallingInputPanel({ job }: PeakCallingInputPanelProps) {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">Reactions</h3>
+        <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Reactions</h3>
       </div>
 
+      {reactions.length === 0 ? (
+        <EmptyState
+          icon={ListX}
+          title="No reactions recorded"
+          description="This peak calling run has no input reactions."
+        />
+      ) : (
       <div className="overflow-x-auto rounded-md border border-border">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b bg-primary/10">
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <tr className="border-b-2 border-border">
+              <th className="px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                 Short Name
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                 IgG Control
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                 Reference Genome
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                 Peak Caller
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                 Peak Size
               </th>
             </tr>
           </thead>
           <tbody>
             {reactions.map((r) => (
-              <tr key={r.reaction_id} className="border-b hover:bg-muted">
+              <tr key={r.reaction_id} className="border-b border-border/70 transition-colors duration-150 hover:bg-accent/50">
                 <td className="px-3 py-2 font-medium text-foreground">{r.short_name}</td>
                 <td className="px-3 py-2 text-foreground">{r.igg_short_name ?? '—'}</td>
                 <td className="px-3 py-2 text-foreground">
@@ -60,6 +69,7 @@ export function PeakCallingInputPanel({ job }: PeakCallingInputPanelProps) {
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

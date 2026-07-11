@@ -2,11 +2,13 @@
 import { useState, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { type ColumnDef } from '@tanstack/react-table';
-import { ChevronRight, Download, File, Folder, FolderOpen } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
+import { ChevronRight, Download, File, Folder, FolderOpen, FolderTree } from 'lucide-react';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { cn } from '@/lib/cn';
 import { useExperimentFiles } from '@/hooks/useFiles';
 import { downloadFile, batchDownloadFiles } from '@/api/files';
 import { formatBytes } from '@/lib/utils';
@@ -46,11 +48,12 @@ function TreeNode({
   return (
     <div>
       <button
-        className={`flex w-full items-center gap-1 px-2 py-1.5 text-left text-sm transition-colors ${
+        className={cn(
+          'flex w-full items-center gap-1 px-2 py-1.5 text-left text-sm transition-colors duration-150',
           isActive
-            ? 'bg-card font-semibold text-primary'
-            : 'text-muted-foreground hover:bg-card/50'
-        }`}
+            ? 'bg-accent font-semibold text-primary'
+            : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+        )}
         style={{ paddingLeft: depth * 16 + 8 }}
         onClick={() => {
           onSelect(node.path);
@@ -146,18 +149,37 @@ export default function AllFilesTab() {
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
-        </div>
-      </Card>
+      <div className="flex flex-col gap-4 md:flex-row">
+        <Card className="w-full shrink-0 p-0 md:w-64">
+          <div className="border-b border-border px-3 py-2">
+            <Skeleton className="h-3 w-28" />
+          </div>
+          <div className="space-y-2 p-3">
+            {['w-5/6', 'w-2/3', 'w-3/4', 'w-1/2', 'w-4/5', 'w-3/5'].map((w, i) => (
+              <Skeleton key={i} className={cn('h-5', w)} />
+            ))}
+          </div>
+        </Card>
+
+        <Card className="min-w-0 flex-1">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-9 w-32" />
+          </div>
+          <div className="space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-6 w-full" />
+            ))}
+          </div>
+        </Card>
+      </div>
     );
   }
 
   if (error) {
     return (
       <Card>
-        <div className="rounded-md bg-red-50 dark:bg-red-950 p-4 text-sm text-red-700 dark:text-red-300">
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
           Failed to load file tree.
         </div>
       </Card>
@@ -166,14 +188,11 @@ export default function AllFilesTab() {
 
   if (!data || data.totalFiles === 0) {
     return (
-      <Card>
-        <h3 className="font-display mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          All Files
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          No files found. Upload FASTQs to get started.
-        </p>
-      </Card>
+      <EmptyState
+        icon={FolderTree}
+        title="No files yet"
+        description="Upload FASTQs to get started."
+      />
     );
   }
 
@@ -240,7 +259,11 @@ export default function AllFilesTab() {
       header: 'Size',
       cell: ({ getValue }) => {
         const v = getValue<number | null>();
-        return v != null ? <span className="font-mono">{formatBytes(v)}</span> : '';
+        return v != null ? (
+          <span className="block text-right font-mono tabular-nums">{formatBytes(v)}</span>
+        ) : (
+          ''
+        );
       },
     },
   ];
@@ -248,9 +271,9 @@ export default function AllFilesTab() {
   const folderName = selectedNode?.name ?? 'Root';
 
   return (
-    <div className="flex gap-4">
-      <Card className="max-h-[600px] w-64 shrink-0 overflow-y-auto p-0">
-        <div className="border-b px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+    <div className="flex flex-col gap-4 md:flex-row">
+      <Card className="max-h-[600px] w-full shrink-0 overflow-y-auto p-0 md:w-64">
+        <div className="border-b border-border px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Directory Tree
         </div>
         <TreeNode
@@ -264,16 +287,16 @@ export default function AllFilesTab() {
       </Card>
 
       <Card className="min-w-0 flex-1">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="min-w-0 truncate font-mono text-sm font-medium text-foreground">
             {folderName}
           </h3>
           <Button
-            variant="primary"
+            variant="default"
             disabled={selectedFiles.size === 0 || downloading}
             onClick={handleDownload}
           >
-            <Download className="mr-1.5 h-3.5 w-3.5" />
+            <Download className="h-3.5 w-3.5" />
             {downloading ? 'Downloading...' : `Download${selectedFiles.size > 0 ? ` (${selectedFiles.size})` : ''}`}
           </Button>
         </div>

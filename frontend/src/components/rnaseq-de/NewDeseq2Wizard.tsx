@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { AlertCircle } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { WizardModal } from '@/components/ui/WizardModal';
 import { Button } from '@/components/ui/Button';
@@ -391,17 +392,20 @@ export function NewDeseq2Wizard({
       submitLabel="Start DE Analysis"
       maxWidth="max-w-5xl"
       renderFooter={({ currentStep: step, onClose: close, onBack: back }) => (
-        <div className="flex flex-col border-t">
+        <div className="flex flex-col border-t border-border">
           {submitError && (
-            <div className="bg-red-50 dark:bg-red-950 px-6 py-2 text-sm text-red-600 dark:text-red-400">{submitError}</div>
+            <div className="flex items-start gap-3 border-b border-destructive/30 bg-destructive/10 px-6 py-2.5">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+              <p className="text-sm text-foreground/80">{submitError}</p>
+            </div>
           )}
           <div className="flex items-center justify-between px-6 py-4">
-            <button onClick={close} className="text-sm text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" onClick={close}>
               Cancel
-            </button>
+            </Button>
             <div className="flex gap-3">
               {step > 0 && (
-                <Button variant="outlined" onClick={back}>
+                <Button variant="outline" onClick={back}>
                   Back
                 </Button>
               )}

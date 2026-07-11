@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { Field } from '@/components/ui/Field';
 import { cn } from '@/lib/cn';
 import { useCreateReaction, useUpdateReaction } from '@/hooks/useReactions';
 import { ORGANISMS, CUTANA_SPIKE_IN_OPTIONS, CUTANA_SPIKE_IN_TARGETS } from '@/lib/constants';
@@ -18,9 +19,8 @@ interface ReactionFormModalProps {
 }
 
 const selectClass =
-  'mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary';
+  'w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25';
 const inputClass = selectClass;
-const labelClass = 'block text-sm font-medium text-foreground';
 
 export function ReactionFormModal({
   isOpen,
@@ -183,15 +183,12 @@ export function ReactionFormModal({
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         {error && (
-          <div className="rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+          <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error}
           </div>
         )}
 
-        <div>
-          <label htmlFor="rxn-fastq-prefix" className={labelClass}>
-            FASTQ Prefix <span className="text-red-500">*</span>
-          </label>
+        <Field label="FASTQ Prefix" htmlFor="rxn-fastq-prefix" required>
           {prefixes.length > 0 ? (
             <select
               id="rxn-fastq-prefix"
@@ -208,16 +205,18 @@ export function ReactionFormModal({
               ))}
             </select>
           ) : (
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Upload FASTQ files first to populate prefix options.
             </p>
           )}
-        </div>
+        </Field>
 
-        <div>
-          <label htmlFor="rxn-short-name" className={labelClass}>
-            Short Name <span className="text-red-500">*</span>
-          </label>
+        <Field
+          label="Short Name"
+          htmlFor="rxn-short-name"
+          required
+          help="Reactions with the same Organism must have unique Short Names."
+        >
           <input
             id="rxn-short-name"
             type="text"
@@ -227,15 +226,9 @@ export function ReactionFormModal({
             placeholder="e.g., K4me3_ctrl1"
             className={inputClass}
           />
-          <p className="mt-1 text-xs text-muted-foreground">
-            Reactions with the same Organism must have unique Short Names.
-          </p>
-        </div>
+        </Field>
 
-        <div>
-          <label htmlFor="rxn-organism" className={labelClass}>
-            Organism <span className="text-red-500">*</span>
-          </label>
+        <Field label="Organism" htmlFor="rxn-organism" required>
           <select
             id="rxn-organism"
             required
@@ -247,13 +240,12 @@ export function ReactionFormModal({
               <option key={o} value={o}>{o}</option>
             ))}
           </select>
-        </div>
+        </Field>
 
         {!isRnaseq && (
           <>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="rxn-cutana-spike" className={labelClass}>CUTANA Spike in</label>
+              <Field label="CUTANA Spike in" htmlFor="rxn-cutana-spike">
                 <select
                   id="rxn-cutana-spike"
                   value={cutanaSpikeIn}
@@ -267,10 +259,9 @@ export function ReactionFormModal({
                     <option key={o} value={o}>{o}</option>
                   ))}
                 </select>
-              </div>
+              </Field>
 
-              <div>
-                <label htmlFor="rxn-cutana-target" className={labelClass}>CUTANA Spike in Target</label>
+              <Field label="CUTANA Spike in Target" htmlFor="rxn-cutana-target">
                 <select
                   id="rxn-cutana-target"
                   value={cutanaSpikeInTarget}
@@ -283,11 +274,10 @@ export function ReactionFormModal({
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
-              </div>
+              </Field>
             </div>
 
-            <div>
-              <label htmlFor="rxn-ecoli-spike" className={labelClass}>E.coli Spike in</label>
+            <Field label="E.coli Spike in" htmlFor="rxn-ecoli-spike">
               <select
                 id="rxn-ecoli-spike"
                 value={ecoliSpikeIn ? 'Yes' : 'No'}
@@ -297,7 +287,7 @@ export function ReactionFormModal({
                 <option value="No">No</option>
                 <option value="Yes">Yes</option>
               </select>
-            </div>
+            </Field>
           </>
         )}
 
@@ -305,9 +295,9 @@ export function ReactionFormModal({
           <button
             type="button"
             onClick={() => setShowMore(!showMore)}
-            className="flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80"
+            className="flex items-center gap-1 rounded-md text-sm font-medium text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <ChevronDown className={cn('h-4 w-4 transition-transform', showMore && 'rotate-180')} />
+            <ChevronDown className={cn('h-4 w-4 transition-transform duration-150', showMore && 'rotate-180')} />
             {showMore ? 'Less Fields' : 'More Fields'}
           </button>
         </div>
@@ -317,82 +307,69 @@ export function ReactionFormModal({
             {isRnaseq && (
               <>
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="rxn-treatment" className={labelClass}>Treatment</label>
+                  <Field label="Treatment" htmlFor="rxn-treatment">
                     <input id="rxn-treatment" type="text" value={treatment} onChange={(e) => setTreatment(e.target.value)} placeholder="e.g., DMSO, Drug_1uM" className={inputClass} />
-                  </div>
-                  <div>
-                    <label htmlFor="rxn-timepoint" className={labelClass}>Timepoint</label>
+                  </Field>
+                  <Field label="Timepoint" htmlFor="rxn-timepoint">
                     <input id="rxn-timepoint" type="text" value={timepoint} onChange={(e) => setTimepoint(e.target.value)} placeholder="e.g., 0h, 24h, 7d" className={inputClass} />
-                  </div>
+                  </Field>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="rxn-genotype" className={labelClass}>Genotype</label>
+                  <Field label="Genotype" htmlFor="rxn-genotype">
                     <input id="rxn-genotype" type="text" value={genotype} onChange={(e) => setGenotype(e.target.value)} placeholder="e.g., WT, KO, Het" className={inputClass} />
-                  </div>
-                  <div>
-                    <label htmlFor="rxn-replicate-number" className={labelClass}>Replicate Number</label>
+                  </Field>
+                  <Field label="Replicate Number" htmlFor="rxn-replicate-number">
                     <input id="rxn-replicate-number" type="number" min="1" value={replicateNumber} onChange={(e) => setReplicateNumber(e.target.value)} placeholder="e.g., 1, 2, 3" className={inputClass} />
-                  </div>
+                  </Field>
                 </div>
               </>
             )}
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="rxn-cell-type" className={labelClass}>Cell Type</label>
+              <Field label="Cell Type" htmlFor="rxn-cell-type">
                 <input id="rxn-cell-type" type="text" value={cellType} onChange={(e) => setCellType(e.target.value)} className={inputClass} />
-              </div>
-              <div>
-                <label htmlFor="rxn-cell-number" className={labelClass}>Cell Number</label>
+              </Field>
+              <Field label="Cell Number" htmlFor="rxn-cell-number">
                 <input id="rxn-cell-number" type="text" value={cellNumber} onChange={(e) => setCellNumber(e.target.value)} className={inputClass} />
-              </div>
+              </Field>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="rxn-sample-prep" className={labelClass}>Sample Prep</label>
+              <Field label="Sample Prep" htmlFor="rxn-sample-prep">
                 <input id="rxn-sample-prep" type="text" value={samplePrep} onChange={(e) => setSamplePrep(e.target.value)} className={inputClass} />
-              </div>
-              <div>
-                <label htmlFor="rxn-exp-condition" className={labelClass}>Experimental Condition</label>
+              </Field>
+              <Field label="Experimental Condition" htmlFor="rxn-exp-condition">
                 <input id="rxn-exp-condition" type="text" value={experimentalCondition} onChange={(e) => setExperimentalCondition(e.target.value)} className={inputClass} />
-              </div>
+              </Field>
             </div>
             {!isRnaseq && (
               <>
                 <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label htmlFor="rxn-ab-vendor" className={labelClass}>Antibody Vendor</label>
+                  <Field label="Antibody Vendor" htmlFor="rxn-ab-vendor">
                     <input id="rxn-ab-vendor" type="text" value={antibodyVendor} onChange={(e) => setAntibodyVendor(e.target.value)} className={inputClass} />
-                  </div>
-                  <div>
-                    <label htmlFor="rxn-ab-cat" className={labelClass}>Antibody Cat No</label>
+                  </Field>
+                  <Field label="Antibody Cat No" htmlFor="rxn-ab-cat">
                     <input id="rxn-ab-cat" type="text" value={antibodyCatNo} onChange={(e) => setAntibodyCatNo(e.target.value)} className={inputClass} />
-                  </div>
-                  <div>
-                    <label htmlFor="rxn-ab-lot" className={labelClass}>Antibody Lot No</label>
+                  </Field>
+                  <Field label="Antibody Lot No" htmlFor="rxn-ab-lot">
                     <input id="rxn-ab-lot" type="text" value={antibodyLotNo} onChange={(e) => setAntibodyLotNo(e.target.value)} className={inputClass} />
-                  </div>
+                  </Field>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="rxn-cutana-spike2" className={labelClass}>CUTANA Spike in 2</label>
+                  <Field label="CUTANA Spike in 2" htmlFor="rxn-cutana-spike2">
                     <select id="rxn-cutana-spike2" value={cutanaSpikeIn2} onChange={(e) => setCutanaSpikeIn2(e.target.value)} className={selectClass}>
                       <option value="">None</option>
                       {CUTANA_SPIKE_IN_OPTIONS.filter((o) => o !== 'None').map((o) => (
                         <option key={o} value={o}>{o}</option>
                       ))}
                     </select>
-                  </div>
-                  <div>
-                    <label htmlFor="rxn-cutana-target2" className={labelClass}>CUTANA Spike in Target 2</label>
+                  </Field>
+                  <Field label="CUTANA Spike in Target 2" htmlFor="rxn-cutana-target2">
                     <select id="rxn-cutana-target2" value={cutanaSpikeInTarget2} onChange={(e) => setCutanaSpikeInTarget2(e.target.value)} className={selectClass}>
                       <option value="">Select target</option>
                       {CUTANA_SPIKE_IN_TARGETS.map((t) => (
                         <option key={t} value={t}>{t}</option>
                       ))}
                     </select>
-                  </div>
+                  </Field>
                 </div>
               </>
             )}
@@ -400,11 +377,11 @@ export function ReactionFormModal({
         )}
 
         <div className="flex justify-end gap-3 pt-2">
-          <Button variant="outlined" type="button" onClick={onClose}>
+          <Button variant="outline" type="button" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Reaction'}
+          <Button type="submit" loading={isPending}>
+            {isEdit ? 'Save Changes' : 'Create Reaction'}
           </Button>
         </div>
       </form>

@@ -2,11 +2,11 @@
 import { useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Check } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
+import { Check, FlaskConical } from 'lucide-react';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Modal';
 import { ReactionsEditor } from '@/components/reactions/ReactionsEditor';
 import { useReactions, usePrefixes } from '@/hooks/useReactions';
@@ -42,7 +42,7 @@ export default function ReactionsTab() {
         header: 'R1 File',
         cell: (info) => {
           const p = prefixMap.get(info.row.original.fastqPrefix);
-          return p?.hasR1 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-muted-foreground/50">{'\u2014'}</span>;
+          return p?.hasR1 ? <Check className="h-5 w-5 text-success" /> : <span className="text-muted-foreground/50">{'\u2014'}</span>;
         },
       },
       {
@@ -50,7 +50,7 @@ export default function ReactionsTab() {
         header: 'R2 File',
         cell: (info) => {
           const p = prefixMap.get(info.row.original.fastqPrefix);
-          return p?.hasR2 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-muted-foreground/50">{'\u2014'}</span>;
+          return p?.hasR2 ? <Check className="h-5 w-5 text-success" /> : <span className="text-muted-foreground/50">{'\u2014'}</span>;
         },
       },
       { accessorKey: 'shortName', header: 'Short Name' },
@@ -60,19 +60,11 @@ export default function ReactionsTab() {
     [prefixMap],
   );
 
-  if (isLoading) {
-    return (
-      <div className="flex h-40 items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
   return (
     <>
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Reactions
           </h3>
           {!isReadOnly && (
@@ -84,12 +76,14 @@ export default function ReactionsTab() {
           )}
         </div>
 
-        {reactions.length > 0 ? (
-          <DataTable data={reactions} columns={columns} />
+        {!isLoading && reactions.length === 0 ? (
+          <EmptyState
+            icon={FlaskConical}
+            title="No reactions yet"
+            description="Click Edit to add reactions."
+          />
         ) : (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            No reactions defined yet. Click Edit to add reactions.
-          </p>
+          <DataTable data={reactions} columns={columns} isLoading={isLoading} />
         )}
       </Card>
 

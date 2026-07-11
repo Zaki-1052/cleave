@@ -2,10 +2,13 @@
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { Card } from '@/components/layout/Card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Field } from '@/components/ui/Field';
 import { useJobs, useJobOutputs } from '@/hooks/useJobs';
 import { resolveReactionBigwig } from '@/lib/bigwig-utils';
 import type { AnalysisJob, Experiment, JobOutput } from '@/api/types';
 import type { HeatmapSample } from './NewCustomHeatmapWizard';
+import { cn } from '@/lib/cn';
 
 interface SelectSamplesStepProps {
   experiment: Experiment;
@@ -116,7 +119,7 @@ export function SelectSamplesStep({
     <div className="space-y-6">
       {/* BED file source */}
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
+        <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Reference Points (BED File)
         </h3>
         <div className="mb-4 flex gap-4">
@@ -130,7 +133,7 @@ export function SelectSamplesStep({
                 setBedLabel('');
                 setBedOutputId(null);
               }}
-              className="text-primary"
+              className="accent-[hsl(var(--primary))]"
             />
             <span className="text-sm">From Peak Calling</span>
           </label>
@@ -145,7 +148,7 @@ export function SelectSamplesStep({
                 setBedOutputId(null);
                 setSelectedPeakJobId(null);
               }}
-              className="text-primary"
+              className="accent-[hsl(var(--primary))]"
             />
             <span className="text-sm">Upload BED File</span>
           </label>
@@ -159,10 +162,7 @@ export function SelectSamplesStep({
               </p>
             ) : (
               <>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                    Peak Calling Run
-                  </label>
+                <Field label="Peak Calling Run">
                   <select
                     value={selectedPeakJobId ?? ''}
                     onChange={(e) => {
@@ -172,7 +172,7 @@ export function SelectSamplesStep({
                       setBedLabel('');
                       setBedOutputId(null);
                     }}
-                    className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <option value="">Select a peak calling run...</option>
                     {peakCallingJobs.map((j: AnalysisJob) => (
@@ -181,18 +181,15 @@ export function SelectSamplesStep({
                       </option>
                     ))}
                   </select>
-                </div>
+                </Field>
                 {selectedPeakJobId && bedOutputs.length > 0 && (
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                      BED File
-                    </label>
+                  <Field label="BED File">
                     <select
                       value={bedOutputId ?? ''}
                       onChange={(e) =>
                         e.target.value ? handleSelectBedOutput(Number(e.target.value)) : null
                       }
-                      className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <option value="">Select a BED file...</option>
                       {bedOutputs.map((o) => (
@@ -201,7 +198,7 @@ export function SelectSamplesStep({
                         </option>
                       ))}
                     </select>
-                  </div>
+                  </Field>
                 )}
               </>
             )}
@@ -229,7 +226,7 @@ export function SelectSamplesStep({
         )}
 
         {bedPath && (
-          <div className="mt-3 rounded-md bg-green-50 dark:bg-green-950 px-3 py-2 text-sm text-green-700 dark:text-green-300">
+          <div className="mt-3 rounded-md border border-success/25 bg-success/10 px-3 py-2 text-sm text-success">
             Selected: <strong>{bedLabel}</strong>
           </div>
         )}
@@ -237,22 +234,24 @@ export function SelectSamplesStep({
 
       {/* Sample selection */}
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
+        <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Select Samples ({samples.length} selected)
         </h3>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b text-xs font-medium uppercase text-muted-foreground">
+              <tr className="border-b border-border text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 <th className="px-3 py-2">
-                  <input
-                    type="checkbox"
-                    checked={samples.length === reactions.length && reactions.length > 0}
-                    ref={(el) => {
-                      if (el) el.indeterminate = samples.length > 0 && samples.length < reactions.length;
-                    }}
-                    onChange={toggleAll}
-                    className="rounded text-primary"
+                  <Checkbox
+                    checked={
+                      reactions.length > 0 && samples.length === reactions.length
+                        ? true
+                        : samples.length > 0
+                          ? 'indeterminate'
+                          : false
+                    }
+                    onCheckedChange={toggleAll}
+                    aria-label="Select all samples"
                   />
                 </th>
                 <th className="px-3 py-2">Short Name</th>
@@ -265,13 +264,18 @@ export function SelectSamplesStep({
                 const selected = samples.find((s) => s.reactionId === r.reaction_id);
                 const idx = samples.findIndex((s) => s.reactionId === r.reaction_id);
                 return (
-                  <tr key={r.reaction_id} className="border-b last:border-b-0 hover:bg-muted">
+                  <tr
+                    key={r.reaction_id}
+                    className={cn(
+                      'border-b border-b-border border-l-2 transition-colors duration-150 last:border-b-0',
+                      selected ? 'border-l-primary bg-accent' : 'border-l-transparent hover:bg-muted/50',
+                    )}
+                  >
                     <td className="px-3 py-2">
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={!!selected}
-                        onChange={() => toggleReaction(r.reaction_id, r.short_name)}
-                        className="rounded text-primary"
+                        onCheckedChange={() => toggleReaction(r.reaction_id, r.short_name)}
+                        aria-label={`Select ${r.short_name}`}
                       />
                     </td>
                     <td className="px-3 py-2 font-medium text-foreground">{r.short_name}</td>
@@ -281,7 +285,7 @@ export function SelectSamplesStep({
                           type="text"
                           value={selected.label}
                           onChange={(e) => updateLabel(r.reaction_id, e.target.value)}
-                          className="w-full rounded border border-border px-2 py-1 text-sm focus:border-primary focus:outline-none"
+                          className="w-full rounded-md border border-input bg-card px-2 py-1 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25"
                         />
                       ) : (
                         <span className="text-muted-foreground">-</span>
@@ -294,7 +298,8 @@ export function SelectSamplesStep({
                             type="button"
                             onClick={() => moveSample(idx, -1)}
                             disabled={idx <= 0}
-                            className="rounded px-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                            aria-label={`Move ${r.short_name} up`}
+                            className="rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-30"
                             title="Move up"
                           >
                             <ChevronUp className="h-4 w-4" />
@@ -303,7 +308,8 @@ export function SelectSamplesStep({
                             type="button"
                             onClick={() => moveSample(idx, 1)}
                             disabled={idx >= samples.length - 1}
-                            className="rounded px-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                            aria-label={`Move ${r.short_name} down`}
+                            className="rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-30"
                             title="Move down"
                           >
                             <ChevronDown className="h-4 w-4" />

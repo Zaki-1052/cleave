@@ -1,11 +1,12 @@
 // frontend/src/components/rnaseq-de/DEPlotsPanel.tsx
-import { Download } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
+import { AlertCircle, Download, ImageOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { getOutputSignedUrl } from '@/api/jobs';
 import type { RnaseqDEPlotInfo } from '@/api/types';
 import { Card } from '@/components/layout/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useRnaseqDEReport } from '@/hooks/useJobs';
 
 interface DEPlotsPanelProps {
@@ -33,20 +34,30 @@ export function DEPlotsPanel({ jobId }: DEPlotsPanelProps) {
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
-        </div>
-      </Card>
+      <div className="grid gap-4 md:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i}>
+            <div className="mb-2 flex items-center justify-between">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+            <Skeleton className="mb-3 h-3 w-4/5" />
+            <Skeleton className="h-48 w-full rounded border border-border" />
+          </Card>
+        ))}
+      </div>
     );
   }
 
   if (error || !report) {
     return (
       <Card>
-        <p className="text-sm text-red-600 dark:text-red-400">
-          {error instanceof Error ? error.message : 'Failed to load DE plots.'}
-        </p>
+        <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 p-4">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+          <p className="text-sm text-foreground/80">
+            {error instanceof Error ? error.message : 'Failed to load DE plots.'}
+          </p>
+        </div>
       </Card>
     );
   }
@@ -56,9 +67,11 @@ export function DEPlotsPanel({ jobId }: DEPlotsPanelProps) {
   if (availablePlots.length === 0) {
     return (
       <Card>
-        <p className="py-6 text-center text-sm text-muted-foreground">
-          No plots available for this DE analysis.
-        </p>
+        <EmptyState
+          icon={ImageOff}
+          title="No plots available"
+          description="This DE analysis produced no plots."
+        />
       </Card>
     );
   }
@@ -132,7 +145,7 @@ function PlotCard({ jobId, plot }: PlotCardProps) {
             type="button"
             onClick={handleDownloadPng}
             disabled={!pngUrl}
-            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:opacity-40"
+            className="flex items-center gap-1 rounded-md text-xs text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
           >
             <Download className="h-3 w-3" />
             PNG
@@ -142,7 +155,7 @@ function PlotCard({ jobId, plot }: PlotCardProps) {
               type="button"
               onClick={handleDownloadSvg}
               disabled={!svgUrl}
-              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:opacity-40"
+              className="flex items-center gap-1 rounded-md text-xs text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
             >
               <Download className="h-3 w-3" />
               SVG
@@ -157,7 +170,7 @@ function PlotCard({ jobId, plot }: PlotCardProps) {
 
       {imgError ? (
         <div className="flex h-48 items-center justify-center rounded border border-border bg-muted">
-          <p className="text-xs text-red-500">Failed to load plot.</p>
+          <p className="text-xs text-destructive">Failed to load plot.</p>
         </div>
       ) : pngUrl ? (
         <img
@@ -167,9 +180,7 @@ function PlotCard({ jobId, plot }: PlotCardProps) {
           onError={() => setImgError(true)}
         />
       ) : (
-        <div className="flex h-48 items-center justify-center">
-          <Spinner />
-        </div>
+        <Skeleton className="h-48 w-full rounded border border-border" />
       )}
     </Card>
   );

@@ -1,6 +1,7 @@
 // frontend/src/components/rnaseq-de/Deseq2SettingsStep.tsx
 import { RNASEQ_DE_QUANTIFICATION_SOURCES } from '@/lib/constants';
 import type { SampleAssignment } from './AssignConditionsStep';
+import { Field } from '@/components/ui/Field';
 import { TrainingHint } from '@/components/ui/TrainingHint';
 
 interface AlignmentReaction {
@@ -73,8 +74,8 @@ export function Deseq2SettingsStep({
     <div className="space-y-6">
       {/* Quantification source */}
       <div>
-        <h4 className="mb-3 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Quantification Source <span className="text-red-500">*</span>
+        <h4 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+          Quantification Source <span className="text-destructive">*</span>
         </h4>
         <TrainingHint visible={isTrainingProject}>
           Salmon (via tximport) is the default and recommended approach for RNA-seq DE analysis. It
@@ -87,12 +88,12 @@ export function Deseq2SettingsStep({
             return (
               <label
                 key={source.value}
-                className={`flex cursor-pointer items-center gap-3 rounded-md border px-4 py-3 transition-colors ${
+                className={`flex cursor-pointer items-center gap-3 rounded-md border px-4 py-3 transition-colors duration-150 ${
                   quantificationSource === source.value
                     ? 'border-primary bg-primary/5'
                     : isDisabled
                       ? 'cursor-not-allowed border-border opacity-50'
-                      : 'border-border hover:bg-muted'
+                      : 'border-border hover:bg-accent'
                 }`}
               >
                 <input
@@ -102,7 +103,7 @@ export function Deseq2SettingsStep({
                   checked={quantificationSource === source.value}
                   onChange={(e) => setQuantificationSource(e.target.value)}
                   disabled={isDisabled}
-                  className="h-4 w-4 text-primary focus:ring-primary"
+                  className="h-4 w-4 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
                 <div>
                   <span className="text-sm font-medium text-foreground">{source.label}</span>
@@ -116,7 +117,7 @@ export function Deseq2SettingsStep({
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       Gene-level read counting from aligned BAMs.
                       {!hasFeatureCountsJob && (
-                        <span className="ml-1 text-amber-600">
+                        <span className="ml-1 text-warning">
                           No completed featureCounts job available for this alignment.
                         </span>
                       )}
@@ -130,22 +131,16 @@ export function Deseq2SettingsStep({
       </div>
 
       {/* Reference condition */}
-      <div>
-        <label
-          htmlFor="de-ref-condition"
-          className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-        >
-          Reference Condition
-        </label>
-        <p className="mb-2 text-xs text-muted-foreground">
-          The baseline condition for fold change calculation (typically &quot;ctrl&quot; or
-          &quot;untreated&quot;). If left blank, DESeq2 will choose alphabetically.
-        </p>
+      <Field
+        label="Reference Condition"
+        htmlFor="de-ref-condition"
+        help='The baseline condition for fold change calculation (typically "ctrl" or "untreated"). If left blank, DESeq2 will choose alphabetically.'
+      >
         <select
           id="de-ref-condition"
           value={referenceCondition}
           onChange={(e) => setReferenceCondition(e.target.value)}
-          className="w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+          className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <option value="">Auto (alphabetical)</option>
           {uniqueConditions.map((cond) => (
@@ -154,14 +149,14 @@ export function Deseq2SettingsStep({
             </option>
           ))}
         </select>
-      </div>
+      </Field>
 
       {/* Thresholds */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label
             htmlFor="de-fdr"
-            className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+            className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground"
           >
             FDR Threshold
           </label>
@@ -173,7 +168,7 @@ export function Deseq2SettingsStep({
             step={0.01}
             value={fdrThreshold}
             onChange={(e) => setFdrThreshold(Number(e.target.value) || 0.05)}
-            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+            className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground tabular-nums outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           />
           <p className="mt-1 text-xs text-muted-foreground">
             Adjusted p-value cutoff for significance (default: 0.05).
@@ -182,7 +177,7 @@ export function Deseq2SettingsStep({
         <div>
           <label
             htmlFor="de-lfc"
-            className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+            className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground"
           >
             Log2 Fold Change Threshold
           </label>
@@ -193,7 +188,7 @@ export function Deseq2SettingsStep({
             step={0.1}
             value={lfcThreshold}
             onChange={(e) => setLfcThreshold(Number(e.target.value) || 0)}
-            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+            className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground tabular-nums outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           />
           <p className="mt-1 text-xs text-muted-foreground">
             Minimum absolute log2 fold change filter (0 = no filter).
@@ -203,18 +198,18 @@ export function Deseq2SettingsStep({
 
       {/* Summary */}
       <div className="rounded-md border border-border p-4">
-        <h4 className="mb-3 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <h4 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Analysis Summary
         </h4>
 
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-muted-foreground">Total Samples:</span>{' '}
-            <span className="font-medium text-foreground">{selectedReactions.length}</span>
+            <span className="font-mono tabular-nums text-foreground">{selectedReactions.length}</span>
           </div>
           <div>
             <span className="text-muted-foreground">Conditions:</span>{' '}
-            <span className="font-medium text-foreground">{conditionSummary.length}</span>
+            <span className="font-mono tabular-nums text-foreground">{conditionSummary.length}</span>
           </div>
         </div>
 
@@ -222,11 +217,11 @@ export function Deseq2SettingsStep({
           <div className="mt-3 overflow-x-auto rounded-md border border-border">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b bg-muted">
-                  <th className="px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <tr className="border-b-2 border-border bg-muted/40">
+                  <th className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                     Condition
                   </th>
-                  <th className="px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <th className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                     Replicates
                   </th>
                 </tr>
@@ -235,7 +230,7 @@ export function Deseq2SettingsStep({
                 {conditionSummary.map((cs) => (
                   <tr key={cs.condition} className="border-b last:border-b-0">
                     <td className="px-3 py-1.5 font-medium text-foreground">{cs.condition}</td>
-                    <td className="px-3 py-1.5 text-foreground">{cs.count}</td>
+                    <td className="px-3 py-1.5 font-mono tabular-nums text-foreground">{cs.count}</td>
                   </tr>
                 ))}
               </tbody>

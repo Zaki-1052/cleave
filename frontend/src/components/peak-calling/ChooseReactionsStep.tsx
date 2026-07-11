@@ -1,5 +1,7 @@
 // frontend/src/components/peak-calling/ChooseReactionsStep.tsx
 import { useEffect, useRef } from 'react';
+import { ListX } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface AlignmentReaction {
   reaction_id: number;
@@ -31,12 +33,11 @@ export function ChooseReactionsStep({
 
   if (reactions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <h3 className="text-sm font-medium text-muted-foreground">No reactions available</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          The selected alignment has no reactions.
-        </p>
-      </div>
+      <EmptyState
+        icon={ListX}
+        title="No reactions available"
+        description="The selected alignment has no reactions."
+      />
     );
   }
 
@@ -49,7 +50,7 @@ export function ChooseReactionsStep({
       <div className="overflow-x-auto rounded-md border border-border">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b bg-primary/10">
+            <tr className="border-b-2 border-border">
               <th className="w-10 px-3 py-2">
                 <input
                   ref={headerCheckboxRef}
@@ -57,10 +58,10 @@ export function ChooseReactionsStep({
                   checked={allChecked}
                   onChange={onToggleAll}
                   aria-label="Select all reactions"
-                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </th>
-              <th className="px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                 Short Name
               </th>
             </tr>
@@ -72,8 +73,8 @@ export function ChooseReactionsStep({
                 <tr
                   key={rxn.reaction_id}
                   onClick={() => onToggle(rxn.reaction_id)}
-                  className={`cursor-pointer border-b transition-colors ${
-                    isSelected ? 'bg-primary/5' : 'hover:bg-muted'
+                  className={`cursor-pointer border-b border-border/70 transition-colors duration-150 ${
+                    isSelected ? 'bg-accent' : 'hover:bg-accent/50'
                   }`}
                 >
                   <td className="px-3 py-2">
@@ -82,7 +83,7 @@ export function ChooseReactionsStep({
                       checked={isSelected}
                       onChange={() => onToggle(rxn.reaction_id)}
                       aria-label={`Select ${rxn.short_name}`}
-                      className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                      className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     />
                   </td>
                   <td className="px-3 py-2 font-medium text-foreground">{rxn.short_name}</td>
@@ -94,8 +95,9 @@ export function ChooseReactionsStep({
       </div>
 
       <p className="mt-3 text-xs text-muted-foreground">
-        {selectedIds.size} of {reactions.length} reaction{reactions.length !== 1 ? 's' : ''}{' '}
-        selected
+        <span className="font-mono tabular-nums">{selectedIds.size}</span> of{' '}
+        <span className="font-mono tabular-nums">{reactions.length}</span> reaction
+        {reactions.length !== 1 ? 's' : ''} selected
       </p>
     </div>
   );

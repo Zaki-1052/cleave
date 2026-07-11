@@ -4,6 +4,7 @@ import { Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
 import type { AnalysisJob } from '@/api/types';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/layout/Card';
 import { DetailRow } from '@/components/ui/DetailRow';
 import JobActions from '@/components/ui/JobActions';
@@ -51,16 +52,18 @@ export function AlignmentInfoPanel({ job }: AlignmentInfoPanelProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row">
         {/* Details card */}
         <Card className="flex-[2]">
-          <h3 className="font-display mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Details
           </h3>
           <div>
-            <DetailRow label="Run ID"><span className="font-mono">{job.id}</span></DetailRow>
+            <DetailRow label="Run ID"><span className="font-mono tabular-nums">{job.id}</span></DetailRow>
             <DetailRow label="Created By">{launcherName}</DetailRow>
-            <DetailRow label="Created Date">{formatDate(job.createdAt)}</DetailRow>
+            <DetailRow label="Created Date">
+              <span className="font-mono tabular-nums">{formatDate(job.createdAt)}</span>
+            </DetailRow>
             <DetailRow label="Status">
               <StatusBadge status={job.status} />
             </DetailRow>
@@ -70,14 +73,14 @@ export function AlignmentInfoPanel({ job }: AlignmentInfoPanelProps) {
         {/* Run Methods card */}
         <Card className="flex-[3]">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Run Methods
             </h3>
             {job.methodsText && (
               <button
                 type="button"
                 onClick={handleCopyMethods}
-                className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-dark"
+                className="flex items-center gap-1 rounded-md text-xs font-medium text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Copy className="h-3 w-3" />
                 {copied ? 'Copied!' : 'Copy'}
@@ -96,12 +99,12 @@ export function AlignmentInfoPanel({ job }: AlignmentInfoPanelProps) {
         {/* Notes card */}
         <Card className="flex-[2]">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">Notes</h3>
+            <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Notes</h3>
             {!editing && (
               <button
                 type="button"
                 onClick={handleEditStart}
-                className="text-xs font-medium text-primary hover:text-primary-dark"
+                className="rounded-md text-xs font-medium text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 Manage
               </button>
@@ -114,25 +117,20 @@ export function AlignmentInfoPanel({ job }: AlignmentInfoPanelProps) {
                 onChange={(e) => setDraft(e.target.value)}
                 rows={4}
                 aria-label="Job notes"
-                className="w-full rounded-md border border-border px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
               />
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={updateNotes.isPending}
-                  className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-white hover:bg-primary-dark disabled:opacity-50"
-                >
-                  {updateNotes.isPending ? 'Saving...' : 'Save'}
-                </button>
-                <button
-                  type="button"
+                <Button size="sm" onClick={handleSave} loading={updateNotes.isPending}>
+                  Save
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={() => setEditing(false)}
                   disabled={updateNotes.isPending}
-                  className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           ) : job.notes ? (

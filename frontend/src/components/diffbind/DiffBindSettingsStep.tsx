@@ -55,8 +55,8 @@ export function DiffBindSettingsStep({
     <div className="space-y-6">
       {/* Analysis method selection */}
       <div>
-        <h4 className="mb-3 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Analysis Method <span className="text-red-500">*</span>
+        <h4 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+          Analysis Method <span className="text-destructive">*</span>
         </h4>
         <TrainingHint visible={isTrainingProject}>
           DiffBind compares binding between conditions. DESeq2 with consensus peakset is standard —
@@ -64,7 +64,7 @@ export function DiffBindSettingsStep({
           supply your own regions.
         </TrainingHint>
         {!analysisMethod && isTrainingProject && (
-          <p className="mb-2 text-xs font-medium text-amber-600 dark:text-amber-400">
+          <p className="mb-2 text-xs font-medium text-warning">
             Please select an analysis method below.
           </p>
         )}
@@ -72,10 +72,10 @@ export function DiffBindSettingsStep({
           {DIFFBIND_ANALYSIS_METHODS.map((method) => (
             <label
               key={method.value}
-              className={`flex cursor-pointer items-center gap-3 rounded-md border px-4 py-3 transition-colors ${
+              className={`flex cursor-pointer items-center gap-3 rounded-md border px-4 py-3 transition-colors duration-150 ${
                 analysisMethod === method.value
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:bg-muted'
+                  ? 'border-primary bg-accent'
+                  : 'border-border hover:bg-accent/50'
               }`}
             >
               <input
@@ -84,7 +84,7 @@ export function DiffBindSettingsStep({
                 value={method.value}
                 checked={analysisMethod === method.value}
                 onChange={(e) => setAnalysisMethod(e.target.value)}
-                className="h-4 w-4 text-primary focus:ring-primary"
+                className="h-4 w-4 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
               <div>
                 <span className="text-sm font-medium text-foreground">{method.label}</span>
@@ -116,12 +116,12 @@ export function DiffBindSettingsStep({
         <div>
           <label
             htmlFor="db-custom-peakset"
-            className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+            className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground"
           >
-            Custom Peakset (BED) <span className="text-red-500">*</span>
+            Custom Peakset (BED) <span className="text-destructive">*</span>
           </label>
           {bedOutputs.length === 0 ? (
-            <p className="mt-1 text-sm text-amber-600">
+            <p className="mt-1 text-sm text-warning">
               No BED files available from the selected peak calling run.
             </p>
           ) : (
@@ -131,7 +131,7 @@ export function DiffBindSettingsStep({
               onChange={(e) =>
                 setCustomPeaksetOutputId(e.target.value ? Number(e.target.value) : null)
               }
-              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+              className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
             >
               <option value="">Select a BED file...</option>
               {bedOutputs.map((o) => (
@@ -150,18 +150,22 @@ export function DiffBindSettingsStep({
 
       {/* Summary */}
       <div className="rounded-md border border-border p-4">
-        <h4 className="mb-3 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <h4 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Analysis Summary
         </h4>
 
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-muted-foreground">Total Samples:</span>{' '}
-            <span className="font-medium text-foreground">{selectedReactions.length}</span>
+            <span className="font-mono font-medium tabular-nums text-foreground">
+              {selectedReactions.length}
+            </span>
           </div>
           <div>
             <span className="text-muted-foreground">Conditions:</span>{' '}
-            <span className="font-medium text-foreground">{conditionSummary.length}</span>
+            <span className="font-mono font-medium tabular-nums text-foreground">
+              {conditionSummary.length}
+            </span>
           </div>
         </div>
 
@@ -170,10 +174,10 @@ export function DiffBindSettingsStep({
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b bg-muted">
-                  <th className="px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <th className="px-3 py-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                     Condition
                   </th>
-                  <th className="px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <th className="px-3 py-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                     Replicates
                   </th>
                 </tr>
@@ -182,7 +186,7 @@ export function DiffBindSettingsStep({
                 {conditionSummary.map((cs) => (
                   <tr key={cs.condition} className="border-b last:border-b-0">
                     <td className="px-3 py-1.5 font-medium text-foreground">{cs.condition}</td>
-                    <td className="px-3 py-1.5 text-foreground">{cs.count}</td>
+                    <td className="px-3 py-1.5 font-mono tabular-nums text-foreground">{cs.count}</td>
                   </tr>
                 ))}
               </tbody>

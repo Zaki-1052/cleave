@@ -77,7 +77,7 @@ export function CsvUploadZone({ experimentId, onImportComplete }: CsvUploadZoneP
     <div>
       <div className="mb-2 flex items-center justify-between">
         <div>
-          <span className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Upload Reaction Sheet
           </span>
           <span className="ml-2 text-xs text-muted-foreground">Supported formats: .csv</span>
@@ -85,7 +85,7 @@ export function CsvUploadZone({ experimentId, onImportComplete }: CsvUploadZoneP
         <button
           type="button"
           onClick={() => void handleDownloadTemplate()}
-          className="flex items-center gap-1 text-sm text-primary hover:text-primary/80"
+          className="flex items-center gap-1 rounded-md text-sm text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Download className="h-4 w-4" />
           Download Template
@@ -93,18 +93,18 @@ export function CsvUploadZone({ experimentId, onImportComplete }: CsvUploadZoneP
       </div>
 
       {importError && (
-        <div className="mb-3 rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+        <div className="mb-3 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {importError}
         </div>
       )}
 
       {importResult && (
         <div className="mb-3 space-y-2">
-          <div className="rounded-md border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950 px-4 py-3 text-sm text-green-700 dark:text-green-300">
+          <div className="rounded-md border border-success/25 bg-success/10 px-4 py-3 text-sm text-success">
             Successfully imported {importResult.created} reaction{importResult.created !== 1 ? 's' : ''}.
           </div>
           {importResult.warnings.length > 0 && (
-            <div className="rounded-md border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950 px-4 py-3 text-sm text-yellow-700 dark:text-yellow-300">
+            <div className="rounded-md border border-warning/25 bg-warning/10 px-4 py-3 text-sm text-warning">
               <ul className="list-inside list-disc">
                 {importResult.warnings.map((w, i) => (
                   <li key={i}>{w}</li>
@@ -137,7 +137,7 @@ export function CsvUploadZone({ experimentId, onImportComplete }: CsvUploadZoneP
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="cursor-pointer font-medium text-primary hover:underline"
+                className="cursor-pointer rounded font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 Browse
               </button>

@@ -1,12 +1,13 @@
 // frontend/src/components/reactions/ReactionsEditor.tsx
 import { useMemo, useState } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Check, Pencil, Sparkles, Trash2 } from 'lucide-react';
+import { Check, Pencil, Sparkles, Trash2, FlaskConical } from 'lucide-react';
 import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
-import { Modal } from '@/components/ui/Modal';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { AutoFillReactionsModal } from './AutoFillReactionsModal';
 import { CsvUploadZone } from './CsvUploadZone';
 import { ReactionFormModal } from './ReactionFormModal';
@@ -55,7 +56,6 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
   const [showAutoFill, setShowAutoFill] = useState(false);
   const [editTarget, setEditTarget] = useState<Reaction | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Reaction | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [visibleOptional, setVisibleOptional] = useState<Set<string>>(new Set());
   const [showColumnPicker, setShowColumnPicker] = useState(false);
 
@@ -83,7 +83,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
         header: 'R1 File',
         cell: (info) => {
           const p = prefixMap.get(info.row.original.fastqPrefix);
-          return p?.hasR1 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-muted-foreground/50">{'\u2014'}</span>;
+          return p?.hasR1 ? <Check className="h-5 w-5 text-success" /> : <span className="text-muted-foreground/50">{'\u2014'}</span>;
         },
       },
       {
@@ -91,7 +91,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
         header: 'R2 File',
         cell: (info) => {
           const p = prefixMap.get(info.row.original.fastqPrefix);
-          return p?.hasR2 ? <Check className="h-5 w-5 text-green-500" /> : <span className="text-muted-foreground/50">{'\u2014'}</span>;
+          return p?.hasR2 ? <Check className="h-5 w-5 text-success" /> : <span className="text-muted-foreground/50">{'\u2014'}</span>;
         },
       },
       { accessorKey: 'shortName', header: 'Short Name' },
@@ -120,23 +120,22 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
       id: 'actions',
       header: '',
       cell: (info) => (
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           <button
             type="button"
             onClick={() => setEditTarget(info.row.original)}
-            className="text-muted-foreground hover:text-primary"
+            className="rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             title="Edit"
+            aria-label="Edit reaction"
           >
             <Pencil className="h-4 w-4" />
           </button>
           <button
             type="button"
-            onClick={() => {
-              setDeleteError(null);
-              setDeleteTarget(info.row.original);
-            }}
-            className="text-muted-foreground hover:text-red-500"
+            onClick={() => setDeleteTarget(info.row.original)}
+            className="rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             title="Delete"
+            aria-label="Delete reaction"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -161,7 +160,6 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
 
   function handleDelete() {
     if (!deleteTarget) return;
-    setDeleteError(null);
     deleteMutation.mutate(
       { experimentId, reactionId: deleteTarget.id },
       {
@@ -169,7 +167,7 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
           toast.success('Reaction deleted');
           setDeleteTarget(null);
         },
-        onError: () => setDeleteError('Failed to delete reaction. Please try again.'),
+        onError: () => toast.error('Failed to delete reaction. Please try again.'),
       },
     );
   }
@@ -200,32 +198,32 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
       {/* Manual Reactions Section */}
       <div>
         <div className="mb-4 flex items-center justify-between">
-          <h4 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h4 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Reactions
           </h4>
           <div className="flex gap-2">
             <div className="relative">
               <Button
-                variant="outlined"
+                variant="outline"
                 onClick={() => setShowColumnPicker(!showColumnPicker)}
               >
                 Customize Columns
               </Button>
               {showColumnPicker && (
-                <div className="absolute right-0 top-full z-20 mt-1 w-64 rounded-lg border bg-card p-3 shadow-lg">
-                  <div className="mb-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <div className="absolute right-0 top-full z-20 mt-1 w-64 rounded-lg border border-border bg-popover p-3 shadow-lg">
+                  <div className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                     Optional Columns
                   </div>
                   {optionalColumns.map((col) => (
                     <label
                       key={col.key}
-                      className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
+                      className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent"
                     >
                       <input
                         type="checkbox"
                         checked={visibleOptional.has(col.key)}
                         onChange={() => toggleColumn(col.key)}
-                        className="rounded border-border text-primary focus:ring-primary"
+                        className="rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       />
                       {col.label}
                     </label>
@@ -234,8 +232,8 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
               )}
             </div>
             {prefixList.length > 0 && (
-              <Button variant="outlined" onClick={() => setShowAutoFill(true)}>
-                <Sparkles className="mr-1.5 h-4 w-4" />
+              <Button variant="outline" onClick={() => setShowAutoFill(true)}>
+                <Sparkles className="h-4 w-4" />
                 Auto-fill from Filenames
               </Button>
             )}
@@ -248,9 +246,11 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
         {reactions.length > 0 ? (
           <DataTable data={reactions} columns={columns} />
         ) : (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            No reactions defined yet. Add reactions manually or upload a CSV above.
-          </p>
+          <EmptyState
+            icon={FlaskConical}
+            title="No reactions yet"
+            description="Add reactions manually or upload a CSV above."
+          />
         )}
       </div>
 
@@ -273,33 +273,17 @@ export function ReactionsEditor({ experimentId, assayType }: ReactionsEditorProp
         existingReaction={editTarget ?? undefined}
       />
 
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={deleteTarget !== null}
-        onClose={() => setDeleteTarget(null)}
+      {/* Delete Confirmation */}
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
         title="Delete Reaction"
-      >
-        <p className="mb-4 text-sm text-foreground">
-          Are you sure you want to delete reaction{' '}
-          <span className="font-medium">{deleteTarget?.shortName}</span>? This
-          action cannot be undone.
-        </p>
-        {deleteError && (
-          <p className="mb-3 text-sm text-red-600">{deleteError}</p>
-        )}
-        <div className="flex justify-end gap-3">
-          <Button variant="outlined" onClick={() => setDeleteTarget(null)}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleDelete}
-            disabled={deleteMutation.isPending}
-            className="bg-red-600 hover:bg-red-700"
-          >
-            {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-          </Button>
-        </div>
-      </Modal>
+        description={`Are you sure you want to delete reaction ${deleteTarget?.shortName ?? ''}? This action cannot be undone.`}
+        confirmLabel="Delete"
+        variant="destructive"
+        loading={deleteMutation.isPending}
+        onConfirm={handleDelete}
+      />
 
       {/* Auto-fill from Filenames Modal */}
       <AutoFillReactionsModal

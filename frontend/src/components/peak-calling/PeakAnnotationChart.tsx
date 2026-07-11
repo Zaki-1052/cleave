@@ -14,7 +14,11 @@ import {
 import { downloadPeakAnnotationCsv } from '@/api/jobs';
 import type { PeakAnnotationResult, PeakCallingReactionMetrics } from '@/api/types';
 import { Card } from '@/components/layout/Card';
+import { ChartTooltipContent } from '@/components/ui/ChartTooltip';
+import { extendChartPalette, useChartAxisProps, useChartPalette, useChartToken } from '@/lib/chart-theme';
 
+// Fixed category order — each category keeps a stable color regardless of which are
+// present, by mapping category index → palette index (never by render order).
 const ANNOTATION_CATEGORIES = [
   'Promoter',
   'Exon',
@@ -27,19 +31,6 @@ const ANNOTATION_CATEGORIES = [
   'miRNA',
   'pseudo',
 ] as const;
-
-const ANNOTATION_COLORS: Record<string, string> = {
-  Promoter: '#E65100',
-  Exon: '#43A047',
-  Intron: '#1E88E5',
-  Intergenic: '#FDD835',
-  '3UTR': '#8E24AA',
-  '5UTR': '#D81B60',
-  TTS: '#AB47BC',
-  ncRNA: '#C62828',
-  miRNA: '#4A148C',
-  pseudo: '#FF8F00',
-};
 
 interface PeakAnnotationChartProps {
   jobId: number;
@@ -55,6 +46,17 @@ export function PeakAnnotationChart({
   metrics,
 }: PeakAnnotationChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
+  const axisProps = useChartAxisProps();
+  const cardBg = useChartToken('--card');
+
+  // Re-render when the theme flips (useChartPalette subscribes), then derive the
+  // 10-color paired palette; concrete hsl() strings keep the SVG→PNG export safe.
+  const basePalette = useChartPalette();
+  const palette = useMemo(() => {
+    // basePalette identity changes on theme flip → recompute the extended palette.
+    void basePalette;
+    return extendChartPalette(ANNOTATION_CATEGORIES.length);
+  }, [basePalette]);
 
   // Build lookup: shortName → metrics for rich tooltip
   const metricsMap = useMemo(() => {
@@ -90,7 +92,7 @@ export function PeakAnnotationChart({
       canvas.width = img.width * 2;
       canvas.height = img.height * 2;
       ctx.scale(2, 2);
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = cardBg;
       ctx.fillRect(0, 0, img.width, img.height);
       ctx.drawImage(img, 0, 0);
       const pngUrl = canvas.toDataURL('image/png');
@@ -101,7 +103,7 @@ export function PeakAnnotationChart({
       URL.revokeObjectURL(url);
     };
     img.src = url;
-  }, []);
+  }, [cardBg]);
 
   const handleDownloadCsv = useCallback(async () => {
     await downloadPeakAnnotationCsv(jobId);
@@ -113,20 +115,20 @@ export function PeakAnnotationChart({
   return (
     <Card className="mt-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           {referenceGenome} Feature Distribution
         </h3>
         <div className="flex items-center gap-2">
           <button
             onClick={handleDownloadPng}
-            className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-dark"
+            className="flex items-center gap-1 rounded text-xs font-medium text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Download className="h-3 w-3" />
             Download PNG
           </button>
           <button
             onClick={handleDownloadCsv}
-            className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-dark"
+            className="flex items-center gap-1 rounded text-xs font-medium text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Download className="h-3 w-3" />
             Download CSV
@@ -136,43 +138,41 @@ export function PeakAnnotationChart({
       <div ref={chartRef}>
         <ResponsiveContainer width="100%" height={chartHeight}>
           <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 20, top: 5, bottom: 5 }}>
-            <XAxis type="number" domain={[0, 100]} tickFormatter={(v: number) => `${v}%`} />
-            <YAxis type="category" dataKey="shortName" width={110} tick={{ fontSize: 12 }} />
+            <XAxis type="number" domain={[0, 100]} tickFormatter={(v: number) => `${v}%`} {...axisProps} />
+            <YAxis type="category" dataKey="shortName" width={110} {...axisProps} />
             <Tooltip
               content={({ active, payload, label }) => {
                 if (!active || !payload || !payload.length) return null;
                 const shortName = label as string;
                 const m = metricsMap.get(shortName);
-                const hoveredEntry = payload.find((p) => p.value && (p.value as number) > 0);
+                const annotationRows = payload
+                  .filter((p) => p.value && (p.value as number) > 0)
+                  .map((p) => ({ name: p.name as string, value: p.value as number, color: p.color }));
+                const metricRows = m
+                  ? [
+                      { name: 'Peak Caller', value: m.peakCaller, color: 'transparent' },
+                      { name: 'Peak Type', value: m.peakSize, color: 'transparent' },
+                      { name: 'Threshold', value: m.significanceThreshold, color: 'transparent' },
+                      { name: 'Control', value: m.controlShortName || 'N/A', color: 'transparent' },
+                    ]
+                  : [];
                 return (
-                  <div className="rounded border border-border bg-card px-3 py-2 text-xs shadow-lg">
-                    <p className="mb-1 font-semibold text-foreground">{shortName}</p>
-                    {hoveredEntry && (
-                      <>
-                        <p>Annotation={hoveredEntry.name}</p>
-                        <p>Percentage (%)=<span className="font-mono">{(hoveredEntry.value as number).toFixed(5)}</span></p>
-                      </>
-                    )}
-                    {m && (
-                      <>
-                        <p>Control Short Name={m.controlShortName || 'N/A'}</p>
-                        <p>Peak Type={m.peakSize}</p>
-                        <p>Peak Caller={m.peakCaller}</p>
-                        <p>Significance Threshold={m.significanceThreshold}</p>
-                      </>
-                    )}
-                  </div>
+                  <ChartTooltipContent
+                    active
+                    label={shortName}
+                    payload={[...annotationRows, ...metricRows]}
+                    formatValue={(value, entry) =>
+                      entry.color === 'transparent'
+                        ? String(value ?? 'N/A')
+                        : `${Number(value).toFixed(5)}%`
+                    }
+                  />
                 );
               }}
             />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            {ANNOTATION_CATEGORIES.map((cat) => (
-              <Bar
-                key={cat}
-                dataKey={cat}
-                stackId="stack"
-                fill={ANNOTATION_COLORS[cat]}
-              />
+            <Legend wrapperStyle={{ fontSize: 11, fontFamily: 'var(--font-mono)' }} />
+            {ANNOTATION_CATEGORIES.map((cat, i) => (
+              <Bar key={cat} dataKey={cat} stackId="stack" fill={palette[i]} />
             ))}
           </BarChart>
         </ResponsiveContainer>

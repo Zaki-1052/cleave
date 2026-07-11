@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { WizardModal } from '@/components/ui/WizardModal';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { cn } from '@/lib/cn';
 import { formatBytes } from '@/lib/utils';
 import {
@@ -228,7 +229,7 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
       {/* Saved servers */}
       {savedServers && savedServers.length > 0 && (
         <div>
-          <h4 className="mb-3 text-sm font-medium text-muted-foreground">Saved Servers</h4>
+          <h4 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Saved Servers</h4>
           <div className="grid grid-cols-2 gap-3">
             {savedServers.map((s) => (
               <button
@@ -236,14 +237,14 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
                 type="button"
                 onClick={() => handleUseSavedServer(s)}
                 className={cn(
-                  'group relative flex items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:border-primary/50 hover:bg-muted/50',
+                  'group relative flex items-center gap-3 rounded-lg border border-border p-3 text-left transition-colors duration-150 hover:border-primary/50 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   usingSavedServerId === s.id && 'border-primary bg-primary/5',
                 )}
               >
                 <Server className="h-5 w-5 shrink-0 text-muted-foreground" />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{s.name}</div>
-                  <div className="truncate text-xs text-muted-foreground">
+                  <div className="truncate font-mono text-xs text-muted-foreground">
                     {s.protocol.toUpperCase()} &middot; {s.host}
                   </div>
                 </div>
@@ -253,7 +254,8 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
                     e.stopPropagation();
                     deleteSavedServer.mutate(s.id);
                   }}
-                  className="absolute right-2 top-2 hidden text-muted-foreground hover:text-red-500 group-hover:block"
+                  className="absolute right-2 top-2 hidden rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:text-destructive group-hover:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  aria-label="Delete saved server"
                   title="Delete saved server"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -261,15 +263,15 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
               </button>
             ))}
           </div>
-          <hr className="my-4" />
+          <hr className="my-4 border-border" />
         </div>
       )}
 
       {/* Connection form */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="mb-1 block text-sm font-medium">Protocol</label>
-          <div className="flex rounded-md border">
+          <label className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Protocol</label>
+          <div className="flex overflow-hidden rounded-md border border-input">
             {(['ftp', 'sftp'] as const).map((p) => (
               <button
                 key={p}
@@ -279,10 +281,10 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
                   setPort('');
                 }}
                 className={cn(
-                  'flex-1 px-4 py-2 text-sm font-medium transition-colors',
+                  'flex-1 px-4 py-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
                   protocol === p
-                    ? 'bg-primary text-white'
-                    : 'text-muted-foreground hover:bg-muted',
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-accent',
                 )}
               >
                 {p.toUpperCase()}
@@ -291,45 +293,45 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Port</label>
+          <label className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Port</label>
           <input
             type="number"
             value={port}
             onChange={(e) => setPort(e.target.value)}
             placeholder={defaultPort}
-            className="w-full rounded-md border px-3 py-2 text-sm"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           />
         </div>
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">Host</label>
+        <label className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Host</label>
         <input
           type="text"
           value={host}
           onChange={(e) => setHost(e.target.value)}
           placeholder="ftp.example.com"
-          className="w-full rounded-md border px-3 py-2 text-sm"
+          className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="mb-1 block text-sm font-medium">Username</label>
+          <label className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Username</label>
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="w-full rounded-md border px-3 py-2 text-sm"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Password</label>
+          <label className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Password</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-md border px-3 py-2 text-sm"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           />
         </div>
       </div>
@@ -341,7 +343,7 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
             type="checkbox"
             checked={saveServer}
             onChange={(e) => setSaveServer(e.target.checked)}
-            className="rounded border-gray-300"
+            className="rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
           Save this server for future imports
         </label>
@@ -351,13 +353,13 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
             value={serverName}
             onChange={(e) => setServerName(e.target.value)}
             placeholder="Server name (e.g., IGM FTP)"
-            className="w-full rounded-md border px-3 py-2 text-sm"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           />
         )}
       </div>
 
       {connectError && (
-        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-foreground/80">
           {connectError}
         </div>
       )}
@@ -367,14 +369,14 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
   const browseStep = (
     <div className="flex h-full flex-col">
       {/* Breadcrumb */}
-      <div className="mb-3 flex items-center gap-1 text-sm text-muted-foreground">
+      <div className="mb-3 flex items-center gap-1 font-mono text-sm text-muted-foreground">
         {pathSegments.map((seg, i) => (
           <span key={seg.path} className="flex items-center gap-1">
             {i > 0 && <ChevronRight className="h-3 w-3" />}
             <button
               type="button"
               onClick={() => handleNavigate(seg.path)}
-              className="hover:text-foreground hover:underline"
+              className="rounded transition-colors duration-150 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {seg.label}
             </button>
@@ -384,13 +386,13 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
       </div>
 
       {/* File list */}
-      <div className="flex-1 overflow-y-auto rounded-md border">
+      <div className="flex-1 overflow-y-auto rounded-md border border-border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b bg-muted/50 text-left">
+            <tr className="border-b border-border bg-muted/50 text-left">
               <th className="w-8 px-3 py-2" />
-              <th className="px-3 py-2">Name</th>
-              <th className="px-3 py-2 text-right">Size</th>
+              <th className="px-3 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">Name</th>
+              <th className="px-3 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Size</th>
             </tr>
           </thead>
           <tbody>
@@ -401,9 +403,9 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
                 <tr
                   key={entry.path}
                   className={cn(
-                    'border-b transition-colors',
-                    entry.isDir && 'cursor-pointer hover:bg-muted/50',
-                    isFastq && 'cursor-pointer hover:bg-muted/50',
+                    'border-b border-border transition-colors duration-150',
+                    entry.isDir && 'cursor-pointer hover:bg-accent/50',
+                    isFastq && 'cursor-pointer hover:bg-accent/50',
                     !entry.isDir && !isFastq && 'opacity-40',
                   )}
                   onClick={() => {
@@ -418,21 +420,21 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
                         checked={isSelected}
                         onChange={() => toggleSelection(entry.path)}
                         onClick={(e) => e.stopPropagation()}
-                        className="rounded border-gray-300"
+                        className="rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       />
                     )}
                   </td>
                   <td className="px-3 py-2">
                     <span className="flex items-center gap-2">
                       {entry.isDir ? (
-                        <Folder className="h-4 w-4 text-amber-500" />
+                        <Folder className="h-4 w-4 text-muted-foreground" />
                       ) : (
                         <FileText className="h-4 w-4 text-muted-foreground" />
                       )}
                       {entry.name}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-right font-mono text-muted-foreground">
+                  <td className="px-3 py-2 text-right font-mono tabular-nums text-muted-foreground">
                     {entry.size != null ? formatBytes(entry.size) : ''}
                   </td>
                 </tr>
@@ -440,8 +442,8 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
             })}
             {entries.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-3 py-8 text-center text-muted-foreground">
-                  Directory is empty
+                <td colSpan={3} className="p-4">
+                  <EmptyState icon={Folder} title="Directory is empty" />
                 </td>
               </tr>
             )}
@@ -451,12 +453,14 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
 
       {/* Selection summary */}
       <div className="mt-3 flex items-center justify-between text-sm">
-        <Button variant="outlined" size="sm" onClick={handleSelectAll}>
+        <Button variant="outline" size="sm" onClick={handleSelectAll}>
           Select All FASTQs
         </Button>
         <span className="text-muted-foreground">
-          {selectedPaths.size} file{selectedPaths.size !== 1 ? 's' : ''} selected
-          {selectedSize > 0 && ` (${formatBytes(selectedSize)})`}
+          <span className="font-mono tabular-nums">{selectedPaths.size}</span> file{selectedPaths.size !== 1 ? 's' : ''} selected
+          {selectedSize > 0 && (
+            <span className="font-mono tabular-nums">{` (${formatBytes(selectedSize)})`}</span>
+          )}
         </span>
       </div>
     </div>
@@ -480,7 +484,7 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
                 {importProgress.status === 'complete' && 'Import complete'}
                 {importProgress.status === 'error' && 'Import failed'}
               </span>
-              <span className="text-muted-foreground">
+              <span className="font-mono tabular-nums text-muted-foreground">
                 {importProgress.completedCount}/{importProgress.totalCount}
               </span>
             </div>
@@ -488,7 +492,7 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
               <div
                 className={cn(
                   'h-full rounded-full transition-all',
-                  importProgress.status === 'error' ? 'bg-red-500' : 'bg-primary',
+                  importProgress.status === 'error' ? 'bg-destructive' : 'bg-primary',
                 )}
                 style={{
                   width: `${importProgress.totalCount > 0 ? (importProgress.completedCount / importProgress.totalCount) * 100 : 0}%`,
@@ -498,7 +502,7 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
           </div>
 
           {importProgress.error && (
-            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+            <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-foreground/80">
               {importProgress.error}
             </div>
           )}
@@ -508,7 +512,7 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
             {importProgress.files.map((f) => (
               <div
                 key={f.remotePath}
-                className="flex items-center gap-3 rounded-md border px-3 py-2"
+                className="flex items-center gap-3 rounded-md border border-border px-3 py-2"
               >
                 {f.status === 'pending' && (
                   <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30" />
@@ -517,12 +521,12 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
                   <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 )}
                 {f.status === 'complete' && (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                 )}
-                {f.status === 'error' && <XCircle className="h-4 w-4 text-red-500" />}
+                {f.status === 'error' && <XCircle className="h-4 w-4 text-destructive" />}
 
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm">{f.filename}</div>
+                  <div className="truncate font-mono text-sm">{f.filename}</div>
                   {f.status === 'downloading' && f.bytesTotal && (
                     <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted">
                       <div
@@ -534,11 +538,11 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
                     </div>
                   )}
                   {f.error && (
-                    <div className="mt-1 text-xs text-red-500">{f.error}</div>
+                    <div className="mt-1 text-xs text-destructive">{f.error}</div>
                   )}
                 </div>
 
-                <span className="shrink-0 text-xs text-muted-foreground">
+                <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
                   {f.status === 'downloading' && f.bytesTotal
                     ? `${formatBytes(f.bytesDownloaded)} / ${formatBytes(f.bytesTotal)}`
                     : ''}
@@ -575,10 +579,10 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
       }}
       onSubmit={() => {}}
       renderFooter={({ onClose: closeWizard }) => (
-        <div className="flex shrink-0 items-center justify-between border-t px-6 py-4">
+        <div className="flex shrink-0 items-center justify-between border-t border-border px-6 py-4">
           <button
             onClick={closeWizard}
-            className="text-sm text-muted-foreground hover:text-foreground"
+            className="rounded text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {isImportDone ? 'Close' : 'Cancel'}
           </button>
@@ -599,7 +603,7 @@ export function ServerImportModal({ experimentId, isOpen, onClose }: Props) {
             )}
             {step === 1 && (
               <>
-                <Button variant="outlined" onClick={() => setStep(0)}>
+                <Button variant="outline" onClick={() => setStep(0)}>
                   Back
                 </Button>
                 <Button

@@ -1,11 +1,12 @@
 // frontend/src/components/diffbind/DiffBindPlotsPanel.tsx
-import { Download } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
+import { AlertCircle, Download, LineChart } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { getOutputSignedUrl } from '@/api/jobs';
 import type { DiffBindPlotInfo } from '@/api/types';
 import { Card } from '@/components/layout/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useDiffBindReport } from '@/hooks/useJobs';
 
 interface DiffBindPlotsPanelProps {
@@ -33,21 +34,22 @@ export function DiffBindPlotsPanel({ jobId }: DiffBindPlotsPanelProps) {
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
-        </div>
-      </Card>
+      <div className="grid gap-4 md:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <PlotCardSkeleton key={i} />
+        ))}
+      </div>
     );
   }
 
   if (error || !report) {
     return (
-      <Card>
-        <p className="text-sm text-red-600">
+      <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3">
+        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+        <p className="text-sm text-foreground/80">
           {error instanceof Error ? error.message : 'Failed to load DiffBind plots.'}
         </p>
-      </Card>
+      </div>
     );
   }
 
@@ -56,11 +58,11 @@ export function DiffBindPlotsPanel({ jobId }: DiffBindPlotsPanelProps) {
 
   if (availablePlots.length === 0) {
     return (
-      <Card>
-        <p className="py-6 text-center text-sm text-muted-foreground">
-          No plots available for this DiffBind analysis.
-        </p>
-      </Card>
+      <EmptyState
+        icon={LineChart}
+        title="No plots available"
+        description="No plots were generated for this DiffBind analysis."
+      />
     );
   }
 
@@ -70,6 +72,23 @@ export function DiffBindPlotsPanel({ jobId }: DiffBindPlotsPanelProps) {
         <PlotCard key={plot.plotType} jobId={jobId} plot={plot} />
       ))}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Loading placeholder — mirrors a plot card's title row, description, and image
+// ---------------------------------------------------------------------------
+
+function PlotCardSkeleton() {
+  return (
+    <Card>
+      <div className="mb-2 flex items-center justify-between">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-16" />
+      </div>
+      <Skeleton className="mb-3 h-3 w-full" />
+      <Skeleton className="h-48 w-full rounded-md" />
+    </Card>
   );
 }
 
@@ -161,8 +180,11 @@ function PlotCard({ jobId, plot }: PlotCardProps) {
       )}
 
       {imgError ? (
-        <div className="flex h-48 items-center justify-center rounded border border-border bg-muted">
-          <p className="text-xs text-red-500">Failed to load plot.</p>
+        <div className="flex h-48 items-center justify-center rounded-md border border-destructive/30 bg-destructive/10">
+          <span className="flex items-center gap-2 text-sm text-destructive">
+            <AlertCircle className="h-4 w-4" />
+            Failed to load plot.
+          </span>
         </div>
       ) : pngUrl ? (
         <img
@@ -172,9 +194,7 @@ function PlotCard({ jobId, plot }: PlotCardProps) {
           onError={() => setImgError(true)}
         />
       ) : (
-        <div className="flex h-48 items-center justify-center">
-          <Spinner />
-        </div>
+        <Skeleton className="h-48 w-full rounded-md" />
       )}
     </Card>
   );

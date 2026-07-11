@@ -1,25 +1,16 @@
 // frontend/src/components/igv/IGVPanel.tsx
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Maximize2, Minimize2, RefreshCw } from 'lucide-react';
+import { LineChart, Maximize2, Minimize2, RefreshCw } from 'lucide-react';
 import type { AnalysisJob, JobOutput, Reaction } from '@/api/types';
 import { Card } from '@/components/layout/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { SelectReactionsModal } from '@/components/igv/SelectReactionsModal';
 import { useJobOutputs } from '@/hooks/useJobs';
 import { useReactions } from '@/hooks/useReactions';
 import { useIGVTracks } from '@/hooks/useIGVTracks';
+import { useChartPalette, useChartToken } from '@/lib/chart-theme';
 import { GENOME_DISPLAY_NAMES } from '@/lib/constants';
 import type { Browser } from 'igv';
-
-const TRACK_COLORS = [
-  'rgb(70, 130, 180)',
-  'rgb(60, 179, 113)',
-  'rgb(186, 85, 211)',
-  'rgb(255, 140, 0)',
-  'rgb(220, 20, 60)',
-  'rgb(0, 128, 128)',
-  'rgb(139, 69, 19)',
-  'rgb(75, 0, 130)',
-];
 
 interface IGVPanelProps {
   job: AnalysisJob;
@@ -46,6 +37,10 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
   const prevTokensRef = useRef<string>('');
 
   const genome = job.params.reference_genome as string;
+
+  // Theme-reactive track colors (concrete hsl strings IGV.js can consume).
+  const trackPalette = useChartPalette();
+  const peakTrackColor = useChartToken('--ember');
 
   // Fetch reactions for this experiment
   const { data: reactionsData } = useReactions(experimentId);
@@ -133,7 +128,7 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
         height: 100,
         autoscale: true,
         autoscaleGroup: 'signal',
-        color: TRACK_COLORS[colorIdx % TRACK_COLORS.length],
+        color: trackPalette[colorIdx % trackPalette.length],
       });
       colorIdx++;
     }
@@ -156,13 +151,13 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
           format: getPeakTrackFormat(job),
           displayMode: 'EXPANDED',
           height: 40,
-          color: 'rgb(150, 0, 0)',
+          color: peakTrackColor,
         });
       }
     }
 
     return tracks;
-  }, [tokens, bigWigOutputs, bedOutputs, allReactions, job, mode]);
+  }, [tokens, bigWigOutputs, bedOutputs, allReactions, job, mode, trackPalette, peakTrackColor]);
 
   // IGV.js browser lifecycle
   useEffect(() => {
@@ -258,10 +253,10 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
         <div className="mb-4 flex flex-wrap items-center gap-3">
           {/* Reference Genome (read-only) */}
           <div className="flex items-center gap-2">
-            <label className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <label className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Reference Genome
             </label>
-            <span className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-foreground">
+            <span className="rounded-md border border-border bg-muted px-3 py-1.5 font-mono text-sm text-foreground">
               {genomeLabel}
             </span>
           </div>
@@ -272,11 +267,11 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-primary px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/5"
+            className="inline-flex items-center gap-2 rounded-full border border-primary px-4 py-1.5 text-sm font-medium text-primary transition-colors duration-150 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             + Select Reactions
             {hasSelections && (
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-white">
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 font-mono text-xs font-bold tabular-nums text-primary-foreground">
                 {selectedReactionIds.size}
               </span>
             )}
@@ -287,7 +282,7 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
             type="button"
             onClick={handleRefresh}
             disabled={!hasSelections}
-            className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-foreground hover:bg-muted disabled:opacity-50"
+            className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-foreground transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             title="Refresh"
           >
             <RefreshCw className="h-4 w-4" />
@@ -298,7 +293,7 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
             type="button"
             onClick={handleFullScreen}
             disabled={!hasSelections}
-            className="flex items-center rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-foreground hover:bg-muted disabled:opacity-50"
+            className="flex items-center rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-foreground transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             title="Full Screen"
           >
             {isFullScreen ? <Minimize2 className="mr-1.5 h-4 w-4" /> : <Maximize2 className="mr-1.5 h-4 w-4" />}
@@ -308,13 +303,13 @@ export function IGVPanel({ job, experimentId, mode }: IGVPanelProps) {
 
         {/* IGV Browser or Placeholder */}
         {hasSelections ? (
-          <div ref={containerRef} className="min-h-[400px] rounded border border-border" />
+          <div ref={containerRef} className="min-h-[400px] rounded-md border border-border" />
         ) : (
-          <div className="flex items-center justify-center rounded border border-dashed border-border py-20">
-            <p className="text-sm text-muted-foreground">
-              Please select Reference Genome and Reactions to render IGV...
-            </p>
-          </div>
+          <EmptyState
+            icon={LineChart}
+            title="No reactions selected"
+            description="Select a reference genome and reactions to render the IGV genome browser."
+          />
         )}
       </Card>
 

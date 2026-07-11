@@ -1,6 +1,6 @@
 // frontend/src/pages/experiment/PathwayAnalysisTab.tsx
-import { Share2 } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
+import { Clock, Share2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import type { Experiment } from '@/api/types';
@@ -42,11 +42,20 @@ export default function PathwayAnalysisTab() {
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-9 w-[220px]" />
+          </div>
+          <Skeleton className="h-6 w-20 rounded-full" />
         </div>
-      </Card>
+        <Card>
+          <Skeleton className="h-4 w-1/3" />
+          <Skeleton className="mt-3 h-4 w-full" />
+          <Skeleton className="mt-1.5 h-4 w-4/5" />
+        </Card>
+      </div>
     );
   }
 
@@ -66,7 +75,7 @@ export default function PathwayAnalysisTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Pathway Analysis
           </span>
           <Select value={String(activeJobId ?? '')} onValueChange={(val) => navigate(`/experiments/${id}/pathway/${val}`)}>
@@ -89,7 +98,7 @@ export default function PathwayAnalysisTab() {
             <button
               key={tab.key}
               onClick={() => setActiveSubTab(tab.key)}
-              className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
+              className={`px-4 py-2 text-sm font-medium transition-colors duration-150 ${
                 activeSubTab === tab.key
                   ? 'border-b-2 border-primary text-primary bg-primary/5 rounded-t-md'
                   : 'text-muted-foreground hover:text-foreground rounded-t-md hover:bg-muted/50'
@@ -108,9 +117,11 @@ export default function PathwayAnalysisTab() {
           <PathwayGOPanel jobId={job.id} />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              GO enrichment results will be available when the analysis completes.
-            </p>
+            <EmptyState
+              icon={Clock}
+              title="Results not ready"
+              description="GO enrichment results will be available when the analysis completes."
+            />
           </Card>
         )
       )}
@@ -120,9 +131,11 @@ export default function PathwayAnalysisTab() {
           <PathwayKEGGPanel jobId={job.id} />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              KEGG pathway results will be available when the analysis completes.
-            </p>
+            <EmptyState
+              icon={Clock}
+              title="Results not ready"
+              description="KEGG pathway results will be available when the analysis completes."
+            />
           </Card>
         )
       )}
@@ -132,9 +145,11 @@ export default function PathwayAnalysisTab() {
           <PathwayFilesPanel jobId={job.id} experimentId={experiment.id} />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              Files will be available when the analysis completes.
-            </p>
+            <EmptyState
+              icon={Clock}
+              title="Files not ready"
+              description="Files will be available when the analysis completes."
+            />
           </Card>
         )
       )}

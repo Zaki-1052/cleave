@@ -1,7 +1,7 @@
 // frontend/src/pages/experiment/AlignmentTab.tsx
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { Dna } from 'lucide-react';
+import { BarChart3, Dna, FileText, LineChart } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import type { Experiment } from '@/api/types';
 import RnaseqAlignmentTab from '@/components/rnaseq-alignment/RnaseqAlignmentTab';
@@ -67,13 +67,11 @@ function CutandrunAlignmentTab() {
 
   if (alignmentJobs.length === 0) {
     return (
-      <Card>
-        <EmptyState
-          icon={Dna}
-          title="No alignment runs yet"
-          description='Click "New Analysis" above to create an alignment run.'
-        />
-      </Card>
+      <EmptyState
+        icon={Dna}
+        title="No alignment runs yet"
+        description='Click "New Analysis" above to create an alignment run.'
+      />
     );
   }
 
@@ -82,7 +80,7 @@ function CutandrunAlignmentTab() {
       {/* Job selector + status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Alignments
           </span>
           <Select value={String(activeJobId ?? '')} onValueChange={(val) => navigate(`/experiments/${id}/alignment/${val}`)}>
@@ -106,10 +104,10 @@ function CutandrunAlignmentTab() {
             <button
               key={tab.key}
               onClick={() => setActiveSubTab(tab.key)}
-              className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
+              className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${
                 activeSubTab === tab.key
-                  ? 'border-b-2 border-primary text-primary bg-primary/5 rounded-t-md'
-                  : 'text-muted-foreground hover:text-foreground rounded-t-md hover:bg-muted/50'
+                  ? 'border-b-2 border-primary bg-primary/5 text-primary'
+                  : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
               }`}
             >
               {tab.label}
@@ -125,11 +123,11 @@ function CutandrunAlignmentTab() {
         job.status === 'complete' ? (
           <AlignmentQCReportPanel jobId={job.id} job={job} />
         ) : (
-          <Card>
-            <p className="text-sm text-muted-foreground">
-              QC report will be available when the alignment completes.
-            </p>
-          </Card>
+          <EmptyState
+            icon={BarChart3}
+            title="QC report not ready"
+            description="The QC report will be available when the alignment completes."
+          />
         )
       )}
 
@@ -141,11 +139,11 @@ function CutandrunAlignmentTab() {
         job.status === 'complete' ? (
           <AlignmentFilesPanel jobId={job.id} />
         ) : (
-          <Card>
-            <p className="text-sm text-muted-foreground">
-              Files will be available when the alignment completes.
-            </p>
-          </Card>
+          <EmptyState
+            icon={FileText}
+            title="Files not ready"
+            description="Files will be available when the alignment completes."
+          />
         )
       )}
 
@@ -153,11 +151,11 @@ function CutandrunAlignmentTab() {
         job.status === 'complete' ? (
           <IGVPanel job={job} experimentId={experiment.id} mode="alignment" />
         ) : (
-          <Card>
-            <p className="text-sm text-muted-foreground">
-              IGV browser will be available when the alignment completes.
-            </p>
-          </Card>
+          <EmptyState
+            icon={LineChart}
+            title="IGV not ready"
+            description="The IGV browser will be available when the alignment completes."
+          />
         )
       )}
     </div>

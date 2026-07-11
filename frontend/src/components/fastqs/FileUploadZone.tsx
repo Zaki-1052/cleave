@@ -209,7 +209,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
   return (
     <div className="mb-4">
       {uploadError && (
-        <div className="mb-3 rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+        <div className="mb-3 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-foreground/80">
           {uploadError}
         </div>
       )}
@@ -219,9 +219,9 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
         onDragEnter={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+        className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors duration-150 ${
           isDragOver
-            ? 'border-primary bg-primary/5'
+            ? 'border-primary bg-accent/40'
             : 'border-primary/40'
         }`}
       >
@@ -231,7 +231,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="cursor-pointer font-medium text-primary hover:underline"
+            className="cursor-pointer rounded font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Browse
           </button>
@@ -252,9 +252,9 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
 
       {fileStates.length > 0 && (
         <div className="mt-3">
-          <div className="mb-2 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             {fileStates.length} file{fileStates.length !== 1 ? 's' : ''}{' '}
-            {stagedFiles.length > 0 && <span className="font-mono">({formatBytes(totalStagedSize)})</span>}
+            {stagedFiles.length > 0 && <span className="font-mono tabular-nums">({formatBytes(totalStagedSize)})</span>}
           </div>
           <div className="max-h-48 overflow-y-auto rounded border border-border">
             {fileStates.map((fs, i) => (
@@ -264,15 +264,15 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
               >
                 <div className="min-w-0 flex-1">
                   <span className="truncate text-sm text-foreground">{fs.file.name}</span>
-                  <span className="ml-2 font-mono text-xs text-muted-foreground">{formatBytes(fs.file.size)}</span>
+                  <span className="ml-2 font-mono text-xs tabular-nums text-muted-foreground">{formatBytes(fs.file.size)}</span>
                   {fs.status === 'complete' && (
-                    <span className="ml-2 text-xs text-green-600">Done</span>
+                    <span className="ml-2 text-xs text-success">Done</span>
                   )}
                   {fs.status === 'error' && (
-                    <span className="ml-2 text-xs text-red-600">{fs.error || 'Failed'}</span>
+                    <span className="ml-2 text-xs text-destructive">{fs.error || 'Failed'}</span>
                   )}
                   {fs.status === 'uploading' && (
-                    <span className="ml-2 font-mono text-xs text-primary">{fs.progress}%</span>
+                    <span className="ml-2 font-mono text-xs tabular-nums text-primary">{fs.progress}%</span>
                   )}
                 </div>
                 {fs.status === 'uploading' && (
@@ -287,7 +287,8 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
                   <button
                     type="button"
                     onClick={() => removeFile(i)}
-                    className="ml-2 text-muted-foreground hover:text-red-500"
+                    aria-label="Remove file"
+                    className="ml-2 rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -296,7 +297,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
                   <button
                     type="button"
                     onClick={() => removeFile(i)}
-                    className="ml-2 text-xs text-muted-foreground hover:text-red-500"
+                    className="ml-2 rounded text-xs text-muted-foreground transition-colors duration-150 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     title="Cancel upload"
                   >
                     Cancel
@@ -314,7 +315,7 @@ export function FileUploadZone({ experimentId, onUploadComplete }: FileUploadZon
                   style={{ width: `${overallProgress}%` }}
                 />
               </div>
-              <p className="mt-1 font-mono text-xs text-muted-foreground">{overallProgress}% overall</p>
+              <p className="mt-1 font-mono text-xs tabular-nums text-muted-foreground">{overallProgress}% overall</p>
             </div>
           )}
 

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { WizardModal } from '@/components/ui/WizardModal';
 import { Button } from '@/components/ui/Button';
+import { Field } from '@/components/ui/Field';
 import { Card } from '@/components/layout/Card';
 import { ChooseBigWigSourceStep } from '@/components/ui/ChooseBigWigSourceStep';
 import { useBigWigOutputs } from '@/components/ui/useBigWigOutputs';
@@ -223,39 +224,35 @@ export function NewPearsonCorrelationWizard({
   const detailsStep = (
     <div className="grid gap-6 md:grid-cols-2">
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
+        <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Correlation Details
         </h3>
         <div className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-foreground">
-              Correlation Name <span className="text-red-500">*</span>
-            </label>
+          <Field label="Correlation Name" required>
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value.slice(0, 30))}
-                className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25"
                 placeholder="e.g., H3K4me3 replicate correlation"
               />
-              <span className="text-xs text-muted-foreground">{name.length}/30</span>
+              <span className="font-mono text-xs tabular-nums text-muted-foreground">{name.length}/30</span>
             </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-foreground">Notes</label>
+          </Field>
+          <Field label="Notes">
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
-              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25"
               placeholder="Optional notes about this analysis..."
             />
-          </div>
+          </Field>
         </div>
       </Card>
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">About</h3>
+        <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">About</h3>
         <div className="space-y-3 text-sm text-muted-foreground">
           <div>
             <h4 className="font-medium text-foreground">What is Pearson Correlation?</h4>
@@ -347,17 +344,17 @@ export function NewPearsonCorrelationWizard({
       submitLabel="Start Correlation"
       maxWidth="max-w-5xl"
       renderFooter={({ currentStep: step, onClose: close, onBack: back }) => (
-        <div className="flex flex-col border-t">
+        <div className="flex flex-col border-t border-border">
           {submitError && (
-            <div className="bg-red-50 dark:bg-red-950 px-6 py-2 text-sm text-red-600 dark:text-red-400">{submitError}</div>
+            <div className="bg-destructive/10 px-6 py-2 text-sm text-destructive">{submitError}</div>
           )}
           <div className="flex items-center justify-between px-6 py-4">
-            <button onClick={close} className="text-sm text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" onClick={close}>
               Cancel
-            </button>
+            </Button>
             <div className="flex gap-3">
               {step > 0 && (
-                <Button variant="outlined" onClick={back}>
+                <Button variant="outline" onClick={back}>
                   Back
                 </Button>
               )}

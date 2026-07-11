@@ -2,10 +2,11 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Info } from 'lucide-react';
+import { Info, Inbox } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { WizardModal } from '@/components/ui/WizardModal';
 import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/layout/Card';
 import { useCreateJob, useJobs, useJob, useJobOutputs } from '@/hooks/useJobs';
@@ -147,29 +148,29 @@ export function NewRnaseqQCWizard({
                 maxLength={30}
               />
             </div>
-            <div>
+            <div className="flex flex-col gap-1">
               <label
                 htmlFor="qc-notes"
-                className="font-display text-sm font-medium text-foreground"
+                className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground"
               >
-                Notes <span className="text-muted-foreground">(optional)</span>
+                Notes <span className="lowercase text-muted-foreground/70">(optional)</span>
               </label>
               <textarea
                 id="qc-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
                 rows={2}
               />
             </div>
           </div>
 
-          <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+          <Card className="border-info/25 bg-info/10">
             <div className="flex gap-3">
-              <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
-              <div className="text-sm text-blue-900 dark:text-blue-100">
-                <p className="font-semibold">About RSeQC + MultiQC</p>
-                <p className="mt-1 text-blue-700 dark:text-blue-300">
+              <Info className="mt-0.5 h-5 w-5 shrink-0 text-info" />
+              <div className="text-sm text-foreground/80">
+                <p className="font-semibold text-foreground">About RSeQC + MultiQC</p>
+                <p className="mt-1">
                   Runs 5 RSeQC modules per reaction: strandedness inference, read distribution
                   across genomic features, gene body coverage uniformity, fragment size distribution,
                   and splice junction saturation. MultiQC then aggregates all QC from fastp, STAR,
@@ -180,13 +181,15 @@ export function NewRnaseqQCWizard({
           </Card>
 
           <div>
-            <h3 className="mb-2 font-display text-sm font-semibold text-foreground">
+            <h3 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Choose Alignment Run
             </h3>
             {completedAlignments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No completed RNA-seq alignment runs available. Run a STAR alignment first.
-              </p>
+              <EmptyState
+                icon={Inbox}
+                title="No alignment runs available"
+                description="Run a completed RNA-seq (STAR) alignment first."
+              />
             ) : (
               <div className="space-y-2">
                 {completedAlignments.map((j) => (
@@ -207,7 +210,7 @@ export function NewRnaseqQCWizard({
                     />
                     <div className="flex-1">
                       <span className="text-sm font-medium text-foreground">{j.name}</span>
-                      <span className="ml-2 text-xs text-muted-foreground">#{j.id}</span>
+                      <span className="ml-2 font-mono text-xs tabular-nums text-muted-foreground">#{j.id}</span>
                     </div>
                   </label>
                 ))}
@@ -222,7 +225,7 @@ export function NewRnaseqQCWizard({
       content: (
         <div className="space-y-5">
           <Card>
-            <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
+            <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Configuration
             </h3>
             <div className="space-y-2 text-sm">
@@ -235,26 +238,26 @@ export function NewRnaseqQCWizard({
                 <span className="font-medium">
                   {selectedJob?.name ?? '—'}
                   {selectedJob && (
-                    <span className="ml-1 text-xs text-muted-foreground">#{selectedJob.id}</span>
+                    <span className="ml-1 font-mono text-xs tabular-nums text-muted-foreground">#{selectedJob.id}</span>
                   )}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Reactions</span>
-                <span className="font-medium">{reactions.length}</span>
+                <span className="font-mono font-medium tabular-nums">{reactions.length}</span>
               </div>
             </div>
           </Card>
 
           {reactions.length > 0 && (
             <Card>
-              <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
+              <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                 Reactions
               </h3>
               <div className="max-h-48 overflow-y-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b text-left text-xs font-medium uppercase text-muted-foreground">
+                    <tr className="border-b border-border text-left text-xs font-medium uppercase text-muted-foreground">
                       <th className="pb-2 pr-3">Short Name</th>
                       <th className="pb-2">BAM File</th>
                     </tr>
@@ -298,22 +301,19 @@ export function NewRnaseqQCWizard({
       submitLabel="Start QC Dashboard"
       maxWidth="max-w-3xl"
       renderFooter={({ currentStep: step, onClose: close, onBack: back }) => (
-        <div className="flex flex-col border-t">
+        <div className="flex flex-col border-t border-border">
           {submitError && (
-            <div className="bg-red-50 dark:bg-red-950 px-6 py-2 text-sm text-red-600 dark:text-red-400">
+            <div className="bg-destructive/10 px-6 py-2 text-sm text-destructive">
               {submitError}
             </div>
           )}
           <div className="flex items-center justify-between px-6 py-4">
-            <button
-              onClick={close}
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
+            <Button variant="ghost" onClick={close}>
               Cancel
-            </button>
+            </Button>
             <div className="flex gap-3">
               {step > 0 && (
-                <Button variant="outlined" onClick={back}>
+                <Button variant="outline" onClick={back}>
                   Back
                 </Button>
               )}

@@ -1,8 +1,8 @@
 // frontend/src/pages/experiment/PeakCallingTab.tsx
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { Mountain } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
+import { Clock, Mountain } from 'lucide-react';
+import { Skeleton } from '@/components/ui/Skeleton';
 import type { Experiment } from '@/api/types';
 import { PeakCallingFilesPanel } from '@/components/peak-calling/PeakCallingFilesPanel';
 import { PeakCallingInfoPanel } from '@/components/peak-calling/PeakCallingInfoPanel';
@@ -44,11 +44,26 @@ export default function PeakCallingTab() {
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-9 w-[220px] rounded-md" />
+          </div>
+          <Skeleton className="h-6 w-24 rounded-full" />
         </div>
-      </Card>
+        <div className="flex gap-2 border-b border-border pb-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-20 rounded-t-md" />
+          ))}
+        </div>
+        <Card>
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="mt-3 h-4 w-full" />
+          <Skeleton className="mt-1.5 h-4 w-5/6" />
+          <Skeleton className="mt-1.5 h-4 w-2/3" />
+        </Card>
+      </div>
     );
   }
 
@@ -69,7 +84,7 @@ export default function PeakCallingTab() {
       {/* Job selector + status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Peak Calling
           </span>
           <Select value={String(activeJobId ?? '')} onValueChange={(val) => navigate(`/experiments/${id}/peaks/${val}`)}>
@@ -93,7 +108,7 @@ export default function PeakCallingTab() {
             <button
               key={tab.key}
               onClick={() => setActiveSubTab(tab.key)}
-              className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
+              className={`px-4 py-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${
                 activeSubTab === tab.key
                   ? 'border-b-2 border-primary text-primary bg-primary/5 rounded-t-md'
                   : 'text-muted-foreground hover:text-foreground rounded-t-md hover:bg-muted/50'
@@ -115,9 +130,11 @@ export default function PeakCallingTab() {
           <PeakCallingQCReportPanel jobId={job.id} job={job} />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              QC report will be available when the peak calling completes.
-            </p>
+            <EmptyState
+              icon={Clock}
+              title="QC report not ready yet"
+              description="The QC report will be available when the peak calling completes."
+            />
           </Card>
         )
       )}
@@ -127,9 +144,11 @@ export default function PeakCallingTab() {
           <PeakCallingFilesPanel jobId={job.id} />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              Files will be available when the peak calling completes.
-            </p>
+            <EmptyState
+              icon={Clock}
+              title="Files not ready yet"
+              description="Output files will be available when the peak calling completes."
+            />
           </Card>
         )
       )}
@@ -139,9 +158,11 @@ export default function PeakCallingTab() {
           <IGVPanel job={job} experimentId={experiment.id} mode="peak_calling" />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              IGV browser will be available when the peak calling completes.
-            </p>
+            <EmptyState
+              icon={Clock}
+              title="IGV not ready yet"
+              description="The IGV browser will be available when the peak calling completes."
+            />
           </Card>
         )
       )}

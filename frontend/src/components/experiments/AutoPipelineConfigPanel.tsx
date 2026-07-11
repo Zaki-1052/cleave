@@ -93,18 +93,18 @@ export function AutoPipelineConfigPanel({
   return (
     <div className="space-y-5">
       <Card>
-        <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Pipeline Configuration
         </h3>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-foreground">
+            <label className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Reference Genome
             </label>
             <select
               value={referenceGenome}
               onChange={(e) => setReferenceGenome(e.target.value)}
-              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
             >
               <option value="">Select...</option>
               <option value="mm10">Mouse mm10</option>
@@ -115,7 +115,7 @@ export function AutoPipelineConfigPanel({
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-foreground">
+            <label className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Peak Caller
             </label>
             <select
@@ -125,7 +125,7 @@ export function AutoPipelineConfigPanel({
                 setPeakCaller(caller!);
                 setPeakSize(size!);
               }}
-              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
             >
               <option value="SEACR-stringent">SEACR Stringent (lab default)</option>
               <option value="SEACR-relaxed">SEACR Relaxed</option>
@@ -137,7 +137,7 @@ export function AutoPipelineConfigPanel({
       </Card>
 
       <Card>
-        <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Optional Analysis Steps
         </h3>
         <div className="space-y-2">
@@ -147,7 +147,7 @@ export function AutoPipelineConfigPanel({
               checked={isMouse && includeNormalization}
               onChange={(e) => setIncludeNormalization(e.target.checked)}
               disabled={!isMouse}
-              className="rounded text-primary disabled:opacity-50"
+              className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             />
             <div>
               <span className="text-sm font-medium text-foreground">
@@ -163,7 +163,7 @@ export function AutoPipelineConfigPanel({
               type="checkbox"
               checked={includeDiffbind}
               onChange={(e) => setIncludeDiffbind(e.target.checked)}
-              className="rounded text-primary"
+              className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             <div>
               <span className="text-sm font-medium text-foreground">DiffBind</span>
@@ -177,7 +177,7 @@ export function AutoPipelineConfigPanel({
               type="checkbox"
               checked={includeHeatmap}
               onChange={(e) => setIncludeHeatmap(e.target.checked)}
-              className="rounded text-primary"
+              className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             <span className="text-sm font-medium text-foreground">Custom Heatmaps</span>
           </label>
@@ -186,7 +186,7 @@ export function AutoPipelineConfigPanel({
               type="checkbox"
               checked={includePearson}
               onChange={(e) => setIncludePearson(e.target.checked)}
-              className="rounded text-primary"
+              className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             <span className="text-sm font-medium text-foreground">
               Pearson Correlation
@@ -196,7 +196,7 @@ export function AutoPipelineConfigPanel({
       </Card>
 
       <Card>
-        <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Pipeline Summary
         </h3>
         <div className="space-y-1">
@@ -207,7 +207,7 @@ export function AutoPipelineConfigPanel({
                 step.included ? 'text-foreground' : 'text-muted-foreground line-through'
               }`}
             >
-              <span className="w-5 text-center text-xs text-muted-foreground">
+              <span className="w-5 text-center font-mono text-xs tabular-nums text-muted-foreground">
                 {step.included ? i + 1 : '-'}
               </span>
               <span className={step.included ? 'font-medium' : ''}>{step.name}</span>
@@ -263,17 +263,17 @@ function RnaseqConfigPanel({
   return (
     <div className="space-y-5">
       <Card>
-        <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Pipeline Configuration
         </h3>
         <div>
-          <label className="mb-1 block text-sm font-medium text-foreground">
+          <label className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Reference Genome
           </label>
           <select
             value={referenceGenome}
             onChange={(e) => setReferenceGenome(e.target.value)}
-            className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           >
             <option value="">Select...</option>
             <option value="mm10">Mouse mm10</option>
@@ -283,7 +283,7 @@ function RnaseqConfigPanel({
       </Card>
 
       <Card>
-        <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Advanced Settings
         </h3>
         <label className="flex items-center gap-3">
@@ -291,7 +291,7 @@ function RnaseqConfigPanel({
             type="checkbox"
             checked={removeDuplicates}
             onChange={(e) => setRemoveDuplicates(e.target.checked)}
-            className="rounded text-primary"
+            className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
           <div>
             <span className="text-sm font-medium text-foreground">
@@ -305,7 +305,7 @@ function RnaseqConfigPanel({
       </Card>
 
       <Card>
-        <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Optional Analysis Steps
         </h3>
         <label className="flex items-center gap-3">
@@ -313,7 +313,7 @@ function RnaseqConfigPanel({
             type="checkbox"
             checked={includeQc}
             onChange={(e) => setIncludeQc(e.target.checked)}
-            className="rounded text-primary"
+            className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
           <div>
             <span className="text-sm font-medium text-foreground">QC Dashboard</span>
@@ -327,7 +327,7 @@ function RnaseqConfigPanel({
             type="checkbox"
             checked={includeDe}
             onChange={(e) => setIncludeDe(e.target.checked)}
-            className="rounded text-primary"
+            className="h-4 w-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
           <div>
             <span className="text-sm font-medium text-foreground">DE Analysis</span>
@@ -339,7 +339,7 @@ function RnaseqConfigPanel({
       </Card>
 
       <Card>
-        <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Pipeline Summary
         </h3>
         <div className="space-y-1">
@@ -350,7 +350,7 @@ function RnaseqConfigPanel({
                 step.included ? 'text-foreground' : 'text-muted-foreground line-through'
               }`}
             >
-              <span className="w-5 text-center text-xs text-muted-foreground">
+              <span className="w-5 text-center font-mono text-xs tabular-nums text-muted-foreground">
                 {step.included ? i + 1 : '-'}
               </span>
               <span className={step.included ? 'font-medium' : ''}>{step.name}</span>

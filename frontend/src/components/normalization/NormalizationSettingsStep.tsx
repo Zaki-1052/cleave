@@ -17,19 +17,19 @@ export function NormalizationSettingsStep({
     <div className="space-y-6">
       {/* Settings card */}
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
+        <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Normalization Settings
         </h3>
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-foreground">
+            <label className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Reference Genome
             </label>
             <input
               type="text"
               value={genome === 'mm10' ? 'Mouse mm10' : genome}
               readOnly
-              className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground"
+              className="w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"
             />
             <p className="mt-1 text-xs text-muted-foreground">
               Roman normalization is restricted to mouse (mm10) data.
@@ -37,12 +37,12 @@ export function NormalizationSettingsStep({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-foreground">Masking</label>
+            <label className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Masking</label>
             <input
               type="text"
               value="Applied (158 masked regions)"
               readOnly
-              className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground"
+              className="w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"
             />
             <p className="mt-1 text-xs text-muted-foreground">
               Manually curated regions with artificially high/low signal are excluded from
@@ -51,14 +51,14 @@ export function NormalizationSettingsStep({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-foreground">
+            <label className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Reference Sample
             </label>
             <input
               type="text"
               value={referenceSampleLabel}
               readOnly
-              className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground"
+              className="w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"
             />
             <p className="mt-1 text-xs text-muted-foreground">
               All samples are normalized relative to the first sample (NF = 1.0). Reorder
@@ -70,19 +70,19 @@ export function NormalizationSettingsStep({
 
       {/* Summary card */}
       <Card>
-        <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">Summary</h3>
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Summary</h3>
         <div className="space-y-1 text-sm text-muted-foreground">
           <p>
-            <strong>Genome:</strong> Mouse mm10
+            <strong className="font-medium text-foreground">Genome:</strong> Mouse mm10
           </p>
           <p>
-            <strong>Masking:</strong> 158 regions excluded
+            <strong className="font-medium text-foreground">Masking:</strong> 158 regions excluded
           </p>
           <p>
-            <strong>Reference sample:</strong> {referenceSampleLabel}
+            <strong className="font-medium text-foreground">Reference sample:</strong> {referenceSampleLabel}
           </p>
           <p>
-            <strong>Samples ({samples.length}):</strong>{' '}
+            <strong className="font-medium text-foreground">Samples ({samples.length}):</strong>{' '}
             {samples.map((s) => s.label).join(', ') || '(none)'}
           </p>
         </div>

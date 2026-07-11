@@ -1,12 +1,12 @@
 // frontend/src/components/custom-heatmap/CustomHeatmapPlotsPanel.tsx
-import { Download } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
+import { Download, AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { getOutputSignedUrl, downloadHeatmapMatrix } from '@/api/jobs';
 import type { CustomHeatmapPlotInfo } from '@/api/types';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useCustomHeatmapReport } from '@/hooks/useJobs';
 
 interface CustomHeatmapPlotsPanelProps {
@@ -19,21 +19,35 @@ export function CustomHeatmapPlotsPanel({ jobId }: CustomHeatmapPlotsPanelProps)
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-8 w-32" />
         </div>
-      </Card>
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Card key={i}>
+              <div className="mb-2 flex items-center justify-between">
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+              <Skeleton className="mb-3 h-4 w-3/4" />
+              <Skeleton className="h-48 w-full" />
+            </Card>
+          ))}
+        </div>
+      </div>
     );
   }
 
   if (error || !report) {
     return (
-      <Card>
-        <p className="text-sm text-red-600">
+      <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3">
+        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+        <p className="text-sm text-foreground/80">
           {error instanceof Error ? error.message : 'Failed to load heatmap report.'}
         </p>
-      </Card>
+      </div>
     );
   }
 
@@ -51,13 +65,13 @@ export function CustomHeatmapPlotsPanel({ jobId }: CustomHeatmapPlotsPanelProps)
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
           Signal around the {report.referencePoint} of reference regions in{' '}
-          <strong>{report.bedLabel}</strong>, with a <span className="font-mono">{report.flankingUpstream}</span> bp upstream and{' '}
-          <span className="font-mono">{report.flankingDownstream}</span> bp downstream flanking window.{' '}
-          <span className="font-mono">{report.sampleCount}</span> sample{report.sampleCount !== 1 ? 's' : ''} shown.
+          <strong>{report.bedLabel}</strong>, with a <span className="font-mono tabular-nums">{report.flankingUpstream}</span> bp upstream and{' '}
+          <span className="font-mono tabular-nums">{report.flankingDownstream}</span> bp downstream flanking window.{' '}
+          <span className="font-mono tabular-nums">{report.sampleCount}</span> sample{report.sampleCount !== 1 ? 's' : ''} shown.
         </p>
         {report.matrixOutputId != null && (
           <Button
-            variant="outlined"
+            variant="outline"
             onClick={handleDownloadMatrix}
             disabled={matrixDownloading}
             className="flex items-center gap-1 text-xs"
@@ -177,7 +191,7 @@ function PlotCard({ jobId, plotInfo, label, description, filenameBase }: PlotCar
 
       {imgError ? (
         <div className="flex h-48 items-center justify-center rounded border border-border bg-muted">
-          <p className="text-xs text-red-500">Failed to load plot.</p>
+          <p className="text-xs text-destructive">Failed to load plot.</p>
         </div>
       ) : pngUrl ? (
         <img
@@ -187,9 +201,7 @@ function PlotCard({ jobId, plotInfo, label, description, filenameBase }: PlotCar
           onError={() => setImgError(true)}
         />
       ) : (
-        <div className="flex h-48 items-center justify-center">
-          <Spinner />
-        </div>
+        <Skeleton className="h-48 w-full" />
       )}
     </Card>
   );

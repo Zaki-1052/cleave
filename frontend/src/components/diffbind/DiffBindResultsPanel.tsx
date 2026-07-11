@@ -1,13 +1,14 @@
 // frontend/src/components/diffbind/DiffBindResultsPanel.tsx
 import { type ColumnDef } from '@tanstack/react-table';
-import { Download } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
+import { AlertCircle, Download, Table2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { downloadDiffBindCounts, downloadDiffBindResults } from '@/api/jobs';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useDiffBindReport } from '@/hooks/useJobs';
 import { formatNumber } from '@/lib/utils';
 
@@ -15,44 +16,42 @@ interface DiffBindResultsPanelProps {
   jobId: number;
 }
 
+/** Significance tint for FDR / p-value pills: success (significant) → warning → destructive. */
 function fdrColor(fdr: number): string {
-  if (fdr < 0.05) return 'text-green-700 bg-green-50';
-  if (fdr < 0.1) return 'text-amber-700 bg-amber-50';
-  return 'text-red-700 bg-red-50';
+  if (fdr < 0.05) return 'text-success bg-success/10';
+  if (fdr < 0.1) return 'text-warning bg-warning/10';
+  return 'text-destructive bg-destructive/10';
 }
 
 function formatCellValue(value: string | number, columnName: string): React.ReactNode {
   const lowerCol = columnName.toLowerCase();
 
   if (typeof value === 'number') {
-    // FDR and p.value columns: color-coded
+    // FDR and p.value columns: color-coded pill, right-aligned
     if (lowerCol === 'fdr' || lowerCol === 'p.value') {
       return (
-        <span className={`rounded px-2 py-0.5 font-mono text-xs font-medium ${fdrColor(value)}`}>
-          {value.toExponential(2)}
+        <span className="block text-right">
+          <span className={`rounded px-2 py-0.5 font-mono text-xs font-medium tabular-nums ${fdrColor(value)}`}>
+            {value.toExponential(2)}
+          </span>
         </span>
       );
     }
-    // Fold change
+
+    let text: string;
     if (lowerCol === 'fold') {
-      return <span className="font-mono">{value.toFixed(3)}</span>;
+      text = value.toFixed(3);
+    } else if (lowerCol === 'start' || lowerCol === 'end' || lowerCol === 'width') {
+      // Genomic coordinates (integers): format with commas
+      text = formatNumber(value);
+    } else if (lowerCol.startsWith('conc')) {
+      // Concentration columns: 2 decimal places
+      text = value.toFixed(2);
+    } else {
+      text = Number.isInteger(value) ? formatNumber(value) : value.toFixed(4);
     }
-    // Genomic coordinates (integers): format with commas
-    if (lowerCol === 'start' || lowerCol === 'end' || lowerCol === 'width') {
-      return <span className="font-mono">{formatNumber(value)}</span>;
-    }
-    // Concentration columns: 2 decimal places
-    if (lowerCol.startsWith('conc')) {
-      return <span className="font-mono">{value.toFixed(2)}</span>;
-    }
-    // Default numeric
-    return (
-      <span className="font-mono">
-        {typeof value === 'number' && Number.isInteger(value)
-          ? formatNumber(value)
-          : value.toFixed(4)}
-      </span>
-    );
+
+    return <span className="block text-right font-mono tabular-nums">{text}</span>;
   }
 
   return String(value);
@@ -93,49 +92,63 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="mt-2 h-8 w-20" />
+            </Card>
+          ))}
         </div>
-      </Card>
+        <Card>
+          <Skeleton className="h-4 w-48" />
+          <div className="mt-4 space-y-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-8 w-full" />
+            ))}
+          </div>
+        </Card>
+      </div>
     );
   }
 
   if (error || !report) {
     return (
-      <Card>
-        <p className="text-sm text-red-600">
+      <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3">
+        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+        <p className="text-sm text-foreground/80">
           {error instanceof Error ? error.message : 'Failed to load DiffBind report.'}
         </p>
-      </Card>
+      </div>
     );
   }
 
   return (
     <div className="space-y-4">
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card>
-          <p className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Total Peaks
           </p>
-          <p className="mt-1 font-mono text-2xl font-bold text-foreground">
+          <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-foreground">
             {formatNumber(report.totalPeaks)}
           </p>
         </Card>
         <Card>
-          <p className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Significant (FDR &lt; 0.05)
           </p>
-          <p className="mt-1 font-mono text-2xl font-bold text-green-700">
+          <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-success">
             {formatNumber(report.significantPeaks005)}
           </p>
         </Card>
         <Card>
-          <p className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Significant (FDR &lt; 0.01)
           </p>
-          <p className="mt-1 font-mono text-2xl font-bold text-green-800">
+          <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-success">
             {formatNumber(report.significantPeaks001)}
           </p>
         </Card>
@@ -144,12 +157,12 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
       {/* Results table */}
       <Card>
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Differential Binding Results
           </h3>
           <div className="flex items-center gap-2">
             <Button
-              variant="outlined"
+              variant="outline"
               onClick={handleDownloadResults}
               disabled={downloadingResults}
               className="text-xs"
@@ -158,7 +171,7 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
               {downloadingResults ? 'Downloading...' : 'Download Results TSV'}
             </Button>
             <Button
-              variant="outlined"
+              variant="outline"
               onClick={handleDownloadCounts}
               disabled={downloadingCounts}
               className="text-xs"
@@ -172,15 +185,17 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
         {report.resultsPreview.length > 0 ? (
           <DataTable data={report.resultsPreview} columns={columns} pageSize={25} />
         ) : (
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            No differential binding results available.
-          </p>
+          <EmptyState
+            icon={Table2}
+            title="No results"
+            description="No differential binding results are available for this analysis."
+          />
         )}
       </Card>
 
       {/* Info panel */}
       <Card>
-        <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           About DiffBind Results
         </h3>
         <div className="space-y-3 text-xs text-muted-foreground">
@@ -204,19 +219,19 @@ export function DiffBindResultsPanel({ jobId }: DiffBindResultsPanelProps) {
               considered statistically significant.
             </p>
           </div>
-          <div className="border-t pt-3">
+          <div className="border-t border-border pt-3">
             <h4 className="font-semibold text-foreground">FDR Color Coding</h4>
             <div className="mt-1 space-y-1">
               <div className="flex items-center gap-2">
-                <span className="inline-block h-3 w-3 rounded bg-green-500" />
+                <span className="inline-block h-3 w-3 rounded bg-success" />
                 <span>&lt; 0.05 — Significant</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="inline-block h-3 w-3 rounded bg-amber-500" />
+                <span className="inline-block h-3 w-3 rounded bg-warning" />
                 <span>0.05 – 0.1 — Suggestive</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="inline-block h-3 w-3 rounded bg-red-500" />
+                <span className="inline-block h-3 w-3 rounded bg-destructive" />
                 <span>&ge; 0.1 — Not significant</span>
               </div>
             </div>

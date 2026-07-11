@@ -2,7 +2,9 @@
 import { type FormEvent, useEffect, useState } from 'react';
 import { Card } from '@/components/layout/Card';
 import { Input } from '@/components/ui/Input';
+import { Field } from '@/components/ui/Field';
 import { Button } from '@/components/ui/Button';
+import { PageHeader } from '@/components/ui/PageHeader';
 import {
   Select,
   SelectTrigger,
@@ -74,11 +76,11 @@ export default function SettingsPage() {
 
   return (
     <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-6">
-      <h2 className="font-display text-xl font-bold text-foreground">Account Settings</h2>
+      <PageHeader title="Settings" eyebrow="Account" className="mb-0" />
 
       {/* Account Information */}
       <Card>
-        <h3 className="mb-4 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Account Information
         </h3>
         <div className="flex flex-col gap-4">
@@ -106,18 +108,15 @@ export default function SettingsPage() {
 
       {/* Email Preferences */}
       <Card>
-        <h3 className="mb-4 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Email Preferences
         </h3>
         <div className="flex flex-col gap-4">
           <Input label="Account Email" value={user.email} disabled />
-          <div className="flex flex-col gap-1">
-            <label className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Job Email Notification
-            </label>
-            <p className="mb-1 text-xs text-muted-foreground">
-              Get an email notification when a job finishes running.
-            </p>
+          <Field
+            label="Job Email Notification"
+            help="Get an email notification when a job finishes running."
+          >
             <Select
               value={emailNotifications}
               onValueChange={(value) => {
@@ -136,21 +135,21 @@ export default function SettingsPage() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </Field>
         </div>
       </Card>
 
       {/* Feedback messages */}
       {saveSuccess && (
-        <p className="text-sm text-status-complete">Settings saved successfully.</p>
+        <p className="text-sm text-success">Settings saved successfully.</p>
       )}
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
       {/* Actions */}
       <div className="flex gap-3">
         <Button
           type="button"
-          variant="outlined"
+          variant="outline"
           onClick={handleCancel}
           disabled={!hasChanges && !saveSuccess}
         >

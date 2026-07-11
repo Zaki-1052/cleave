@@ -62,14 +62,14 @@ export function TrimConfigModal({
     <Modal isOpen={isOpen} onClose={onClose} title="Configure Trimming">
       <div className="space-y-4">
         <div>
-          <label htmlFor="trim-adapter-file" className="mb-1 block font-display text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <label htmlFor="trim-adapter-file" className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Adapter File
           </label>
           <select
             id="trim-adapter-file"
             value={params.adapterFile}
             onChange={(e) => handleChange('adapterFile', e.target.value)}
-            className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           >
             {ADAPTER_FILES.map((f) => (
               <option key={f} value={f}>{f}</option>
@@ -78,7 +78,7 @@ export function TrimConfigModal({
         </div>
 
         <div>
-          <label htmlFor="trim-illuminaclip" className="mb-1 block font-display text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <label htmlFor="trim-illuminaclip" className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             ILLUMINACLIP
           </label>
           <input
@@ -86,7 +86,7 @@ export function TrimConfigModal({
             type="text"
             value={params.illuminaclip}
             onChange={(e) => handleChange('illuminaclip', e.target.value)}
-            className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 font-mono text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           />
           <p className="mt-1 text-xs text-muted-foreground">
             seed:palindrome:simple:minAdapterLen:keepBothReads
@@ -95,7 +95,7 @@ export function TrimConfigModal({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="trim-leading" className="mb-1 block font-display text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <label htmlFor="trim-leading" className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Leading Quality
             </label>
             <input
@@ -103,11 +103,11 @@ export function TrimConfigModal({
               type="number"
               value={params.leading}
               onChange={(e) => handleChange('leading', Number(e.target.value))}
-              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 font-mono text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
             />
           </div>
           <div>
-            <label htmlFor="trim-trailing" className="mb-1 block font-display text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <label htmlFor="trim-trailing" className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Trailing Quality
             </label>
             <input
@@ -115,14 +115,14 @@ export function TrimConfigModal({
               type="number"
               value={params.trailing}
               onChange={(e) => handleChange('trailing', Number(e.target.value))}
-              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 font-mono text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="trim-slidingwindow" className="mb-1 block font-display text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <label htmlFor="trim-slidingwindow" className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Sliding Window
             </label>
             <input
@@ -130,12 +130,12 @@ export function TrimConfigModal({
               type="text"
               value={params.slidingwindow}
               onChange={(e) => handleChange('slidingwindow', e.target.value)}
-              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 font-mono text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
             />
             <p className="mt-1 text-xs text-muted-foreground">windowSize:requiredQuality</p>
           </div>
           <div>
-            <label htmlFor="trim-minlen" className="mb-1 block font-display text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <label htmlFor="trim-minlen" className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Min Length
             </label>
             <input
@@ -143,13 +143,13 @@ export function TrimConfigModal({
               type="number"
               value={params.minlen}
               onChange={(e) => handleChange('minlen', Number(e.target.value))}
-              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 font-mono text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="trim-kseq-length" className="mb-1 block font-display text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <label htmlFor="trim-kseq-length" className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             kseq_test Target Length (bp)
           </label>
           <input
@@ -157,7 +157,7 @@ export function TrimConfigModal({
             type="number"
             value={params.kseqLength}
             onChange={(e) => handleChange('kseqLength', Number(e.target.value))}
-            className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 font-mono text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           />
           <p className="mt-1 text-xs text-muted-foreground">
             Sequencing read length for kseq_test 3&apos; adapter trim{defaultKseqLength ? ` (detected: ${defaultKseqLength}bp)` : ' (default 42bp)'}
@@ -166,7 +166,7 @@ export function TrimConfigModal({
       </div>
 
       <div className="mt-6 flex justify-end gap-3">
-        <Button variant="outlined" onClick={onClose}>
+        <Button variant="outline" onClick={onClose}>
           Cancel
         </Button>
         <Button onClick={handleSubmit} disabled={isSubmitting}>

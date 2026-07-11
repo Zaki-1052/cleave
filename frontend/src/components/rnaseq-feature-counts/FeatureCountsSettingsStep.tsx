@@ -31,7 +31,7 @@ export function FeatureCountsSettingsStep({
     <div className="space-y-6">
       {/* Reference genome (read-only) */}
       <div>
-        <label className="font-display text-sm font-medium text-foreground">
+        <label className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Reference Genome
         </label>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -44,7 +44,7 @@ export function FeatureCountsSettingsStep({
 
       {/* Strandedness selector */}
       <div>
-        <label className="font-display text-sm font-medium text-foreground">
+        <label className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Strandedness
         </label>
         <p className="mt-1 mb-2 text-xs text-muted-foreground">
@@ -70,7 +70,7 @@ export function FeatureCountsSettingsStep({
 
       {/* Reactions summary */}
       <div>
-        <label className="font-display text-sm font-medium text-foreground">
+        <label className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Reactions ({reactions.length})
         </label>
         <p className="mt-1 mb-2 text-xs text-muted-foreground">
@@ -80,8 +80,8 @@ export function FeatureCountsSettingsStep({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="px-3 py-2 text-left font-medium text-muted-foreground">Short Name</th>
-                <th className="px-3 py-2 text-left font-medium text-muted-foreground">BAM File</th>
+                <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Short Name</th>
+                <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">BAM File</th>
               </tr>
             </thead>
             <tbody>

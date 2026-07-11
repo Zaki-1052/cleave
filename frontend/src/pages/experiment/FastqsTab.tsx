@@ -8,7 +8,9 @@ import { toast } from 'sonner';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
-import { Modal } from '@/components/ui/Modal';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { FileUploadZone } from '@/components/fastqs/FileUploadZone';
 import { FastqcReportModal } from '@/components/fastqs/FastqcReportModal';
 import { ServerImportModal } from '@/components/fastqs/ServerImportModal';
@@ -37,7 +39,7 @@ const staticColumns: ColumnDef<FastqFile, unknown>[] = [
         <span className="flex items-center gap-2">
           {row.filename}
           {row.isTrimmed && (
-            <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">
+            <span className="rounded-full bg-success/10 px-2 py-0.5 font-mono text-[11px] font-medium text-success ring-1 ring-inset ring-success/25">
               trimmed
             </span>
           )}
@@ -50,13 +52,15 @@ const staticColumns: ColumnDef<FastqFile, unknown>[] = [
     header: 'Size',
     cell: (info) => {
       const v = info.getValue<number | null>();
-      return v != null ? <span className="font-mono">{formatBytes(v)}</span> : '\u2014';
+      return v != null ? <span className="font-mono tabular-nums">{formatBytes(v)}</span> : '\u2014';
     },
   },
   {
     accessorKey: 'uploadedAt',
     header: 'Uploaded',
-    cell: (info) => formatDate(info.getValue<string>()),
+    cell: (info) => (
+      <span className="font-mono text-xs text-muted-foreground">{formatDate(info.getValue<string>())}</span>
+    ),
   },
 ];
 
@@ -142,7 +146,6 @@ export default function FastqsTab() {
   const [showServerImport, setShowServerImport] = useState(false);
   const [showLocalImport, setShowLocalImport] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<FastqFile | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [fastqcTarget, setFastqcTarget] = useState<FastqFile | null>(null);
   const [showTrimConfig, setShowTrimConfig] = useState(false);
   const [adapterDismissed, setAdapterDismissed] = useState(false);
@@ -266,9 +269,7 @@ export default function FastqsTab() {
         const row = info.row.original;
         if (!row.fastqcReportPath) {
           return row.totalReads == null ? (
-            <span className="text-muted-foreground animate-pulse" title="FastQC running...">
-              ...
-            </span>
+            <Skeleton className="inline-block h-4 w-10" title="FastQC running\u2026" />
           ) : (
             <span className="text-muted-foreground/50">{'\u2014'}</span>
           );
@@ -277,8 +278,9 @@ export default function FastqsTab() {
           <button
             type="button"
             onClick={() => setFastqcTarget(row)}
-            className="text-primary hover:text-primary/80"
-            title="View FastQC Report"
+            aria-label="View FastQC report"
+            title="View FastQC report"
+            className="rounded-md p-1.5 text-primary transition-colors duration-150 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <FileText className="h-5 w-5" />
           </button>
@@ -290,7 +292,7 @@ export default function FastqsTab() {
       header: 'Total Reads',
       cell: (info) => {
         const v = info.getValue<number | null>();
-        return v != null ? <span className="font-mono">{v.toLocaleString()}</span> : '\u2014';
+        return v != null ? <span className="font-mono tabular-nums">{v.toLocaleString()}</span> : '\u2014';
       },
     },
     {
@@ -299,12 +301,10 @@ export default function FastqsTab() {
       cell: (info) => (
         <button
           type="button"
-          onClick={() => {
-            setDeleteError(null);
-            setDeleteTarget(info.row.original);
-          }}
-          className="text-muted-foreground hover:text-red-500"
+          onClick={() => setDeleteTarget(info.row.original)}
+          aria-label="Delete file"
           title="Delete"
+          className="rounded-md p-2 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Trash2 className="h-4 w-4" />
         </button>
@@ -314,7 +314,6 @@ export default function FastqsTab() {
 
   function handleDelete() {
     if (!deleteTarget) return;
-    setDeleteError(null);
     deleteMutation.mutate(
       { experimentId: experiment.id, fastqId: deleteTarget.id },
       {
@@ -322,16 +321,8 @@ export default function FastqsTab() {
           setDeleteTarget(null);
           toast.success('File deleted');
         },
-        onError: () => setDeleteError('Failed to delete file. Please try again.'),
+        onError: () => toast.error('Failed to delete file. Please try again.'),
       },
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex h-40 items-center justify-center">
-        <Spinner size="lg" />
-      </div>
     );
   }
 
@@ -339,7 +330,7 @@ export default function FastqsTab() {
     <>
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             FASTQ Files
           </h3>
           {!isReadOnly && (
@@ -351,14 +342,14 @@ export default function FastqsTab() {
                 {showUpload ? 'Close' : '+ Add FASTQs'}
               </Button>
               <Button
-                variant="outlined"
+                variant="outline"
                 onClick={() => setShowServerImport(true)}
               >
                 <Server className="mr-1 h-4 w-4" />
                 Import from Server
               </Button>
               <Button
-                variant="outlined"
+                variant="outline"
                 onClick={() => setShowLocalImport(true)}
               >
                 <HardDrive className="mr-1 h-4 w-4" />
@@ -377,14 +368,14 @@ export default function FastqsTab() {
 
         {/* Adapter detection banner */}
         {showAdapterBanner && (
-          <div className="mb-4 rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+          <div className="mb-4 rounded-md border border-warning/25 bg-warning/10 px-4 py-3 text-sm text-foreground/80">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                <AlertTriangle className="h-5 w-5 shrink-0 text-warning" />
                 <span>
                   Adapters detected in{' '}
-                  <strong>{adapterState.filesWithAdapters.length}</strong> of{' '}
-                  {adapterState.rawFastqs.length} files — trimming recommended
+                  <strong className="font-mono tabular-nums">{adapterState.filesWithAdapters.length}</strong> of{' '}
+                  <span className="font-mono tabular-nums">{adapterState.rawFastqs.length}</span> files — trimming recommended
                 </span>
               </div>
               <div className="flex gap-2">
@@ -397,7 +388,7 @@ export default function FastqsTab() {
                   {createJobMutation.isPending ? 'Starting...' : 'Trim'}
                 </Button>
                 <Button
-                  variant="outlined"
+                  variant="outline"
                   className="!px-4 !py-1 text-xs"
                   onClick={() => setShowTrimConfig(true)}
                 >
@@ -417,9 +408,9 @@ export default function FastqsTab() {
 
         {/* Trimming in progress banner */}
         {isTrimmingInProgress && (
-          <div className="mb-4 rounded-md border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950 px-4 py-3 text-sm text-blue-700 dark:text-blue-300">
+          <div className="mb-4 rounded-md border border-info/25 bg-info/10 px-4 py-3 text-sm text-foreground/80">
             <div className="flex items-center gap-2">
-              <Spinner size="sm" className="text-blue-500" />
+              <Spinner size="sm" className="text-info" />
               <span>
                 Trimming in progress...{' '}
                 {trimmingJob?.status === 'queued' ? '(queued)' : '(running)'}
@@ -430,46 +421,40 @@ export default function FastqsTab() {
 
         {/* Trimming error banner */}
         {trimmingJob?.status === 'error' && (
-          <div className="mb-4 rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+          <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-foreground/80">
             Trimming failed: {trimmingJob.errorMessage ?? 'Unknown error'}
           </div>
         )}
 
-        {fastqs.length > 0 ? (
+        {isLoading ? (
+          <DataTable data={[]} columns={columnsWithActions} isLoading />
+        ) : fastqs.length > 0 ? (
           <DataTable data={fastqs} columns={columnsWithActions} />
         ) : (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            No FASTQ files uploaded yet. Click + Add FASTQs to get started.
-          </p>
+          <EmptyState
+            icon={FileText}
+            title="No FASTQ files yet"
+            description="Click + Add FASTQs to get started."
+          />
         )}
       </Card>
 
-      <Modal
-        isOpen={deleteTarget !== null}
-        onClose={() => setDeleteTarget(null)}
-        title="Delete FASTQ File"
-      >
-        <p className="mb-4 text-sm text-foreground">
-          Are you sure you want to delete{' '}
-          <span className="font-medium">{deleteTarget?.filename}</span>? This
-          action cannot be undone.
-        </p>
-        {deleteError && (
-          <p className="mb-3 text-sm text-red-600">{deleteError}</p>
-        )}
-        <div className="flex justify-end gap-3">
-          <Button variant="outlined" onClick={() => setDeleteTarget(null)}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleDelete}
-            disabled={deleteMutation.isPending}
-            className="bg-red-600 hover:bg-red-700"
-          >
-            {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-          </Button>
-        </div>
-      </Modal>
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="Delete FASTQ file"
+        description={
+          deleteTarget
+            ? `Delete ${deleteTarget.filename}? This action cannot be undone.`
+            : undefined
+        }
+        confirmLabel={deleteMutation.isPending ? 'Deleting…' : 'Delete'}
+        variant="destructive"
+        loading={deleteMutation.isPending}
+        onConfirm={handleDelete}
+      />
 
       <FastqcReportModal
         isOpen={fastqcTarget !== null}

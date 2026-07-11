@@ -1,8 +1,10 @@
 // frontend/src/components/rnaseq-qc/QCOverviewPanel.tsx
 import { useEffect, useState } from 'react';
-import { Download, Maximize2, Minimize2 } from 'lucide-react';
+import { Download, FileX, Maximize2, Minimize2 } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { Card } from '@/components/layout/Card';
 import { getOutputSignedUrl } from '@/api/jobs';
 import { useRnaseqQCDashboardReport } from '@/hooks/useJobs';
@@ -32,9 +34,14 @@ export function QCOverviewPanel({ jobId }: QCOverviewPanelProps) {
   if (reportLoading) {
     return (
       <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
+        <div className="mb-3 flex items-center justify-between">
+          <Skeleton className="h-4 w-32" />
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-24" />
+            <Skeleton className="h-8 w-28" />
+          </div>
         </div>
+        <Skeleton className="h-[600px] w-full rounded-md" />
       </Card>
     );
   }
@@ -42,9 +49,11 @@ export function QCOverviewPanel({ jobId }: QCOverviewPanelProps) {
   if (multiqcOutputId === null) {
     return (
       <Card>
-        <p className="text-sm text-muted-foreground">
-          MultiQC report not available for this job.
-        </p>
+        <EmptyState
+          icon={FileX}
+          title="Report not available"
+          description="No MultiQC report was produced for this job."
+        />
       </Card>
     );
   }
@@ -56,14 +65,14 @@ export function QCOverviewPanel({ jobId }: QCOverviewPanelProps) {
   if (isFullScreen) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col bg-card">
-        <div className="flex items-center gap-3 border-b px-4 py-2">
-          <span className="font-display text-sm font-semibold">MultiQC Report</span>
+        <div className="flex items-center gap-3 border-b border-border px-4 py-2">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">MultiQC Report</span>
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="outlined" onClick={handleDownload} disabled={!signedUrl}>
+            <Button variant="outline" onClick={handleDownload} disabled={!signedUrl}>
               <Download className="mr-1.5 h-4 w-4" />
               Download
             </Button>
-            <Button variant="outlined" onClick={() => setIsFullScreen(false)}>
+            <Button variant="outline" onClick={() => setIsFullScreen(false)}>
               <Minimize2 className="mr-1.5 h-4 w-4" />
               Exit Full Screen
             </Button>
@@ -90,15 +99,15 @@ export function QCOverviewPanel({ jobId }: QCOverviewPanelProps) {
   return (
     <Card>
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-display text-sm font-semibold uppercase text-muted-foreground">
+        <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           MultiQC Report
         </h3>
         <div className="flex items-center gap-2">
-          <Button variant="outlined" onClick={handleDownload} disabled={!signedUrl} className="text-xs">
+          <Button variant="outline" onClick={handleDownload} disabled={!signedUrl} className="text-xs">
             <Download className="mr-1.5 h-3.5 w-3.5" />
             Download
           </Button>
-          <Button variant="outlined" onClick={() => setIsFullScreen(true)} className="text-xs">
+          <Button variant="outline" onClick={() => setIsFullScreen(true)} className="text-xs">
             <Maximize2 className="mr-1.5 h-3.5 w-3.5" />
             Full Screen
           </Button>

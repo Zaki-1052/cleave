@@ -1,10 +1,12 @@
 // frontend/src/components/rnaseq-pathway/PathwayGOPanel.tsx
 import { useEffect, useState } from 'react';
-import { Download } from 'lucide-react';
+import { AlertCircle, Download, SearchX } from 'lucide-react';
 import { Card } from '@/components/layout/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { getOutputSignedUrl, downloadPathwayGOResults, downloadPathwayGeneList } from '@/api/jobs';
 import { usePathwayReport } from '@/hooks/useJobs';
@@ -26,16 +28,25 @@ export function PathwayGOPanel({ jobId }: PathwayGOPanelProps) {
   const [ontologyFilter, setOntologyFilter] = useState('');
 
   if (isLoading) {
-    return <Card><div className="flex h-40 items-center justify-center"><Spinner size="lg" /></div></Card>;
+    return (
+      <Card>
+        <div className="flex flex-wrap gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-24" />
+          ))}
+        </div>
+      </Card>
+    );
   }
 
   if (error || !report) {
     return (
-      <Card>
-        <p className="text-sm text-red-600 dark:text-red-400">
+      <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3">
+        <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+        <p className="text-sm text-foreground/80">
           {error instanceof Error ? error.message : 'Failed to load pathway report.'}
         </p>
-      </Card>
+      </div>
     );
   }
 
@@ -68,25 +79,26 @@ export function PathwayGOPanel({ jobId }: PathwayGOPanelProps) {
       <Card>
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="rounded-md border border-border bg-muted/50 px-4 py-2 text-center">
-            <div className="text-lg font-semibold font-display">{totalGo}</div>
+            <div className="font-mono text-lg font-semibold tabular-nums text-foreground">{totalGo}</div>
             <div className="text-xs text-muted-foreground">Total GO Terms</div>
           </div>
           <div className="rounded-md border border-border bg-muted/50 px-4 py-2 text-center">
-            <div className="text-lg font-semibold font-display">{report.goBpTerms}</div>
+            <div className="font-mono text-lg font-semibold tabular-nums text-foreground">{report.goBpTerms}</div>
             <div className="text-xs text-muted-foreground">BP</div>
           </div>
           <div className="rounded-md border border-border bg-muted/50 px-4 py-2 text-center">
-            <div className="text-lg font-semibold font-display">{report.goMfTerms}</div>
+            <div className="font-mono text-lg font-semibold tabular-nums text-foreground">{report.goMfTerms}</div>
             <div className="text-xs text-muted-foreground">MF</div>
           </div>
           <div className="rounded-md border border-border bg-muted/50 px-4 py-2 text-center">
-            <div className="text-lg font-semibold font-display">{report.goCcTerms}</div>
+            <div className="font-mono text-lg font-semibold tabular-nums text-foreground">{report.goCcTerms}</div>
             <div className="text-xs text-muted-foreground">CC</div>
           </div>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          {report.mappedEntrezGenes} of {report.totalInputGenes} genes mapped to Entrez IDs
-          ({report.unmappedGenes} unmapped)
+          <span className="font-mono tabular-nums">{report.mappedEntrezGenes}</span> of{' '}
+          <span className="font-mono tabular-nums">{report.totalInputGenes}</span> genes mapped to Entrez IDs
+          (<span className="font-mono tabular-nums">{report.unmappedGenes}</span> unmapped)
         </p>
       </Card>
 
@@ -100,16 +112,18 @@ export function PathwayGOPanel({ jobId }: PathwayGOPanelProps) {
 
       {totalGo === 0 && (
         <Card>
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            No significant GO terms found at the current FDR threshold.
-          </p>
+          <EmptyState
+            icon={SearchX}
+            title="No GO terms"
+            description="No significant GO terms found at the current FDR threshold."
+          />
         </Card>
       )}
 
       {filteredPreview.length > 0 && (
         <Card>
           <div className="flex items-center justify-between mb-3">
-            <h4 className="font-display text-sm font-semibold">GO Enrichment Results</h4>
+            <h4 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">GO Enrichment Results</h4>
             <div className="flex items-center gap-2">
               <Select value={ontologyFilter} onValueChange={setOntologyFilter}>
                 <SelectTrigger className="w-32 h-8 text-xs">
@@ -173,12 +187,12 @@ function GOPlotCard({ jobId, plot }: { jobId: number; plot: PathwayPlotInfo }) {
   return (
     <Card>
       <div className="mb-2 flex items-center justify-between">
-        <h4 className="font-display text-xs font-semibold text-foreground">{label}</h4>
+        <h4 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">{label}</h4>
         <button
           type="button"
           onClick={handleDownload}
           disabled={!pngUrl}
-          className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:opacity-40"
+          className="flex items-center gap-1 rounded text-xs text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
         >
           <Download className="h-3 w-3" />
           PNG
@@ -186,7 +200,7 @@ function GOPlotCard({ jobId, plot }: { jobId: number; plot: PathwayPlotInfo }) {
       </div>
       {imgError ? (
         <div className="flex h-48 items-center justify-center rounded border border-border bg-muted">
-          <p className="text-xs text-red-500">Failed to load plot.</p>
+          <p className="text-xs text-destructive">Failed to load plot.</p>
         </div>
       ) : pngUrl ? (
         <img

@@ -1,5 +1,6 @@
 // frontend/src/components/diffbind/DiffBindDetailsStep.tsx
 import { Card } from '@/components/layout/Card';
+import { Field } from '@/components/ui/Field';
 
 interface DiffBindDetailsStepProps {
   name: string;
@@ -15,52 +16,56 @@ export function DiffBindDetailsStep({
   setNotes,
 }: DiffBindDetailsStepProps) {
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col gap-6 lg:flex-row">
       <Card className="flex-[2]">
-        <h3 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           DiffBind Details
         </h3>
 
         <div className="mb-4">
           <div className="flex items-center justify-between">
-            <label className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              DiffBind Name <span className="text-red-500">*</span>
+            <label
+              htmlFor="db-name"
+              className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground"
+            >
+              DiffBind Name <span className="text-destructive">*</span>
             </label>
-            <span className="text-xs text-muted-foreground">{name.length} / 30</span>
+            <span className="font-mono text-xs tabular-nums text-muted-foreground">
+              {name.length} / 30
+            </span>
           </div>
           <input
+            id="db-name"
             type="text"
             required
             maxLength={30}
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Enter DiffBind analysis name"
-            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+            className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           />
         </div>
 
-        <div>
-          <label className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Notes
-          </label>
+        <Field label="Notes" htmlFor="db-notes">
           <textarea
-            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+            id="db-notes"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
             rows={4}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Optional notes about this DiffBind analysis"
           />
-        </div>
+        </Field>
       </Card>
 
       <Card className="flex-[3]">
-        <h3 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           About
         </h3>
 
         <div className="space-y-4 text-sm text-foreground">
           <div>
-            <h4 className="mb-1 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <h4 className="mb-1 text-sm font-semibold text-foreground">
               What is DiffBind?
             </h4>
             <p>
@@ -72,7 +77,7 @@ export function DiffBindDetailsStep({
           </div>
 
           <div>
-            <h4 className="mb-1 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <h4 className="mb-1 text-sm font-semibold text-foreground">
               What does the pipeline do?
             </h4>
             <p>
@@ -85,7 +90,7 @@ export function DiffBindDetailsStep({
           </div>
 
           <div>
-            <h4 className="mb-1 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <h4 className="mb-1 text-sm font-semibold text-foreground">
               Outputs
             </h4>
             <p>

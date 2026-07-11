@@ -54,7 +54,7 @@ export function RnaseqAlignmentInputPanel({ job, experimentId }: RnaseqAlignment
 
   return (
     <Card>
-      <h3 className="font-display mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
         Reactions
       </h3>
       <DataTable data={rows} columns={columns} pageSize={25} />

@@ -1,6 +1,7 @@
 // frontend/src/components/pearson-correlation/PearsonSettingsStep.tsx
 import { useState } from 'react';
 import { Card } from '@/components/layout/Card';
+import { Field } from '@/components/ui/Field';
 import { useJobs, useJobOutputs } from '@/hooks/useJobs';
 import { uploadBedFile } from '@/api/jobs';
 import type { AnalysisJob, Experiment, JobOutput } from '@/api/types';
@@ -88,24 +89,18 @@ export function PearsonSettingsStep({
     <div className="space-y-6">
       {/* Settings card */}
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
+        <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Correlation Settings
         </h3>
         <div className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-foreground">
-              Reference Genome
-            </label>
+          <Field label="Reference Genome" help="Inherited from the selected alignment run.">
             <input
               type="text"
               value={genomeLabel}
               readOnly
-              className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground"
+              className="w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"
             />
-            <p className="mt-1 text-xs text-muted-foreground">
-              Inherited from the selected alignment run.
-            </p>
-          </div>
+          </Field>
 
           {/* Optional BED restriction */}
           <div>
@@ -114,7 +109,7 @@ export function PearsonSettingsStep({
                 type="checkbox"
                 checked={restrictBed}
                 onChange={(e) => handleToggleRestrict(e.target.checked)}
-                className="rounded text-primary"
+                className="rounded accent-[hsl(var(--primary))]"
               />
               <span className="text-sm font-medium text-foreground">
                 Restrict to specific genomic regions (BED file)
@@ -136,7 +131,7 @@ export function PearsonSettingsStep({
                       setBedSource('peak_calling');
                       clearBed();
                     }}
-                    className="text-primary"
+                    className="accent-[hsl(var(--primary))]"
                   />
                   <span className="text-sm">From Peak Calling</span>
                 </label>
@@ -148,7 +143,7 @@ export function PearsonSettingsStep({
                       setBedSource('upload');
                       clearBed();
                     }}
-                    className="text-primary"
+                    className="accent-[hsl(var(--primary))]"
                   />
                   <span className="text-sm">Upload BED File</span>
                 </label>
@@ -162,10 +157,7 @@ export function PearsonSettingsStep({
                     </p>
                   ) : (
                     <>
-                      <div>
-                        <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                          Peak Calling Run
-                        </label>
+                      <Field label="Peak Calling Run">
                         <select
                           value={selectedPeakJobId ?? ''}
                           onChange={(e) => {
@@ -174,7 +166,7 @@ export function PearsonSettingsStep({
                             setBedPath('');
                             setBedLabel('');
                           }}
-                          className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                          className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
                           <option value="">Select a peak calling run...</option>
                           {peakCallingJobs.map((j: AnalysisJob) => (
@@ -183,18 +175,15 @@ export function PearsonSettingsStep({
                             </option>
                           ))}
                         </select>
-                      </div>
+                      </Field>
                       {selectedPeakJobId && bedOutputs.length > 0 && (
-                        <div>
-                          <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                            BED File
-                          </label>
+                        <Field label="BED File">
                           <select
                             value={bedPath ? bedOutputs.find((o) => o.filePath === bedPath)?.id ?? '' : ''}
                             onChange={(e) =>
                               e.target.value ? handleSelectBedOutput(Number(e.target.value)) : null
                             }
-                            className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           >
                             <option value="">Select a BED file...</option>
                             {bedOutputs.map((o) => (
@@ -203,7 +192,7 @@ export function PearsonSettingsStep({
                               </option>
                             ))}
                           </select>
-                        </div>
+                        </Field>
                       )}
                     </>
                   )}
@@ -229,7 +218,7 @@ export function PearsonSettingsStep({
               )}
 
               {bedPath && (
-                <div className="rounded-md bg-green-50 dark:bg-green-950 px-3 py-2 text-sm text-green-700 dark:text-green-300">
+                <div className="rounded-md border border-success/25 bg-success/10 px-3 py-2 text-sm text-success">
                   Selected: <strong>{bedLabel}</strong>
                 </div>
               )}
@@ -240,13 +229,13 @@ export function PearsonSettingsStep({
 
       {/* Summary card */}
       <Card>
-        <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">Summary</h3>
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Summary</h3>
         <div className="space-y-1 text-sm text-muted-foreground">
           <p>
             <strong>Genome:</strong> {genomeLabel}
           </p>
           <p>
-            <strong>Samples:</strong> {samples.length}
+            <strong>Samples:</strong> <span className="font-mono tabular-nums">{samples.length}</span>
           </p>
           <p>
             <strong>Labels:</strong>{' '}

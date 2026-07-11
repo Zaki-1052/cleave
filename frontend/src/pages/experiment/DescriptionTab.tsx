@@ -5,12 +5,14 @@ import { Pencil, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Experiment } from '@/api/types';
 import { Card } from '@/components/layout/Card';
+import { Button } from '@/components/ui/Button';
 import { DetailRow } from '@/components/ui/DetailRow';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { StorageGauge } from '@/components/ui/StorageGauge';
 import { useStorageInfo } from '@/hooks/useProjects';
 import { useUpdateExperiment } from '@/hooks/useExperiments';
 import { formatDate, getDisplayName } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 interface ExperimentContext {
   experiment: Experiment;
@@ -86,9 +88,9 @@ export default function DescriptionTab() {
   }
 
   return (
-    <div className="flex gap-4">
-      <Card className="flex-[2]">
-        <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+    <div className="flex flex-col gap-4 md:flex-row">
+      <Card className="md:flex-[2]">
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Details
         </h3>
         <div>
@@ -105,13 +107,13 @@ export default function DescriptionTab() {
                     if (e.key === 'Escape') setEditingName(false);
                   }}
                   maxLength={100}
-                  className="w-full rounded border border-border bg-background px-2 py-0.5 text-sm focus:border-primary focus:outline-none"
+                  className="w-full rounded-md border border-input bg-card px-2 py-0.5 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
                   disabled={updateMutation.isPending}
                 />
-                <button type="button" onClick={saveName} disabled={updateMutation.isPending} className="text-green-600 hover:text-green-700 dark:text-green-400">
+                <button type="button" onClick={saveName} disabled={updateMutation.isPending} aria-label="Save name" className="rounded-md p-1 text-success transition-colors duration-150 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   <Check className="h-3.5 w-3.5" />
                 </button>
-                <button type="button" onClick={() => setEditingName(false)} className="text-muted-foreground hover:text-foreground">
+                <button type="button" onClick={() => setEditingName(false)} aria-label="Cancel editing name" className="rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -119,7 +121,7 @@ export default function DescriptionTab() {
               <span className="group inline-flex items-center gap-1.5">
                 {experiment.name}
                 {!isReadOnly && (
-                  <button type="button" onClick={startEditingName} className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground">
+                  <button type="button" onClick={startEditingName} aria-label="Edit name" className="rounded-md p-1 text-muted-foreground opacity-0 transition-all duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100">
                     <Pencil className="h-3 w-3" />
                   </button>
                 )}
@@ -140,13 +142,13 @@ export default function DescriptionTab() {
           </DetailRow>
         </div>
       </Card>
-      <Card className="flex-[3]">
+      <Card className="md:flex-[3]">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Description
           </h3>
           {!isReadOnly && !editingDesc && (
-            <button type="button" onClick={startEditingDesc} className="text-muted-foreground hover:text-foreground">
+            <button type="button" onClick={startEditingDesc} aria-label="Edit description" className="rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
               <Pencil className="h-3.5 w-3.5" />
             </button>
           )}
@@ -161,17 +163,17 @@ export default function DescriptionTab() {
                 if (e.key === 'Escape') setEditingDesc(false);
               }}
               rows={4}
-              className="w-full rounded border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
               placeholder="Add a description..."
               disabled={updateMutation.isPending}
             />
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => setEditingDesc(false)} className="rounded px-2.5 py-1 text-xs text-muted-foreground hover:bg-muted">
+              <Button variant="ghost" size="sm" type="button" onClick={() => setEditingDesc(false)}>
                 Cancel
-              </button>
-              <button type="button" onClick={saveDesc} disabled={updateMutation.isPending} className="rounded bg-primary px-2.5 py-1 text-xs text-white hover:bg-primary/90">
+              </Button>
+              <Button size="sm" type="button" onClick={saveDesc} loading={updateMutation.isPending}>
                 Save
-              </button>
+              </Button>
             </div>
           </div>
         ) : experiment.description ? (
@@ -180,7 +182,10 @@ export default function DescriptionTab() {
           <button
             type="button"
             onClick={!isReadOnly ? startEditingDesc : undefined}
-            className={`text-sm text-muted-foreground ${!isReadOnly ? 'cursor-pointer hover:text-foreground' : ''}`}
+            className={cn(
+              'rounded text-sm text-muted-foreground transition-colors duration-150',
+              !isReadOnly && 'cursor-pointer hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            )}
           >
             {isReadOnly ? 'No description provided' : 'Click to add a description...'}
           </button>

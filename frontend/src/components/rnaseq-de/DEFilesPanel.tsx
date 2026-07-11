@@ -1,7 +1,6 @@
 // frontend/src/components/rnaseq-de/DEFilesPanel.tsx
 import { type ColumnDef } from '@tanstack/react-table';
 import { Download } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
 import { useMemo, useState } from 'react';
 
 import { batchDownloadJobFiles } from '@/api/jobs';
@@ -9,6 +8,7 @@ import type { JobOutput } from '@/api/types';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
+import { Field } from '@/components/ui/Field';
 import { useJobOutputs } from '@/hooks/useJobs';
 import { RNASEQ_DE_FILE_CATEGORIES } from '@/lib/constants';
 import { formatBytes } from '@/lib/utils';
@@ -82,7 +82,7 @@ export function DEFilesPanel({ jobId }: DEFilesPanelProps) {
             checked={outputs != null && outputs.length > 0 && selectedIds.size === outputs.length}
             onChange={toggleAll}
             aria-label="Select all files"
-            className="h-4 w-4 rounded border-border"
+            className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         ),
         cell: ({ row }) => (
@@ -91,7 +91,7 @@ export function DEFilesPanel({ jobId }: DEFilesPanelProps) {
             checked={selectedIds.has(row.original.id)}
             onChange={() => toggleSelection(row.original.id)}
             aria-label={`Select ${row.original.filename}`}
-            className="h-4 w-4 rounded border-border"
+            className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         ),
         size: 40,
@@ -104,7 +104,7 @@ export function DEFilesPanel({ jobId }: DEFilesPanelProps) {
         header: 'Size',
         cell: ({ getValue }) => {
           const bytes = getValue() as number | null;
-          return bytes != null ? <span className="font-mono">{formatBytes(bytes)}</span> : '--';
+          return bytes != null ? <span className="font-mono tabular-nums">{formatBytes(bytes)}</span> : '--';
         },
       },
     ],
@@ -116,24 +116,20 @@ export function DEFilesPanel({ jobId }: DEFilesPanelProps) {
     <Card>
       <div className="mb-4 flex items-start gap-4">
         <div className="shrink-0">
-          <label
-            htmlFor="de-file-category"
-            className="mb-1 block font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-          >
-            Files
-          </label>
-          <select
-            id="de-file-category"
-            value={selectedCategory}
-            onChange={handleCategoryChange}
-            className="rounded-md border border-border px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-          >
-            {RNASEQ_DE_FILE_CATEGORIES.map((cat) => (
-              <option key={cat.value} value={cat.value}>
-                {cat.label}
-              </option>
-            ))}
-          </select>
+          <Field label="Files" htmlFor="de-file-category">
+            <select
+              id="de-file-category"
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+              className="rounded-md border border-input bg-card px-3 py-1.5 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {RNASEQ_DE_FILE_CATEGORIES.map((cat) => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.label}
+                </option>
+              ))}
+            </select>
+          </Field>
         </div>
         {categoryInfo && (
           <p className="mt-5 text-xs text-muted-foreground">{categoryInfo.description}</p>
@@ -142,7 +138,7 @@ export function DEFilesPanel({ jobId }: DEFilesPanelProps) {
 
       <div className="mb-3 flex items-center gap-2">
         <Button
-          variant="outlined"
+          variant="outline"
           onClick={handleDownload}
           disabled={selectedIds.size === 0 || downloading}
           className="text-xs"
@@ -152,13 +148,7 @@ export function DEFilesPanel({ jobId }: DEFilesPanelProps) {
         </Button>
       </div>
 
-      {isLoading ? (
-        <div className="flex h-20 items-center justify-center">
-          <Spinner />
-        </div>
-      ) : (
-        <DataTable data={outputs ?? []} columns={columns} pageSize={25} />
-      )}
+      <DataTable data={outputs ?? []} columns={columns} pageSize={25} isLoading={isLoading} />
     </Card>
   );
 }

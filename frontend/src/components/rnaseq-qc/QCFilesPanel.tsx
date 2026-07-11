@@ -7,7 +7,6 @@ import type { JobOutput } from '@/api/types';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
-import { Spinner } from '@/components/ui/Spinner';
 import { useJobOutputs } from '@/hooks/useJobs';
 import { RNASEQ_QC_FILE_CATEGORIES } from '@/lib/constants';
 import { formatBytes } from '@/lib/utils';
@@ -77,7 +76,7 @@ export function QCFilesPanel({ jobId }: QCFilesPanelProps) {
             checked={outputs != null && outputs.length > 0 && selectedIds.size === outputs.length}
             onChange={toggleAll}
             aria-label="Select all files"
-            className="h-4 w-4 rounded border-border"
+            className="h-4 w-4 rounded border-input accent-primary"
           />
         ),
         cell: ({ row }) => (
@@ -86,7 +85,7 @@ export function QCFilesPanel({ jobId }: QCFilesPanelProps) {
             checked={selectedIds.has(row.original.id)}
             onChange={() => toggleSelection(row.original.id)}
             aria-label={`Select ${row.original.filename}`}
-            className="h-4 w-4 rounded border-border"
+            className="h-4 w-4 rounded border-input accent-primary"
           />
         ),
         size: 40,
@@ -99,7 +98,7 @@ export function QCFilesPanel({ jobId }: QCFilesPanelProps) {
         header: 'Size',
         cell: ({ getValue }) => {
           const bytes = getValue() as number | null;
-          return bytes != null ? <span className="font-mono">{formatBytes(bytes)}</span> : '—';
+          return bytes != null ? <span className="font-mono tabular-nums">{formatBytes(bytes)}</span> : '—';
         },
       },
     ],
@@ -113,7 +112,7 @@ export function QCFilesPanel({ jobId }: QCFilesPanelProps) {
         <div className="shrink-0">
           <label
             htmlFor="qc-file-category"
-            className="mb-1 block font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+            className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground"
           >
             Files
           </label>
@@ -121,7 +120,7 @@ export function QCFilesPanel({ jobId }: QCFilesPanelProps) {
             id="qc-file-category"
             value={selectedCategory}
             onChange={handleCategoryChange}
-            className="rounded-md border border-border px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            className="rounded-md border border-input bg-card px-3 py-1.5 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
           >
             {RNASEQ_QC_FILE_CATEGORIES.map((cat) => (
               <option key={cat.value} value={cat.value}>
@@ -137,7 +136,7 @@ export function QCFilesPanel({ jobId }: QCFilesPanelProps) {
 
       <div className="mb-3 flex items-center gap-2">
         <Button
-          variant="outlined"
+          variant="outline"
           onClick={handleDownload}
           disabled={selectedIds.size === 0 || downloading}
           className="text-xs"
@@ -147,13 +146,7 @@ export function QCFilesPanel({ jobId }: QCFilesPanelProps) {
         </Button>
       </div>
 
-      {isLoading ? (
-        <div className="flex h-20 items-center justify-center">
-          <Spinner />
-        </div>
-      ) : (
-        <DataTable data={outputs ?? []} columns={columns} pageSize={25} />
-      )}
+      <DataTable data={outputs ?? []} columns={columns} pageSize={25} isLoading={isLoading} />
     </Card>
   );
 }

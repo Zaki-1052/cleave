@@ -1,13 +1,13 @@
 // frontend/src/components/rnaseq-feature-counts/FeatureCountsTab.tsx
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { ListOrdered } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
+import { FolderOpen, ListOrdered } from 'lucide-react';
 import type { Experiment } from '@/api/types';
 import { AlignmentFilesPanel } from '@/components/alignment/AlignmentFilesPanel';
 import { AlignmentInfoPanel } from '@/components/alignment/AlignmentInfoPanel';
 import { Card } from '@/components/layout/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs } from '@/hooks/useJobs';
@@ -39,11 +39,21 @@ export default function FeatureCountsTab() {
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-9 w-[220px] rounded-md" />
+          </div>
+          <Skeleton className="h-6 w-24 rounded-full" />
         </div>
-      </Card>
+        <Skeleton className="h-9 w-full" />
+        <Card>
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="mt-4 h-4 w-full" />
+          <Skeleton className="mt-2 h-4 w-4/5" />
+        </Card>
+      </div>
     );
   }
 
@@ -64,7 +74,7 @@ export default function FeatureCountsTab() {
       {/* Job selector + status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             featureCounts
           </span>
           <Select
@@ -91,10 +101,10 @@ export default function FeatureCountsTab() {
             <button
               key={tab.key}
               onClick={() => setActiveSubTab(tab.key)}
-              className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
+              className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 activeSubTab === tab.key
-                  ? 'border-b-2 border-primary text-primary bg-primary/5 rounded-t-md'
-                  : 'text-muted-foreground hover:text-foreground rounded-t-md hover:bg-muted/50'
+                  ? 'border-b-2 border-primary bg-primary/5 text-primary'
+                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
               }`}
             >
               {tab.label}
@@ -111,9 +121,11 @@ export default function FeatureCountsTab() {
           <AlignmentFilesPanel jobId={job.id} categories={RNASEQ_FEATURE_COUNTS_FILE_CATEGORIES} />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              Files will be available when featureCounts completes.
-            </p>
+            <EmptyState
+              icon={FolderOpen}
+              title="Files not ready"
+              description="Output files will be available when featureCounts completes."
+            />
           </Card>
         )
       )}

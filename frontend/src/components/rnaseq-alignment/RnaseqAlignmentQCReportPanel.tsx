@@ -1,7 +1,7 @@
 // frontend/src/components/rnaseq-alignment/RnaseqAlignmentQCReportPanel.tsx
 import { type ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { ChevronDown, Download } from 'lucide-react';
+import { BarChart3, ChevronDown, Download } from 'lucide-react';
 import {
   Bar,
   BarChart,
@@ -17,7 +17,10 @@ import type { RnaseqAlignmentReactionMetrics } from '@/api/types';
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
-import { Spinner } from '@/components/ui/Spinner';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { ChartTooltipContent } from '@/components/ui/ChartTooltip';
+import { useChartAxisProps, useChartPalette, useChartToken } from '@/lib/chart-theme';
 import { useRnaseqQCReport } from '@/hooks/useJobs';
 import { formatNumber } from '@/lib/utils';
 
@@ -25,16 +28,14 @@ interface RnaseqAlignmentQCReportPanelProps {
   jobId: number;
 }
 
-const MAPPING_COLORS = {
-  uniquelyMapped: '#1E88E5',
-  multiMapped: '#FFA000',
-  unmapped: '#9E9E9E',
-};
-
 export function RnaseqAlignmentQCReportPanel({ jobId }: RnaseqAlignmentQCReportPanelProps) {
   const { data: report, isLoading } = useRnaseqQCReport(jobId);
   const [showInfo, setShowInfo] = useState(false);
   const [downloading, setDownloading] = useState(false);
+
+  const palette = useChartPalette();
+  const axisProps = useChartAxisProps();
+  const cursorFill = useChartToken('--accent');
 
   const starColumns: ColumnDef<RnaseqAlignmentReactionMetrics, unknown>[] = useMemo(
     () => [
@@ -156,18 +157,32 @@ export function RnaseqAlignmentQCReportPanel({ jobId }: RnaseqAlignmentQCReportP
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
-        </div>
-      </Card>
+      <div className="space-y-4">
+        <Card>
+          <Skeleton className="h-4 w-40" />
+        </Card>
+        {[0, 1].map((i) => (
+          <Card key={i}>
+            <Skeleton className="mb-4 h-4 w-56" />
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, r) => (
+                <Skeleton key={r} className="h-8 w-full" />
+              ))}
+            </div>
+          </Card>
+        ))}
+      </div>
     );
   }
 
   if (!report) {
     return (
       <Card>
-        <p className="text-sm text-muted-foreground">QC report data not available.</p>
+        <EmptyState
+          icon={BarChart3}
+          title="QC report unavailable"
+          description="No QC report data was found for this alignment run."
+        />
       </Card>
     );
   }
@@ -183,10 +198,10 @@ export function RnaseqAlignmentQCReportPanel({ jobId }: RnaseqAlignmentQCReportP
           onClick={() => setShowInfo(!showInfo)}
           className="flex w-full items-center justify-between text-sm font-medium text-foreground"
         >
-          <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             About These Metrics
           </span>
-          <ChevronDown className={`h-4 w-4 transition-transform ${showInfo ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`h-4 w-4 transition-transform duration-150 ${showInfo ? 'rotate-180' : ''}`} />
         </button>
         {showInfo && (
           <div className="mt-3 space-y-2 text-xs text-muted-foreground">
@@ -202,11 +217,11 @@ export function RnaseqAlignmentQCReportPanel({ jobId }: RnaseqAlignmentQCReportP
       {/* STAR Alignment Metrics */}
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             STAR Alignment Metrics
           </h3>
           <span className="text-xs text-muted-foreground">
-            Genome: {report.referenceGenome}
+            Genome: <span className="font-mono">{report.referenceGenome}</span>
           </span>
         </div>
         <DataTable data={report.metrics} columns={starColumns} pageSize={25} />
@@ -214,7 +229,7 @@ export function RnaseqAlignmentQCReportPanel({ jobId }: RnaseqAlignmentQCReportP
 
       {/* Salmon Quantification Metrics */}
       <Card>
-        <h3 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Salmon Quantification Metrics
         </h3>
         <DataTable data={report.metrics} columns={salmonColumns} pageSize={25} />
@@ -223,20 +238,25 @@ export function RnaseqAlignmentQCReportPanel({ jobId }: RnaseqAlignmentQCReportP
       {/* Mapping Rates Chart */}
       {chartData.length > 0 && (
         <Card>
-          <h3 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             STAR Mapping Rates
           </h3>
           <ResponsiveContainer width="100%" height={chartHeight}>
             <BarChart data={chartData} layout="vertical" margin={{ left: 20, right: 30, top: 5, bottom: 5 }}>
-              <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-              <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 12 }} />
+              <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} {...axisProps} />
+              <YAxis type="category" dataKey="name" width={120} {...axisProps} />
               <Tooltip
-                formatter={(value: number, name: string) => [`${value.toFixed(2)}%`, name]}
+                cursor={{ fill: cursorFill, fillOpacity: 0.4 }}
+                content={
+                  <ChartTooltipContent
+                    formatValue={(v) => (v == null ? '' : `${Number(v).toFixed(2)}%`)}
+                  />
+                }
               />
-              <Legend />
-              <Bar dataKey="Uniquely Mapped" stackId="mapping" fill={MAPPING_COLORS.uniquelyMapped} />
-              <Bar dataKey="Multi-Mapped" stackId="mapping" fill={MAPPING_COLORS.multiMapped} />
-              <Bar dataKey="Unmapped" stackId="mapping" fill={MAPPING_COLORS.unmapped} />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Bar dataKey="Uniquely Mapped" stackId="mapping" fill={palette[0]} />
+              <Bar dataKey="Multi-Mapped" stackId="mapping" fill={palette[1]} />
+              <Bar dataKey="Unmapped" stackId="mapping" fill={palette[2]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -244,7 +264,7 @@ export function RnaseqAlignmentQCReportPanel({ jobId }: RnaseqAlignmentQCReportP
 
       {/* CSV Download */}
       <div className="flex justify-end">
-        <Button variant="outlined" onClick={handleDownloadCsv} disabled={downloading}>
+        <Button variant="outline" onClick={handleDownloadCsv} disabled={downloading}>
           <Download className="mr-1.5 h-3.5 w-3.5" />
           {downloading ? 'Downloading...' : 'Download QC Metrics CSV'}
         </Button>

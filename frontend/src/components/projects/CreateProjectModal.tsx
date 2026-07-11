@@ -3,6 +3,7 @@ import { type FormEvent, useState } from 'react';
 import { toast } from 'sonner';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
+import { Field } from '@/components/ui/Field';
 import { Button } from '@/components/ui/Button';
 import { useCreateProject } from '@/hooks/useProjects';
 
@@ -46,23 +47,20 @@ export function CreateProjectModal({ isOpen, onClose }: CreateProjectModalProps)
           onChange={(e) => setName(e.target.value)}
           placeholder="Enter project name"
         />
-        <div className="flex flex-col gap-1">
-          <label className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Description
-          </label>
+        <Field label="Description">
           <textarea
-            className="rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+            className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Optional project description"
           />
-        </div>
+        </Field>
         {createProject.isError && (
-          <p className="text-sm text-red-500">Failed to create project. Please try again.</p>
+          <p className="text-sm text-destructive">Failed to create project. Please try again.</p>
         )}
         <div className="flex justify-end gap-3">
-          <Button variant="outlined" type="button" onClick={handleClose}>
+          <Button variant="outline" type="button" onClick={handleClose}>
             Cancel
           </Button>
           <Button type="submit" disabled={!name.trim() || createProject.isPending}>

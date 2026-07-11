@@ -243,19 +243,19 @@ export function CreateExperimentWizard({
       submitLabel={autoPipelineEnabled ? 'Create & Run Pipeline' : 'Update Experiment'}
       maxWidth="max-w-6xl"
       renderFooter={({ currentStep: step, isLastStep, onClose: close, onBack: back }) => (
-        <div className="flex items-center justify-between border-t px-6 py-4">
-          <button onClick={close} className="text-sm text-muted-foreground hover:text-foreground">
+        <div className="flex items-center justify-between border-t border-border px-6 py-4">
+          <Button variant="ghost" onClick={close}>
             Cancel
-          </button>
+          </Button>
           <div className="flex gap-3">
             {step > 0 && (
-              <Button variant="outlined" onClick={back}>
+              <Button variant="outline" onClick={back}>
                 Back
               </Button>
             )}
             {isLastStep ? (
               <>
-                <Button variant="outlined" onClick={handleSave}>
+                <Button variant="outline" onClick={handleSave}>
                   Save
                 </Button>
                 {autoPipelineEnabled ? (

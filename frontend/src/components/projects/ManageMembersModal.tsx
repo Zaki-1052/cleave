@@ -4,6 +4,7 @@ import { UserMinus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
+import { Field } from '@/components/ui/Field';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -110,15 +111,12 @@ export function ManageMembersModal({ isOpen, onClose, projectId }: ManageMembers
             placeholder="User email address"
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="invite-role" className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Access
-          </label>
+        <Field label="Access" htmlFor="invite-role">
           <select
             id="invite-role"
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className="rounded-md border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+            className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           >
             {ROLES.map((r) => (
               <option key={r} value={r}>
@@ -126,16 +124,18 @@ export function ManageMembersModal({ isOpen, onClose, projectId }: ManageMembers
               </option>
             ))}
           </select>
-        </div>
+        </Field>
         <Button type="submit" disabled={!email.trim() || addMember.isPending}>
           {addMember.isPending ? 'Inviting...' : 'Invite'}
         </Button>
       </form>
-      {inviteError && <p className="mt-2 text-sm text-red-500">{inviteError}</p>}
+      {inviteError && <p className="mt-2 text-sm text-destructive">{inviteError}</p>}
 
-      <hr className="my-5" />
+      <div className="my-5 border-t border-border" />
 
-      <h3 className="mb-3 text-sm font-semibold text-primary">Members</h3>
+      <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+        Members
+      </h3>
       <div className="space-y-3">
         {members?.map((member) => {
           const isSelf = member.userId === currentUser?.id;
@@ -152,10 +152,10 @@ export function ManageMembersModal({ isOpen, onClose, projectId }: ManageMembers
                   value={member.role}
                   disabled={isSelf}
                   onChange={(e) => handleRoleChange(member.userId, e.target.value)}
-                  className={`rounded-md border px-2 py-1 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
+                  className={`rounded-md border px-2 py-1 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25 ${
                     isSelf
-                      ? 'cursor-not-allowed border-dashed border-border bg-muted text-muted-foreground'
-                      : 'border-border'
+                      ? 'cursor-not-allowed border-dashed border-input bg-muted text-muted-foreground'
+                      : 'border-input bg-card'
                   }`}
                 >
                   {ROLES.map((r) => (
@@ -169,8 +169,9 @@ export function ManageMembersModal({ isOpen, onClose, projectId }: ManageMembers
                     type="button"
                     onClick={() => handleRemove(member.userId)}
                     disabled={isLastAdmin || removeMember.isPending}
+                    aria-label={`Remove ${getDisplayName(member.user)}`}
                     title={isLastAdmin ? 'Cannot remove the last admin' : 'Remove member'}
-                    className="rounded p-1 text-muted-foreground hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <UserMinus className="h-4 w-4" />
                   </button>
@@ -182,7 +183,7 @@ export function ManageMembersModal({ isOpen, onClose, projectId }: ManageMembers
       </div>
 
       <div className="mt-6 flex justify-center">
-        <Button variant="outlined" type="button" onClick={handleClose}>
+        <Button variant="outline" type="button" onClick={handleClose}>
           Cancel
         </Button>
       </div>

@@ -114,13 +114,13 @@ export function AutoPipelineModal({
         />
 
         {error && (
-          <div className="rounded-md bg-red-50 dark:bg-red-950 px-3 py-2 text-sm text-red-600 dark:text-red-400">
+          <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {error}
           </div>
         )}
 
         <div className="flex justify-end gap-3">
-          <Button variant="outlined" onClick={onClose}>
+          <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
           <Button

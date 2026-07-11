@@ -1,13 +1,14 @@
 // frontend/src/pages/experiment/CustomHeatmapTab.tsx
-import { Grid3x3 } from 'lucide-react';
+import { Grid3x3, Clock } from 'lucide-react';
 import { toast } from 'sonner';
-import { Spinner } from '@/components/ui/Spinner';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import type { AnalysisJob, Experiment } from '@/api/types';
 import { CustomHeatmapFilesPanel } from '@/components/custom-heatmap/CustomHeatmapFilesPanel';
 import { CustomHeatmapPlotsPanel } from '@/components/custom-heatmap/CustomHeatmapPlotsPanel';
 import { Card } from '@/components/layout/Card';
+import { Button } from '@/components/ui/Button';
 import { DetailRow } from '@/components/ui/DetailRow';
 import { EmptyState } from '@/components/ui/EmptyState';
 import JobActions from '@/components/ui/JobActions';
@@ -46,11 +47,32 @@ export default function CustomHeatmapTab() {
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-9 w-[220px]" />
+          </div>
+          <Skeleton className="h-5 w-20 rounded-full" />
         </div>
-      </Card>
+        <div className="flex gap-2 border-b border-border pb-2">
+          <Skeleton className="h-7 w-14" />
+          <Skeleton className="h-7 w-14" />
+          <Skeleton className="h-7 w-14" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <Skeleton className="mb-3 h-3 w-24" />
+              <div className="space-y-2.5">
+                {Array.from({ length: 5 }).map((_, j) => (
+                  <Skeleton key={j} className="h-4 w-full" />
+                ))}
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
     );
   }
 
@@ -71,7 +93,7 @@ export default function CustomHeatmapTab() {
       {/* Job selector + status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Heatmaps
           </span>
           <Select value={String(activeJobId ?? '')} onValueChange={(val) => navigate(`/experiments/${id}/heatmaps/${val}`)}>
@@ -95,7 +117,7 @@ export default function CustomHeatmapTab() {
             <button
               key={tab.key}
               onClick={() => setActiveSubTab(tab.key)}
-              className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
+              className={`px-4 py-2 text-sm font-medium transition-colors duration-150 ${
                 activeSubTab === tab.key
                   ? 'border-b-2 border-primary text-primary bg-primary/5 rounded-t-md'
                   : 'text-muted-foreground hover:text-foreground rounded-t-md hover:bg-muted/50'
@@ -115,9 +137,11 @@ export default function CustomHeatmapTab() {
           <CustomHeatmapPlotsPanel jobId={job.id} />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              The heatmap will be available when the analysis completes.
-            </p>
+            <EmptyState
+              icon={Clock}
+              title="Heatmap not ready"
+              description="The heatmap will be available when the analysis completes."
+            />
           </Card>
         )
       )}
@@ -127,9 +151,11 @@ export default function CustomHeatmapTab() {
           <CustomHeatmapFilesPanel jobId={job.id} />
         ) : (
           <Card>
-            <p className="text-sm text-muted-foreground">
-              Files will be available when the analysis completes.
-            </p>
+            <EmptyState
+              icon={Clock}
+              title="Files not ready"
+              description="Files will be available when the analysis completes."
+            />
           </Card>
         )
       )}
@@ -182,23 +208,23 @@ function HeatmapInfoPanel({ job }: { job: AnalysisJob }) {
       <div className="grid gap-4 md:grid-cols-3">
         {/* Details */}
         <Card>
-          <h4 className="mb-3 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">Details</h4>
+          <h4 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Details</h4>
           <div className="space-y-2">
-            <DetailRow label="Run ID"><span className="font-mono">{String(job.id)}</span></DetailRow>
+            <DetailRow label="Run ID"><span className="font-mono tabular-nums">{String(job.id)}</span></DetailRow>
             <DetailRow label="Created By">{launcherName}</DetailRow>
             <DetailRow label="Created Date">{formatDate(job.createdAt)}</DetailRow>
             <DetailRow label="Status">
               <StatusBadge status={job.status} />
             </DetailRow>
             <DetailRow label="BED File">{bedLabel}</DetailRow>
-            <DetailRow label="Samples"><span className="font-mono">{String(sampleCount)}</span></DetailRow>
+            <DetailRow label="Samples"><span className="font-mono tabular-nums">{String(sampleCount)}</span></DetailRow>
           </div>
         </Card>
 
         {/* Methods Text */}
         <Card>
           <div className="mb-3 flex items-center justify-between">
-            <h4 className="text-xs font-semibold uppercase text-muted-foreground">Run Methods</h4>
+            <h4 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Run Methods</h4>
             {job.methodsText && (
               <button
                 onClick={handleCopyMethods}
@@ -218,7 +244,7 @@ function HeatmapInfoPanel({ job }: { job: AnalysisJob }) {
         {/* Notes */}
         <Card>
           <div className="mb-3 flex items-center justify-between">
-            <h4 className="text-xs font-semibold uppercase text-muted-foreground">Notes</h4>
+            <h4 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Notes</h4>
             {!editing && (
               <button
                 onClick={handleEditStart}
@@ -234,22 +260,15 @@ function HeatmapInfoPanel({ job }: { job: AnalysisJob }) {
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 rows={4}
-                className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25"
               />
               <div className="flex gap-2">
-                <button
-                  onClick={handleSave}
-                  className="rounded-md bg-primary px-3 py-1 text-xs text-white hover:bg-primary/90"
-                  disabled={updateNotes.isPending}
-                >
-                  {updateNotes.isPending ? 'Saving...' : 'Save'}
-                </button>
-                <button
-                  onClick={() => setEditing(false)}
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
+                <Button size="sm" onClick={handleSave} loading={updateNotes.isPending}>
+                  Save
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           ) : (

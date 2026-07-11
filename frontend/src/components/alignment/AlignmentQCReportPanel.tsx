@@ -1,7 +1,6 @@
 // frontend/src/components/alignment/AlignmentQCReportPanel.tsx
 import { type ColumnDef } from '@tanstack/react-table';
-import { ChevronDown, Download } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
+import { AlertCircle, ChevronDown, Download, ImageOff } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { downloadQCCsv, getOutputSignedUrl } from '@/api/jobs';
@@ -9,8 +8,11 @@ import type { AlignmentReactionMetrics, AnalysisJob, JobOutput, SpikeInReactionR
 import { Card } from '@/components/layout/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useJobOutputs, useQCReport } from '@/hooks/useJobs';
 import { cn } from '@/lib/cn';
+import { useChartToken } from '@/lib/chart-theme';
 import { GENOME_DISPLAY_NAMES } from '@/lib/constants';
 import { formatNumber } from '@/lib/utils';
 
@@ -90,9 +92,14 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
   if (isLoading) {
     return (
       <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-4 w-24" />
         </div>
+        <div className="mb-3">
+          <Skeleton className="h-8 w-40" />
+        </div>
+        <DataTable data={[]} columns={columns} pageSize={25} isLoading />
       </Card>
     );
   }
@@ -100,9 +107,12 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
   if (error || !report) {
     return (
       <Card>
-        <p className="text-sm text-red-600">
-          {error instanceof Error ? error.message : 'Failed to load QC report.'}
-        </p>
+        <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+          <p className="text-sm text-foreground/80">
+            {error instanceof Error ? error.message : 'Failed to load QC report.'}
+          </p>
+        </div>
       </Card>
     );
   }
@@ -117,12 +127,12 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
         {/* Header row */}
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Reference Genome
             </span>
-            <span className="text-sm font-medium text-foreground">{genomeName}</span>
+            <span className="font-mono text-sm text-foreground">{genomeName}</span>
           </div>
-          <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             QC Report
           </h3>
         </div>
@@ -130,7 +140,7 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
         {/* Toolbar */}
         <div className="mb-3 flex items-center gap-2">
           <Button
-            variant="outlined"
+            variant="outline"
             onClick={handleDownload}
             disabled={downloading}
             className="text-xs"
@@ -148,14 +158,14 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
       <Card>
         <button
           type="button"
-          className="flex w-full items-center justify-between"
+          className="flex w-full items-center justify-between rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={() => setInfoOpen((v) => !v)}
         >
-          <h3 className="font-display text-sm font-semibold text-primary">
-            About Seq Stats & Alignment Metrics
+          <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+            About Seq Stats &amp; Alignment Metrics
           </h3>
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', infoOpen && 'rotate-180')} />
+            <ChevronDown className={cn('h-3.5 w-3.5 transition-transform duration-150', infoOpen && 'rotate-180')} />
             {infoOpen ? 'Hide' : 'Show'}
           </span>
         </button>
@@ -242,7 +252,7 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
 
       {/* SNAP-CUTANA Spike-in section */}
       <Card>
-        <h3 className="font-display mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           SNAP-CUTANA K-MetStat Spike-in
         </h3>
         {report.spikeInResults && report.spikeInResults.length > 0 ? (
@@ -252,9 +262,11 @@ export function AlignmentQCReportPanel({ jobId, job }: AlignmentQCReportPanelPro
             Spike-in barcode data is being processed...
           </p>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            No SNAP-CUTANA spike-in data available for this alignment.
-          </p>
+          <EmptyState
+            icon={ImageOff}
+            title="No spike-in data yet"
+            description="No SNAP-CUTANA spike-in data available for this alignment."
+          />
         )}
       </Card>
 
@@ -295,11 +307,13 @@ function HeatmapSection({ jobId, category, title, description }: HeatmapSectionP
   if (isLoading) {
     return (
       <Card>
-        <h3 className="font-display mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           {title}
         </h3>
-        <div className="flex h-32 items-center justify-center">
-          <Spinner size="lg" />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-48 w-full" />
+          ))}
         </div>
       </Card>
     );
@@ -308,10 +322,14 @@ function HeatmapSection({ jobId, category, title, description }: HeatmapSectionP
   if (!outputs || outputs.length === 0) {
     return (
       <Card>
-        <h3 className="font-display mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           {title}
         </h3>
-        <p className="text-sm text-muted-foreground">No {title.toLowerCase()} data available.</p>
+        <EmptyState
+          icon={ImageOff}
+          title="No heatmaps yet"
+          description={`No ${title.toLowerCase()} data available for this alignment.`}
+        />
       </Card>
     );
   }
@@ -319,21 +337,21 @@ function HeatmapSection({ jobId, category, title, description }: HeatmapSectionP
   return (
     <Card>
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           {title}
         </h3>
         <button
           type="button"
-          className="flex items-center gap-1 text-xs text-primary hover:text-primary/80"
+          className="flex items-center gap-1 rounded-md text-xs text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={() => setInfoOpen((v) => !v)}
         >
-          <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', infoOpen && 'rotate-180')} />
+          <ChevronDown className={cn('h-3.5 w-3.5 transition-transform duration-150', infoOpen && 'rotate-180')} />
           {infoOpen ? 'Hide' : 'About ' + title}
         </button>
       </div>
 
       {infoOpen && (
-        <p className="mb-4 rounded bg-muted p-3 text-xs text-muted-foreground">
+        <p className="mb-4 rounded-md bg-muted p-3 text-xs text-muted-foreground">
           {description}
         </p>
       )}
@@ -372,22 +390,22 @@ function HeatmapImage({ jobId, output }: { jobId: number; output: JobOutput }) {
 
   if (error) {
     return (
-      <div className="rounded border border-border p-3">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="mt-2 text-xs text-red-500">Failed to load heatmap.</p>
+      <div className="rounded-md border border-border p-3">
+        <p className="font-mono text-xs text-muted-foreground">{label}</p>
+        <p className="mt-2 text-xs text-destructive">Failed to load heatmap.</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded border border-border p-3">
+    <div className="rounded-md border border-border p-3">
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-xs font-medium text-foreground">{label}</p>
+        <p className="font-mono text-xs font-medium text-foreground">{label}</p>
         <button
           type="button"
           onClick={handleDownload}
           disabled={!signedUrl}
-          className="text-xs text-primary hover:text-primary/80 disabled:text-muted-foreground/50"
+          className="inline-flex items-center rounded-md text-xs text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:text-muted-foreground/50"
           title="Download PNG"
         >
           <Download className="mr-1 h-3 w-3" />
@@ -398,12 +416,10 @@ function HeatmapImage({ jobId, output }: { jobId: number; output: JobOutput }) {
         <img
           src={`${signedUrl}&display=inline`}
           alt={`${label} heatmap`}
-          className="w-full rounded"
+          className="w-full rounded-md"
         />
       ) : (
-        <div className="flex h-48 items-center justify-center">
-          <Spinner />
-        </div>
+        <Skeleton className="h-48 w-full" />
       )}
     </div>
   );
@@ -413,14 +429,27 @@ function HeatmapImage({ jobId, output }: { jobId: number; output: JobOutput }) {
 // Spike-in heatmap
 // ---------------------------------------------------------------------------
 
-function spikeInCellColor(pct: number, isOnTarget: boolean): string {
-  if (isOnTarget) return 'rgb(59, 130, 246)';
-  if (pct <= 20) return `rgba(34, 197, 94, ${Math.max(0.15, pct / 20 * 0.6)})`;
-  if (pct <= 50) return `rgba(234, 179, 8, ${0.3 + (pct - 20) / 30 * 0.5})`;
-  return `rgba(239, 68, 68, ${0.4 + Math.min((pct - 50) / 50, 1) * 0.5})`;
+/** Splice an alpha channel into a concrete `hsl(H S% L%)` string from chart-theme. */
+function withAlpha(hslColor: string, alpha: number): string {
+  return hslColor.replace(/\)$/, ` / ${alpha})`);
 }
 
 function SpikeInHeatmap({ results }: { results: SpikeInReactionResult[] }) {
+  // Semantic scale sourced from tokens (theme-reactive, no raw rgb/hex).
+  const passColor = useChartToken('--success');
+  const warnColor = useChartToken('--warning');
+  const failColor = useChartToken('--destructive');
+  const onTargetColor = useChartToken('--info');
+  const onTargetText = useChartToken('--info-foreground');
+  const failText = useChartToken('--destructive-foreground');
+
+  function cellStyle(pct: number, isOnTarget: boolean): { backgroundColor: string; color?: string } {
+    if (isOnTarget) return { backgroundColor: onTargetColor, color: onTargetText };
+    if (pct <= 20) return { backgroundColor: withAlpha(passColor, Math.max(0.15, (pct / 20) * 0.6)) };
+    if (pct <= 50) return { backgroundColor: withAlpha(warnColor, 0.3 + ((pct - 20) / 30) * 0.5) };
+    return { backgroundColor: withAlpha(failColor, 0.4 + Math.min((pct - 50) / 50, 1) * 0.5), color: failText };
+  }
+
   if (results.length === 0) return null;
   const ptmNames = results[0]?.ptmResults.map((r) => r.ptmName) ?? [];
 
@@ -455,11 +484,8 @@ function SpikeInHeatmap({ results }: { results: SpikeInReactionResult[] }) {
                   return (
                     <td
                       key={ptmRes.ptmName}
-                      className="border border-border px-1 py-1 text-center font-mono"
-                      style={{
-                        backgroundColor: spikeInCellColor(ptmRes.pctRecovery, isOnTarget),
-                        color: isOnTarget || ptmRes.pctRecovery > 50 ? 'white' : 'inherit',
-                      }}
+                      className="border border-border px-1 py-1 text-center font-mono tabular-nums"
+                      style={cellStyle(ptmRes.pctRecovery, isOnTarget)}
                       title={`${ptmRes.ptmName}: ${ptmRes.rawCount} reads (${ptmRes.pctRecovery.toFixed(1)}%)${isOnTarget ? ' [on-target]' : ''}`}
                     >
                       {ptmRes.pctRecovery.toFixed(1)}
@@ -471,21 +497,21 @@ function SpikeInHeatmap({ results }: { results: SpikeInReactionResult[] }) {
           </tbody>
         </table>
       </div>
-      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
         <div className="flex items-center gap-1">
-          <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: 'rgba(34, 197, 94, 0.4)' }} />
+          <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: withAlpha(passColor, 0.4) }} />
           <span>Pass (&lt;20%)</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: 'rgba(234, 179, 8, 0.6)' }} />
+          <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: withAlpha(warnColor, 0.6) }} />
           <span>Warning (20-50%)</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: 'rgba(239, 68, 68, 0.7)' }} />
+          <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: withAlpha(failColor, 0.7) }} />
           <span>Fail (&gt;50%)</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: 'rgb(59, 130, 246)' }} />
+          <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: onTargetColor }} />
           <span>On-target</span>
         </div>
       </div>

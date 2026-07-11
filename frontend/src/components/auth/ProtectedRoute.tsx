@@ -8,7 +8,7 @@ export function ProtectedRoute() {
 
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <Spinner size="lg" />
       </div>
     );

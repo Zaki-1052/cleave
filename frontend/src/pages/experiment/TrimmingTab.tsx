@@ -1,15 +1,16 @@
 // frontend/src/pages/experiment/TrimmingTab.tsx
-import { Scissors } from 'lucide-react';
+import { Scissors, Clock } from 'lucide-react';
 import { toast } from 'sonner';
-import { Spinner } from '@/components/ui/Spinner';
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import type { AnalysisJob, Experiment } from '@/api/types';
 import { FastpReportsPanel } from '@/components/trimming/FastpReportsPanel';
 import { TrimmingFilesPanel } from '@/components/trimming/TrimmingFilesPanel';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/layout/Card';
 import { DetailRow } from '@/components/ui/DetailRow';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import JobActions from '@/components/ui/JobActions';
 import JobErrorDetails from '@/components/ui/JobErrorDetails';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -30,6 +31,32 @@ const RNASEQ_SUB_TABS: { key: TrimmingSubTab; label: string }[] = [
   { key: 'reports', label: 'Reports' },
   { key: 'files', label: 'Files' },
 ];
+
+function TrimmingTabSkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-9 w-[220px]" />
+        </div>
+        <Skeleton className="h-5 w-20 rounded-full" />
+      </div>
+      <div className="grid gap-4 md:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Card key={i}>
+            <Skeleton className="h-3.5 w-24" />
+            <div className="mt-4 space-y-3">
+              {Array.from({ length: 5 }).map((_, r) => (
+                <Skeleton key={r} className="h-4 w-full" />
+              ))}
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function TrimmingTab() {
   const { id, jid } = useParams<{ id: string; jid: string }>();
@@ -54,26 +81,18 @@ export default function TrimmingTab() {
   const isLoading = jobsLoading || jobLoading;
 
   if (isLoading) {
-    return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
-        </div>
-      </Card>
-    );
+    return <TrimmingTabSkeleton />;
   }
 
   if (trimmingJobs.length === 0) {
     return (
-      <Card>
-        <EmptyState
-          icon={Scissors}
-          title="No trimming runs yet"
-          description={isRnaseq
-            ? 'Navigate to the FASTQs tab to run fastp trimming.'
-            : 'Navigate to the FASTQs tab to run trimming.'}
-        />
-      </Card>
+      <EmptyState
+        icon={Scissors}
+        title="No trimming runs yet"
+        description={isRnaseq
+          ? 'Navigate to the FASTQs tab to run fastp trimming.'
+          : 'Navigate to the FASTQs tab to run trimming.'}
+      />
     );
   }
 
@@ -82,7 +101,7 @@ export default function TrimmingTab() {
       {/* Job selector + status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Trimming Runs
           </span>
           <Select value={String(activeJobId ?? '')} onValueChange={(val) => navigate(`/experiments/${id}/trimming/${val}`)}>
@@ -106,10 +125,10 @@ export default function TrimmingTab() {
             <button
               key={tab.key}
               onClick={() => setActiveSubTab(tab.key)}
-              className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
+              className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 activeSubTab === tab.key
-                  ? 'border-b-2 border-primary text-primary bg-primary/5 rounded-t-md'
-                  : 'text-muted-foreground hover:text-foreground rounded-t-md hover:bg-muted/50'
+                  ? 'border-b-2 border-primary bg-primary/5 text-primary'
+                  : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
               }`}
             >
               {tab.label}
@@ -125,11 +144,11 @@ export default function TrimmingTab() {
         job.status === 'complete' ? (
           <FastpReportsPanel jobId={job.id} />
         ) : (
-          <Card>
-            <p className="text-sm text-muted-foreground">
-              Reports will be available when the trimming run completes.
-            </p>
-          </Card>
+          <EmptyState
+            icon={Clock}
+            title="Reports not ready"
+            description="Reports will be available when the trimming run completes."
+          />
         )
       )}
 
@@ -140,11 +159,11 @@ export default function TrimmingTab() {
             categories={isRnaseq ? RNASEQ_TRIMMING_FILE_CATEGORIES : undefined}
           />
         ) : (
-          <Card>
-            <p className="text-sm text-muted-foreground">
-              Files will be available when the trimming run completes.
-            </p>
-          </Card>
+          <EmptyState
+            icon={Clock}
+            title="Files not ready"
+            description="Files will be available when the trimming run completes."
+          />
         )
       )}
     </div>
@@ -196,7 +215,7 @@ function TrimmingInfoPanel({ job, isRnaseq }: { job: AnalysisJob; isRnaseq: bool
       <div className="grid gap-4 md:grid-cols-3">
         {/* Details */}
         <Card>
-          <h4 className="mb-3 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">Details</h4>
+          <h4 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Details</h4>
           <div className="space-y-2">
             <DetailRow label="Run ID"><span className="font-mono">{String(job.id)}</span></DetailRow>
             <DetailRow label="Created By">{launcherName}</DetailRow>
@@ -220,11 +239,11 @@ function TrimmingInfoPanel({ job, isRnaseq }: { job: AnalysisJob; isRnaseq: bool
         {/* Methods Text */}
         <Card>
           <div className="mb-3 flex items-center justify-between">
-            <h4 className="text-xs font-semibold uppercase text-muted-foreground">Run Methods</h4>
+            <h4 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Run Methods</h4>
             {job.methodsText && (
               <button
                 onClick={handleCopyMethods}
-                className="text-xs text-primary hover:text-primary/80"
+                className="rounded-sm text-xs font-medium text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {copied ? 'Copied' : 'Copy'}
               </button>
@@ -240,11 +259,11 @@ function TrimmingInfoPanel({ job, isRnaseq }: { job: AnalysisJob; isRnaseq: bool
         {/* Notes */}
         <Card>
           <div className="mb-3 flex items-center justify-between">
-            <h4 className="text-xs font-semibold uppercase text-muted-foreground">Notes</h4>
+            <h4 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Notes</h4>
             {!editing && (
               <button
                 onClick={handleEditStart}
-                className="text-xs text-primary hover:text-primary/80"
+                className="rounded-sm text-xs font-medium text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 Manage
               </button>
@@ -256,22 +275,15 @@ function TrimmingInfoPanel({ job, isRnaseq }: { job: AnalysisJob; isRnaseq: bool
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 rows={4}
-                className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
               />
               <div className="flex gap-2">
-                <button
-                  onClick={handleSave}
-                  className="rounded-md bg-primary px-3 py-1 text-xs text-white hover:bg-primary/90"
-                  disabled={updateNotes.isPending}
-                >
-                  {updateNotes.isPending ? 'Saving...' : 'Save'}
-                </button>
-                <button
-                  onClick={() => setEditing(false)}
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
+                <Button size="sm" onClick={handleSave} loading={updateNotes.isPending}>
+                  Save
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           ) : (

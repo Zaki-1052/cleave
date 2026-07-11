@@ -2,9 +2,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Inbox } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { WizardModal } from '@/components/ui/WizardModal';
 import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Card } from '@/components/layout/Card';
 import { NormalizationSelectSamplesStep } from './NormalizationSelectSamplesStep';
 import { NormalizationSettingsStep } from './NormalizationSettingsStep';
@@ -186,39 +188,39 @@ export function NewNormalizationWizard({
   const detailsStep = (
     <div className="grid gap-6 md:grid-cols-2">
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
+        <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           Normalization Details
         </h3>
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-foreground">
-              Normalization Name <span className="text-red-500">*</span>
+            <label className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+              Normalization Name <span className="text-destructive">*</span>
             </label>
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value.slice(0, 30))}
-                className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
                 placeholder="e.g., H3K4me3 Roman normalization"
               />
-              <span className="text-xs text-muted-foreground">{name.length}/30</span>
+              <span className="font-mono text-xs tabular-nums text-muted-foreground">{name.length}/30</span>
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-foreground">Notes</label>
+            <label className="mb-1 block font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
-              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
               placeholder="Optional notes about this analysis..."
             />
           </div>
         </div>
       </Card>
       <Card>
-        <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">About</h3>
+        <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">About</h3>
         <div className="space-y-3 text-sm text-muted-foreground">
           <div>
             <h4 className="font-medium text-foreground">What is Roman Normalization?</h4>
@@ -257,23 +259,24 @@ export function NewNormalizationWizard({
     </div>
   ) : (
     <Card>
-      <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
+      <h3 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
         Select an Alignment Run
       </h3>
       {alignmentJobs.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          No completed mouse (mm10) alignment runs available. Roman normalization requires
-          mouse data.
-        </p>
+        <EmptyState
+          icon={Inbox}
+          title="No alignment runs available"
+          description="No completed mouse (mm10) alignment runs available. Roman normalization requires mouse data."
+        />
       ) : (
         <div className="space-y-2">
           {alignmentJobs.map((job: AnalysisJob) => (
             <label
               key={job.id}
-              className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${
+              className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors duration-150 ${
                 selectedAlignmentJobId === job.id
                   ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-border'
+                  : 'border-border hover:border-primary/40 hover:bg-accent/50'
               }`}
             >
               <input
@@ -281,11 +284,11 @@ export function NewNormalizationWizard({
                 name="alignment"
                 checked={selectedAlignmentJobId === job.id}
                 onChange={() => handleSelectAlignment(job.id)}
-                className="text-primary"
+                className="text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
               <div className="flex-1">
                 <span className="font-medium text-foreground">{job.name}</span>
-                <span className="ml-3 text-xs text-muted-foreground">
+                <span className="ml-3 font-mono text-xs tabular-nums text-muted-foreground">
                   {new Date(job.createdAt).toLocaleDateString()}
                 </span>
               </div>
@@ -334,23 +337,23 @@ export function NewNormalizationWizard({
       submitLabel="Start Normalization"
       maxWidth="max-w-5xl"
       renderFooter={({ currentStep: step, onClose: close, onBack: back }) => (
-        <div className="flex flex-col border-t">
+        <div className="flex flex-col border-t border-border">
           {submitError && (
-            <div className="bg-red-50 dark:bg-red-950 px-6 py-2 text-sm text-red-600 dark:text-red-400">{submitError}</div>
+            <div className="bg-destructive/10 px-6 py-2 text-sm text-destructive">{submitError}</div>
           )}
           <div className="flex items-center justify-between px-6 py-4">
-            <button onClick={close} className="text-sm text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" onClick={close}>
               Cancel
-            </button>
+            </Button>
             <div className="flex gap-3">
               {step > 0 && (
-                <Button variant="outlined" onClick={back}>
+                <Button variant="outline" onClick={back}>
                   Back
                 </Button>
               )}
               {step === 3 ? (
-                <Button onClick={handleSubmit} disabled={isSubmitDisabled()}>
-                  {createJobMutation.isPending ? 'Starting...' : 'Start Normalization'}
+                <Button onClick={handleSubmit} loading={createJobMutation.isPending} disabled={isSubmitDisabled()}>
+                  Start Normalization
                 </Button>
               ) : (
                 <Button onClick={handleNext} disabled={isNextDisabled()}>

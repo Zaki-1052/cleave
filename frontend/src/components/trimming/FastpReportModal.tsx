@@ -44,19 +44,23 @@ export function FastpReportModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
+      <div className="fixed inset-0 bg-overlay/60" onClick={onClose} />
 
       <div className={`relative z-10 flex flex-col bg-card shadow-xl ${modalSizeClasses}`}>
         {/* Header */}
-        <div className="flex items-center justify-between border-b bg-primary px-6 py-4">
-          <h2 className="text-lg font-semibold text-white">fastp Report</h2>
-          <button onClick={onClose} className="text-white hover:text-gray-200" aria-label="Close">
+        <div className="flex items-center justify-between border-b border-border bg-muted/40 px-6 py-4">
+          <h2 className="font-display text-xl font-semibold text-foreground">fastp Report</h2>
+          <button
+            onClick={onClose}
+            className="rounded-md p-2 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="Close"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Toolbar */}
-        <div className="flex items-center gap-3 border-b px-4 py-2">
+        <div className="flex items-center gap-3 border-b border-border px-4 py-2">
           <Button variant="outlined" onClick={handleDownload}>
             <Download className="mr-1.5 h-4 w-4" />
             Download Report
@@ -72,7 +76,7 @@ export function FastpReportModal({
             )}
             {isFullScreen ? 'Exit Full Screen' : 'Full Screen'}
           </Button>
-          <span className="ml-auto text-xs text-muted-foreground truncate max-w-xs" title={filename}>
+          <span className="ml-auto max-w-xs truncate font-mono text-xs text-muted-foreground" title={filename}>
             {filename}
           </span>
         </div>

@@ -1,10 +1,12 @@
 // frontend/src/components/rnaseq-pathway/PathwayKEGGPanel.tsx
 import { useEffect, useState } from 'react';
-import { Download } from 'lucide-react';
+import { AlertCircle, Download, SearchX } from 'lucide-react';
 import { Card } from '@/components/layout/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { getOutputSignedUrl, downloadPathwayKEGGResults } from '@/api/jobs';
 import { usePathwayReport } from '@/hooks/useJobs';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -29,16 +31,27 @@ export function PathwayKEGGPanel({ jobId }: PathwayKEGGPanelProps) {
   }, [jobId, keggPlot?.outputIdPng]);
 
   if (isLoading) {
-    return <Card><div className="flex h-40 items-center justify-center"><Spinner size="lg" /></div></Card>;
+    return (
+      <div className="space-y-4">
+        <Card>
+          <Skeleton className="h-16 w-44" />
+        </Card>
+        <Card>
+          <Skeleton className="mb-3 h-4 w-40" />
+          <Skeleton className="h-48 w-full rounded" />
+        </Card>
+      </div>
+    );
   }
 
   if (error || !report) {
     return (
-      <Card>
-        <p className="text-sm text-red-600 dark:text-red-400">
+      <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3">
+        <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+        <p className="text-sm text-foreground/80">
           {error instanceof Error ? error.message : 'Failed to load pathway report.'}
         </p>
-      </Card>
+      </div>
     );
   }
 
@@ -71,7 +84,7 @@ export function PathwayKEGGPanel({ jobId }: PathwayKEGGPanelProps) {
       <Card>
         <div className="flex items-center gap-4">
           <div className="rounded-md border border-border bg-muted/50 px-4 py-2 text-center">
-            <div className="text-lg font-semibold font-display">{report.keggPathways}</div>
+            <div className="font-mono text-lg font-semibold tabular-nums text-foreground">{report.keggPathways}</div>
             <div className="text-xs text-muted-foreground">KEGG Pathways</div>
           </div>
         </div>
@@ -80,12 +93,12 @@ export function PathwayKEGGPanel({ jobId }: PathwayKEGGPanelProps) {
       {keggPlot?.outputIdPng != null && (
         <Card>
           <div className="mb-2 flex items-center justify-between">
-            <h4 className="font-display text-sm font-semibold">KEGG Pathway Enrichment</h4>
+            <h4 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">KEGG Pathway Enrichment</h4>
             <button
               type="button"
               onClick={handleDownloadPng}
               disabled={!pngUrl}
-              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:opacity-40"
+              className="flex items-center gap-1 rounded text-xs text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
             >
               <Download className="h-3 w-3" />
               PNG
@@ -93,7 +106,7 @@ export function PathwayKEGGPanel({ jobId }: PathwayKEGGPanelProps) {
           </div>
           {imgError ? (
             <div className="flex h-48 items-center justify-center rounded border border-border bg-muted">
-              <p className="text-xs text-red-500">Failed to load plot.</p>
+              <p className="text-xs text-destructive">Failed to load plot.</p>
             </div>
           ) : pngUrl ? (
             <img
@@ -112,16 +125,18 @@ export function PathwayKEGGPanel({ jobId }: PathwayKEGGPanelProps) {
 
       {report.keggPathways === 0 && (
         <Card>
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            No significant KEGG pathways found at the current FDR threshold.
-          </p>
+          <EmptyState
+            icon={SearchX}
+            title="No KEGG pathways"
+            description="No significant KEGG pathways found at the current FDR threshold."
+          />
         </Card>
       )}
 
       {report.keggPreview.length > 0 && (
         <Card>
           <div className="flex items-center justify-between mb-3">
-            <h4 className="font-display text-sm font-semibold">KEGG Results</h4>
+            <h4 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">KEGG Results</h4>
             <Button
               variant="outline"
               size="sm"

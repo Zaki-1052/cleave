@@ -13,7 +13,7 @@ interface DocsPageRendererProps {
 export function DocsPageRenderer({ data }: DocsPageRendererProps) {
   return (
     <article className="prose-docs">
-      <h1 className="font-display text-2xl font-bold text-foreground">{data.title}</h1>
+      <h1 className="font-display text-2xl font-semibold text-foreground">{data.title}</h1>
       {data.description && (
         <p className="mt-2 text-muted-foreground">{data.description}</p>
       )}
@@ -23,7 +23,7 @@ export function DocsPageRenderer({ data }: DocsPageRendererProps) {
             case 'heading': {
               const Tag = `h${block.level}` as 'h2' | 'h3' | 'h4';
               const sizes = {
-                2: 'text-xl font-bold mt-8 mb-3',
+                2: 'text-xl font-semibold mt-8 mb-3',
                 3: 'text-lg font-semibold mt-6 mb-2',
                 4: 'text-base font-semibold mt-4 mb-2',
               };

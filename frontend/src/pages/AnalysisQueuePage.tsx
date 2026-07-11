@@ -2,12 +2,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/layout/Card';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Pagination } from '@/components/ui/Pagination';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useAllJobs, useTerminateJob, useRetryJob } from '@/hooks/useJobs';
 import { formatDateTime, formatDuration, getDisplayName } from '@/lib/utils';
 import type { QueueJob } from '@/api/types';
@@ -57,6 +59,7 @@ const JOB_TYPE_TO_TAB: Record<string, string> = {
 function ActionsCell({ job }: { job: QueueJob }) {
   const terminateMutation = useTerminateJob();
   const retryMutation = useRetryJob();
+  const [confirmTerminate, setConfirmTerminate] = useState(false);
 
   const canTerminate = job.status === 'queued' || job.status === 'running';
   const canRetry = job.status === 'error' || job.status === 'terminated';
@@ -68,13 +71,9 @@ function ActionsCell({ job }: { job: QueueJob }) {
       {canTerminate && (
         <button
           type="button"
-          onClick={() => {
-            if (window.confirm(`Terminate "${job.name}"?`)) {
-              terminateMutation.mutate(job.id);
-            }
-          }}
+          onClick={() => setConfirmTerminate(true)}
           disabled={terminateMutation.isPending}
-          className="rounded px-2 py-0.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50"
+          className="rounded-md px-2 py-0.5 text-xs font-medium text-destructive transition-colors duration-150 hover:bg-destructive/10 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           Terminate
         </button>
@@ -84,11 +83,25 @@ function ActionsCell({ job }: { job: QueueJob }) {
           type="button"
           onClick={() => retryMutation.mutate(job.id)}
           disabled={retryMutation.isPending}
-          className="rounded px-2 py-0.5 text-xs text-primary hover:bg-blue-50 dark:hover:bg-blue-950 disabled:opacity-50"
+          className="rounded-md px-2 py-0.5 text-xs font-medium text-primary transition-colors duration-150 hover:bg-accent disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           Retry
         </button>
       )}
+      <ConfirmDialog
+        open={confirmTerminate}
+        onOpenChange={setConfirmTerminate}
+        title="Terminate job?"
+        description={`Force-terminate "${job.name}"? This will stop the job immediately.`}
+        confirmLabel="Terminate"
+        variant="destructive"
+        loading={terminateMutation.isPending}
+        onConfirm={() =>
+          terminateMutation.mutate(job.id, {
+            onSuccess: () => setConfirmTerminate(false),
+          })
+        }
+      />
     </div>
   );
 }
@@ -101,14 +114,14 @@ const columns: ColumnDef<QueueJob, unknown>[] = [
   {
     id: 'launchedByName',
     header: 'Launched By',
-    accessorFn: (row) => (row.launcher ? getDisplayName(row.launcher) : '\u2014'),
+    accessorFn: (row) => (row.launcher ? getDisplayName(row.launcher) : '—'),
   },
   {
     accessorKey: 'startedAt',
     header: 'Started Running',
     cell: ({ getValue }) => {
       const v = getValue<string | null>();
-      return v ? <span className="font-mono">{formatDateTime(v)}</span> : '\u2014';
+      return v ? <span className="font-mono tabular-nums">{formatDateTime(v)}</span> : '—';
     },
   },
   {
@@ -116,7 +129,7 @@ const columns: ColumnDef<QueueJob, unknown>[] = [
     header: 'Duration',
     cell: ({ getValue }) => {
       const v = getValue<number | null>();
-      return v != null ? <span className="font-mono">{formatDuration(v)}</span> : '\u2014';
+      return v != null ? <span className="font-mono tabular-nums">{formatDuration(v)}</span> : '—';
     },
   },
   {
@@ -160,22 +173,18 @@ export default function AnalysisQueuePage() {
   const jobs = data?.items ?? [];
   const total = data?.total ?? 0;
 
-  const totalPages = Math.ceil(total / PER_PAGE);
-  const rangeStart = total > 0 ? (page - 1) * PER_PAGE + 1 : 0;
-  const rangeEnd = Math.min(page * PER_PAGE, total);
-
   return (
-    <Card>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-lg font-semibold text-primary">Analysis Queue</h2>
-        <div className="flex items-center gap-3">
+    <div>
+      <PageHeader title="Analysis Queue" eyebrow="Jobs" />
+      <Card>
+        <div className="mb-4 flex flex-wrap items-center justify-end gap-3">
           <div className="relative">
             <input
               type="text"
               placeholder="Search..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className="rounded-md border border-border py-1.5 pl-8 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="rounded-md border border-input bg-card py-1.5 pl-8 pr-3 text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
             />
             <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           </div>
@@ -210,64 +219,30 @@ export default function AnalysisQueuePage() {
             </SelectContent>
           </Select>
         </div>
-      </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Spinner size="lg" />
-        </div>
-      ) : jobs.length === 0 ? (
-        <p className="py-12 text-center text-sm text-muted-foreground">No jobs found.</p>
-      ) : (
         <DataTable
           data={jobs}
           columns={columns}
-          pageSize={jobs.length}
+          isLoading={isLoading}
+          showPagination={false}
+          pageSize={jobs.length || PER_PAGE}
+          emptyMessage="No jobs found"
           onRowClick={(job) => {
             const tab = JOB_TYPE_TO_TAB[job.jobType] ?? 'files';
             navigate(`/experiments/${job.experimentId}/${tab}/${job.id}`);
           }}
         />
-      )}
 
-      {total > 0 && (
-        <div className="flex items-center justify-between border-t px-4 py-3 text-sm text-muted-foreground">
-          <span>Records per page: {PER_PAGE}</span>
-          <div className="flex items-center gap-2">
-            <span>
-              {rangeStart}-{rangeEnd} of {total}
-            </span>
-            <button
-              onClick={() => setPage(1)}
-              disabled={page === 1}
-              className="rounded p-1 hover:bg-muted disabled:opacity-30"
-            >
-              <ChevronsLeft className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="rounded p-1 hover:bg-muted disabled:opacity-30"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page >= totalPages}
-              className="rounded p-1 hover:bg-muted disabled:opacity-30"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setPage(totalPages)}
-              disabled={page >= totalPages}
-              className="rounded p-1 hover:bg-muted disabled:opacity-30"
-            >
-              <ChevronsRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      )}
-    </Card>
+        {total > 0 && (
+          <Pagination
+            className="mt-2 border-t border-border px-4"
+            page={page}
+            pageSize={PER_PAGE}
+            totalItems={total}
+            onPageChange={setPage}
+          />
+        )}
+      </Card>
+    </div>
   );
 }

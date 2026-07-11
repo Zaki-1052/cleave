@@ -16,6 +16,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { WizardModal } from '@/components/ui/WizardModal';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { cn } from '@/lib/cn';
 import { formatBytes } from '@/lib/utils';
 import {
@@ -188,7 +189,7 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
               if (e.key === 'Enter') handleBrowse(pathInput);
             }}
             placeholder="/data/rs_256/fastq"
-            className="w-full rounded-md border py-2 pl-10 pr-3 text-sm"
+            className="w-full rounded-md border border-input bg-card py-2 pl-10 pr-3 font-mono text-sm text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
           />
         </div>
         <Button
@@ -204,7 +205,7 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
       </div>
 
       {browseError && (
-        <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+        <div className="mb-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-foreground/80">
           {browseError}
         </div>
       )}
@@ -212,14 +213,14 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
       {hasBrowsed && (
         <>
           {/* Breadcrumb */}
-          <div className="mb-3 flex items-center gap-1 text-sm text-muted-foreground">
+          <div className="mb-3 flex items-center gap-1 font-mono text-sm text-muted-foreground">
             {pathSegments.map((seg, i) => (
               <span key={seg.path} className="flex items-center gap-1">
                 {i > 0 && <ChevronRight className="h-3 w-3" />}
                 <button
                   type="button"
                   onClick={() => handleNavigate(seg.path)}
-                  className="hover:text-foreground hover:underline"
+                  className="rounded transition-colors duration-150 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {seg.label}
                 </button>
@@ -231,13 +232,13 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
           </div>
 
           {/* File list */}
-          <div className="flex-1 overflow-y-auto rounded-md border">
+          <div className="flex-1 overflow-y-auto rounded-md border border-border">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-muted/50 text-left">
+                <tr className="border-b border-border bg-muted/50 text-left">
                   <th className="w-8 px-3 py-2" />
-                  <th className="px-3 py-2">Name</th>
-                  <th className="px-3 py-2 text-right">Size</th>
+                  <th className="px-3 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">Name</th>
+                  <th className="px-3 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Size</th>
                 </tr>
               </thead>
               <tbody>
@@ -248,9 +249,9 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
                     <tr
                       key={entry.path}
                       className={cn(
-                        'border-b transition-colors',
-                        entry.isDir && 'cursor-pointer hover:bg-muted/50',
-                        isFastq && 'cursor-pointer hover:bg-muted/50',
+                        'border-b border-border transition-colors duration-150',
+                        entry.isDir && 'cursor-pointer hover:bg-accent/50',
+                        isFastq && 'cursor-pointer hover:bg-accent/50',
                         !entry.isDir && !isFastq && 'opacity-40',
                       )}
                       onClick={() => {
@@ -265,21 +266,21 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
                             checked={isSelected}
                             onChange={() => toggleSelection(entry.path)}
                             onClick={(e) => e.stopPropagation()}
-                            className="rounded border-gray-300"
+                            className="rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           />
                         )}
                       </td>
                       <td className="px-3 py-2">
                         <span className="flex items-center gap-2">
                           {entry.isDir ? (
-                            <Folder className="h-4 w-4 text-amber-500" />
+                            <Folder className="h-4 w-4 text-muted-foreground" />
                           ) : (
                             <FileText className="h-4 w-4 text-muted-foreground" />
                           )}
                           {entry.name}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-right font-mono text-muted-foreground">
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-muted-foreground">
                         {entry.size != null ? formatBytes(entry.size) : ''}
                       </td>
                     </tr>
@@ -287,11 +288,8 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
                 })}
                 {entries.length === 0 && (
                   <tr>
-                    <td
-                      colSpan={3}
-                      className="px-3 py-8 text-center text-muted-foreground"
-                    >
-                      Directory is empty
+                    <td colSpan={3} className="p-4">
+                      <EmptyState icon={Folder} title="Directory is empty" />
                     </td>
                   </tr>
                 )}
@@ -306,13 +304,13 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
                 type="checkbox"
                 checked={useSymlink}
                 onChange={(e) => setUseSymlink(e.target.checked)}
-                className="rounded border-gray-300"
+                className="rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
               Create symlinks instead of copying files
             </label>
             {useSymlink && (
-              <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              <div className="flex items-start gap-2 rounded-md border border-warning/25 bg-warning/10 px-3 py-2 text-sm text-foreground/80">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
                 <span>
                   Symlinked files reference the original location. If source files
                   are moved or deleted, these links will break and downstream
@@ -324,13 +322,15 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
 
           {/* Selection summary */}
           <div className="mt-3 flex items-center justify-between text-sm">
-            <Button variant="outlined" size="sm" onClick={handleSelectAll}>
+            <Button variant="outline" size="sm" onClick={handleSelectAll}>
               Select All FASTQs
             </Button>
             <span className="text-muted-foreground">
-              {selectedPaths.size} file{selectedPaths.size !== 1 ? 's' : ''}{' '}
+              <span className="font-mono tabular-nums">{selectedPaths.size}</span> file{selectedPaths.size !== 1 ? 's' : ''}{' '}
               selected
-              {selectedSize > 0 && ` (${formatBytes(selectedSize)})`}
+              {selectedSize > 0 && (
+                <span className="font-mono tabular-nums">{` (${formatBytes(selectedSize)})`}</span>
+              )}
             </span>
           </div>
         </>
@@ -356,7 +356,7 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
                 {importProgress.status === 'complete' && 'Import complete'}
                 {importProgress.status === 'error' && 'Import failed'}
               </span>
-              <span className="text-muted-foreground">
+              <span className="font-mono tabular-nums text-muted-foreground">
                 {importProgress.completedCount}/{importProgress.totalCount}
               </span>
             </div>
@@ -365,7 +365,7 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
                 className={cn(
                   'h-full rounded-full transition-all',
                   importProgress.status === 'error'
-                    ? 'bg-red-500'
+                    ? 'bg-destructive'
                     : 'bg-primary',
                 )}
                 style={{
@@ -376,7 +376,7 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
           </div>
 
           {importProgress.error && (
-            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+            <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-foreground/80">
               {importProgress.error}
             </div>
           )}
@@ -386,7 +386,7 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
             {importProgress.files.map((f) => (
               <div
                 key={f.remotePath}
-                className="flex items-center gap-3 rounded-md border px-3 py-2"
+                className="flex items-center gap-3 rounded-md border border-border px-3 py-2"
               >
                 {f.status === 'pending' && (
                   <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30" />
@@ -395,14 +395,14 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
                   <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 )}
                 {f.status === 'complete' && (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                 )}
                 {f.status === 'error' && (
-                  <XCircle className="h-4 w-4 text-red-500" />
+                  <XCircle className="h-4 w-4 text-destructive" />
                 )}
 
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm">{f.filename}</div>
+                  <div className="truncate font-mono text-sm">{f.filename}</div>
                   {f.status === 'downloading' && f.bytesTotal && (
                     <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted">
                       <div
@@ -414,11 +414,11 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
                     </div>
                   )}
                   {f.error && (
-                    <div className="mt-1 text-xs text-red-500">{f.error}</div>
+                    <div className="mt-1 text-xs text-destructive">{f.error}</div>
                   )}
                 </div>
 
-                <span className="shrink-0 text-xs text-muted-foreground">
+                <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
                   {f.status === 'downloading' && f.bytesTotal
                     ? `${formatBytes(f.bytesDownloaded)} / ${formatBytes(f.bytesTotal)}`
                     : ''}
@@ -447,10 +447,10 @@ export function LocalImportModal({ experimentId, isOpen, onClose }: Props) {
       onBack={() => {}}
       onSubmit={() => {}}
       renderFooter={({ onClose: closeWizard }) => (
-        <div className="flex shrink-0 items-center justify-between border-t px-6 py-4">
+        <div className="flex shrink-0 items-center justify-between border-t border-border px-6 py-4">
           <button
             onClick={closeWizard}
-            className="text-sm text-muted-foreground hover:text-foreground"
+            className="rounded text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {isImportDone ? 'Close' : 'Cancel'}
           </button>

@@ -130,13 +130,13 @@ export function ProjectFilters({ initialFilters, onApply, onClear }: ProjectFilt
 
   return (
     <Card>
-      <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <h2 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
         Projects Filters
       </h2>
 
       {/* Status Filter */}
       <Collapsible defaultOpen>
-        <CollapsibleTrigger className="flex w-full items-center justify-between py-1 text-xs font-semibold uppercase tracking-wide text-foreground">
+        <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md py-1 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           Status
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform [[data-state=open]>&]:rotate-180" />
         </CollapsibleTrigger>
@@ -162,7 +162,7 @@ export function ProjectFilters({ initialFilters, onApply, onClear }: ProjectFilt
 
       {/* Members Filter */}
       <Collapsible defaultOpen>
-        <CollapsibleTrigger className="flex w-full items-center justify-between py-1 text-xs font-semibold uppercase tracking-wide text-foreground">
+        <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md py-1 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           Members
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform [[data-state=open]>&]:rotate-180" />
         </CollapsibleTrigger>
@@ -174,7 +174,7 @@ export function ProjectFilters({ initialFilters, onApply, onClear }: ProjectFilt
                 placeholder="Search members..."
                 value={memberSearch}
                 onChange={(e) => setMemberSearch(e.target.value)}
-                className="w-full rounded-md border border-input bg-background py-1.5 pl-7 pr-2 text-xs text-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-input bg-background py-1.5 pl-7 pr-2 text-xs text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25"
               />
               <Search className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
             </div>
@@ -205,7 +205,7 @@ export function ProjectFilters({ initialFilters, onApply, onClear }: ProjectFilt
 
       {/* Created Filter */}
       <Collapsible defaultOpen>
-        <CollapsibleTrigger className="flex w-full items-center justify-between py-1 text-xs font-semibold uppercase tracking-wide text-foreground">
+        <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md py-1 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           Created
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform [[data-state=open]>&]:rotate-180" />
         </CollapsibleTrigger>
@@ -218,7 +218,7 @@ export function ProjectFilters({ initialFilters, onApply, onClear }: ProjectFilt
                   name="created-filter"
                   checked={dateMode === mode}
                   onChange={() => setDateMode(dateMode === mode ? '' : mode)}
-                  className="h-3.5 w-3.5 accent-primary"
+                  className="h-3.5 w-3.5 accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
                 <span className="text-foreground">
                   {mode === 'today' ? 'Today' : mode === 'this_week' ? 'This Week' : 'Custom'}
@@ -265,8 +265,8 @@ function DatePickerField({
         <button
           type="button"
           className={cn(
-            'flex w-full items-center justify-between rounded-md border border-input bg-background px-2 py-1.5 text-xs transition-colors hover:bg-muted/50',
-            value ? 'text-foreground' : 'text-muted-foreground',
+            'flex w-full items-center justify-between rounded-md border border-input bg-background px-2 py-1.5 text-xs transition-colors duration-150 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            value ? 'font-mono tabular-nums text-foreground' : 'text-muted-foreground',
           )}
         >
           {value ? format(value, 'MMM d, yyyy') : label}

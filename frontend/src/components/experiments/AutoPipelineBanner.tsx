@@ -7,6 +7,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
 import { cancelAutoPipeline, dismissAutoPipeline, retryAutoPipeline } from '@/api/autoPipeline';
 import { useJobs } from '@/hooks/useJobs';
+import { cn } from '@/lib/cn';
 import type { AnalysisJob, Experiment } from '@/api/types';
 
 interface AutoPipelineBannerProps {
@@ -49,6 +50,15 @@ const STEP_LABELS: Record<string, string> = {
 };
 
 type StepState = 'complete' | 'running' | 'queued' | 'error' | 'pending';
+
+// Status-token tints mirroring StatusBadge, keyed by step state.
+const STEP_TINTS: Record<StepState, string> = {
+  complete: 'bg-status-complete/10 text-status-complete-foreground ring-status-complete/25',
+  running: 'bg-status-running/10 text-status-running-foreground ring-status-running/30',
+  queued: 'bg-status-queued/10 text-status-queued-foreground ring-status-queued/25',
+  error: 'bg-status-error/10 text-status-error-foreground ring-status-error/30',
+  pending: 'bg-muted text-muted-foreground ring-border',
+};
 
 export function AutoPipelineBanner({
   experiment,
@@ -128,10 +138,10 @@ export function AutoPipelineBanner({
   const isPending = status === 'pending_fastqc';
 
   const bgColor = isError
-    ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
+    ? 'border-destructive/30 bg-destructive/10 border-l-2 border-l-destructive'
     : isCancelled
-      ? 'bg-muted border-border'
-      : 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800';
+      ? 'border-border bg-muted'
+      : 'border-info/25 bg-info/10 border-l-2 border-l-primary';
 
   async function handleCancel() {
     try {
@@ -186,17 +196,17 @@ export function AutoPipelineBanner({
         </div>
         <div className="flex items-center gap-2">
           {isError && (
-            <Button variant="outlined" onClick={handleRetry} disabled={isRetrying}>
+            <Button variant="outline" onClick={handleRetry} disabled={isRetrying}>
               {isRetrying ? 'Retrying...' : 'Retry'}
             </Button>
           )}
           {isCancelled && (
-            <Button variant="outlined" onClick={handleDismiss}>
+            <Button variant="outline" onClick={handleDismiss}>
               Dismiss
             </Button>
           )}
           {(isRunning || isPending) && (
-            <Button variant="outlined" onClick={handleCancel}>
+            <Button variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
           )}
@@ -210,26 +220,19 @@ export function AutoPipelineBanner({
               {i > 0 && (
                 <div className="mx-1 h-px w-4 bg-border" />
               )}
-              <div
-                className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-                  step.state === 'complete'
-                    ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
-                    : step.state === 'running'
-                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                      : step.state === 'error'
-                        ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
-                        : step.state === 'queued'
-                          ? 'bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400'
-                          : 'bg-muted text-muted-foreground'
-                }`}
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-mono text-[11px] font-medium tracking-wide ring-1 ring-inset',
+                  STEP_TINTS[step.state],
+                )}
               >
                 {step.state === 'complete' && <Check className="h-3 w-3" />}
                 {step.state === 'running' && (
-                  <Spinner size="sm" className="text-blue-500" />
+                  <Spinner size="sm" className="h-3 w-3 text-status-running-foreground" />
                 )}
                 {step.state === 'error' && <X className="h-3 w-3" />}
                 {step.label}
-              </div>
+              </span>
             </div>
           ))}
         </div>

@@ -1,7 +1,6 @@
 // frontend/src/components/trimming/FastpReportsPanel.tsx
 import { type ColumnDef } from '@tanstack/react-table';
 import { FileText } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
 import { useMemo, useState } from 'react';
 
 import type { JobOutput } from '@/api/types';
@@ -40,6 +39,7 @@ export function FastpReportsPanel({ jobId }: FastpReportsPanelProps) {
         cell: ({ row }) => (
           <Button
             variant="outlined"
+            size="sm"
             onClick={() =>
               setSelectedOutput({ id: row.original.id, filename: row.original.filename })
             }
@@ -55,39 +55,27 @@ export function FastpReportsPanel({ jobId }: FastpReportsPanelProps) {
     [],
   );
 
-  if (isLoading) {
+  if (!isLoading && (!outputs || outputs.length === 0)) {
     return (
-      <Card>
-        <div className="flex h-20 items-center justify-center">
-          <Spinner />
-        </div>
-      </Card>
-    );
-  }
-
-  if (!outputs || outputs.length === 0) {
-    return (
-      <Card>
-        <EmptyState
-          icon={FileText}
-          title="No fastp reports"
-          description="fastp HTML reports will appear here after trimming completes."
-        />
-      </Card>
+      <EmptyState
+        icon={FileText}
+        title="No fastp reports"
+        description="fastp HTML reports will appear here after trimming completes."
+      />
     );
   }
 
   return (
     <>
       <Card>
-        <h4 className="mb-3 font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <h4 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
           fastp Quality Reports
         </h4>
         <p className="mb-4 text-xs text-muted-foreground">
           Click &quot;View Report&quot; to open the interactive fastp HTML report for each sample
           pair.
         </p>
-        <DataTable data={outputs} columns={columns} pageSize={25} />
+        <DataTable data={outputs ?? []} columns={columns} pageSize={25} isLoading={isLoading} />
       </Card>
 
       <FastpReportModal

@@ -1,6 +1,5 @@
 // frontend/src/pages/experiment/DiffBindTab.tsx
-import { ArrowLeftRight } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
+import { ArrowLeftRight, FileText, LineChart, Table2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import type { Experiment } from '@/api/types';
@@ -11,6 +10,7 @@ import { DiffBindPlotsPanel } from '@/components/diffbind/DiffBindPlotsPanel';
 import { DiffBindResultsPanel } from '@/components/diffbind/DiffBindResultsPanel';
 import { Card } from '@/components/layout/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useJob, useJobs } from '@/hooks/useJobs';
@@ -44,23 +44,33 @@ export default function DiffBindTab() {
 
   if (isLoading) {
     return (
-      <Card>
-        <div className="flex h-40 items-center justify-center">
-          <Spinner size="lg" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-9 w-[220px] rounded-md" />
+          </div>
+          <Skeleton className="h-6 w-24 rounded-full" />
         </div>
-      </Card>
+        <div className="flex gap-2 border-b border-border pb-px">
+          {Array.from({ length: SUB_TABS.length }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-16" />
+          ))}
+        </div>
+        <Card>
+          <Skeleton className="h-40 w-full" />
+        </Card>
+      </div>
     );
   }
 
   if (diffBindJobs.length === 0) {
     return (
-      <Card>
-        <EmptyState
-          icon={ArrowLeftRight}
-          title="No DiffBind runs yet"
-          description='Click "New Analysis" above to create a DiffBind differential analysis.'
-        />
-      </Card>
+      <EmptyState
+        icon={ArrowLeftRight}
+        title="No DiffBind runs yet"
+        description='Click "New Analysis" above to create a DiffBind differential analysis.'
+      />
     );
   }
 
@@ -69,7 +79,7 @@ export default function DiffBindTab() {
       {/* Job selector + status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="font-display text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             DiffBind
           </span>
           <Select value={String(activeJobId ?? '')} onValueChange={(val) => navigate(`/experiments/${id}/diffbind/${val}`)}>
@@ -93,10 +103,10 @@ export default function DiffBindTab() {
             <button
               key={tab.key}
               onClick={() => setActiveSubTab(tab.key)}
-              className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
+              className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors duration-150 ${
                 activeSubTab === tab.key
-                  ? 'border-b-2 border-primary text-primary bg-primary/5 rounded-t-md'
-                  : 'text-muted-foreground hover:text-foreground rounded-t-md hover:bg-muted/50'
+                  ? 'border-b-2 border-primary bg-primary/5 text-primary'
+                  : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
               }`}
             >
               {tab.label}
@@ -114,11 +124,11 @@ export default function DiffBindTab() {
         job.status === 'complete' ? (
           <DiffBindResultsPanel jobId={job.id} />
         ) : (
-          <Card>
-            <p className="text-sm text-muted-foreground">
-              Results will be available when the DiffBind analysis completes.
-            </p>
-          </Card>
+          <EmptyState
+            icon={Table2}
+            title="Results not available yet"
+            description="Results will be available when the DiffBind analysis completes."
+          />
         )
       )}
 
@@ -126,11 +136,11 @@ export default function DiffBindTab() {
         job.status === 'complete' ? (
           <DiffBindPlotsPanel jobId={job.id} />
         ) : (
-          <Card>
-            <p className="text-sm text-muted-foreground">
-              Plots will be available when the DiffBind analysis completes.
-            </p>
-          </Card>
+          <EmptyState
+            icon={LineChart}
+            title="Plots not available yet"
+            description="Plots will be available when the DiffBind analysis completes."
+          />
         )
       )}
 
@@ -138,11 +148,11 @@ export default function DiffBindTab() {
         job.status === 'complete' ? (
           <DiffBindFilesPanel jobId={job.id} />
         ) : (
-          <Card>
-            <p className="text-sm text-muted-foreground">
-              Files will be available when the DiffBind analysis completes.
-            </p>
-          </Card>
+          <EmptyState
+            icon={FileText}
+            title="Files not available yet"
+            description="Files will be available when the DiffBind analysis completes."
+          />
         )
       )}
     </div>

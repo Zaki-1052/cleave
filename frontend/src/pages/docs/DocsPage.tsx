@@ -11,7 +11,7 @@ export default function DocsPage() {
   if (!slug || !DOCS_CONTENT[slug]) {
     return (
       <Card>
-        <h1 className="font-display text-xl font-bold text-foreground">Page Not Found</h1>
+        <h1 className="font-display text-xl font-semibold text-foreground">Page Not Found</h1>
         <p className="mt-2 text-muted-foreground">
           The documentation page you&apos;re looking for doesn&apos;t exist.
         </p>
