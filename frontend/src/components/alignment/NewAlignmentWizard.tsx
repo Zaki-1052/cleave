@@ -77,7 +77,7 @@ export function NewAlignmentWizard({
     isTrainingProject ? null : true,
   );
   const [bamCoverageBinSize, setBamCoverageBinSize] = useState(20);
-  const [smoothedBinSize, setSmoothedBinSize] = useState(100);
+  const [smoothedBinSize, setSmoothedBinSize] = useState(50);
 
   // Error
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -95,7 +95,7 @@ export function NewAlignmentWizard({
     setRemoveDuplicates(isTrainingProject ? null : true);
     setRemoveDacExclusion(isTrainingProject ? null : true);
     setBamCoverageBinSize(20);
-    setSmoothedBinSize(100);
+    setSmoothedBinSize(50);
     setSubmitError(null);
     createJobMutation.reset();
   }

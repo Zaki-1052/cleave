@@ -553,7 +553,7 @@ kseq_test <paired_input> 42 <output>
 7. `samtools view -bh -F 1024` (duplicate removal, optional)
 8. `samtools index`
 9. `bamCoverage --binSize 20 --normalizeUsing RPKM --effectiveGenomeSize <size>` (unsmoothed bigWig)
-10. `bamCoverage --binSize 100 --normalizeUsing RPKM` (smoothed bigWig)
+10. `bamCoverage --binSize 50 --normalizeUsing RPKM` (smoothed bigWig)
 11. `computeMatrix reference-point --referencePoint TSS` + `plotHeatmap` (TSS heatmap)
 12. `computeMatrix scale-regions` + `plotHeatmap` (gene body heatmap)
 13. E. coli spike-in alignment + K-MetStat barcode counting (optional)

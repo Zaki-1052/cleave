@@ -68,7 +68,7 @@ export function NewRnaseqAlignmentWizard({
     isTrainingProject ? null : false,
   );
   const [bamCoverageBinSize, setBamCoverageBinSize] = useState(20);
-  const [smoothedBinSize, setSmoothedBinSize] = useState(100);
+  const [smoothedBinSize, setSmoothedBinSize] = useState(50);
 
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -84,7 +84,7 @@ export function NewRnaseqAlignmentWizard({
     setReferenceGenome('');
     setRemoveDuplicates(isTrainingProject ? null : false);
     setBamCoverageBinSize(20);
-    setSmoothedBinSize(100);
+    setSmoothedBinSize(50);
     setSubmitError(null);
     createJobMutation.reset();
   }

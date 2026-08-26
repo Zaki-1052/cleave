@@ -500,7 +500,7 @@ async def _queue_rnaseq_alignment(
         "reference_genome": config["reference_genome"],
         "remove_duplicates": config.get("remove_duplicates", False),
         "bam_coverage_bin_size": 20,
-        "smoothed_bin_size": 100,
+        "smoothed_bin_size": 50,
         "reactions": reaction_params,
     }
     await _create_auto_job(
@@ -682,7 +682,7 @@ async def _queue_alignment(
         "remove_dac_exclusion": True,
         "blacklist_source": "both",
         "bam_coverage_bin_size": 20,
-        "smoothed_bin_size": 100,
+        "smoothed_bin_size": 50,
         "reactions": reaction_params,
     }
     await _create_auto_job(

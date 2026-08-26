@@ -854,7 +854,7 @@ class AlignmentStage(PipelineStage):
         remove_dups = params.get("remove_duplicates", True)
         remove_dac = params.get("remove_dac_exclusion", True)
         bin_size = params.get("bam_coverage_bin_size", 20)
-        smoothed_bin_size = params.get("smoothed_bin_size", 100)
+        smoothed_bin_size = params.get("smoothed_bin_size", 50)
         total_threads = get_threads()
 
         # Resolve tool paths

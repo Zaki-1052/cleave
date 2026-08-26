@@ -151,7 +151,7 @@ def alignment_methods(params: dict) -> str:
     remove_dups = params.get("remove_duplicates", True)
     remove_dac = params.get("remove_dac_exclusion", True)
     bin_size = params.get("bam_coverage_bin_size", 20)
-    smoothed_bin_size = params.get("smoothed_bin_size", 100)
+    smoothed_bin_size = params.get("smoothed_bin_size", 50)
     eff_size = EFFECTIVE_GENOME_SIZES.get(genome, 0)
 
     text = (
@@ -265,7 +265,7 @@ def rnaseq_alignment_methods(params: dict) -> str:
     genome = params.get("reference_genome", "mm10")
     genome_display = GENOME_DISPLAY_NAMES.get(genome, genome)
     bin_size = params.get("bam_coverage_bin_size", 20)
-    smoothed_bin_size = params.get("smoothed_bin_size", 100)
+    smoothed_bin_size = params.get("smoothed_bin_size", 50)
     eff_size = EFFECTIVE_GENOME_SIZES.get(genome, 0)
     remove_dups = params.get("remove_duplicates", False)
 

@@ -308,7 +308,7 @@ For each selected reaction, Cleave runs:
 7. **SAMtools** duplicate removal (optional, default ON)
 8. **SAMtools** BAM indexing
 9. **deepTools bamCoverage** unsmoothed bigWig (20bp bins, RPKM-normalized)
-10. **deepTools bamCoverage** smoothed bigWig (100bp bins, RPKM-normalized)
+10. **deepTools bamCoverage** smoothed bigWig (50bp bins, RPKM-normalized)
 11. **deepTools computeMatrix + plotHeatmap** TSS enrichment heatmap
 12. **deepTools computeMatrix + plotHeatmap** gene body enrichment heatmap
 13. **E. coli spike-in alignment** + K-MetStat barcode counting (if spike-in enabled)
@@ -322,7 +322,7 @@ Reactions are processed **in parallel** using a thread pool for maximum throughp
 | Remove Duplicate Reads | On | Filters PCR/optical duplicates via Picard MarkDuplicates. |
 | Remove ENCODE DAC Exclusion List Regions | On | Filters reads in known false-positive regions via BEDTools. |
 | Unsmoothed bigWig Bin Size | 20 bp | Bin size for heatmap-quality bigWigs. |
-| Smoothed bigWig Bin Size | 100 bp | Bin size for IGV visualization bigWigs. |
+| Smoothed bigWig Bin Size | 50 bp | Bin size for IGV visualization bigWigs. |
 
 #### Alignment Outputs
 
@@ -333,7 +333,7 @@ Reactions are processed **in parallel** using a thread pool for maximum throughp
 | **Unique BAM Files** | Final high-quality BAMs after all filtering. Primary input for peak calling. |
 | **BAI Index Files** | BAM index files for genome browser loading. |
 | **Unsmoothed bigWig Files** | RPKM-normalized, 20bp bins. Used for heatmaps and quantitative analysis. |
-| **Smoothed bigWig Files** | RPKM-normalized, 100bp bins. Used for IGV visualization. |
+| **Smoothed bigWig Files** | RPKM-normalized, 50bp bins. Used for IGV visualization. |
 | **TSS Heatmaps** | Enrichment around transcription start sites (PNG). |
 | **Gene Body Heatmaps** | Enrichment across gene bodies (PNG). |
 | **FastQC Reports** | Regenerated per-reaction quality reports. |
@@ -754,7 +754,7 @@ This text is designed for **direct copy-paste into manuscript Methods sections**
 | **Reaction** | A single CUT&RUN or CUT&Tag sample, identified by its FASTQ Prefix. |
 | **FASTQ Prefix** | The shared portion of R1/R2 filenames that uniquely identifies a reaction. |
 | **Unique BAM** | Final filtered BAM -- uniquely aligned reads after duplicate, multi-map, and exclusion list removal. |
-| **bigWig** | Compact format for continuous genomic data, RPKM-normalized. Smoothed (100bp) for IGV, unsmoothed (20bp) for heatmaps. |
+| **bigWig** | Compact format for continuous genomic data, RPKM-normalized. Smoothed (50bp) for IGV, unsmoothed (20bp) for heatmaps. |
 | **BED file** | Tab-delimited file defining genomic regions (chromosome, start, end). Used for peak coordinates. |
 | **FRiP** | Fraction of Reads in Peaks -- ratio of reads in significant peaks to total reads. >0.2 is high quality. |
 | **MACS2** | Peak caller for narrow/sharp enrichment (q-value 0.01 default) and broad mode (cutoff 0.1). |
@@ -834,7 +834,7 @@ This walkthrough covers a typical CUT&RUN experiment with H3K4me3 target samples
 4. **Step 3**: Verify reference genome (mm10 for mouse). Review Advanced Settings:
    - Remove Duplicate Reads: ON (recommended).
    - Remove ENCODE DAC Exclusion List: ON (recommended).
-   - Bin sizes: 20bp (unsmoothed), 100bp (smoothed) -- defaults are fine.
+   - Bin sizes: 20bp (unsmoothed), 50bp (smoothed) -- defaults are fine.
 5. Click **Submit**. Alignment typically takes 30-90 minutes depending on read count.
 
 #### Step 7: Review Alignment QC
